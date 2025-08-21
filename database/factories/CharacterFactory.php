@@ -32,6 +32,7 @@ class CharacterFactory extends Factory
             'character_key' => Character::generateUniqueKey(),
             'user_id' => null, // Can be set with ->for(User::factory())
             'name' => $this->faker->firstName(),
+            'pronouns' => $this->faker->randomElement(['he/him', 'she/her', 'they/them', 'xe/xem', null]),
             'class' => $selectedClass,
             'subclass' => $this->getRandomSubclass($selectedClass),
             'ancestry' => $this->faker->randomElement($ancestries),

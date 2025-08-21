@@ -11,7 +11,13 @@ class LoadCharacterAction
 {
     public function execute(string $character_key): ?CharacterBuilderData
     {
+        // Try to find by character_key first
         $character = Character::where('character_key', $character_key)->first();
+
+        // If not found, try to find by public_key
+        if (! $character) {
+            $character = Character::where('public_key', $character_key)->first();
+        }
 
         if (! $character) {
             return null;
@@ -65,9 +71,9 @@ class LoadCharacterAction
         $manual_step_completions = $character_data['manualStepCompletions'] ?? [];
 
         return new CharacterBuilderData(
-            name: $character->name,
             character_key: $character->character_key,
-            pronouns: $character_data['pronouns'] ?? null,
+            public_key: $character->public_key,
+            name: $character->name,
             selected_class: $character->class,
             selected_subclass: $character->subclass,
             selected_ancestry: $character->ancestry,

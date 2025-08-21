@@ -20,8 +20,10 @@ class Character extends Model
 
     protected $fillable = [
         'character_key',
+        'public_key',
         'user_id',
         'name',
+        'pronouns',
         'class',
         'subclass',
         'ancestry',
@@ -47,7 +49,7 @@ class Character extends Model
     ];
 
     /**
-     * Generate a unique 8-character key for sharing
+     * Generate unique keys for sharing and public access
      */
     protected static function boot(): void
     {
@@ -57,21 +59,40 @@ class Character extends Model
             if (empty($character->character_key)) {
                 $character->character_key = static::generateUniqueKey();
             }
+            if (empty($character->public_key)) {
+                $character->public_key = static::generateUniquePublicKey();
+            }
         });
     }
 
     /**
-     * Generate a unique 8-character key
+     * Generate a unique 10-character key for character identification
      */
     public static function generateUniqueKey(): string
     {
         do {
             $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             $key = '';
-            for ($i = 0; $i < 8; $i++) {
+            for ($i = 0; $i < 10; $i++) {
                 $key .= $characters[random_int(0, strlen($characters) - 1)];
             }
         } while (static::where('character_key', $key)->exists());
+
+        return $key;
+    }
+
+    /**
+     * Generate a unique 10-character public key for sharing
+     */
+    public static function generateUniquePublicKey(): string
+    {
+        do {
+            $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $key = '';
+            for ($i = 0; $i < 10; $i++) {
+                $key .= $characters[random_int(0, strlen($characters) - 1)];
+            }
+        } while (static::where('public_key', $key)->exists());
 
         return $key;
     }
@@ -203,11 +224,19 @@ class Character extends Model
     }
 
     /**
-     * Get the character's sharing URL
+     * Get the character's private sharing URL (for character owner)
      */
     public function getShareUrl(): string
     {
-        return route('character.show', ['characterKey' => $this->character_key]);
+        return route('character.show', ['character_key' => $this->character_key]);
+    }
+
+    /**
+     * Get the character's public sharing URL (for public viewing)
+     */
+    public function getPublicShareUrl(): string
+    {
+        return route('character.show', ['character_key' => $this->public_key]);
     }
 
     /**
@@ -232,6 +261,14 @@ class Character extends Model
     public function scopeByAncestry($query, string $ancestry)
     {
         return $query->where('ancestry', $ancestry);
+    }
+
+    /**
+     * Scope for finding character by public key
+     */
+    public function scopeByPublicKey($query, string $publicKey)
+    {
+        return $query->where('public_key', $publicKey);
     }
 
     /**

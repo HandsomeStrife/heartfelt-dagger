@@ -53,11 +53,11 @@ class LoadCharacterActionTest extends TestCase
 
         $this->assertInstanceOf(CharacterBuilderData::class, $result);
         $this->assertEquals('Test Hero', $result->name);
-        $this->assertEquals('warrior', $result->selectedClass);
-        $this->assertEquals('call-of-the-brave', $result->selectedSubclass);
-        $this->assertEquals('human', $result->selectedAncestry);
-        $this->assertEquals('order-of-scholars', $result->selectedCommunity);
-        $this->assertEquals('hero.jpg', $result->profileImagePath);
+        $this->assertEquals('warrior', $result->selected_class);
+        $this->assertEquals('call-of-the-brave', $result->selected_subclass);
+        $this->assertEquals('human', $result->selected_ancestry);
+        $this->assertEquals('order-of-scholars', $result->selected_community);
+        $this->assertEquals('hero.jpg', $result->profile_image_path);
     }
 
     #[Test]
@@ -76,10 +76,10 @@ class LoadCharacterActionTest extends TestCase
 
         $this->assertInstanceOf(CharacterBuilderData::class, $result);
         $this->assertNull($result->name);
-        $this->assertNull($result->selectedClass);
-        $this->assertNull($result->selectedSubclass);
-        $this->assertNull($result->selectedAncestry);
-        $this->assertNull($result->selectedCommunity);
+        $this->assertNull($result->selected_class);
+        $this->assertNull($result->selected_subclass);
+        $this->assertNull($result->selected_ancestry);
+        $this->assertNull($result->selected_community);
     }
 
     #[Test]
@@ -101,7 +101,7 @@ class LoadCharacterActionTest extends TestCase
 
         $result = $this->action->execute('ABC12345');
 
-        $this->assertEquals(['agility' => 2, 'strength' => -1], $result->assignedTraits);
+        $this->assertEquals(['agility' => 2, 'strength' => -1], $result->assigned_traits);
     }
 
     #[Test]
@@ -118,10 +118,10 @@ class LoadCharacterActionTest extends TestCase
 
         $result = $this->action->execute('ABC12345');
 
-        $this->assertCount(1, $result->selectedEquipment);
-        $this->assertEquals('shortsword', $result->selectedEquipment[0]['key']);
-        $this->assertEquals('weapon', $result->selectedEquipment[0]['type']);
-        $this->assertEquals(['damage' => '1d6'], $result->selectedEquipment[0]['data']);
+        $this->assertCount(1, $result->selected_equipment);
+        $this->assertEquals('shortsword', $result->selected_equipment[0]['key']);
+        $this->assertEquals('weapon', $result->selected_equipment[0]['type']);
+        $this->assertEquals(['damage' => '1d6'], $result->selected_equipment[0]['data']);
     }
 
     #[Test]
@@ -138,10 +138,10 @@ class LoadCharacterActionTest extends TestCase
 
         $result = $this->action->execute('ABC12345');
 
-        $this->assertCount(1, $result->selectedDomainCards);
-        $this->assertEquals('blade', $result->selectedDomainCards[0]['domain']);
-        $this->assertEquals('strike', $result->selectedDomainCards[0]['ability_key']);
-        $this->assertEquals(1, $result->selectedDomainCards[0]['ability_level']);
+        $this->assertCount(1, $result->selected_domain_cards);
+        $this->assertEquals('blade', $result->selected_domain_cards[0]['domain']);
+        $this->assertEquals('strike', $result->selected_domain_cards[0]['ability_key']);
+        $this->assertEquals(1, $result->selected_domain_cards[0]['ability_level']);
     }
 
     #[Test]
@@ -181,8 +181,8 @@ class LoadCharacterActionTest extends TestCase
 
         $result = $this->action->execute('ABC12345');
 
-        $this->assertEquals(['Answer 1', 'Answer 2', 'Answer 3'], $result->backgroundAnswers);
-        $this->assertEquals(['Connection 1', 'Connection 2'], $result->connectionAnswers);
+        $this->assertEquals(['Answer 1', 'Answer 2', 'Answer 3'], $result->background_answers);
+        $this->assertEquals(['Connection 1', 'Connection 2'], $result->connection_answers);
     }
 
     #[Test]
@@ -195,8 +195,8 @@ class LoadCharacterActionTest extends TestCase
 
         $result = $this->action->execute('ABC12345');
 
-        $this->assertEquals([], $result->backgroundAnswers);
-        $this->assertEquals([], $result->connectionAnswers);
+        $this->assertEquals([], $result->background_answers);
+        $this->assertEquals([], $result->connection_answers);
     }
 
     #[Test]
@@ -211,7 +211,7 @@ class LoadCharacterActionTest extends TestCase
 
         $this->assertInstanceOf(CharacterBuilderData::class, $result);
         $this->assertEquals('Test Hero by ID', $result->name);
-        $this->assertEquals('ranger', $result->selectedClass);
+        $this->assertEquals('ranger', $result->selected_class);
     }
 
     #[Test]

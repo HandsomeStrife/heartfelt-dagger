@@ -28,8 +28,8 @@ class CharacterBuilder extends Component
     // Browser Storage Key
     public string $storage_key;
 
-    // Workaround for pronouns field Livewire issue
-    public ?string $character_pronouns = null;
+    // Direct pronouns field (now stored as database column)
+    public ?string $pronouns = null;
 
     // Game Data
     public array $game_data = [];
@@ -65,8 +65,9 @@ class CharacterBuilder extends Component
         $this->character = $character_data;
         $this->storage_key = $characterKey;
         
-        // Initialize the pronouns workaround
-        $this->character_pronouns = $this->character->pronouns;
+        // Load the character model to get pronouns from database
+        $character_model = Character::where('character_key', $characterKey)->first();
+        $this->pronouns = $character_model->pronouns ?? null;
         
         $this->updateCompletedSteps();
         $this->loadGameData();
@@ -104,11 +105,6 @@ class CharacterBuilder extends Component
 
     public function selectClass(?string $class_key): void
     {
-        // Preserve pronouns from workaround property before any operations
-        if ($this->character_pronouns !== null) {
-            $this->character->pronouns = $this->character_pronouns;
-        }
-
         // Only reset the fields that should change when class changes
         $this->character->assigned_traits = [];
         $this->character->selected_equipment = [];
@@ -128,11 +124,6 @@ class CharacterBuilder extends Component
 
     public function selectSubclass(string $subclass_key): void
     {
-        // Preserve pronouns from workaround property before any operations
-        if ($this->character_pronouns !== null) {
-            $this->character->pronouns = $this->character_pronouns;
-        }
-
         // Only reset the fields that should change when subclass changes
         $this->character->assigned_traits = [];
         $this->character->selected_equipment = [];
@@ -188,15 +179,9 @@ class CharacterBuilder extends Component
 
     public function updatePronouns(string $pronouns): void
     {
-        $this->character->pronouns = $pronouns;
-        $this->character_pronouns = $pronouns;
+        $this->pronouns = $pronouns;
         $this->saveToDatabase();
         $this->dispatch('character-updated', $this->character);
-    }
-
-    public function updatedCharacterPronouns(): void
-    {
-        $this->character->pronouns = $this->character_pronouns;
     }
 
     public function updatedProfileImage(): void
@@ -645,11 +630,6 @@ class CharacterBuilder extends Component
      */
     private function saveAndUpdateState(): void
     {
-        // Sync pronouns from workaround property before saving
-        if ($this->character_pronouns !== null) {
-            $this->character->pronouns = $this->character_pronouns;
-        }
-        
         $this->updateCompletedSteps();
         $this->saveToDatabase();
         $this->dispatch('character-updated', $this->character);
@@ -663,14 +643,15 @@ class CharacterBuilder extends Component
 
             // Update it using the SaveCharacterAction
             $action = new SaveCharacterAction;
-            $updated_character = $action->updateCharacter($character, $this->character);
+            $updated_character = $action->updateCharacter($character, $this->character, $this->pronouns);
 
             // Reload the character data to ensure consistency
             $load_action = new LoadCharacterAction;
             $this->character = $load_action->execute($this->storage_key);
             
-            // Sync the pronouns workaround property
-            $this->character_pronouns = $this->character->pronouns;
+            // Reload pronouns from database
+            $character_model = Character::where('character_key', $this->storage_key)->first();
+            $this->pronouns = $character_model->pronouns ?? null;
 
         } catch (\Exception $e) {
             $this->dispatch('notify', [

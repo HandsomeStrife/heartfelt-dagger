@@ -29,7 +29,7 @@
                                     <p class="text-slate-400 text-sm">Forge your next hero</p>
                                 </div>
                             </div>
-                            <a href="{{ route('character-creator') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-amber-500/25">
+                            <a href="{{ route('character-builder') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-amber-500/25">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
@@ -96,7 +96,7 @@
                         <h3 class="text-white font-semibold mb-2">Your adventure log is empty</h3>
                         <p class="text-slate-400 text-sm mb-4">Start creating characters and joining campaigns to see your activity here.</p>
                         <div class="flex justify-center space-x-3">
-                            <a href="{{ route('character-creator') }}" class="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold rounded-lg transition-colors">
+                            <a href="{{ route('character-builder') }}" class="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold rounded-lg transition-colors">
                                 Create Character
                             </a>
                             <a href="{{ route('campaigns') }}" class="inline-flex items-center px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded-lg transition-colors border border-slate-600">

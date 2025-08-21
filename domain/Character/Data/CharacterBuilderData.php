@@ -15,8 +15,8 @@ class CharacterBuilderData extends Data implements Wireable
 
     public function __construct(
         public ?string $character_key = null,
+        public ?string $public_key = null,
         public ?string $name = null,
-        public ?string $pronouns = null,
         public ?string $selected_class = null,
         public ?string $selected_subclass = null,
         public ?string $selected_ancestry = null,
@@ -235,6 +235,8 @@ class CharacterBuilderData extends Data implements Wireable
     public function toArray(): array
     {
         return [
+            'character_key' => $this->character_key,
+            'public_key' => $this->public_key,
             'name' => $this->name,
             'selected_class' => $this->selected_class,
             'selected_subclass' => $this->selected_subclass,
@@ -257,6 +259,8 @@ class CharacterBuilderData extends Data implements Wireable
     public static function fromArray(array $data): self
     {
         return new self(
+            character_key: $data['character_key'] ?? null,
+            public_key: $data['public_key'] ?? null,
             name: $data['name'] ?? '',
             selected_class: $data['selected_class'] ?? null,
             selected_subclass: $data['selected_subclass'] ?? null,

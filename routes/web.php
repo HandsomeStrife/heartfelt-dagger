@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/video-rooms', [VideoRoomController::class, 'index'])->name('video-rooms');
 });
 
+// Character routes (public)
 Route::get('/characters', [App\Http\Controllers\CharacterBuilderController::class, 'index'])->name('characters');
 Route::get('/character-builder', [App\Http\Controllers\CharacterBuilderController::class, 'create'])->name('character-builder');
 Route::get('/character-builder/{character_key}', [App\Http\Controllers\CharacterBuilderController::class, 'edit'])->name('character-builder.edit');

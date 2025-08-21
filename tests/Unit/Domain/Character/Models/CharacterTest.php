@@ -24,8 +24,8 @@ class CharacterTest extends TestCase
         $character = Character::factory()->create();
 
         $this->assertNotNull($character->character_key);
-        $this->assertEquals(8, strlen($character->character_key));
-        $this->assertMatchesRegularExpression('/^[A-Z0-9]{8}$/', $character->character_key);
+        $this->assertEquals(10, strlen($character->character_key));
+        $this->assertMatchesRegularExpression('/^[A-Z0-9]{10}$/', $character->character_key);
     }
 
     #[Test]
@@ -182,7 +182,7 @@ class CharacterTest extends TestCase
     }
 
     #[Test]
-    public function it_generates_profile_image_url(): void
+    public function it_returns_default_profile_image_when_s3_file_not_found(): void
     {
         $character = Character::factory()->create([
             'profile_image_path' => 'character-portraits/hero.jpg',
@@ -190,7 +190,8 @@ class CharacterTest extends TestCase
 
         $profileImage = $character->getProfileImage();
 
-        $this->assertStringContainsString('storage/character-portraits/hero.jpg', $profileImage);
+        // Since S3 storage doesn't exist in test environment, should return default avatar
+        $this->assertStringContainsString('img/default-avatar.png', $profileImage);
     }
 
     #[Test]
@@ -229,8 +230,10 @@ class CharacterTest extends TestCase
     {
         $fillable = [
             'character_key',
+            'public_key',
             'user_id',
             'name',
+            'pronouns',
             'class',
             'subclass',
             'ancestry',

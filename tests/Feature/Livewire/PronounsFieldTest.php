@@ -25,50 +25,57 @@ class PronounsFieldTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->character = Character::factory()->for($this->user)->create([
-            'character_key' => 'PRON1234',
+            'character_key' => 'PRON123456',
         ]);
     }
 
     #[Test]
-    public function it_can_set_and_retrieve_pronouns_via_workaround_property(): void
+    public function it_can_set_and_retrieve_pronouns_via_direct_property(): void
     {
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'PRON1234']);
+        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'PRON123456']);
 
-        // Test different pronoun values using the workaround property
+        // Test different pronoun values using the direct pronouns property
         $pronouns = ['he/him', 'she/her', 'they/them', 'xe/xem', 'custom pronouns'];
         
         foreach ($pronouns as $pronoun) {
-            $component->set('character_pronouns', $pronoun);
-            $retrieved = $component->get('character_pronouns');
-            $character_retrieved = $component->get('character.pronouns');
+            $component->set('pronouns', $pronoun);
+            $retrieved = $component->get('pronouns');
             
             $this->assertEquals($pronoun, $retrieved, "Failed to preserve pronoun in property: {$pronoun}");
-            $this->assertEquals($pronoun, $character_retrieved, "Failed to sync pronoun to character: {$pronoun}");
+            
+            // Trigger a save operation to persist to database
+            $component->call('updatePronouns', $pronoun);
+            
+            // Verify it's saved to the database
+            $character = Character::where('character_key', 'PRON123456')->first();
+            $this->assertEquals($pronoun, $character->pronouns, "Failed to save pronoun to database: {$pronoun}");
         }
     }
 
     #[Test]
-    public function it_preserves_pronouns_during_operations_with_workaround(): void
+    public function it_preserves_pronouns_during_operations(): void
     {
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'PRON1234']);
+        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'PRON123456']);
 
-        // Set pronouns using the workaround property
-        $component->set('character_pronouns', 'they/them');
+        // Set pronouns using the direct property
+        $component->set('pronouns', 'they/them');
         
         // Verify it's set initially
-        $this->assertEquals('they/them', $component->get('character_pronouns'));
-        $this->assertEquals('they/them', $component->get('character.pronouns'));
+        $this->assertEquals('they/them', $component->get('pronouns'));
         
         // Test that pronouns are preserved when setting other character properties
         $component->set('character.name', 'Test Character');
-        $this->assertEquals('they/them', $component->get('character_pronouns'), 'Pronouns property lost after setting name');
+        $this->assertEquals('they/them', $component->get('pronouns'), 'Pronouns property lost after setting name');
         
         $component->set('character.selected_ancestry', 'human');
-        $this->assertEquals('they/them', $component->get('character_pronouns'), 'Pronouns property lost after setting ancestry');
+        $this->assertEquals('they/them', $component->get('pronouns'), 'Pronouns property lost after setting ancestry');
         
-        // Test that pronouns are preserved and synced when calling component methods
+        // Test that pronouns are preserved when calling component methods
         $component->call('selectAncestry', 'elf');
-        $this->assertEquals('they/them', $component->get('character_pronouns'), 'Pronouns property lost after selectAncestry call');
-        $this->assertEquals('they/them', $component->get('character.pronouns'), 'Character pronouns not synced after selectAncestry call');
+        $this->assertEquals('they/them', $component->get('pronouns'), 'Pronouns property lost after selectAncestry call');
+        
+        // Verify it's still saved in the database
+        $character = Character::where('character_key', 'PRON123456')->first();
+        $this->assertEquals('they/them', $character->pronouns, 'Pronouns not preserved in database after operations');
     }
 }

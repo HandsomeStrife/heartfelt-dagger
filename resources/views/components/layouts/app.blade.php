@@ -21,29 +21,31 @@
         @livewireStyles
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="bg-slate-900 text-white">
+    <body class="bg-slate-900 text-white min-h-screen">
         @if(!request()->is('login') && !request()->is('register'))
             <x-navigation />
         @endif
         
-        {{ $slot }}
+        <main class="pb-8">
+            {{ $slot }}
+        </main>
         
         <!-- Footer -->
-        <footer class="bg-slate-800 border-t border-slate-700 mt-16">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <footer class="bg-slate-800 border-t border-slate-700 mt-8 md:mt-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
                 <div class="text-center">
-                    <div class="text-sm text-slate-400 leading-relaxed max-w-4xl mx-auto">
-                        <p class="mb-3">
+                    <div class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-4xl mx-auto">
+                        <p class="mb-2 md:mb-3">
                             This repository includes materials from the Daggerheart System Reference Document © Critical Role, LLC. under the terms of the Darrington Press Community Gaming (DPCGL) License. More information can be found at 
-                            <a href="https://www.daggerheart.com/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline">https://www.daggerheart.com/</a>. 
+                            <a href="https://www.daggerheart.com/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline break-words">https://www.daggerheart.com/</a>. 
                             There are minor modifications to format and structure.
                         </p>
-                        <p class="mb-3">
+                        <p class="mb-2 md:mb-3">
                             Daggerheart and all related marks are trademarks of Critical Role, LLC and used with permission. This project is not affiliated with, endorsed, or sponsored by Critical Role or Darrington Press.
                         </p>
                         <p>
                             For full license terms, see: 
-                            <a href="https://www.daggerheart.com/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline">https://www.daggerheart.com/</a>
+                            <a href="https://www.daggerheart.com/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline break-words">https://www.daggerheart.com/</a>
                         </p>
                     </div>
                 </div>

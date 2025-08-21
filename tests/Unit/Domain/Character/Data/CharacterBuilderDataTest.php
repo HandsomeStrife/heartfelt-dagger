@@ -313,6 +313,8 @@ class CharacterBuilderDataTest extends TestCase
             selected_equipment: [
                 ['key' => 'sword', 'type' => 'weapon', 'data' => ['type' => 'Primary']],
                 ['key' => 'armor', 'type' => 'armor'],
+                ['key' => 'minor health potion', 'type' => 'consumable'], // chooseOne item
+                ['key' => 'war trophy', 'type' => 'item'], // chooseExtra item
             ],
             background_answers: ['This is my background story.'],
             experiences: [

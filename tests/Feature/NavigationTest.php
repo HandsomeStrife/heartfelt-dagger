@@ -10,14 +10,20 @@ class NavigationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_navigation_shows_guest_links_for_unauthenticated_users(): void
+    public function test_navigation_shows_character_links_for_unauthenticated_users(): void
     {
         $response = $this->get('/');
-
-        $response->assertSee('Login');
-        $response->assertSee('Join Adventure');
-        $response->assertDontSee('Character Creator');
-        $response->assertDontSee('Rooms');
+        
+        // Guest users should see branding and character links (they're public)
+        $response->assertSee('HeartfeltDagger');
+        $response->assertSee('My Characters');
+        $response->assertSee('Create Character'); // Note: button text is different from navigation
+        
+        // But should NOT see auth-only features
+        $response->assertDontSee('Login');
+        $response->assertDontSee('Join Adventure');
+        $response->assertDontSee('Dashboard');
+        $response->assertDontSee('Campaigns');
         $response->assertDontSee('Logout');
     }
 
@@ -31,7 +37,8 @@ class NavigationTest extends TestCase
 
         $response->assertSee('testuser');
         $response->assertSee('Dashboard');
-        $response->assertSee('Character Creator');
+        $response->assertSee('My Characters');
+        $response->assertSee('Create New Character');
         $response->assertSee('Campaigns');
         $response->assertSee('Logout');
         $response->assertDontSee('Login');
@@ -58,15 +65,14 @@ class NavigationTest extends TestCase
         $response->assertSee('href="/"', false);
     }
 
-    public function test_character_creator_link_works(): void
+    public function test_character_builder_link_works(): void
     {
-        $user = User::factory()->create();
+        $response = $this->get('/character-builder');
 
-        $response = $this->actingAs($user)->get('/character-creator');
-
-        $response->assertStatus(200);
-        $response->assertSee('Character Creator');
-        $response->assertSee('Coming Soon');
+        $response->assertStatus(302);
+        $response->assertRedirect();
+        // Should redirect to the character builder edit page with new character
+        $this->assertTrue(str_contains($response->headers->get('location'), '/character-builder/'));
     }
 
     public function test_campaigns_link_works(): void
@@ -83,9 +89,9 @@ class NavigationTest extends TestCase
         $response = $this->get('/login');
 
         // Navigation should not be visible on login page
-        $response->assertDontSee('Character Creator');
-        $response->assertDontSee('Rooms');
-        $response->assertDontSee('Profile');
+        $response->assertDontSee('Create New Character');
+        $response->assertDontSee('My Characters');
+        $response->assertDontSee('Dashboard');
     }
 
     public function test_navigation_is_not_shown_on_register_page(): void
@@ -93,9 +99,9 @@ class NavigationTest extends TestCase
         $response = $this->get('/register');
 
         // Navigation should not be visible on register page
-        $response->assertDontSee('Character Creator');
-        $response->assertDontSee('Rooms');
-        $response->assertDontSee('Profile');
+        $response->assertDontSee('Create New Character');
+        $response->assertDontSee('My Characters');
+        $response->assertDontSee('Dashboard');
     }
 
     public function test_navigation_is_shown_on_protected_pages(): void
@@ -121,25 +127,17 @@ class NavigationTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_guest_register_link_works(): void
+    public function test_register_page_works_directly(): void
     {
-        $response = $this->get('/');
-
-        $response->assertSee('Join Adventure');
-
-        // Follow the register link
+        // Register page should work when accessed directly
         $registerResponse = $this->get('/register');
         $registerResponse->assertStatus(200);
         $registerResponse->assertSee('Join the Adventure');
     }
 
-    public function test_guest_login_link_works(): void
+    public function test_login_page_works_directly(): void
     {
-        $response = $this->get('/');
-
-        $response->assertSee('Login');
-
-        // Follow the login link
+        // Login page should work when accessed directly
         $loginResponse = $this->get('/login');
         $loginResponse->assertStatus(200);
         $loginResponse->assertSee('Enter the Realm');
@@ -153,7 +151,7 @@ class NavigationTest extends TestCase
 
         // Check for dropdown elements
         $response->assertSee('Dashboard');
-        $response->assertSee('Character Creator');
+        $response->assertSee('Create New Character');
         $response->assertSee('Campaigns');
         $response->assertSee('Logout');
     }
@@ -164,7 +162,7 @@ class NavigationTest extends TestCase
 
         // Check for HeartfeltDagger branding and styling
         $response->assertSee('HeartfeltDagger');
-        $response->assertSee('font-federant');
+        $response->assertSee('font-outfit');
         $response->assertSee('text-white');
     }
 }

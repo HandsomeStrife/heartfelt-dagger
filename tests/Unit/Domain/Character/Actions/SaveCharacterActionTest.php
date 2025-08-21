@@ -34,10 +34,10 @@ class SaveCharacterActionTest extends TestCase
         $user = User::factory()->create();
         $builderData = new CharacterBuilderData(
             name: 'Test Hero',
-            selectedClass: 'warrior',
-            selectedSubclass: 'call-of-the-brave',
-            selectedAncestry: 'human',
-            selectedCommunity: 'order-of-scholars'
+            selected_class: 'warrior',
+            selected_subclass: 'call-of-the-brave',
+            selected_ancestry: 'human',
+            selected_community: 'order-of-scholars'
         );
 
         $character = $this->action->execute($builderData, $user);
@@ -50,7 +50,7 @@ class SaveCharacterActionTest extends TestCase
         $this->assertEquals('order-of-scholars', $character->community);
         $this->assertEquals($user->id, $character->user_id);
         $this->assertNotNull($character->character_key);
-        $this->assertEquals(8, strlen($character->character_key));
+        $this->assertEquals(10, strlen($character->character_key));
     }
 
     #[Test]
@@ -58,7 +58,7 @@ class SaveCharacterActionTest extends TestCase
     {
         $builderData = new CharacterBuilderData(
             name: 'Anonymous Hero',
-            selectedClass: 'ranger'
+            selected_class: 'ranger'
         );
 
         $character = $this->action->execute($builderData, null);
@@ -74,10 +74,10 @@ class SaveCharacterActionTest extends TestCase
     {
         $builderData = new CharacterBuilderData(
             name: null,
-            selectedClass: null,
-            selectedSubclass: null,
-            selectedAncestry: null,
-            selectedCommunity: null
+            selected_class: null,
+            selected_subclass: null,
+            selected_ancestry: null,
+            selected_community: null
         );
 
         $character = $this->action->execute($builderData, null);
@@ -95,7 +95,7 @@ class SaveCharacterActionTest extends TestCase
     {
         $builderData = new CharacterBuilderData(
             name: 'Test Hero',
-            assignedTraits: [
+            assigned_traits: [
                 'agility' => 2,
                 'strength' => -1,
                 'finesse' => 0,
@@ -117,7 +117,7 @@ class SaveCharacterActionTest extends TestCase
     {
         $builderData = new CharacterBuilderData(
             name: 'Test Hero',
-            selectedEquipment: [
+            selected_equipment: [
                 [
                     'key' => 'shortsword',
                     'type' => 'weapon',
@@ -186,7 +186,7 @@ class SaveCharacterActionTest extends TestCase
     {
         $builderData = new CharacterBuilderData(
             name: 'Test Hero',
-            selectedDomainCards: [
+            selected_domain_cards: [
                 [
                     'domain' => 'blade',
                     'ability_key' => 'strike',
@@ -219,11 +219,11 @@ class SaveCharacterActionTest extends TestCase
     {
         $builderData = new CharacterBuilderData(
             name: 'Test Hero',
-            backgroundAnswers: ['Answer 1', 'Answer 2', 'Answer 3'],
-            connectionAnswers: ['Connection 1', 'Connection 2'],
-            physicalDescription: 'Tall and strong',
-            personalityTraits: 'Brave and loyal',
-            personalHistory: 'Born in a small village',
+            background_answers: ['Answer 1', 'Answer 2', 'Answer 3'],
+            connection_answers: ['Connection 1', 'Connection 2'],
+            physical_description: 'Tall and strong',
+            personality_traits: 'Brave and loyal',
+            personal_history: 'Born in a small village',
             motivations: 'To protect the innocent'
         );
 
@@ -255,8 +255,8 @@ class SaveCharacterActionTest extends TestCase
 
         $builderData = new CharacterBuilderData(
             name: 'Updated Name',
-            selectedClass: 'ranger',
-            assignedTraits: [
+            selected_class: 'ranger',
+            assigned_traits: [
                 'strength' => 2,
                 'finesse' => -1,
             ]
@@ -302,7 +302,7 @@ class SaveCharacterActionTest extends TestCase
     {
         $builderData = new CharacterBuilderData(
             name: 'Test Hero',
-            profileImagePath: 'portraits/hero.jpg'
+            profile_image_path: 'portraits/hero.jpg'
         );
 
         $character = $this->action->execute($builderData, null);
@@ -316,7 +316,7 @@ class SaveCharacterActionTest extends TestCase
         // This test ensures that if anything fails, everything is rolled back
         $builderData = new CharacterBuilderData(
             name: 'Test Hero',
-            assignedTraits: [
+            assigned_traits: [
                 'agility' => 2,
             ]
         );

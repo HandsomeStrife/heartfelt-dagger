@@ -50,14 +50,14 @@ class IntegrationTest extends TestCase
 
         // Start unauthenticated - should be redirected to login
         $this->get('/dashboard')->assertRedirect('/login');
-        $this->get('/character-creator')->assertRedirect('/login');
+        $this->get('/video-rooms')->assertRedirect('/login');
 
         // Login
         $this->actingAs($user);
 
         // Now can access protected areas
         $this->get('/dashboard')->assertStatus(200);
-        $this->get('/character-creator')->assertStatus(200);
+        $this->get('/character-builder')->assertStatus(302); // Creates new character and redirects
 
         // Login/register pages should redirect to rooms when authenticated
         $this->get('/login')->assertRedirect('/dashboard');
@@ -85,7 +85,7 @@ class IntegrationTest extends TestCase
 
         // Make multiple requests - session should persist
         $this->get('/dashboard')->assertStatus(200);
-        $this->get('/character-creator')->assertStatus(200);
+        $this->get('/character-builder')->assertStatus(302); // Creates new character and redirects
         $this->get('/')->assertRedirect('/dashboard');
 
         // Still authenticated after multiple requests
@@ -147,7 +147,7 @@ class IntegrationTest extends TestCase
     public function test_route_middleware_integration(): void
     {
         // All protected routes should redirect to login when unauthenticated
-        $protectedRoutes = ['/dashboard', '/character-creator', '/video-rooms'];
+        $protectedRoutes = ['/dashboard', '/video-rooms'];
 
         foreach ($protectedRoutes as $route) {
             $this->get($route)->assertRedirect('/login');
@@ -194,7 +194,7 @@ class IntegrationTest extends TestCase
 
         // Test that user can access all areas of the application
         $this->get('/dashboard')->assertStatus(200);
-        $this->get('/character-creator')->assertStatus(200)->assertSee('Coming Soon');
+        $this->get('/character-builder')->assertStatus(302); // Creates new character and redirects
     }
 
     public function test_error_handling_and_recovery(): void

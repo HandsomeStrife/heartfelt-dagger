@@ -15,14 +15,15 @@ use Illuminate\Support\Facades\DB;
 
 class SaveCharacterAction
 {
-    public function execute(CharacterBuilderData $builder_data, ?User $user = null): Character
+    public function execute(CharacterBuilderData $builder_data, ?User $user = null, ?string $pronouns = null): Character
     {
-        return DB::transaction(function () use ($builder_data, $user) {
+        return DB::transaction(function () use ($builder_data, $user, $pronouns) {
             // Create the main character record
             $character = Character::create([
                 'character_key' => Character::generateUniqueKey(),
                 'user_id' => $user?->id,
                 'name' => $builder_data->name,
+                'pronouns' => $pronouns,
                 'class' => $builder_data->selected_class,
                 'subclass' => $builder_data->selected_subclass,
                 'ancestry' => $builder_data->selected_ancestry,
@@ -30,7 +31,6 @@ class SaveCharacterAction
                 'level' => 1,
                 'profile_image_path' => $builder_data->profile_image_path,
                 'character_data' => [
-                    'pronouns' => $builder_data->pronouns,
                     'background' => [
                         'answers' => $builder_data->background_answers,
                         'physicalDescription' => $builder_data->physical_description,
@@ -90,19 +90,19 @@ class SaveCharacterAction
         });
     }
 
-    public function updateCharacter(Character $character, CharacterBuilderData $builder_data): Character
+    public function updateCharacter(Character $character, CharacterBuilderData $builder_data, ?string $pronouns = null): Character
     {
-        return DB::transaction(function () use ($character, $builder_data) {
+        return DB::transaction(function () use ($character, $builder_data, $pronouns) {
             // Update the main character record
             $character->update([
                 'name' => $builder_data->name,
+                'pronouns' => $pronouns,
                 'class' => $builder_data->selected_class,
                 'subclass' => $builder_data->selected_subclass,
                 'ancestry' => $builder_data->selected_ancestry,
                 'community' => $builder_data->selected_community,
                 'profile_image_path' => $builder_data->profile_image_path,
                 'character_data' => array_merge($character->character_data ?? [], [
-                    'pronouns' => $builder_data->pronouns,
                     'background' => [
                         'answers' => $builder_data->background_answers,
                         'physicalDescription' => $builder_data->physical_description,

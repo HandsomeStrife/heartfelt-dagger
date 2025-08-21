@@ -20,17 +20,19 @@ class CharacterBuilderControllerTest extends TestCase
         $response = $this->get('/character-builder');
 
         $response->assertStatus(302);
-        $response->assertRedirectToRoute('character-builder.edit', ['characterKey' => Character::latest()->first()->character_key]);
-
+        
         $this->assertDatabaseCount('characters', 1);
 
         $character = Character::latest()->first();
+        $this->assertNotNull($character);
         $this->assertNotNull($character->character_key);
-        $this->assertEquals(8, strlen($character->character_key));
+        $this->assertEquals(10, strlen($character->character_key));
         $this->assertNull($character->user_id); // Guest user
         $this->assertNull($character->name);
         $this->assertNull($character->class);
         $this->assertFalse($character->is_public);
+        
+        $response->assertRedirectToRoute('character-builder.edit', ['character_key' => $character->character_key]);
     }
 
     #[Test]
@@ -50,7 +52,7 @@ class CharacterBuilderControllerTest extends TestCase
     public function edit_shows_character_builder_for_existing_character(): void
     {
         $character = Character::factory()->create([
-            'character_key' => 'ABC12345',
+            'character_key' => 'ABC1234567',
             'name' => 'Test Hero',
             'class' => 'warrior',
         ]);
@@ -59,7 +61,7 @@ class CharacterBuilderControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('characters.edit');
-        $response->assertViewHas('characterKey', 'ABC12345');
+        $response->assertViewHas('character_key', 'ABC1234567');
         $response->assertViewHas('character');
     }
 
@@ -75,7 +77,7 @@ class CharacterBuilderControllerTest extends TestCase
     public function show_displays_character_for_viewing(): void
     {
         $character = Character::factory()->create([
-            'character_key' => 'ABC12345',
+            'character_key' => 'ABC1234567',
             'name' => 'Test Hero',
             'class' => 'warrior',
         ]);
@@ -84,7 +86,7 @@ class CharacterBuilderControllerTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('characters.show');
-        $response->assertViewHas('characterKey', 'ABC12345');
+        $response->assertViewHas('character_key', 'ABC1234567');
         $response->assertViewHas('character');
     }
 
@@ -111,11 +113,11 @@ class CharacterBuilderControllerTest extends TestCase
 
         $editRoute = \Route::getRoutes()->getByName('character-builder.edit');
         $this->assertEquals('GET', $editRoute->methods()[0]);
-        $this->assertEquals('character-builder/{characterKey}', $editRoute->uri());
+        $this->assertEquals('character-builder/{character_key}', $editRoute->uri());
 
         $showRoute = \Route::getRoutes()->getByName('character.show');
         $this->assertEquals('GET', $showRoute->methods()[0]);
-        $this->assertEquals('character/{characterKey}', $showRoute->uri());
+        $this->assertEquals('character/{character_key}', $showRoute->uri());
     }
 
     #[Test]
@@ -149,7 +151,7 @@ class CharacterBuilderControllerTest extends TestCase
     public function edit_loads_character_data_correctly(): void
     {
         $character = Character::factory()->create([
-            'character_key' => 'ABC12345',
+            'character_key' => 'ABC1234567',
             'name' => 'Test Hero',
             'class' => 'warrior',
             'subclass' => 'call-of-the-brave',
@@ -167,19 +169,19 @@ class CharacterBuilderControllerTest extends TestCase
         $loadedCharacter = $response->viewData('character');
 
         $this->assertEquals('Test Hero', $loadedCharacter->name);
-        $this->assertEquals('warrior', $loadedCharacter->selectedClass);
-        $this->assertEquals('call-of-the-brave', $loadedCharacter->selectedSubclass);
-        $this->assertEquals('human', $loadedCharacter->selectedAncestry);
-        $this->assertEquals('order-of-scholars', $loadedCharacter->selectedCommunity);
-        $this->assertEquals(['Answer 1', 'Answer 2'], $loadedCharacter->backgroundAnswers);
-        $this->assertEquals(['Connection 1'], $loadedCharacter->connectionAnswers);
+        $this->assertEquals('warrior', $loadedCharacter->selected_class);
+        $this->assertEquals('call-of-the-brave', $loadedCharacter->selected_subclass);
+        $this->assertEquals('human', $loadedCharacter->selected_ancestry);
+        $this->assertEquals('order-of-scholars', $loadedCharacter->selected_community);
+        $this->assertEquals(['Answer 1', 'Answer 2'], $loadedCharacter->background_answers);
+        $this->assertEquals(['Connection 1'], $loadedCharacter->connection_answers);
     }
 
     #[Test]
     public function show_loads_character_data_correctly(): void
     {
         $character = Character::factory()->create([
-            'character_key' => 'ABC12345',
+            'character_key' => 'ABC1234567',
             'name' => 'Public Hero',
             'class' => 'ranger',
         ]);
@@ -190,7 +192,7 @@ class CharacterBuilderControllerTest extends TestCase
         $loadedCharacter = $response->viewData('character');
 
         $this->assertEquals('Public Hero', $loadedCharacter->name);
-        $this->assertEquals('ranger', $loadedCharacter->selectedClass);
+        $this->assertEquals('ranger', $loadedCharacter->selected_class);
     }
 
     #[Test]
@@ -198,12 +200,12 @@ class CharacterBuilderControllerTest extends TestCase
     {
         // Test with various invalid character keys
         $this->get('/character-builder/short')->assertStatus(404);
-        $this->get('/character-builder/toolongkey123')->assertStatus(404);
-        $this->get('/character-builder/invalid@')->assertStatus(404);
+        $this->get('/character-builder/toolongkey123456')->assertStatus(404);
+        $this->get('/character-builder/invalid@chr')->assertStatus(404);
 
         $this->get('/character/short')->assertStatus(404);
-        $this->get('/character/toolongkey123')->assertStatus(404);
-        $this->get('/character/invalid@')->assertStatus(404);
+        $this->get('/character/toolongkey123456')->assertStatus(404);
+        $this->get('/character/invalid@chr')->assertStatus(404);
     }
 
     #[Test]
@@ -214,7 +216,7 @@ class CharacterBuilderControllerTest extends TestCase
 
         // Test with a character that exists but has malformed data
         $character = Character::factory()->create([
-            'character_key' => 'ABC12345',
+            'character_key' => 'ABC1234567',
             'character_data' => 'invalid-json-data', // This would cause issues in real scenarios
         ]);
 

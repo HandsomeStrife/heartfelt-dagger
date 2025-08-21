@@ -24,11 +24,14 @@ class RouteProtectionTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    public function test_character_creator_requires_authentication(): void
+    public function test_character_builder_is_publicly_accessible(): void
     {
-        $response = $this->get('/character-creator');
+        $response = $this->get('/character-builder');
 
-        $response->assertRedirect('/login');
+        $response->assertStatus(302);
+        $response->assertRedirect();
+        // Should redirect to character builder edit page with new character
+        $this->assertTrue(str_contains($response->headers->get('location'), '/character-builder/'));
     }
 
     public function test_authenticated_users_can_access_rooms(): void
@@ -40,13 +43,14 @@ class RouteProtectionTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_authenticated_users_can_access_character_creator(): void
+    public function test_character_builder_creates_new_character(): void
     {
-        $user = User::factory()->create();
+        $response = $this->get('/character-builder');
 
-        $response = $this->actingAs($user)->get('/character-creator');
-
-        $response->assertStatus(200);
+        $response->assertStatus(302);
+        $response->assertRedirect();
+        // Should redirect to the edit page with a new character key
+        $this->assertTrue(str_contains($response->headers->get('location'), '/character-builder/'));
     }
 
     public function test_authenticated_users_are_redirected_from_login(): void
@@ -117,7 +121,7 @@ class RouteProtectionTest extends TestCase
         $this->actingAs($user)->get('/dashboard')->assertStatus(200);
 
         // Second request should still be authenticated
-        $this->get('/character-creator')->assertStatus(200);
+        $this->get('/dashboard')->assertStatus(200);
         $this->assertAuthenticated();
     }
 
@@ -125,7 +129,6 @@ class RouteProtectionTest extends TestCase
     {
         $protectedRoutes = [
             '/dashboard',
-            '/character-creator',
             '/video-rooms',
         ];
 

@@ -26,7 +26,7 @@ class CharacterBuilderClassResetTest extends TestCase
 
         $this->user = User::factory()->create();
         $this->character = Character::factory()->for($this->user)->create([
-            'character_key' => 'test1234',
+            'character_key' => 'test123456',
         ]);
     }
 
@@ -34,7 +34,7 @@ class CharacterBuilderClassResetTest extends TestCase
     public function it_resets_all_data_except_heritage_when_class_changes(): void
     {
         // Setup initial character data with all fields populated
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test1234']);
+        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
         // Set initial data
         $component->set('character.name', 'Test Hero');
@@ -80,7 +80,7 @@ class CharacterBuilderClassResetTest extends TestCase
     public function it_resets_all_data_except_heritage_and_class_when_subclass_changes(): void
     {
         // Setup initial character data with all fields populated
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test1234']);
+        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
         // Set initial data
         $component->set('character.name', 'Test Hero');
@@ -126,7 +126,7 @@ class CharacterBuilderClassResetTest extends TestCase
     #[Test]
     public function it_preserves_empty_values_correctly(): void
     {
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test1234']);
+        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
         // Set only some initial data (leaving others empty)
         $component->set('character.name', '');
