@@ -39,8 +39,85 @@ class WebRTCVideoSlots {
             });
         });
 
+        // Initialize character sheet interactions
+        this.initCharacterSheetHandlers();
+
         // Connect to Ably channel immediately
         this.connectToAblyChannel();
+    }
+
+    initCharacterSheetHandlers() {
+        // Health box click handlers
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('health-box')) {
+                const clickedValue = parseInt(e.target.dataset.value);
+                const healthTrack = e.target.parentElement;
+                const healthBoxes = healthTrack.querySelectorAll('.health-box');
+                
+                // Toggle health state - if clicking on a filled box, clear from that point
+                // If clicking on empty box, fill up to that point
+                const isFilled = e.target.classList.contains('bg-red-500');
+                
+                healthBoxes.forEach((box, index) => {
+                    const boxValue = parseInt(box.dataset.value);
+                    if (isFilled && boxValue >= clickedValue) {
+                        // Clear from clicked point onwards
+                        box.classList.remove('bg-red-500');
+                        box.classList.add('bg-gray-600');
+                    } else if (!isFilled && boxValue <= clickedValue) {
+                        // Fill up to clicked point
+                        box.classList.remove('bg-gray-600');
+                        box.classList.add('bg-red-500');
+                    }
+                });
+            }
+        });
+
+        // Stress box click handlers
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('stress-box')) {
+                const clickedValue = parseInt(e.target.dataset.value);
+                const stressTrack = e.target.parentElement;
+                const stressBoxes = stressTrack.querySelectorAll('.stress-box');
+                
+                const isFilled = e.target.classList.contains('bg-purple-500');
+                
+                stressBoxes.forEach((box, index) => {
+                    const boxValue = parseInt(box.dataset.value);
+                    if (isFilled && boxValue >= clickedValue) {
+                        box.classList.remove('bg-purple-500');
+                        box.classList.add('bg-gray-600');
+                    } else if (!isFilled && boxValue <= clickedValue) {
+                        box.classList.remove('bg-gray-600');
+                        box.classList.add('bg-purple-500');
+                    }
+                });
+            }
+        });
+
+        // Hope diamond click handlers
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('hope-diamond')) {
+                const clickedValue = parseInt(e.target.dataset.value);
+                const hopeTrack = e.target.parentElement;
+                const hopeDiamonds = hopeTrack.querySelectorAll('.hope-diamond');
+                
+                const isFilled = e.target.classList.contains('bg-amber-400');
+                
+                hopeDiamonds.forEach((diamond, index) => {
+                    const diamondValue = parseInt(diamond.dataset.value);
+                    if (isFilled && diamondValue >= clickedValue) {
+                        // Clear from clicked point onwards
+                        diamond.classList.remove('bg-amber-400');
+                        diamond.classList.add('bg-gray-600');
+                    } else if (!isFilled && diamondValue <= clickedValue) {
+                        // Fill up to clicked point
+                        diamond.classList.remove('bg-gray-600');
+                        diamond.classList.add('bg-amber-400');
+                    }
+                });
+            }
+        });
     }
 
     generatePeerId() {
@@ -60,7 +137,8 @@ class WebRTCVideoSlots {
             const spinner = slotContainer.querySelector('.loading-spinner');
             const joinBtn = slotContainer.querySelector('.join-btn');
             spinner.classList.remove('hidden');
-            joinBtn.textContent = 'Connecting...';
+            spinner.style.display = 'flex';
+            joinBtn.innerHTML = '<span class="flex items-center gap-2">Connecting...</span>';
 
             // Get user media
             await this.getUserMedia();
@@ -429,6 +507,7 @@ class WebRTCVideoSlots {
         const leaveBtn = slotContainer.querySelector('.leave-btn');
         const localVideo = slotContainer.querySelector('.local-video');
         const spinner = slotContainer.querySelector('.loading-spinner');
+        const characterOverlay = slotContainer.querySelector('.character-overlay');
 
         if (isOccupied) {
             // Show video
@@ -436,6 +515,11 @@ class WebRTCVideoSlots {
                 localVideo.srcObject = this.localStream;
             }
             localVideo.classList.remove('hidden');
+            
+            // Show character overlay
+            if (characterOverlay) {
+                characterOverlay.classList.remove('hidden');
+            }
             
             // Update buttons - only show leave for own slot
             if (isOwnSlot) {
@@ -448,17 +532,30 @@ class WebRTCVideoSlots {
             
             // Hide spinner
             spinner.classList.add('hidden');
+            spinner.style.display = 'none';
         } else {
             // Hide video
             localVideo.classList.add('hidden');
             localVideo.srcObject = null;
             
-            // Show join button
+            // Hide character overlay
+            if (characterOverlay) {
+                characterOverlay.classList.add('hidden');
+            }
+            
+            // Show join button and reset text
             joinBtn.classList.remove('hidden');
+            joinBtn.innerHTML = `<span class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/>
+                </svg>
+                Join Quest
+            </span>`;
             leaveBtn.classList.add('hidden');
             
             // Hide spinner
             spinner.classList.add('hidden');
+            spinner.style.display = 'none';
         }
     }
 
@@ -544,7 +641,13 @@ class WebRTCVideoSlots {
         const joinBtn = slotContainer.querySelector('.join-btn');
         
         spinner.classList.add('hidden');
-        joinBtn.textContent = 'Join';
+        spinner.style.display = 'none';
+        joinBtn.innerHTML = `<span class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/>
+            </svg>
+            Join Quest
+        </span>`;
         
         alert(message);
     }
