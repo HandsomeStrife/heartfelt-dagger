@@ -1,0 +1,133 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Domain\Room\Models;
+
+use Domain\Room\Enums\RoomStatus;
+use Domain\User\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
+
+class Room extends Model
+{
+    use HasFactory;
+
+    protected $guarded = [];
+
+    protected $casts = [
+        'status' => RoomStatus::class,
+        'guest_count' => 'integer',
+    ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (Room $room) {
+            if (empty($room->invite_code)) {
+                $room->invite_code = static::generateUniqueInviteCode();
+            }
+        });
+    }
+
+    public static function generateUniqueInviteCode(): string
+    {
+        do {
+            $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            $code = '';
+            for ($i = 0; $i < 8; $i++) {
+                $code .= $characters[random_int(0, strlen($characters) - 1)];
+            }
+        } while (static::where('invite_code', $code)->exists());
+
+        return $code;
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function participants(): HasMany
+    {
+        return $this->hasMany(RoomParticipant::class);
+    }
+
+    public function activeParticipants(): HasMany
+    {
+        return $this->hasMany(RoomParticipant::class)->whereNull('left_at');
+    }
+
+    /**
+     * Get the room's invite URL
+     */
+    public function getInviteUrl(): string
+    {
+        return route('rooms.invite', ['invite_code' => $this->invite_code]);
+    }
+
+    /**
+     * Check if a user is the creator of this room
+     */
+    public function isCreator(User $user): bool
+    {
+        return $this->creator_id === $user->id;
+    }
+
+    /**
+     * Check if a user is currently participating in this room
+     */
+    public function hasActiveParticipant(User $user): bool
+    {
+        return $this->activeParticipants()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Get the current number of active participants
+     */
+    public function getActiveParticipantCount(): int
+    {
+        return $this->activeParticipants()->count();
+    }
+
+    /**
+     * Check if the room is at capacity
+     */
+    public function isAtCapacity(): bool
+    {
+        return $this->getActiveParticipantCount() >= $this->guest_count;
+    }
+
+    /**
+     * Scope a query to only include rooms by a specific creator
+     */
+    public function scopeByCreator(Builder $query, User $user): Builder
+    {
+        return $query->where('creator_id', $user->id);
+    }
+
+    /**
+     * Scope a query to only include rooms by invite code
+     */
+    public function scopeByInviteCode(Builder $query, string $inviteCode): Builder
+    {
+        return $query->where('invite_code', $inviteCode);
+    }
+
+    /**
+     * Scope a query to only include active rooms
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', RoomStatus::Active);
+    }
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\RoomFactory::new();
+    }
+}

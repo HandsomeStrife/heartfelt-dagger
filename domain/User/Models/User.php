@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Domain\User\Models;
 
+use Domain\Campaign\Models\Campaign;
+use Domain\Campaign\Models\CampaignMember;
+use Domain\Room\Models\Room;
+use Domain\Room\Models\RoomParticipant;
 use Domain\Character\Models\Character;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -63,5 +67,57 @@ class User extends Authenticatable
     public function characters(): HasMany
     {
         return $this->hasMany(Character::class);
+    }
+
+    /**
+     * Get all campaigns created by this user.
+     */
+    public function createdCampaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class, 'creator_id');
+    }
+
+    /**
+     * Get all campaign memberships for this user.
+     */
+    public function campaignMemberships(): HasMany
+    {
+        return $this->hasMany(CampaignMember::class);
+    }
+
+    /**
+     * Get all campaigns this user has joined (as a member).
+     */
+    public function joinedCampaigns()
+    {
+        return $this->belongsToMany(Campaign::class, 'campaign_members')
+            ->withPivot(['character_id', 'joined_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all rooms this user has created.
+     */
+    public function createdRooms(): HasMany
+    {
+        return $this->hasMany(Room::class, 'creator_id');
+    }
+
+    /**
+     * Get all room participations for this user.
+     */
+    public function roomParticipations(): HasMany
+    {
+        return $this->hasMany(RoomParticipant::class);
+    }
+
+    /**
+     * Get all rooms this user has joined (as a participant).
+     */
+    public function joinedRooms()
+    {
+        return $this->belongsToMany(Room::class, 'room_participants')
+            ->withPivot(['character_id', 'character_name', 'character_class', 'joined_at', 'left_at'])
+            ->withTimestamps();
     }
 }

@@ -1,0 +1,286 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Browser;
+
+use Domain\Campaign\Models\Campaign;
+use Domain\Character\Models\Character;
+use Domain\User\Models\User;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Laravel\Dusk\Browser;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\DuskTestCase;
+
+class CampaignWorkflowTest extends DuskTestCase
+{
+    use DatabaseMigrations;
+
+    #[Test]
+    public function user_can_complete_full_campaign_creation_workflow(): void
+    {
+        $creator = User::factory()->create([
+            'username' => 'gamemaster',
+            'email' => 'gm@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $this->browse(function (Browser $browser) use ($creator) {
+            $browser->loginAs($creator)
+                ->visit('/campaigns')
+                ->assertSee('Campaigns')
+                ->assertSee('No campaigns yet')
+                ->click('@create-campaign-button')
+                ->assertPathIs('/campaigns/create')
+                ->assertSee('Create Campaign')
+                ->type('name', 'The Dragon\'s Lair')
+                ->type('description', 'An epic adventure where heroes must face the ancient red dragon Smaug in his mountain lair.')
+                ->press('Create Campaign')
+                ->assertPathBeginsWith('/campaigns/')
+                ->assertSee('Campaign created successfully!')
+                ->assertSee('The Dragon\'s Lair')
+                ->assertSee('An epic adventure where heroes must face the ancient red dragon');
+        });
+    }
+
+    #[Test]
+    public function campaign_creator_can_share_invite_link(): void
+    {
+        $creator = User::factory()->create(['password' => bcrypt('password')]);
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+
+        $this->browse(function (Browser $browser) use ($creator, $campaign) {
+            $browser->loginAs($creator)
+                ->visit("/campaigns/{$campaign->campaign_code}")
+                ->assertSee($campaign->name)
+                ->assertSee('Share Invite')
+                ->click('@share-invite-button')
+                ->pause(1000) // Wait for copy action
+                ->assertSee('Copied!'); // Button should show success state
+        });
+    }
+
+    #[Test]
+    public function user_can_join_campaign_via_invite_link(): void
+    {
+        $creator = User::factory()->create();
+        $player = User::factory()->create([
+            'username' => 'player1',
+            'password' => bcrypt('password'),
+        ]);
+        $campaign = Campaign::factory()->create([
+            'name' => 'Campaign to Join',
+            'creator_id' => $creator->id,
+        ]);
+        $character = Character::factory()->create([
+            'name' => 'Legolas',
+            'user_id' => $player->id,
+            'class' => 'Ranger',
+            'subclass' => 'Beast Master',
+            'ancestry' => 'Elf',
+            'community' => 'Wildborne',
+        ]);
+
+        $this->browse(function (Browser $browser) use ($player, $campaign, $character) {
+            $browser->loginAs($player)
+                ->visit("/join/{$campaign->invite_code}")
+                ->assertSee('Join Campaign')
+                ->assertSee('Campaign to Join')
+                ->assertSee('Choose a Character')
+                ->assertSee('Legolas')
+                ->assertSee('Ranger / Beast Master')
+                ->click("input[value='{$character->id}']")
+                ->press('Join Campaign')
+                ->assertPathIs("/campaigns/{$campaign->campaign_code}")
+                ->assertSee('Successfully joined the campaign!')
+                ->assertSee('Legolas')
+                ->assertSee('player1');
+        });
+    }
+
+    #[Test]
+    public function user_can_join_campaign_without_character(): void
+    {
+        $creator = User::factory()->create();
+        $player = User::factory()->create(['password' => bcrypt('password')]);
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+
+        $this->browse(function (Browser $browser) use ($player, $campaign) {
+            $browser->loginAs($player)
+                ->visit("/join/{$campaign->invite_code}")
+                ->assertSee('Join Campaign')
+                ->assertSee('Empty Character')
+                ->click('input[value=""]') // Select empty character option
+                ->press('Join Campaign')
+                ->assertPathIs("/campaigns/{$campaign->campaign_code}")
+                ->assertSee('Successfully joined the campaign!')
+                ->assertSee('Empty Character');
+        });
+    }
+
+    #[Test]
+    public function campaign_member_can_leave_campaign(): void
+    {
+        $creator = User::factory()->create();
+        $member = User::factory()->create(['password' => bcrypt('password')]);
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+        
+        // Add member to campaign
+        $campaign->members()->create([
+            'user_id' => $member->id,
+            'joined_at' => now(),
+        ]);
+
+        $this->browse(function (Browser $browser) use ($member, $campaign) {
+            $browser->loginAs($member)
+                ->visit("/campaigns/{$campaign->campaign_code}")
+                ->assertSee('Leave Campaign')
+                ->press('Leave Campaign')
+                ->acceptDialog() // Confirm the leave action
+                ->assertPathIs('/campaigns')
+                ->assertSee('Successfully left the campaign.');
+        });
+    }
+
+    #[Test]
+    public function campaign_dashboard_shows_created_and_joined_campaigns(): void
+    {
+        $user = User::factory()->create(['password' => bcrypt('password')]);
+        
+        // Campaigns created by user
+        $createdCampaign = Campaign::factory()->create([
+            'name' => 'My Created Campaign',
+            'creator_id' => $user->id,
+        ]);
+        
+        // Campaign joined by user
+        $joinedCampaign = Campaign::factory()->create(['name' => 'Campaign I Joined']);
+        $joinedCampaign->members()->create([
+            'user_id' => $user->id,
+            'joined_at' => now(),
+        ]);
+
+        $this->browse(function (Browser $browser) use ($user) {
+            $browser->loginAs($user)
+                ->visit('/campaigns')
+                ->assertSee('My Campaigns')
+                ->assertSee('My Created Campaign')
+                ->assertSee('Joined Campaigns') 
+                ->assertSee('Campaign I Joined')
+                ->assertSee('1 members') // Should show member count
+                ->assertSee('0 members'); // Created campaign has no members
+        });
+    }
+
+    #[Test]
+    public function multiple_users_can_join_same_campaign(): void
+    {
+        $creator = User::factory()->create();
+        $player1 = User::factory()->create([
+            'username' => 'player1',
+            'password' => bcrypt('password'),
+        ]);
+        $player2 = User::factory()->create([
+            'username' => 'player2', 
+            'password' => bcrypt('password'),
+        ]);
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+
+        $this->browse(function (Browser $browser1, Browser $browser2) use ($player1, $player2, $campaign) {
+            // Player 1 joins
+            $browser1->loginAs($player1)
+                ->visit("/join/{$campaign->invite_code}")
+                ->click('input[value=""]') // Empty character
+                ->press('Join Campaign')
+                ->assertSee('Successfully joined the campaign!');
+
+            // Player 2 joins
+            $browser2->loginAs($player2)
+                ->visit("/join/{$campaign->invite_code}")
+                ->click('input[value=""]') // Empty character  
+                ->press('Join Campaign')
+                ->assertSee('Successfully joined the campaign!')
+                ->assertSee('player1') // Should see other member
+                ->assertSee('player2'); // Should see themselves
+        });
+    }
+
+    #[Test]
+    public function campaign_creation_form_validates_required_fields(): void
+    {
+        $user = User::factory()->create(['password' => bcrypt('password')]);
+
+        $this->browse(function (Browser $browser) use ($user) {
+            $browser->loginAs($user)
+                ->visit('/campaigns/create')
+                ->press('Create Campaign') // Submit without filling fields
+                ->assertPathIs('/campaigns/create') // Should stay on form
+                ->assertPresent('.text-red-400'); // Should show validation errors
+        });
+    }
+
+    #[Test]
+    public function user_cannot_join_campaign_twice(): void
+    {
+        $creator = User::factory()->create();
+        $player = User::factory()->create(['password' => bcrypt('password')]);
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+        
+        // Add player as member
+        $campaign->members()->create([
+            'user_id' => $player->id,
+            'joined_at' => now(),
+        ]);
+
+        $this->browse(function (Browser $browser) use ($player, $campaign) {
+            $browser->loginAs($player)
+                ->visit("/join/{$campaign->invite_code}")
+                ->assertPathIs("/campaigns/{$campaign->campaign_code}")
+                ->assertSee('You are already a member of this campaign.');
+        });
+    }
+
+    #[Test]
+    public function campaign_navigation_works_correctly(): void
+    {
+        $user = User::factory()->create(['password' => bcrypt('password')]);
+        $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
+
+        $this->browse(function (Browser $browser) use ($user, $campaign) {
+            $browser->loginAs($user)
+                ->visit('/dashboard')
+                ->click('@campaigns-link') // Click campaigns in dashboard
+                ->assertPathIs('/campaigns')
+                ->click('@create-campaign-button')
+                ->assertPathIs('/campaigns/create')
+                ->click('@cancel-button') // Cancel creation
+                ->assertPathIs('/campaigns')
+                ->click("@campaign-{$campaign->id}") // Click on specific campaign
+                ->assertPathIs("/campaigns/{$campaign->campaign_code}")
+                ->click('@back-to-campaigns')
+                ->assertPathIs('/campaigns');
+        });
+    }
+
+    #[Test]
+    public function responsive_design_works_on_mobile(): void
+    {
+        $user = User::factory()->create(['password' => bcrypt('password')]);
+        $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
+
+        $this->browse(function (Browser $browser) use ($user, $campaign) {
+            $browser->resize(375, 667) // iPhone 6/7/8 size
+                ->loginAs($user)
+                ->visit('/campaigns')
+                ->assertSee('Campaigns')
+                ->click('@create-campaign-button')
+                ->assertPathIs('/campaigns/create')
+                ->type('name', 'Mobile Campaign')
+                ->type('description', 'Testing mobile responsiveness')
+                ->press('Create Campaign')
+                ->assertSee('Campaign created successfully!')
+                ->visit("/campaigns/{$campaign->campaign_code}")
+                ->assertSee($campaign->name);
+        });
+    }
+}

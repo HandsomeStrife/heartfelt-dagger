@@ -1,40 +1,48 @@
 <x-layout>
     <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
         <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-            <div class="max-w-5xl mx-auto">
+            <div class="max-w-4xl mx-auto">
+                <!-- Development Notice -->
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-8">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <div>
+                            <h3 class="text-amber-400 font-outfit font-semibold">Under Development</h3>
+                            <p class="text-amber-300/80 text-sm">All features are currently in active development. Expect changes and improvements!</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Welcome Header -->
                 <div class="text-center mb-12">
-                    <h1 class="font-federant text-4xl text-white tracking-wide mb-2">
-                        {{ auth()->user()->username }}
+                    <h1 class="font-outfit text-4xl text-white tracking-wide mb-2">
+                        Welcome, {{ auth()->user()->username }}
                     </h1>
-                    <p class="font-roboto text-slate-300 text-lg">
+                    <p class="text-slate-300 text-lg">
                         Ready for your next adventure?
                     </p>
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Character Creator -->
                     <div class="group relative">
                         <div class="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-25 transition-opacity duration-300"></div>
                         <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-amber-500/30 transition-all duration-300">
-                            <div class="flex items-center mb-4">
-                                <div class="w-12 h-12 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-amber-500/30 mr-4">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-amber-500/30 mx-auto mb-4">
                                     <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                 </div>
-                                <div>
-                                    <h3 class="text-xl font-bold text-white">Character Creator</h3>
-                                    <p class="text-slate-400 text-sm">Forge your next hero</p>
-                                </div>
+                                <h3 class="font-outfit text-lg font-bold text-white mb-2">Characters</h3>
+                                <p class="text-slate-400 text-sm mb-4">Forge your heroes</p>
+                                <a href="{{ route('character-builder') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
+                                    Create
+                                </a>
                             </div>
-                            <a href="{{ route('character-builder') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-amber-500/25">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                Create Character
-                            </a>
                         </div>
                     </div>
 
@@ -42,66 +50,57 @@
                     <div class="group relative">
                         <div class="absolute inset-0 bg-gradient-to-r from-violet-500 to-purple-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-25 transition-opacity duration-300"></div>
                         <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-violet-500/30 transition-all duration-300">
-                            <div class="flex items-center mb-4">
-                                <div class="w-12 h-12 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-violet-500/30 mr-4">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-violet-500/30 mx-auto mb-4">
                                     <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                 </div>
-                                <div>
-                                    <h3 class="text-xl font-bold text-white">Campaigns</h3>
-                                    <p class="text-slate-400 text-sm">Join epic adventures</p>
-                                </div>
+                                <h3 class="font-outfit text-lg font-bold text-white mb-2">Campaigns</h3>
+                                <p class="text-slate-400 text-sm mb-4">Epic adventures</p>
+                                <a href="{{ route('campaigns.index') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
+                                    Browse
+                                </a>
                             </div>
-                            <a href="{{ route('campaigns') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-violet-500/25">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
-                                Browse Campaigns
-                            </a>
                         </div>
                     </div>
-                </div>
 
-                <!-- Stats -->
-                <div class="grid grid-cols-3 gap-4 mb-10">
-                    <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4 text-center">
-                        <p class="text-2xl font-bold text-white mb-1">0</p>
-                        <p class="text-slate-400 text-sm">Characters</p>
-                    </div>
-                    <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4 text-center">
-                        <p class="text-2xl font-bold text-white mb-1">0</p>
-                        <p class="text-slate-400 text-sm">Campaigns</p>
-                    </div>
-                    <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4 text-center">
-                        <p class="text-2xl font-bold text-white mb-1">0</p>
-                        <p class="text-slate-400 text-sm">Hours</p>
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-bold text-white">Recent Activity</h2>
-                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    </div>
-                    
-                    <!-- Empty State -->
-                    <div class="text-center py-8">
-                        <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-600 mb-4 mx-auto">
-                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                    <!-- Rooms -->
+                    <div class="group relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-25 transition-opacity duration-300"></div>
+                        <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-emerald-500/30 transition-all duration-300">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-xl flex items-center justify-center border border-emerald-500/30 mx-auto mb-4">
+                                    <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <h3 class="font-outfit text-lg font-bold text-white mb-2">Rooms</h3>
+                                <p class="text-slate-400 text-sm mb-4">Live sessions</p>
+                                <a href="{{ route('rooms.index') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
+                                    Browse
+                                </a>
+                            </div>
                         </div>
-                        <h3 class="text-white font-semibold mb-2">Your adventure log is empty</h3>
-                        <p class="text-slate-400 text-sm mb-4">Start creating characters and joining campaigns to see your activity here.</p>
-                        <div class="flex justify-center space-x-3">
-                            <a href="{{ route('character-builder') }}" class="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black text-sm font-semibold rounded-lg transition-colors">
-                                Create Character
-                            </a>
-                            <a href="{{ route('campaigns') }}" class="inline-flex items-center px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm font-semibold rounded-lg transition-colors border border-slate-600">
-                                Browse Campaigns
-                            </a>
+                    </div>
+
+                    <!-- Settings -->
+                    <div class="group relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-slate-500 to-gray-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-25 transition-opacity duration-300"></div>
+                        <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-slate-500/30 transition-all duration-300">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-slate-500/20 to-gray-500/20 rounded-xl flex items-center justify-center border border-slate-500/30 mx-auto mb-4">
+                                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </div>
+                                <h3 class="font-outfit text-lg font-bold text-white mb-2">Settings</h3>
+                                <p class="text-slate-400 text-sm mb-4">Preferences</p>
+                                <a href="#" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-500 hover:to-gray-500 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
+                                    Configure
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
