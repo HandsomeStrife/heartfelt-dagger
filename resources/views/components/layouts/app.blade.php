@@ -26,12 +26,12 @@
             <x-navigation />
         @endif
         
-        <main class="pb-8">
+        <main>
             {{ $slot }}
         </main>
         
         <!-- Footer -->
-        <footer class="bg-slate-800 border-t border-slate-700 mt-8 md:mt-16">
+        <footer class="bg-slate-800 border-t border-slate-700">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
                 <div class="text-center">
                     <div class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-4xl mx-auto">
