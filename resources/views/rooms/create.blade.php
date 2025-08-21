@@ -59,17 +59,16 @@
                         <!-- Room Password -->
                         <div>
                             <label for="password" class="block text-sm font-semibold text-slate-200 mb-2">
-                                Room Password <span class="text-red-400">*</span>
+                                Room Password <span class="text-slate-500">(Optional)</span>
                             </label>
                             <input 
                                 type="password" 
                                 id="password" 
                                 name="password" 
                                 class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
-                                placeholder="Enter room password"
-                                required
+                                placeholder="Enter room password (leave blank for no password)"
                             >
-                            <p class="text-slate-400 text-sm mt-1">Participants will need this password to join your room</p>
+                            <p class="text-slate-400 text-sm mt-1">If set, participants will need this password to join your room</p>
                             @error('password')
                                 <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                             @enderror

@@ -11,6 +11,7 @@ use Domain\Campaign\Data\CreateCampaignData;
 use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Repositories\CampaignRepository;
 use Domain\Character\Models\Character;
+use Domain\Room\Repositories\RoomRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,6 +19,7 @@ class CampaignController extends Controller
 {
     public function __construct(
         private CampaignRepository $campaign_repository,
+        private RoomRepository $room_repository,
         private CreateCampaignAction $create_campaign_action,
         private JoinCampaignAction $join_campaign_action,
         private LeaveCampaignAction $leave_campaign_action,
@@ -71,12 +73,14 @@ class CampaignController extends Controller
     {
         $campaign_data = $this->campaign_repository->findById($campaign->id);
         $members = $this->campaign_repository->getCampaignMembers($campaign);
+        $campaign_rooms = $this->room_repository->getRoomsByCampaign($campaign);
         $user_is_member = $campaign->hasMember(Auth::user());
         $user_is_creator = $campaign->isCreator(Auth::user());
 
         return view('campaigns.show', [
             'campaign' => $campaign_data,
             'members' => $members,
+            'campaign_rooms' => $campaign_rooms,
             'user_is_member' => $user_is_member,
             'user_is_creator' => $user_is_creator,
         ]);

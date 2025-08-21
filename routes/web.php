@@ -46,6 +46,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/{campaign}', [App\Http\Controllers\CampaignController::class, 'show'])->name('show');
         Route::post('/{campaign}/join', [App\Http\Controllers\CampaignController::class, 'join'])->name('join_campaign');
         Route::delete('/{campaign}/leave', [App\Http\Controllers\CampaignController::class, 'leave'])->name('leave');
+        Route::get('/{campaign}/rooms/create', [App\Http\Controllers\RoomController::class, 'createForCampaign'])->name('rooms.create');
+        Route::post('/{campaign}/rooms', [App\Http\Controllers\RoomController::class, 'storeForCampaign'])->name('rooms.store');
     });
     
     // Campaign invite routes (separate from auth to allow invite sharing)
@@ -62,8 +64,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/{room}/session', [App\Http\Controllers\RoomController::class, 'session'])->name('session');
     });
     
-    // Room invite routes (separate to allow invite sharing)
-    Route::get('/rooms/join/{invite_code}', [App\Http\Controllers\RoomController::class, 'showJoin'])->name('rooms.invite');
+            // Room invite routes (separate to allow invite sharing)
+        Route::get('/rooms/join/{invite_code}', [App\Http\Controllers\RoomController::class, 'showJoin'])->name('rooms.invite');
+        
+        // Room viewer routes (public access for viewing only)
+        Route::get('/rooms/watch/{viewer_code}', [App\Http\Controllers\RoomController::class, 'viewer'])->name('rooms.viewer');
     
     Route::get('/video-rooms', [VideoRoomController::class, 'index'])->name('video-rooms');
 });

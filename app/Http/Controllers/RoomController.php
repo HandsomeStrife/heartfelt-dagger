@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use Domain\Campaign\Models\Campaign;
 use Domain\Character\Models\Character;
 use Domain\Character\Repositories\CharacterRepository;
 use Domain\Room\Actions\CreateRoomAction;
@@ -46,7 +47,7 @@ class RoomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'description' => 'required|string|max:500',
-            'password' => 'required|string|max:255',
+            'password' => 'nullable|string|max:255',
             'guest_count' => 'required|integer|min:1|max:5',
         ]);
 
@@ -61,6 +62,12 @@ class RoomController extends Controller
     public function show(Room $room)
     {
         $user = Auth::user();
+        
+        // Check if user can access this room
+        if (!$room->canUserAccess($user)) {
+            abort(403, 'You do not have access to this room.');
+        }
+        
         $participants = $this->room_repository->getRoomParticipants($room);
         
         $user_is_creator = $room->isCreator($user);
@@ -76,6 +83,11 @@ class RoomController extends Controller
 
         if (!$room) {
             abort(404, 'Room not found');
+        }
+
+        // Check if user can access this room
+        if (!$room->canUserAccess($user)) {
+            abort(403, 'You do not have access to this room.');
         }
 
         // Check if user is already a participant
@@ -100,18 +112,24 @@ class RoomController extends Controller
     public function join(Request $request, Room $room)
     {
         $validated = $request->validate([
-            'password' => 'required|string',
+            'password' => $room->password ? 'required|string' : 'nullable|string',
             'character_id' => 'nullable|exists:characters,id',
             'character_name' => 'nullable|string|max:100',
             'character_class' => 'nullable|string|max:50',
         ]);
 
-        // Verify room password
-        if (!Hash::check($validated['password'], $room->password)) {
+        // Verify room password if room has one
+        if ($room->password && !Hash::check($validated['password'], $room->password)) {
             return back()->withErrors(['password' => 'Invalid room password.']);
         }
 
         $user = Auth::user();
+        
+        // Check if user can access this room
+        if (!$room->canUserAccess($user)) {
+            abort(403, 'You do not have access to this room.');
+        }
+        
         $character = null;
 
         // Validate character ownership if provided
@@ -157,6 +175,11 @@ class RoomController extends Controller
     {
         $user = Auth::user();
 
+        // Check if user can access this room
+        if (!$room->canUserAccess($user)) {
+            abort(403, 'You do not have access to this room.');
+        }
+
         // Check if user is participating in this room
         if (!$room->hasActiveParticipant($user)) {
             return redirect()
@@ -167,5 +190,64 @@ class RoomController extends Controller
         $participants = $this->room_repository->getRoomParticipants($room);
         
         return view('rooms.session', compact('room', 'participants'));
+    }
+
+    /**
+     * Show the create room form for a specific campaign
+     */
+    public function createForCampaign(Campaign $campaign)
+    {
+        $user = Auth::user();
+        
+        // Check if user can access this campaign
+        if (!$campaign->canUserAccess($user)) {
+            abort(403, 'You do not have access to this campaign.');
+        }
+
+        return view('rooms.create-for-campaign', compact('campaign'));
+    }
+
+    /**
+     * Store a new room for a specific campaign
+     */
+    public function storeForCampaign(Request $request, Campaign $campaign)
+    {
+        $user = Auth::user();
+        
+        // Check if user can access this campaign
+        if (!$campaign->canUserAccess($user)) {
+            abort(403, 'You do not have access to this campaign.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'description' => 'required|string|max:500',
+            'guest_count' => 'required|integer|min:1|max:5',
+        ]);
+
+        $validated['campaign_id'] = $campaign->id;
+        $validated['password'] = null; // Campaign rooms don't use passwords
+        $createData = CreateRoomData::from($validated);
+        $room = $this->create_room_action->execute($createData, $user);
+
+        return redirect()
+            ->route('rooms.show', ['room' => $room->id])
+            ->with('success', 'Campaign room created successfully!');
+    }
+
+    /**
+     * Show the viewer interface for a room (read-only access)
+     */
+    public function viewer(string $viewer_code)
+    {
+        $room = Room::byViewerCode($viewer_code)->first();
+
+        if (!$room) {
+            abort(404, 'Room not found');
+        }
+
+        $participants = $this->room_repository->getRoomParticipants($room);
+
+        return view('rooms.viewer', compact('room', 'participants'));
     }
 }

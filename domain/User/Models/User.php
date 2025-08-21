@@ -120,4 +120,14 @@ class User extends Authenticatable
             ->withPivot(['character_id', 'character_name', 'character_class', 'joined_at', 'left_at'])
             ->withTimestamps();
     }
+
+    // Relationship to get rooms for campaigns the user is a member of
+    public function accessibleRooms()
+    {
+        return Room::whereHas('campaign', function ($query) {
+            $query->whereHas('members', function ($memberQuery) {
+                $memberQuery->where('user_id', $this->id);
+            });
+        })->orWhere('creator_id', $this->id);
+    }
 }

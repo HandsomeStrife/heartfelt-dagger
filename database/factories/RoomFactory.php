@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use Domain\Campaign\Models\Campaign;
 use Domain\Room\Enums\RoomStatus;
 use Domain\Room\Models\Room;
 use Domain\User\Models\User;
@@ -46,6 +47,14 @@ class RoomFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'guest_count' => $count,
+        ]);
+    }
+
+    public function forCampaign(Campaign $campaign): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'campaign_id' => $campaign->id,
+            'creator_id' => $campaign->creator_id,
         ]);
     }
 }

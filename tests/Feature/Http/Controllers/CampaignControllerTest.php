@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers;
 use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
 use Domain\Character\Models\Character;
+use Domain\Room\Models\Room;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
@@ -477,5 +478,53 @@ class CampaignControllerTest extends TestCase
 
         $response->assertRedirect(route('campaigns.show', $campaign->campaign_code));
         $response->assertSessionHas('info', 'You are already a member of this campaign.');
+    }
+
+    #[Test]
+    public function campaign_show_displays_campaign_rooms(): void
+    {
+        $user = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
+
+        // Create rooms - one for this campaign and one for another campaign
+        $campaignRoom1 = Room::factory()->create([
+            'campaign_id' => $campaign->id,
+            'creator_id' => $user->id,
+            'name' => 'Campaign Room 1',
+        ]);
+        
+        $campaignRoom2 = Room::factory()->create([
+            'campaign_id' => $campaign->id,
+            'creator_id' => $user->id,
+            'name' => 'Campaign Room 2',
+        ]);
+
+        // Create a room for a different campaign to ensure it's not shown
+        $otherCampaign = Campaign::factory()->create();
+        $otherRoom = Room::factory()->create([
+            'campaign_id' => $otherCampaign->id,
+            'name' => 'Other Campaign Room',
+        ]);
+
+        // Create a regular room (no campaign) to ensure it's not shown
+        $regularRoom = Room::factory()->create([
+            'campaign_id' => null,
+            'name' => 'Regular Room',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('campaigns.show', $campaign->campaign_code));
+
+        $response->assertOk();
+        $response->assertSee('Campaign Room 1');
+        $response->assertSee('Campaign Room 2');
+        $response->assertDontSee('Other Campaign Room');
+        $response->assertDontSee('Regular Room');
+        $response->assertSee('Campaign Rooms');
+        $response->assertSee('No Password');
+        $response->assertSee('Campaign'); // The badge text
+        $response->assertViewHas('campaign_rooms');
+        
+        $viewData = $response->viewData('campaign_rooms');
+        $this->assertCount(2, $viewData);
     }
 }

@@ -126,6 +126,14 @@ class Campaign extends Model
     }
 
     /**
+     * Check if a user can access this campaign (member or creator)
+     */
+    public function canUserAccess(User $user): bool
+    {
+        return $this->isCreator($user) || $this->hasMember($user);
+    }
+
+    /**
      * Get the member count for this campaign
      */
     public function getMemberCount(): int

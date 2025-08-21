@@ -53,23 +53,46 @@
                         <form action="{{ route('rooms.join', $room) }}" method="POST" class="space-y-6">
                             @csrf
 
-                            <!-- Room Password -->
-                            <div>
-                                <label for="password" class="block text-sm font-semibold text-slate-200 mb-2">
-                                    Room Password <span class="text-red-400">*</span>
-                                </label>
-                                <input 
-                                    type="password" 
-                                    id="password" 
-                                    name="password" 
-                                    class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
-                                    placeholder="Enter room password"
-                                    required
-                                >
-                                @error('password')
-                                    <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            @if($room->password)
+                                <!-- Room Password -->
+                                <div>
+                                    <label for="password" class="block text-sm font-semibold text-slate-200 mb-2">
+                                        Room Password <span class="text-red-400">*</span>
+                                    </label>
+                                    <input 
+                                        type="password" 
+                                        id="password" 
+                                        name="password" 
+                                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
+                                        placeholder="Enter room password"
+                                        required
+                                    >
+                                    @error('password')
+                                        <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @else
+                                <!-- No Password Required -->
+                                <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-emerald-300 font-semibold">No Password Required</h3>
+                                            <p class="text-emerald-200/90 text-sm">
+                                                @if($room->campaign_id)
+                                                    This is a campaign room - access is restricted to campaign members.
+                                                @else
+                                                    This room is open to all participants.
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
 
                             <!-- Character Selection -->
                             <div>

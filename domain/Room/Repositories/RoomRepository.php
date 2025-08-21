@@ -32,7 +32,9 @@ class RoomRepository
             'password' => $room->password,
             'guest_count' => $room->guest_count,
             'creator_id' => $room->creator_id,
+            'campaign_id' => $room->campaign_id,
             'invite_code' => $room->invite_code,
+            'viewer_code' => $room->viewer_code,
             'status' => $room->status,
             'created_at' => $room->created_at?->toDateTimeString(),
             'updated_at' => $room->updated_at?->toDateTimeString(),
@@ -62,7 +64,9 @@ class RoomRepository
             'password' => $room->password,
             'guest_count' => $room->guest_count,
             'creator_id' => $room->creator_id,
+            'campaign_id' => $room->campaign_id,
             'invite_code' => $room->invite_code,
+            'viewer_code' => $room->viewer_code,
             'status' => $room->status,
             'created_at' => $room->created_at?->toDateTimeString(),
             'updated_at' => $room->updated_at?->toDateTimeString(),
@@ -89,7 +93,9 @@ class RoomRepository
             'password' => $room->password,
             'guest_count' => $room->guest_count,
             'creator_id' => $room->creator_id,
+            'campaign_id' => $room->campaign_id,
             'invite_code' => $room->invite_code,
+            'viewer_code' => $room->viewer_code,
             'status' => $room->status,
             'created_at' => $room->created_at?->toDateTimeString(),
             'updated_at' => $room->updated_at?->toDateTimeString(),
@@ -118,7 +124,38 @@ class RoomRepository
             'password' => $room->password,
             'guest_count' => $room->guest_count,
             'creator_id' => $room->creator_id,
+            'campaign_id' => $room->campaign_id,
             'invite_code' => $room->invite_code,
+            'viewer_code' => $room->viewer_code,
+            'status' => $room->status,
+            'created_at' => $room->created_at?->toDateTimeString(),
+            'updated_at' => $room->updated_at?->toDateTimeString(),
+            'creator' => $room->creator,
+            'active_participant_count' => $room->active_participants_count,
+        ]));
+    }
+
+    /**
+     * Get rooms that belong to a campaign
+     */
+    public function getRoomsByCampaign($campaign): Collection
+    {
+        $rooms = Room::with(['creator'])
+            ->withCount(['activeParticipants'])
+            ->where('campaign_id', $campaign->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $rooms->map(fn ($room) => RoomData::from([
+            'id' => $room->id,
+            'name' => $room->name,
+            'description' => $room->description,
+            'password' => $room->password,
+            'guest_count' => $room->guest_count,
+            'creator_id' => $room->creator_id,
+            'campaign_id' => $room->campaign_id,
+            'invite_code' => $room->invite_code,
+            'viewer_code' => $room->viewer_code,
             'status' => $room->status,
             'created_at' => $room->created_at?->toDateTimeString(),
             'updated_at' => $room->updated_at?->toDateTimeString(),

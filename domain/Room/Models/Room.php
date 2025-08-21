@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Room\Models;
 
+use Domain\Campaign\Models\Campaign;
 use Domain\Room\Enums\RoomStatus;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,6 +32,9 @@ class Room extends Model
             if (empty($room->invite_code)) {
                 $room->invite_code = static::generateUniqueInviteCode();
             }
+            if (empty($room->viewer_code)) {
+                $room->viewer_code = static::generateUniqueViewerCode();
+            }
         });
     }
 
@@ -47,9 +51,28 @@ class Room extends Model
         return $code;
     }
 
+    public static function generateUniqueViewerCode(): string
+    {
+        do {
+            // Use a longer, more secure viewer code with mixed case and special chars
+            $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            $code = '';
+            for ($i = 0; $i < 12; $i++) {
+                $code .= $characters[random_int(0, strlen($characters) - 1)];
+            }
+        } while (static::where('viewer_code', $code)->exists());
+
+        return $code;
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(Campaign::class);
     }
 
     public function participants(): HasMany
@@ -71,6 +94,14 @@ class Room extends Model
     }
 
     /**
+     * Get the room's viewer URL
+     */
+    public function getViewerUrl(): string
+    {
+        return route('rooms.viewer', ['viewer_code' => $this->viewer_code]);
+    }
+
+    /**
      * Check if a user is the creator of this room
      */
     public function isCreator(User $user): bool
@@ -84,6 +115,25 @@ class Room extends Model
     public function hasActiveParticipant(User $user): bool
     {
         return $this->activeParticipants()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Check if a user can access this room (campaign member or creator)
+     */
+    public function canUserAccess(User $user): bool
+    {
+        // Room creator can always access
+        if ($this->isCreator($user)) {
+            return true;
+        }
+
+        // If room is not linked to a campaign, use original logic
+        if (!$this->campaign_id) {
+            return true;
+        }
+
+        // Check if user can access the campaign
+        return $this->campaign->canUserAccess($user);
     }
 
     /**
@@ -116,6 +166,14 @@ class Room extends Model
     public function scopeByInviteCode(Builder $query, string $inviteCode): Builder
     {
         return $query->where('invite_code', $inviteCode);
+    }
+
+    /**
+     * Scope a query to only include rooms by viewer code
+     */
+    public function scopeByViewerCode(Builder $query, string $viewerCode): Builder
+    {
+        return $query->where('viewer_code', $viewerCode);
     }
 
     /**

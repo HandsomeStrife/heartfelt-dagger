@@ -17,9 +17,10 @@ class CreateRoomAction
         $room = Room::create([
             'name' => $createData->name,
             'description' => $createData->description,
-            'password' => bcrypt($createData->password), // Hash the password for security
+            'password' => $createData->password ? bcrypt($createData->password) : null, // Hash only if password provided
             'guest_count' => $createData->guest_count,
             'creator_id' => $creator->id,
+            'campaign_id' => $createData->campaign_id,
             'status' => RoomStatus::Active,
         ]);
 
@@ -32,7 +33,9 @@ class CreateRoomAction
             'password' => $room->password, // This will be the hashed password
             'guest_count' => $room->guest_count,
             'creator_id' => $room->creator_id,
+            'campaign_id' => $room->campaign_id,
             'invite_code' => $room->invite_code,
+            'viewer_code' => $room->viewer_code,
             'status' => $room->status,
             'created_at' => $room->created_at?->toDateTimeString(),
             'updated_at' => $room->updated_at?->toDateTimeString(),

@@ -22,10 +22,12 @@ class CreateRoomData extends Data implements Wireable
         #[Required, Max(500)]
         public string $description,
         
-        #[Required, Max(255)]
-        public string $password,
+        #[Max(255)]
+        public ?string $password,
         
         #[Required, Min(1), Max(5)]
         public int $guest_count,
+        
+        public ?int $campaign_id = null,
     ) {}
 }

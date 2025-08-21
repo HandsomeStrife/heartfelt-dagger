@@ -84,8 +84,8 @@
                                     <code class="bg-slate-700 text-emerald-400 px-3 py-2 rounded-lg font-mono text-sm">
                                         {{ $room->invite_code }}
                                     </code>
-                                    <button onclick="copyInviteLink()" class="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
-                                        Copy Link
+                                    <button onclick="showModal('roomInviteModal')" class="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                                        Share Room
                                     </button>
                                 </div>
                             </div>
@@ -165,20 +165,112 @@
         </div>
     </div>
 
-    <script>
-    function copyInviteLink() {
-        const inviteUrl = "{{ route('rooms.invite', $room->invite_code) }}";
-        navigator.clipboard.writeText(inviteUrl).then(() => {
-            // Create a temporary notification
-            const notification = document.createElement('div');
-            notification.className = 'fixed top-4 right-4 bg-emerald-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-            notification.textContent = 'Invite link copied to clipboard!';
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        });
-    }
-    </script>
+    @if($user_is_creator)
+        <!-- Room Invite Modal with Viewer URL -->
+        <div id="roomInviteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-lg w-full mx-4">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-outfit font-bold text-white">Share Room Access</h3>
+                    <button onclick="hideModal('roomInviteModal')" class="text-slate-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Participant Link -->
+                    <div>
+                        <label class="block text-slate-300 text-sm font-semibold mb-2">Participant Invite</label>
+                        <div class="flex items-center space-x-3">
+                            <input type="text" readonly value="{{ route('rooms.invite', $room->invite_code) }}" 
+                                   class="flex-1 bg-slate-800 text-slate-300 px-4 py-3 rounded-lg border border-slate-600 text-sm">
+                            <button onclick="copyText('{{ route('rooms.invite', $room->invite_code) }}', this)" class="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-3 rounded-lg font-semibold transition-colors">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="text-slate-400 text-xs mt-2">
+                            @if($room->campaign_id)
+                                Campaign members can join the session with this link
+                            @else
+                                Anyone with this link can join the session
+                            @endif
+                        </p>
+                    </div>
+
+                    <!-- Viewer Link -->
+                    <div>
+                        <label class="block text-slate-300 text-sm font-semibold mb-2">Viewer Link</label>
+                        <div class="flex items-center space-x-3">
+                            <input type="text" readonly value="{{ route('rooms.viewer', $room->viewer_code) }}" 
+                                   class="flex-1 bg-slate-800 text-slate-300 px-4 py-3 rounded-lg border border-slate-600 text-sm">
+                            <button onclick="copyText('{{ route('rooms.viewer', $room->viewer_code) }}', this)" class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-3 rounded-lg font-semibold transition-colors">
+                                Copy
+                            </button>
+                        </div>
+                        <p class="text-slate-400 text-xs mt-2">Read-only access - viewers can watch but not participate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            window.showModal = window.showModal || function(modalId) {
+                const modal = document.getElementById(modalId);
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            window.hideModal = window.hideModal || function(modalId) {
+                const modal = document.getElementById(modalId);
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            window.copyText = window.copyText || function(text, button) {
+                navigator.clipboard.writeText(text).then(function() {
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.classList.remove('bg-emerald-500', 'hover:bg-emerald-400', 'bg-indigo-500', 'hover:bg-indigo-400');
+                    button.classList.add('bg-green-500');
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-green-500');
+                        if (originalText === 'Copy' && button.parentElement.parentElement.querySelector('label').textContent.includes('Participant')) {
+                            button.classList.add('bg-emerald-500', 'hover:bg-emerald-400');
+                        } else {
+                            button.classList.add('bg-indigo-500', 'hover:bg-indigo-400');
+                        }
+                    }, 2000);
+                }, function(err) {
+                    console.error('Could not copy text: ', err);
+                    button.textContent = 'Error';
+                    button.classList.add('bg-red-500');
+                    setTimeout(() => {
+                        button.textContent = 'Copy';
+                        button.classList.remove('bg-red-500');
+                    }, 2000);
+                });
+            }
+
+            // Setup modal event listeners
+            document.addEventListener('DOMContentLoaded', function() {
+                const modal = document.getElementById('roomInviteModal');
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            hideModal('roomInviteModal');
+                        }
+                    });
+                }
+
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        hideModal('roomInviteModal');
+                    }
+                });
+            });
+        </script>
+    @endif
 </x-layout>

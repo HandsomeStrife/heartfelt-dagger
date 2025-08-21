@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers;
 
+use Domain\Campaign\Models\Campaign;
+use Domain\Campaign\Models\CampaignMember;
 use Domain\Character\Models\Character;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -63,14 +66,15 @@ class RoomControllerTest extends TestCase
         
         // Rooms joined by user
         $joinedRoom = Room::factory()->create(['creator_id' => $otherUser->id, 'name' => 'Joined Room']);
-        RoomParticipant::factory()->create([
+        RoomParticipant::factory()->withoutCharacter()->create([
             'room_id' => $joinedRoom->id,
             'user_id' => $user->id,
-            'left_at' => null
+            'left_at' => null,
+            'character_id' => null,
         ]);
         
         // Other room not related to user
-        Room::factory()->create(['creator_id' => $otherUser->id, 'name' => 'Other Room']);
+        $otherRoom = Room::factory()->create(['creator_id' => $otherUser->id, 'name' => 'Other Room']);
 
         $response = $this->actingAs($user)->get(route('rooms.index'));
 
@@ -125,7 +129,7 @@ class RoomControllerTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('rooms.store'), []);
 
-        $response->assertSessionHasErrors(['name', 'description', 'password', 'guest_count']);
+        $response->assertSessionHasErrors(['name', 'description', 'guest_count']);
     }
 
     #[Test]
@@ -551,5 +555,452 @@ class RoomControllerTest extends TestCase
         $response->assertDontSee('Start Session');
         $response->assertDontSee('Join Session');
         $response->assertDontSee('Leave Room');
+    }
+
+    // ===============================
+    // CAMPAIGN ROOM TESTS
+    // ===============================
+
+    #[Test]
+    public function campaign_creator_can_access_campaign_room_creation_form(): void
+    {
+        $user = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
+
+        $response = $this->actingAs($user)->get(route('campaigns.rooms.create', $campaign->campaign_code));
+
+        $response->assertOk();
+        $response->assertSee('Create Campaign Room');
+        $response->assertSee('No Password Required');
+        $response->assertDontSee('Room Password');
+    }
+
+    #[Test]
+    public function campaign_member_can_access_campaign_room_creation_form(): void
+    {
+        $creator = User::factory()->create();
+        $member = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+        
+        CampaignMember::create([
+            'campaign_id' => $campaign->id,
+            'user_id' => $member->id,
+        ]);
+
+        $response = $this->actingAs($member)->get(route('campaigns.rooms.create', $campaign->campaign_code));
+
+        $response->assertOk();
+        $response->assertSee('Create Campaign Room');
+    }
+
+    #[Test]
+    public function non_campaign_member_cannot_access_campaign_room_creation(): void
+    {
+        $creator = User::factory()->create();
+        $outsider = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+
+        $response = $this->actingAs($outsider)->get(route('campaigns.rooms.create', $campaign->campaign_code));
+
+        $response->assertStatus(403);
+    }
+
+    #[Test]
+    public function campaign_creator_can_create_passwordless_room(): void
+    {
+        $user = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
+
+        $roomData = [
+            'name' => 'Test Campaign Room',
+            'description' => 'A room for our campaign',
+            'guest_count' => 4,
+        ];
+
+        $response = $this->actingAs($user)->post(route('campaigns.rooms.store', $campaign->campaign_code), $roomData);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Campaign room created successfully!');
+
+        $this->assertDatabaseHas('rooms', [
+            'name' => 'Test Campaign Room',
+            'campaign_id' => $campaign->id,
+            'creator_id' => $user->id,
+            'password' => null, // No password for campaign rooms
+        ]);
+    }
+
+    #[Test]
+    public function campaign_member_can_create_passwordless_room(): void
+    {
+        $creator = User::factory()->create();
+        $member = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+        
+        CampaignMember::create([
+            'campaign_id' => $campaign->id,
+            'user_id' => $member->id,
+        ]);
+
+        $roomData = [
+            'name' => 'Member Campaign Room',
+            'description' => 'Created by campaign member',
+            'guest_count' => 3,
+        ];
+
+        $response = $this->actingAs($member)->post(route('campaigns.rooms.store', $campaign->campaign_code), $roomData);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('rooms', [
+            'name' => 'Member Campaign Room',
+            'campaign_id' => $campaign->id,
+            'creator_id' => $member->id,
+            'password' => null,
+        ]);
+    }
+
+    #[Test]
+    public function non_campaign_member_cannot_create_campaign_room(): void
+    {
+        $creator = User::factory()->create();
+        $outsider = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+
+        $roomData = [
+            'name' => 'Unauthorized Room',
+            'description' => 'Should not be created',
+            'guest_count' => 2,
+        ];
+
+        $response = $this->actingAs($outsider)->post(route('campaigns.rooms.store', $campaign->campaign_code), $roomData);
+
+        $response->assertStatus(403);
+        $this->assertDatabaseMissing('rooms', [
+            'name' => 'Unauthorized Room',
+        ]);
+    }
+
+    #[Test]
+    public function campaign_room_restricts_access_to_campaign_members_only(): void
+    {
+        $creator = User::factory()->create();
+        $member = User::factory()->create();
+        $outsider = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+        
+        CampaignMember::create([
+            'campaign_id' => $campaign->id,
+            'user_id' => $member->id,
+        ]);
+
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'campaign_id' => $campaign->id,
+            'password' => null,
+        ]);
+
+        // Campaign creator can access
+        $response = $this->actingAs($creator)->get(route('rooms.show', $room));
+        $response->assertOk();
+
+        // Campaign member can access
+        $response = $this->actingAs($member)->get(route('rooms.show', $room));
+        $response->assertOk();
+
+        // Outsider cannot access
+        $response = $this->actingAs($outsider)->get(route('rooms.show', $room));
+        $response->assertStatus(403);
+    }
+
+    #[Test]
+    public function campaign_members_can_join_passwordless_campaign_room(): void
+    {
+        $creator = User::factory()->create();
+        $member = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+        
+        CampaignMember::create([
+            'campaign_id' => $campaign->id,
+            'user_id' => $member->id,
+        ]);
+
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'campaign_id' => $campaign->id,
+            'password' => null,
+        ]);
+
+        // Member joins without password
+        $response = $this->actingAs($member)->post(route('rooms.join', $room), [
+            'character_name' => 'Test Character',
+            'character_class' => 'Warrior',
+        ]);
+
+        $response->assertRedirect(route('rooms.session', $room));
+        $this->assertDatabaseHas('room_participants', [
+            'room_id' => $room->id,
+            'user_id' => $member->id,
+            'character_name' => 'Test Character',
+        ]);
+    }
+
+    #[Test]
+    public function campaign_room_join_form_shows_no_password_field(): void
+    {
+        $creator = User::factory()->create();
+        $member = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+        
+        CampaignMember::create([
+            'campaign_id' => $campaign->id,
+            'user_id' => $member->id,
+        ]);
+
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'campaign_id' => $campaign->id,
+            'password' => null,
+        ]);
+
+        $response = $this->actingAs($member)->get(route('rooms.invite', $room->invite_code));
+
+        $response->assertOk();
+        $response->assertSee('No Password Required');
+        $response->assertSee('campaign room - access is restricted to campaign members');
+        $response->assertDontSee('Room Password');
+        $response->assertDontSee('Enter room password');
+    }
+
+    // ===============================
+    // REGULAR ROOM OPTIONAL PASSWORD TESTS
+    // ===============================
+
+    #[Test]
+    public function user_can_create_regular_room_without_password(): void
+    {
+        $user = User::factory()->create();
+
+        $roomData = [
+            'name' => 'Open Room',
+            'description' => 'Anyone can join',
+            'guest_count' => 4,
+            // No password provided
+        ];
+
+        $response = $this->actingAs($user)->post(route('rooms.store'), $roomData);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Room created successfully!');
+
+        $this->assertDatabaseHas('rooms', [
+            'name' => 'Open Room',
+            'creator_id' => $user->id,
+            'campaign_id' => null,
+            'password' => null,
+        ]);
+    }
+
+    #[Test]
+    public function user_can_create_regular_room_with_password(): void
+    {
+        $user = User::factory()->create();
+
+        $roomData = [
+            'name' => 'Protected Room',
+            'description' => 'Password required',
+            'password' => 'secret123',
+            'guest_count' => 3,
+        ];
+
+        $response = $this->actingAs($user)->post(route('rooms.store'), $roomData);
+
+        $response->assertRedirect();
+
+        $room = Room::where('name', 'Protected Room')->first();
+        $this->assertNotNull($room);
+        $this->assertNotNull($room->password);
+        $this->assertTrue(Hash::check('secret123', $room->password));
+    }
+
+    #[Test]
+    public function regular_room_creation_form_shows_optional_password_field(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get(route('rooms.create'));
+
+        $response->assertOk();
+        $response->assertSee('Room Password');
+        $response->assertSee('(Optional)');
+        $response->assertSee('leave blank for no password');
+    }
+
+    #[Test]
+    public function user_can_join_passwordless_regular_room(): void
+    {
+        $creator = User::factory()->create();
+        $joiner = User::factory()->create();
+        
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'password' => null, // No password
+            'campaign_id' => null, // Regular room
+        ]);
+
+        $response = $this->actingAs($joiner)->post(route('rooms.join', $room), [
+            'character_name' => 'Open Joiner',
+            'character_class' => 'Rogue',
+        ]);
+
+        $response->assertRedirect(route('rooms.session', $room));
+        $this->assertDatabaseHas('room_participants', [
+            'room_id' => $room->id,
+            'user_id' => $joiner->id,
+            'character_name' => 'Open Joiner',
+        ]);
+    }
+
+    #[Test]
+    public function user_can_join_password_protected_regular_room_with_correct_password(): void
+    {
+        $creator = User::factory()->create();
+        $joiner = User::factory()->create();
+        
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'password' => Hash::make('secret123'),
+            'campaign_id' => null,
+        ]);
+
+        $response = $this->actingAs($joiner)->post(route('rooms.join', $room), [
+            'password' => 'secret123',
+            'character_name' => 'Protected Joiner',
+            'character_class' => 'Wizard',
+        ]);
+
+        $response->assertRedirect(route('rooms.session', $room));
+        $this->assertDatabaseHas('room_participants', [
+            'room_id' => $room->id,
+            'user_id' => $joiner->id,
+            'character_name' => 'Protected Joiner',
+        ]);
+    }
+
+    #[Test]
+    public function user_cannot_join_password_protected_room_with_wrong_password(): void
+    {
+        $creator = User::factory()->create();
+        $joiner = User::factory()->create();
+        
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'password' => Hash::make('secret123'),
+            'campaign_id' => null,
+        ]);
+
+        $response = $this->actingAs($joiner)->post(route('rooms.join', $room), [
+            'password' => 'wrongpassword',
+            'character_name' => 'Failed Joiner',
+            'character_class' => 'Bard',
+        ]);
+
+        $response->assertSessionHasErrors(['password']);
+        $this->assertDatabaseMissing('room_participants', [
+            'room_id' => $room->id,
+            'user_id' => $joiner->id,
+        ]);
+    }
+
+    #[Test]
+    public function user_cannot_join_password_protected_room_without_password(): void
+    {
+        $creator = User::factory()->create();
+        $joiner = User::factory()->create();
+        
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'password' => Hash::make('secret123'),
+            'campaign_id' => null,
+        ]);
+
+        $response = $this->actingAs($joiner)->post(route('rooms.join', $room), [
+            // No password provided
+            'character_name' => 'No Password Joiner',
+            'character_class' => 'Druid',
+        ]);
+
+        $response->assertSessionHasErrors(['password']);
+        $this->assertDatabaseMissing('room_participants', [
+            'room_id' => $room->id,
+            'user_id' => $joiner->id,
+        ]);
+    }
+
+    #[Test]
+    public function passwordless_room_join_form_shows_no_password_field(): void
+    {
+        $creator = User::factory()->create();
+        $joiner = User::factory()->create();
+        
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'password' => null,
+            'campaign_id' => null,
+        ]);
+
+        $response = $this->actingAs($joiner)->get(route('rooms.invite', $room->invite_code));
+
+        $response->assertOk();
+        $response->assertSee('No Password Required');
+        $response->assertSee('This room is open to all participants');
+        $response->assertDontSee('Room Password');
+        $response->assertDontSee('Enter room password');
+    }
+
+    #[Test]
+    public function password_protected_room_join_form_shows_password_field(): void
+    {
+        $creator = User::factory()->create();
+        $joiner = User::factory()->create();
+        
+        $room = Room::factory()->create([
+            'creator_id' => $creator->id,
+            'password' => Hash::make('secret123'),
+            'campaign_id' => null,
+        ]);
+
+        $response = $this->actingAs($joiner)->get(route('rooms.invite', $room->invite_code));
+
+        $response->assertOk();
+        $response->assertSee('Room Password');
+        $response->assertSee('Enter room password');
+        $response->assertDontSee('No Password Required');
+    }
+
+    #[Test]
+    public function room_sharing_modal_shows_different_messages_for_campaign_vs_regular_rooms(): void
+    {
+        $user = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
+        
+        // Campaign room
+        $campaignRoom = Room::factory()->create([
+            'creator_id' => $user->id,
+            'campaign_id' => $campaign->id,
+            'password' => null,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('rooms.show', $campaignRoom));
+        $response->assertSee('Campaign members can join');
+
+        // Regular room
+        $regularRoom = Room::factory()->create([
+            'creator_id' => $user->id,
+            'campaign_id' => null,
+            'password' => null,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('rooms.show', $regularRoom));
+        $response->assertSee('Anyone with this link can join');
     }
 }
