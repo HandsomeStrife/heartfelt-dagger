@@ -40,6 +40,10 @@
                                 <a href="{{ route('characters') }}" class="block px-4 py-3 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto border-b border-slate-600">
                                     My Characters
                                 </a>
+                                <a href="{{ route('discord') }}" target="_blank" rel="noopener noreferrer" class="flex items-center px-4 py-3 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto border-b border-slate-600">
+                                    <x-icons.discord class="w-4 h-4 mr-3" />
+                                    Discord
+                                </a>
                                 
                                 <!-- Auth-only links -->
                                 <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-3 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto border-b border-slate-600">
@@ -108,6 +112,10 @@
                                     <x-icons.characters class="w-4 h-4 mr-3" />
                                     My Characters
                                 </a>
+                                <a href="{{ route('discord') }}" target="_blank" rel="noopener noreferrer" class="flex items-center px-4 py-2 text-sm text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">
+                                    <x-icons.discord class="w-4 h-4 mr-3" />
+                                    Discord
+                                </a>
                                 <hr class="my-1 border-slate-600">
                                 <a href="{{ route('dashboard') }}" class="flex items-center px-4 py-2 text-sm text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">
                                     <svg class="w-4 h-4 mr-3" fill="currentColor" viewBox="0 0 24 24">
@@ -149,6 +157,10 @@
                         <a href="{{ route('register') }}" class="text-white/80 hover:text-white font-medium transition-colors font-roboto">
                             Register
                         </a>
+                        <span class="text-white/80">|</span>
+                        <a href="{{ route('discord') }}" target="_blank" rel="noopener noreferrer" class="text-white/80 hover:text-white font-medium transition-colors font-roboto flex items-center gap-2" x-tooltip="Join our Discord community">
+                            <x-icons.discord class="w-5 h-5" />
+                        </a>
                     </div>
 
                     <!-- Mobile menu button (Guest) -->
@@ -177,6 +189,10 @@
                                 </a>
                                 <a href="{{ route('characters') }}" class="block px-4 py-3 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto border-b border-slate-600">
                                     Characters
+                                </a>
+                                <a href="{{ route('discord') }}" target="_blank" rel="noopener noreferrer" class="flex items-center px-4 py-3 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto border-b border-slate-600">
+                                    <x-icons.discord class="w-4 h-4 mr-3" />
+                                    Discord
                                 </a>
                                 <a href="{{ route('login') }}" class="block px-4 py-3 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto border-b border-slate-600">
                                     Login

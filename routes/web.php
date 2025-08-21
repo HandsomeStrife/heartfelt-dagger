@@ -26,6 +26,11 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
+// Discord redirect
+Route::get('/discord', function () {
+    return redirect('https://discord.gg/dNAkDYevGx');
+})->name('discord');
+
 // Protected routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {

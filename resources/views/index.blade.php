@@ -40,6 +40,24 @@
                         Create Character
                     </a>
                 </div>
+
+                <!-- Bug Report Link -->
+                <div class="mt-8 pt-6">
+                    <p class="text-sm text-slate-400 mb-3">
+                        Found a bug or have feedback?
+                    </p>
+                    <a 
+                        href="{{ route('discord') }}" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium"
+                        x-tooltip="Join our Discord to report bugs and give feedback"
+                    >
+                        <x-icons.discord class="w-4 h-4" />
+                        Join our Discord to report issues
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>

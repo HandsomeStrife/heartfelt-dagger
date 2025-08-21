@@ -34,6 +34,14 @@
         <footer class="bg-slate-800 border-t border-slate-700">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
                 <div class="text-center">
+                    <!-- Discord Link -->
+                    <div class="mb-4 md:mb-6">
+                        <a href="{{ route('discord') }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors font-roboto text-sm md:text-base" x-tooltip="Join our Discord community">
+                            <x-icons.discord class="w-5 h-5" />
+                            Join our Discord Community
+                        </a>
+                    </div>
+                    
                     <div class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-4xl mx-auto">
                         <p class="mb-2 md:mb-3">
                             This repository includes materials from the Daggerheart System Reference Document © Critical Role, LLC. under the terms of the Darrington Press Community Gaming (DPCGL) License. More information can be found at 
