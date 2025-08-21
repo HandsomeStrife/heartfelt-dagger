@@ -20,6 +20,8 @@ class LoginForm extends Form
 
     public bool $remember = false;
 
+    public array $character_keys = [];
+
     public function authenticate(): ?UserData
     {
         $this->validate();
@@ -31,8 +33,9 @@ class LoginForm extends Form
         ]);
 
         return (new AuthenticateUserAction(
-            user_repository: app(\Domain\User\Repositories\UserRepository::class)
-        ))->execute($login_data);
+            user_repository: app(\Domain\User\Repositories\UserRepository::class),
+            associate_characters_action: app(\Domain\Character\Actions\AssociateCharactersWithUserAction::class)
+        ))->execute($login_data, $this->character_keys);
     }
 
     public function resetForm(): void

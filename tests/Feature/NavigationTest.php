@@ -14,14 +14,14 @@ class NavigationTest extends TestCase
     {
         $response = $this->get('/');
         
-        // Guest users should see branding and character links (they're public)
+        // Guest users should see branding and guest navigation links
         $response->assertSee('HeartfeltDagger');
-        $response->assertSee('My Characters');
-        $response->assertSee('Create Character'); // Note: button text is different from navigation
+        $response->assertSee('Create');
+        $response->assertSee('Characters');
+        $response->assertSee('Login');
+        $response->assertSee('Register');
         
-        // But should NOT see auth-only features
-        $response->assertDontSee('Login');
-        $response->assertDontSee('Join Adventure');
+        // But should NOT see auth-only features  
         $response->assertDontSee('Dashboard');
         $response->assertDontSee('Campaigns');
         $response->assertDontSee('Logout');
@@ -38,11 +38,11 @@ class NavigationTest extends TestCase
         $response->assertSee('testuser');
         $response->assertSee('Dashboard');
         $response->assertSee('My Characters');
-        $response->assertSee('Create New Character');
+        $response->assertSee('Create Character');
         $response->assertSee('Campaigns');
         $response->assertSee('Logout');
         $response->assertDontSee('Login');
-        $response->assertDontSee('Join Adventure');
+        $response->assertDontSee('Register');
     }
 
     public function test_navigation_displays_user_avatar_initial(): void
@@ -89,7 +89,7 @@ class NavigationTest extends TestCase
         $response = $this->get('/login');
 
         // Navigation should not be visible on login page
-        $response->assertDontSee('Create New Character');
+        $response->assertDontSee('Create Character');
         $response->assertDontSee('My Characters');
         $response->assertDontSee('Dashboard');
     }
@@ -99,7 +99,7 @@ class NavigationTest extends TestCase
         $response = $this->get('/register');
 
         // Navigation should not be visible on register page
-        $response->assertDontSee('Create New Character');
+        $response->assertDontSee('Create Character');
         $response->assertDontSee('My Characters');
         $response->assertDontSee('Dashboard');
     }
@@ -151,7 +151,7 @@ class NavigationTest extends TestCase
 
         // Check for dropdown elements
         $response->assertSee('Dashboard');
-        $response->assertSee('Create New Character');
+        $response->assertSee('Create Character');
         $response->assertSee('Campaigns');
         $response->assertSee('Logout');
     }

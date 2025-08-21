@@ -25,6 +25,8 @@ class RegisterForm extends Form
     #[Validate('required')]
     public string $password_confirmation = '';
 
+    public array $character_keys = [];
+
     public function register(): UserData
     {
         $this->validate();
@@ -36,7 +38,9 @@ class RegisterForm extends Form
             'password_confirmation' => $this->password_confirmation,
         ]);
 
-        $user_data = (new RegisterUserAction)->execute($register_data);
+        $user_data = (new RegisterUserAction(
+            associate_characters_action: app(\Domain\Character\Actions\AssociateCharactersWithUserAction::class)
+        ))->execute($register_data, $this->character_keys);
 
         // Log the user in automatically after registration
         $user = Auth::getProvider()->retrieveById($user_data->id);

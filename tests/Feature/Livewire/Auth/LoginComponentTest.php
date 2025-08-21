@@ -137,7 +137,7 @@ class LoginComponentTest extends TestCase
             ->assertSee('Email')
             ->assertSee('Password')
             ->assertSee('Remember me')
-            ->assertSee('Enter Realm');
+            ->assertSee('Enter the Realm');
     }
 
     public function test_validation_errors_are_displayed(): void

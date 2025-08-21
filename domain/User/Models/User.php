@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Domain\User\Models;
 
+use Domain\Character\Models\Character;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -53,5 +55,13 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get all characters belonging to this user.
+     */
+    public function characters(): HasMany
+    {
+        return $this->hasMany(Character::class);
     }
 }
