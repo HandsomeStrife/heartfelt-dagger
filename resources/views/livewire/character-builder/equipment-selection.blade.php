@@ -10,8 +10,8 @@
     @if ($character->selected_class)
         <!-- Progress Indicator -->
         <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4 text-sm">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+                <div class="flex items-center gap-2 sm:gap-4 text-sm flex-wrap">
                     <div class="flex items-center gap-2">
                         @if ($equipment_progress['selectedPrimary'])
                             <div class="bg-emerald-500 rounded-full p-1">
@@ -160,9 +160,9 @@
         </div>
     @else
         <!-- Equipment Selection -->
-        <div class="space-y-6">
+        <div class="space-y-4 sm:space-y-6">
             <!-- Weapons Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <!-- Primary Weapons -->
                 <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white font-outfit mb-4">Primary Weapon</h3>
@@ -322,7 +322,7 @@
             </div>
 
             <!-- Armor and Inventory Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <!-- Armor -->
                 <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
                     <h3 class="text-lg font-bold text-white font-outfit mb-4">Armor</h3>

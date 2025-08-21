@@ -22,7 +22,7 @@
     </div>
     
     <!-- Two Column Layout -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
         <!-- Left Column: Instructions and Controls -->
         <div class="space-y-8">
             <!-- Instructions -->
@@ -116,7 +116,7 @@
             </div>
             
             <!-- Trait Boxes Grid -->
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                 @php
                     $traits = [
                         'agility' => [
@@ -164,7 +164,7 @@
                         class="group"
                     >
                         <!-- Stat Box Container -->
-                        <div class="flex flex-col items-center w-24 mx-auto">
+                        <div class="flex flex-col items-center w-20 sm:w-24 mx-auto">
                             <!-- Trait Name Header -->
                             <div class="bg-zinc-950 w-full rounded-t-lg px-2 py-1 text-center">
                                 <span class="font-semibold text-white text-xs tracking-wide">{{ $traitInfo['name'] }}</span>

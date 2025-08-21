@@ -94,26 +94,26 @@
         $wire.assignTrait(traitKey, null);
     }
 }">
-    <div class="w-full px-6 py-8">
+    <div class="w-full px-4 sm:px-6 py-4 sm:py-8">
         <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="font-outfit text-4xl text-white tracking-wide mb-2">
+        <div class="text-center mb-6 sm:mb-8">
+            <h1 class="font-outfit text-3xl sm:text-4xl text-white tracking-wide mb-2">
                 Character Builder
             </h1>
-            <p class="font-roboto text-slate-300 text-lg">
+            <p class="font-roboto text-slate-300 text-base sm:text-lg">
                 Create your Daggerheart character
             </p>
         </div>
 
         <!-- Character Information Section -->
-        <div class="p-8 mb-8">
-            <div class="flex gap-8">
+        <div class="p-4 sm:p-8 mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row gap-4 sm:gap-8">
                 <!-- Profile Image Upload -->
-                <div class="flex flex-col items-center justify-center">
+                <div class="flex flex-col items-center justify-center sm:flex-shrink-0">
                     <div class="relative">
                         @if($profile_image)
                             <!-- Image Preview -->
-                            <div class="relative w-32 h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg">
+                            <div class="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg">
                                 <img 
                                     src="{{ $profile_image->temporaryUrl() }}" 
                                     alt="Profile preview" 
@@ -136,7 +136,7 @@
                                 @dragleave.prevent="dragOver = false"
                                 @drop.prevent="dragOver = false; $refs.fileInput.files = $event.dataTransfer.files; $refs.fileInput.dispatchEvent(new Event('change'))"
                                 :class="{ 'border-amber-500 bg-amber-500/10': dragOver }"
-                                class="relative w-32 h-32 rounded-full border-2 border-dashed border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
+                                class="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
                                 onclick="this.querySelector('input[type=file]').click()"
                             >
                                 <svg class="w-8 h-8 text-slate-400 group-hover:text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,9 +189,65 @@
         </div>
 
         <!-- Tab Navigation -->
-        <div id="character-builder-tabs" class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl mb-8">
-            <nav class="flex p-2 space-x-1">
+        <div id="character-builder-tabs" class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl mb-6 sm:mb-8">
+            <!-- Mobile Dropdown -->
+            <div class="md:hidden" x-data="{ dropdownOpen: false }">
+                <button 
+                    @click="dropdownOpen = !dropdownOpen"
+                    class="w-full flex items-center justify-between p-4 text-white hover:bg-slate-800/50 rounded-2xl transition-colors"
+                >
+                    <div class="flex items-center gap-3">
+                        @foreach($tabs as $step => $title)
+                            <div x-show="currentStep === {{ $step }}" class="flex items-center gap-2">
+                                <span class="text-sm font-medium">
+                                    Step {{ $step }}: {{ $title }}
+                                </span>
+                                @if(in_array($step, $completed_steps))
+                                    <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                    <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': dropdownOpen }" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                
+                <div x-show="dropdownOpen" 
+                     x-cloak
+                     @click.away="dropdownOpen = false"
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="transform opacity-0 scale-95"
+                     x-transition:enter-end="transform opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="transform opacity-100 scale-100"
+                     x-transition:leave-end="transform opacity-0 scale-95"
+                     class="mt-2 mx-4 mb-4 bg-slate-800 border border-slate-600 rounded-lg shadow-xl">
+                    @foreach($tabs as $step => $title)
+                        <button 
+                            dusk="mobile-tab-{{ $step }}"
+                            @click="goToStep({{ $step }}); dropdownOpen = false"
+                            :class="{
+                                'w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-slate-600 last:border-b-0': true,
+                                'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300': currentStep === {{ $step }},
+                                'text-white hover:bg-slate-700': currentStep !== {{ $step }}
+                            }"
+                        >
+                            <span class="text-sm font-medium">Step {{ $step }}: {{ $title }}</span>
+                            @if(in_array($step, $completed_steps))
+                                <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            @endif
+                        </button>
+                    @endforeach
+                </div>
+            </div>
 
+            <!-- Desktop Tabs -->
+            <nav class="hidden md:flex p-2 space-x-1">
                 @foreach($tabs as $step => $title)
                     <button 
                         dusk="tab-{{ $step }}"
@@ -205,7 +261,7 @@
                     >
                         <span class="text-sm font-medium">{{ $title }}</span>
                         @if(in_array($step, $completed_steps))
-                            <svg dusk="completion-checkmark" class="w-4 h-4 text-emerald-400 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                            <svg dusk="completion-checkmark" class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                             </svg>
                         @endif
@@ -218,7 +274,7 @@
         <div id="character-builder-content" class="w-full">
             <!-- Step Content Area -->
             <div class="w-full">
-                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
+                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 sm:p-8">
 
                     <!-- Step Content -->
                     <div class="step-content">
@@ -264,12 +320,12 @@
                     </div>
 
                     <!-- Navigation Buttons -->
-                    <div class="flex justify-between mt-8 pt-6 border-t border-slate-700/50">
+                    <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-700/50">
                         <button 
                             dusk="previous-step-button"
                             @click="currentStep > 1 && goToStep(currentStep - 1)"
                             :class="{
-                                'inline-flex items-center justify-center px-6 py-3 rounded-xl transition-all duration-300 font-semibold': true,
+                                'inline-flex items-center justify-center px-4 sm:px-6 py-3 rounded-xl transition-all duration-300 font-semibold': true,
                                 'bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 hover:border-slate-500': currentStep > 1,
                                 'bg-slate-800 text-slate-500 cursor-not-allowed': currentStep <= 1
                             }"
@@ -285,7 +341,7 @@
                             dusk="next-step-button"
                             @click="currentStep < {{ count($tabs) }} && goToStep(currentStep + 1)"
                             :class="{
-                                'inline-flex items-center justify-center px-6 py-3 rounded-xl transition-all duration-300 font-semibold': true,
+                                'inline-flex items-center justify-center px-4 sm:px-6 py-3 rounded-xl transition-all duration-300 font-semibold': true,
                                 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-lg hover:shadow-amber-500/25': currentStep < {{ count($tabs) }},
                                 'bg-slate-800 text-slate-500 cursor-not-allowed': currentStep >= {{ count($tabs) }}
                             }"

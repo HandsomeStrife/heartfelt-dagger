@@ -83,7 +83,7 @@
                 </p>
             </div>
         @else
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="lg:col-span-1">
                     <label for="new-experience-name" class="block text-sm font-medium text-slate-300 mb-2">Experience Name</label>
                     <input 
@@ -204,7 +204,7 @@
         </div>
         
         <!-- Main Categories Grid -->
-        <div class="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             <!-- Backgrounds -->
             <div class="bg-slate-800/30 rounded-lg p-6">
                 <h5 class="text-white font-bold font-outfit text-lg mb-4 text-center border-b border-slate-600 pb-2">Backgrounds</h5>

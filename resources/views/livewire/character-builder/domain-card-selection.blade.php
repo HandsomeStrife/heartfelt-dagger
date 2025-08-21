@@ -102,7 +102,7 @@
                 </div>
 
                 <!-- Available Abilities -->
-                <div class="flex flex-wrap gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     @foreach($domainData['abilities'] as $abilityKey => $abilityData)
                         @php
                             $isSelected = collect($character->selected_domain_cards)->contains(fn($card) => 
@@ -132,7 +132,7 @@
                             wire:click="selectDomainCard('{{ $domainKey }}', '{{ $abilityKey }}')"
                             @class([
                                 'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1',
-                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[400px] max-w-[350px] flex flex-col',
+                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[400px] w-full max-w-[350px] mx-auto flex flex-col',
                                 'border-blue-500 ring-4 ring-blue-400/50 shadow-xl shadow-blue-500/25 scale-[1.02] -translate-y-1' => $isSelected,
                                 'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20' => !$isSelected && $canSelect,
                                 'border-slate-800 opacity-60 cursor-not-allowed' => !$isSelected && !$canSelect,

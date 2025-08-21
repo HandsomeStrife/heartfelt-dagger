@@ -23,12 +23,12 @@
 
     <!-- Class Selection Grid - Show When No Class Selected -->
     <div x-show="!hasSelectedClass">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             @foreach($game_data['classes'] ?? [] as $classKey => $classData)
                 <div 
                     dusk="class-card-{{ $classKey }}"
                     x-on:click="selectClass('{{ $classKey }}')"
-                    class="relative group cursor-pointer transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 rounded-2xl p-6"
+                    class="relative group cursor-pointer transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 rounded-2xl p-4 sm:p-6"
                 >
                     <div class="flex flex-row gap-4">
                         <div class="w-48">
@@ -69,18 +69,18 @@
     
     <!-- Two-Column Layout - Show When Class Selected -->
     <div x-show="hasSelectedClass">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
             <!-- Left Column: Pre-loaded Class Details for All Classes -->
             <div class="space-y-6">
                 @foreach($game_data['classes'] ?? [] as $classKey => $classData)
-                    <div x-show="selected_class === '{{ $classKey }}'" class="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-amber-500/50 rounded-2xl p-6">
+                    <div x-show="selected_class === '{{ $classKey }}'" class="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-amber-500/50 rounded-2xl p-4 sm:p-6">
                         <!-- Change Class Button -->
-                        <div class="flex justify-between items-center mb-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
                             <h3 class="text-xl font-bold text-white font-outfit">Selected Class</h3>
                             <button 
                                 dusk="change-class-button"
                                 x-on:click="selectClass(null)"
-                                class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm font-medium"
+                                class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm font-medium w-full sm:w-auto"
                             >
                                 Change Class
                             </button>
@@ -122,7 +122,7 @@
                         <!-- Starting Stats -->
                         <div class="mb-6">
                             <h4 class="text-lg font-semibold text-white font-outfit mb-3">Starting Stats</h4>
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div class="flex justify-between items-center bg-slate-800/50 rounded-lg px-4 py-3 border border-slate-700/50">
                                     <span class="text-slate-400 font-medium">Evasion</span>
                                     <span class="text-white font-bold text-lg">{{ $classData['startingEvasion'] ?? 10 }}</span>
