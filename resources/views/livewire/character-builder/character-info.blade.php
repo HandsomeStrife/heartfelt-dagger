@@ -225,4 +225,95 @@
             @endif
         </div>
     @endif
+
+    <!-- Character Stats Summary -->
+    @if(!empty($computed_stats))
+        <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
+            <h3 class="text-xl font-bold text-white font-outfit mb-4">Character Statistics</h3>
+            <p class="text-slate-300 text-sm mb-6">
+                Your current character statistics based on class, traits, ancestry, and equipment.
+            </p>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Evasion -->
+                @if(isset($computed_stats['evasion']))
+                    <div class="bg-slate-900/50 border border-slate-600/50 rounded-lg p-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-amber-400 font-outfit">{{ $computed_stats['evasion']['total'] }}</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wide">Evasion</div>
+                            @if($computed_stats['evasion']['ancestry_bonus'] > 0)
+                                <div class="text-xs text-emerald-400 mt-1">
+                                    +{{ $computed_stats['evasion']['ancestry_bonus'] }} Ancestry
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Hit Points -->
+                @if(isset($computed_stats['hit_points']))
+                    <div class="bg-slate-900/50 border border-slate-600/50 rounded-lg p-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-red-400 font-outfit">{{ $computed_stats['hit_points']['total'] }}</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wide">Hit Points</div>
+                            @if($computed_stats['hit_points']['ancestry_bonus'] > 0)
+                                <div class="text-xs text-emerald-400 mt-1">
+                                    +{{ $computed_stats['hit_points']['ancestry_bonus'] }} Ancestry
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Stress -->
+                @if(isset($computed_stats['stress']))
+                    <div class="bg-slate-900/50 border border-slate-600/50 rounded-lg p-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-400 font-outfit">{{ $computed_stats['stress']['total'] }}</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wide">Stress Slots</div>
+                            @if($computed_stats['stress']['ancestry_bonus'] > 0)
+                                <div class="text-xs text-emerald-400 mt-1">
+                                    +{{ $computed_stats['stress']['ancestry_bonus'] }} Ancestry
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Hope -->
+                @if(isset($computed_stats['hope']))
+                    <div class="bg-slate-900/50 border border-slate-600/50 rounded-lg p-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-400 font-outfit">{{ $computed_stats['hope'] }}</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wide">Hope</div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Damage Thresholds -->
+            @if(isset($computed_stats['damage_thresholds']))
+                <div class="mt-6 bg-slate-900/50 border border-slate-600/50 rounded-lg p-4">
+                    <h4 class="text-lg font-bold text-white font-outfit mb-3">Damage Thresholds</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-xl font-bold text-yellow-400">{{ $computed_stats['damage_thresholds']['major'] }}</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wide">Major Damage</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xl font-bold text-orange-400">{{ $computed_stats['damage_thresholds']['severe'] }}</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wide">Severe Damage</div>
+                        </div>
+                    </div>
+                    @if($computed_stats['damage_thresholds']['ancestry_bonus'] > 0)
+                        <div class="text-center mt-2">
+                            <div class="text-xs text-emerald-400">
+                                +{{ $computed_stats['damage_thresholds']['ancestry_bonus'] }} from Ancestry
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+        </div>
+    @endif
 </div>

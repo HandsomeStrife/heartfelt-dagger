@@ -6,7 +6,15 @@
         "features": [
             {
                 "name": "Purposeful Design",
-                "description": "Decide who made you and for what purpose. At character creation, choose one of your Experiences that best aligns with this purpose and gain a permanent +1 bonus to it."
+                "description": "Decide who made you and for what purpose. At character creation, choose one of your Experiences that best aligns with this purpose and gain a permanent +1 bonus to it.",
+                "effects": [
+                    {
+                        "type": "experience_bonus_selection",
+                        "value": 1,
+                        "timing": "character_creation",
+                        "description": "Choose one experience to receive +1 bonus"
+                    }
+                ]
             },
             {
                 "name": "Efficient",
@@ -126,7 +134,15 @@
         "features": [
             {
                 "name": "Shell",
-                "description": "Gain a bonus to your damage thresholds equal to your Proficiency."
+                "description": "Gain a bonus to your damage thresholds equal to your Proficiency.",
+                "effects": [
+                    {
+                        "type": "damage_threshold_bonus",
+                        "value": "proficiency",
+                        "timing": "character_creation",
+                        "description": "Gain damage threshold bonus equal to proficiency"
+                    }
+                ]
             },
             {
                 "name": "Retract",
@@ -141,7 +157,15 @@
         "features": [
             {
                 "name": "Endurance",
-                "description": "Gain an additional Hit Point slot at character creation."
+                "description": "Gain an additional Hit Point slot at character creation.",
+                "effects": [
+                    {
+                        "type": "hit_point_bonus",
+                        "value": 1,
+                        "timing": "character_creation",
+                        "description": "Gain +1 hit point slot"
+                    }
+                ]
             },
             {
                 "name": "Reach",
@@ -186,7 +210,15 @@
         "features": [
             {
                 "name": "High Stamina",
-                "description": "Gain an additional Stress slot at character creation."
+                "description": "Gain an additional Stress slot at character creation.",
+                "effects": [
+                    {
+                        "type": "stress_bonus",
+                        "value": 1,
+                        "timing": "character_creation",
+                        "description": "Gain +1 stress slot"
+                    }
+                ]
             },
             {
                 "name": "Adaptability",
@@ -265,7 +297,15 @@
             },
             {
                 "name": "Nimble",
-                "description": "Gain a permanent +1 bonus to your Evasion at character creation."
+                "description": "Gain a permanent +1 bonus to your Evasion at character creation.",
+                "effects": [
+                    {
+                        "type": "evasion_bonus",
+                        "value": 1,
+                        "timing": "character_creation",
+                        "description": "Gain +1 evasion bonus"
+                    }
+                ]
             }
         ]
     }

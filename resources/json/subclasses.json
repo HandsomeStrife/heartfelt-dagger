@@ -163,7 +163,15 @@
         "masteryFeatures": [
             {
                 "name": "Fleeting Shadow",
-                "description": "Gain a permanent +1 bonus to your Evasion. You can use your “Shadow Stepper” feature to move within Very Far range."
+                "description": "Gain a permanent +1 bonus to your Evasion. You can use your \"Shadow Stepper\" feature to move within Very Far range.",
+                "effects": [
+                    {
+                        "type": "evasion_bonus",
+                        "value": 1,
+                        "timing": "permanent",
+                        "description": "Gain +1 evasion bonus"
+                    }
+                ]
             },
             {
                 "name": "Vanishing Act",
@@ -206,7 +214,15 @@
         "foundationFeatures": [
             {
                 "name": "Prepared",
-                "description": "Take an additional domain card of your level or lower from a domain you have access to."
+                "description": "Take an additional domain card of your level or lower from a domain you have access to.",
+                "effects": [
+                    {
+                        "type": "domain_card_bonus",
+                        "value": 1,
+                        "timing": "permanent",
+                        "description": "Gain +1 additional domain card"
+                    }
+                ]
             },
             {
                 "name": "Adept",
@@ -217,7 +233,15 @@
         "specializationFeatures": [
             {
                 "name": "Accomplished",
-                "description": "Take an additional domain card of your level or lower from a domain you have access to."
+                "description": "Take an additional domain card of your level or lower from a domain you have access to.",
+                "effects": [
+                    {
+                        "type": "domain_card_bonus",
+                        "value": 1,
+                        "timing": "permanent",
+                        "description": "Gain +1 additional domain card"
+                    }
+                ]
             },
             {
                 "name": "Perfect Recall",
@@ -227,7 +251,15 @@
         "masteryFeatures": [
             {
                 "name": "Brilliant",
-                "description": "Take an additional domain card of your level or lower from a domain you have access to."
+                "description": "Take an additional domain card of your level or lower from a domain you have access to.",
+                "effects": [
+                    {
+                        "type": "domain_card_bonus",
+                        "value": 1,
+                        "timing": "permanent",
+                        "description": "Gain +1 additional domain card"
+                    }
+                ]
             },
             {
                 "name": "Honed Expertise",
@@ -243,7 +275,15 @@
         "foundationFeatures": [
             {
                 "name": "Battlemage",
-                "description": "You've focused your studies on becoming an unconquerable force on the battlefield. Gain an additional Hit Point slot."
+                "description": "You've focused your studies on becoming an unconquerable force on the battlefield. Gain an additional Hit Point slot.",
+                "effects": [
+                    {
+                        "type": "hit_point_bonus",
+                        "value": 1,
+                        "timing": "permanent",
+                        "description": "Gain +1 hit point slot"
+                    }
+                ]
             },
             {
                 "name": "Face Your Fear",
@@ -279,7 +319,15 @@
         "foundationFeatures": [
             {
                 "name": "Unwavering",
-                "description": "Gain a permanent +1 bonus to your damage thresholds."
+                "description": "Gain a permanent +1 bonus to your damage thresholds.",
+                "effects": [
+                    {
+                        "type": "damage_threshold_bonus",
+                        "value": 1,
+                        "timing": "permanent",
+                        "description": "Gain +1 damage threshold bonus"
+                    }
+                ]
             },
             {
                 "name": "Iron Will",
@@ -289,7 +337,15 @@
         "specializationFeatures": [
             {
                 "name": "Unrelenting",
-                "description": "Gain a permanent +2 bonus to your damage thresholds."
+                "description": "Gain a permanent +2 bonus to your damage thresholds.",
+                "effects": [
+                    {
+                        "type": "damage_threshold_bonus",
+                        "value": 2,
+                        "timing": "permanent",
+                        "description": "Gain +2 damage threshold bonus"
+                    }
+                ]
             },
             {
                 "name": "Partners-in-Arms",
@@ -299,7 +355,15 @@
         "masteryFeatures": [
             {
                 "name": "Undaunted",
-                "description": "Gain a permanent +3 bonus to your damage thresholds."
+                "description": "Gain a permanent +3 bonus to your damage thresholds.",
+                "effects": [
+                    {
+                        "type": "damage_threshold_bonus",
+                        "value": 3,
+                        "timing": "permanent",
+                        "description": "Gain +3 damage threshold bonus"
+                    }
+                ]
             },
             {
                 "name": "Loyal Protector",
@@ -363,7 +427,15 @@
         "foundationFeatures": [
             {
                 "name": "At Ease",
-                "description": "Gain an additional Stress slot."
+                "description": "Gain an additional Stress slot.",
+                "effects": [
+                    {
+                        "type": "stress_bonus",
+                        "value": 1,
+                        "timing": "permanent",
+                        "description": "Gain +1 stress slot"
+                    }
+                ]
             },
             {
                 "name": "Revenge",
@@ -499,7 +571,15 @@
         "masteryFeatures": [
             {
                 "name": "Ascendant",
-                "description": "Gain a permanent +4 bonus to your Severe damage threshold."
+                "description": "Gain a permanent +4 bonus to your Severe damage threshold.",
+                "effects": [
+                    {
+                        "type": "severe_threshold_bonus",
+                        "value": 4,
+                        "timing": "permanent",
+                        "description": "Gain +4 severe damage threshold bonus"
+                    }
+                ]
             },
             {
                 "name": "Power of the Gods",

@@ -101,6 +101,51 @@
                                     </div>
                                 </div>
                             @endif
+
+                            <!-- Character Stat Bonuses -->
+                            @if(!empty($ancestry_bonuses) && $character->selected_ancestry === $ancestryKey)
+                                <div>
+                                    <h4 class="text-lg font-bold text-amber-400 font-outfit my-4">
+                                        <svg class="inline w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                        Character Bonuses
+                                    </h4>
+                                    <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg p-4">
+                                        <p class="text-amber-200 text-sm mb-3 font-medium">This ancestry provides the following bonuses to your character:</p>
+                                        <div class="grid grid-cols-1 gap-2">
+                                            @if(isset($ancestry_bonuses['evasion']))
+                                                <div class="flex items-center text-sm">
+                                                    <div class="w-2 h-2 bg-amber-400 rounded-full mr-3"></div>
+                                                    <span class="text-white">+{{ $ancestry_bonuses['evasion'] }} Evasion</span>
+                                                    <span class="text-slate-400 ml-2">(Makes you harder to hit)</span>
+                                                </div>
+                                            @endif
+                                            @if(isset($ancestry_bonuses['hit_points']))
+                                                <div class="flex items-center text-sm">
+                                                    <div class="w-2 h-2 bg-red-400 rounded-full mr-3"></div>
+                                                    <span class="text-white">+{{ $ancestry_bonuses['hit_points'] }} Hit Point slot</span>
+                                                    <span class="text-slate-400 ml-2">(More health)</span>
+                                                </div>
+                                            @endif
+                                            @if(isset($ancestry_bonuses['stress']))
+                                                <div class="flex items-center text-sm">
+                                                    <div class="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
+                                                    <span class="text-white">+{{ $ancestry_bonuses['stress'] }} Stress slot</span>
+                                                    <span class="text-slate-400 ml-2">(More resilience)</span>
+                                                </div>
+                                            @endif
+                                            @if(isset($ancestry_bonuses['damage_thresholds']))
+                                                <div class="flex items-center text-sm">
+                                                    <div class="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                                                    <span class="text-white">+{{ $ancestry_bonuses['damage_thresholds'] }} to Damage Thresholds</span>
+                                                    <span class="text-slate-400 ml-2">(Harder to wound seriously)</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach

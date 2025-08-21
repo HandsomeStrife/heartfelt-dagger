@@ -33,9 +33,9 @@ class CharacterDomainCardsData extends Data
         return new self(domainCards: $selectedCards);
     }
 
-    public function hasMinimumCards(): bool
+    public function hasMinimumCards(int $minimumRequired = 2): bool
     {
-        return count($this->domainCards) >= 2;
+        return count($this->domainCards) >= $minimumRequired;
     }
 
     public function getCardCount(): int

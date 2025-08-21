@@ -33,6 +33,7 @@ class CharacterBuilderData extends Data implements Wireable
         public ?string $personal_history = null,
         public ?string $motivations = null,
         public array $manual_step_completions = [],
+        public ?string $clank_bonus_experience = null,
     ) {}
 
     public function isStepComplete(CharacterBuilderStep|int $step): bool
@@ -364,4 +365,392 @@ class CharacterBuilderData extends Data implements Wireable
 
         return $answered_questions >= 1;
     }
+
+    /**
+     * Get ancestry bonus for evasion from effects
+     */
+    public function getAncestryEvasionBonus(): int
+    {
+        $effects = $this->getAncestryEffects('evasion_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $bonus += $effect['value'] ?? 0;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get ancestry bonus for hit points from effects
+     */
+    public function getAncestryHitPointBonus(): int
+    {
+        $effects = $this->getAncestryEffects('hit_point_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $bonus += $effect['value'] ?? 0;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get ancestry bonus for stress from effects
+     */
+    public function getAncestryStressBonus(): int
+    {
+        $effects = $this->getAncestryEffects('stress_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $bonus += $effect['value'] ?? 0;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get ancestry bonus for damage thresholds from effects
+     */
+    public function getAncestryDamageThresholdBonus(): int
+    {
+        $effects = $this->getAncestryEffects('damage_threshold_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $value = $effect['value'] ?? 0;
+            if ($value === 'proficiency') {
+                $bonus += 2; // Base proficiency at level 1 for character creation
+            } else {
+                $bonus += (int)$value;
+            }
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get all applied ancestry bonuses
+     */
+    public function getAncestryBonuses(): array
+    {
+        $bonuses = [];
+
+        if ($this->selected_ancestry) {
+            $evasion_bonus = $this->getAncestryEvasionBonus();
+            $hit_point_bonus = $this->getAncestryHitPointBonus();
+            $stress_bonus = $this->getAncestryStressBonus();
+            $damage_threshold_bonus = $this->getAncestryDamageThresholdBonus();
+
+            if ($evasion_bonus > 0) {
+                $bonuses['evasion'] = $evasion_bonus;
+            }
+
+            if ($hit_point_bonus > 0) {
+                $bonuses['hit_points'] = $hit_point_bonus;
+            }
+
+            if ($stress_bonus > 0) {
+                $bonuses['stress'] = $stress_bonus;
+            }
+
+            if ($damage_threshold_bonus > 0) {
+                $bonuses['damage_thresholds'] = $damage_threshold_bonus;
+            }
+        }
+
+        return $bonuses;
+    }
+
+    /**
+     * Get computed character stats including ancestry bonuses
+     */
+    public function getComputedStats(array $class_data = []): array
+    {
+        if (empty($class_data)) {
+            return [];
+        }
+
+        $base_evasion = $class_data['startingEvasion'] ?? 10;
+        $base_hit_points = $class_data['startingHitPoints'] ?? 5;
+        $agility_modifier = $this->assigned_traits['agility'] ?? 0;
+
+        // Calculate armor score from selected equipment
+        $armor_score = 0;
+        foreach ($this->selected_equipment as $equipment) {
+            if ($equipment['type'] === 'armor') {
+                $armor_score += $equipment['data']['score'] ?? 0;
+            }
+        }
+
+        // Get ancestry bonuses
+        $ancestry_evasion_bonus = $this->getAncestryEvasionBonus();
+        $ancestry_hit_point_bonus = $this->getAncestryHitPointBonus();
+        $ancestry_stress_bonus = $this->getAncestryStressBonus();
+        $ancestry_damage_threshold_bonus = $this->getAncestryDamageThresholdBonus();
+
+        // Calculate final stats
+        $final_evasion = $base_evasion + $agility_modifier + $ancestry_evasion_bonus;
+        $final_hit_points = $base_hit_points + $ancestry_hit_point_bonus; // Base hit points + ancestry bonus
+        $final_stress = 6 + $ancestry_stress_bonus; // Every PC starts with 6 stress slots + ancestry bonus
+        $major_threshold = max(1, $armor_score + 4 + $ancestry_damage_threshold_bonus); // Level 1 + 3 + ancestry
+        $severe_threshold = max(1, $armor_score + 9 + $ancestry_damage_threshold_bonus); // Level 1 + 8 + ancestry
+
+        return [
+            // Simple values for tests and general use
+            'evasion' => $final_evasion,
+            'hit_points' => $final_hit_points,
+            'stress' => $final_stress,
+            'hope' => 2,
+            'major_threshold' => $major_threshold,
+            'severe_threshold' => $severe_threshold,
+            'armor_score' => $armor_score,
+            
+            // Detailed breakdown for UI
+            'detailed' => [
+                'evasion' => [
+                    'base' => $base_evasion,
+                    'agility_modifier' => $agility_modifier,
+                    'ancestry_bonus' => $ancestry_evasion_bonus,
+                    'total' => $final_evasion,
+                ],
+                'hit_points' => [
+                    'base' => $base_hit_points,
+                    'ancestry_bonus' => $ancestry_hit_point_bonus,
+                    'total' => $final_hit_points,
+                ],
+                'stress' => [
+                    'base' => 6,
+                    'ancestry_bonus' => $ancestry_stress_bonus,
+                    'total' => $final_stress,
+                ],
+                'damage_thresholds' => [
+                    'major' => $major_threshold,
+                    'severe' => $severe_threshold,
+                    'ancestry_bonus' => $ancestry_damage_threshold_bonus,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Get subclass effects by type
+     */
+    public function getSubclassEffects(string $effectType): array
+    {
+        if (!$this->selected_subclass) {
+            return [];
+        }
+        
+        $subclassData = $this->getSubclassData();
+        if (!$subclassData) {
+            return [];
+        }
+        
+        $effects = [];
+        $allFeatures = array_merge(
+            $subclassData['foundationFeatures'] ?? [],
+            $subclassData['specializationFeatures'] ?? [],
+            $subclassData['masteryFeatures'] ?? []
+        );
+        
+        foreach ($allFeatures as $feature) {
+            $featureEffects = $feature['effects'] ?? [];
+            foreach ($featureEffects as $effect) {
+                if (($effect['type'] ?? '') === $effectType) {
+                    $effects[] = $effect;
+                }
+            }
+        }
+        
+        return $effects;
+    }
+
+    /**
+     * Get subclass data from JSON file
+     */
+    private function getSubclassData(): ?array
+    {
+        $path = resource_path('json/subclasses.json');
+        if (!file_exists($path)) {
+            return null;
+        }
+        
+        $subclasses = json_decode(file_get_contents($path), true);
+        return $subclasses[$this->selected_subclass] ?? null;
+    }
+
+    /**
+     * Get subclass bonus for evasion from effects
+     */
+    public function getSubclassEvasionBonus(): int
+    {
+        $effects = $this->getSubclassEffects('evasion_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $bonus += $effect['value'] ?? 0;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get subclass bonus for hit points from effects
+     */
+    public function getSubclassHitPointBonus(): int
+    {
+        $effects = $this->getSubclassEffects('hit_point_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $bonus += $effect['value'] ?? 0;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get subclass bonus for stress from effects
+     */
+    public function getSubclassStressBonus(): int
+    {
+        $effects = $this->getSubclassEffects('stress_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $bonus += $effect['value'] ?? 0;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get subclass bonus for damage thresholds from effects
+     */
+    public function getSubclassDamageThresholdBonus(): int
+    {
+        $effects = $this->getSubclassEffects('damage_threshold_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $value = $effect['value'] ?? 0;
+            $bonus += (int)$value;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get subclass bonus for severe damage threshold from effects
+     */
+    public function getSubclassSevereThresholdBonus(): int
+    {
+        $effects = $this->getSubclassEffects('severe_threshold_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $value = $effect['value'] ?? 0;
+            $bonus += (int)$value;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get subclass bonus for domain cards from effects
+     */
+    public function getSubclassDomainCardBonus(): int
+    {
+        $effects = $this->getSubclassEffects('domain_card_bonus');
+        $bonus = 0;
+        foreach ($effects as $effect) {
+            $bonus += $effect['value'] ?? 0;
+        }
+        return $bonus;
+    }
+
+    /**
+     * Get the maximum number of domain cards this character can have
+     */
+    public function getMaxDomainCards(): int
+    {
+        // Base starting domain cards for all characters
+        $base_cards = 2;
+        
+        // Add subclass bonuses
+        $subclass_bonus = $this->getSubclassDomainCardBonus();
+        
+        return $base_cards + $subclass_bonus;
+    }
+
+    /**
+     * Get ancestry effects by type
+     */
+    public function getAncestryEffects(string $effectType): array
+    {
+        if (!$this->selected_ancestry) {
+            return [];
+        }
+        
+        $ancestriesData = $this->getAncestryData();
+        if (!$ancestriesData) {
+            return [];
+        }
+        
+        $effects = [];
+        $features = $ancestriesData['features'] ?? [];
+        
+        foreach ($features as $feature) {
+            $featureEffects = $feature['effects'] ?? [];
+            foreach ($featureEffects as $effect) {
+                if (($effect['type'] ?? '') === $effectType) {
+                    $effects[] = $effect;
+                }
+            }
+        }
+        
+        return $effects;
+    }
+
+    /**
+     * Get ancestry data from JSON file
+     */
+    private function getAncestryData(): ?array
+    {
+        $path = resource_path('json/ancestries.json');
+        if (!file_exists($path)) {
+            return null;
+        }
+        
+        $ancestries = json_decode(file_get_contents($path), true);
+        return $ancestries[$this->selected_ancestry] ?? null;
+    }
+
+    /**
+     * Check if the selected ancestry has experience bonus selection effect
+     */
+    public function hasExperienceBonusSelection(): bool
+    {
+        return !empty($this->getAncestryEffects('experience_bonus_selection'));
+    }
+
+    /**
+     * Get the experience that receives bonus from experience_bonus_selection effect
+     */
+    public function getClankBonusExperience(): ?string
+    {
+        if (!$this->hasExperienceBonusSelection()) {
+            return null;
+        }
+        
+        return $this->clank_bonus_experience;
+    }
+
+    /**
+     * Get the modifier for a specific experience (including ancestry bonuses)
+     */
+    public function getExperienceModifier(string $experienceName): int
+    {
+        $baseModifier = 2; // All experiences start with +2
+        
+        // Check if this experience gets experience bonus selection effect
+        if ($this->hasExperienceBonusSelection() && 
+            $this->getClankBonusExperience() === $experienceName) {
+            
+            $effects = $this->getAncestryEffects('experience_bonus_selection');
+            $bonus = 0;
+            foreach ($effects as $effect) {
+                $bonus += $effect['value'] ?? 0;
+            }
+            return $baseModifier + $bonus;
+        }
+        
+        return $baseModifier;
+    }
+
 }

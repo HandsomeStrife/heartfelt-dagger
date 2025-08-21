@@ -40,6 +40,7 @@ class SaveCharacterAction
                     ],
                     'connections' => $builder_data->connection_answers,
                     'manualStepCompletions' => $builder_data->manual_step_completions,
+                    'clank_bonus_experience' => $builder_data->clank_bonus_experience,
                     'creation_date' => now()->toISOString(),
                     'builder_version' => '1.0',
                 ],
@@ -112,6 +113,7 @@ class SaveCharacterAction
                     ],
                     'connections' => $builder_data->connection_answers,
                     'manualStepCompletions' => $builder_data->manual_step_completions,
+                    'clank_bonus_experience' => $builder_data->clank_bonus_experience,
                     'last_updated' => now()->toISOString(),
                 ]),
             ]);

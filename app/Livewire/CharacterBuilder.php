@@ -47,6 +47,32 @@ class CharacterBuilder extends Component
 
     public string $new_experience_description = '';
 
+    // Experience editing fields
+    public array $editing_experience = [];
+    public string $edit_experience_description = '';
+
+    // Computed Properties for Tests
+    public function getComputedStatsProperty(): array
+    {
+        return $this->getComputedStats();
+    }
+
+    public function getAncestryBonusesProperty(): array
+    {
+        return $this->character->getAncestryBonuses();
+    }
+
+    /**
+     * Select which experience gets experience_bonus_selection ancestry bonus
+     */
+    public function selectClankBonusExperience(string $experienceName): void
+    {
+        if ($this->character->hasExperienceBonusSelection()) {
+            $this->character->clank_bonus_experience = $experienceName;
+            $this->saveAndUpdateState();
+        }
+    }
+
     public function mount(?string $characterKey = null): void
     {
         // Character key is now required - should always be provided by controller
@@ -397,6 +423,41 @@ class CharacterBuilder extends Component
         $this->saveAndUpdateState();
     }
 
+    /**
+     * Start editing an experience description
+     */
+    public function startEditingExperience(int $index): void
+    {
+        $experience = $this->character->experiences[$index] ?? null;
+        if ($experience) {
+            $this->editing_experience = ['index' => $index];
+            $this->edit_experience_description = $experience['description'] ?? '';
+        }
+    }
+
+    /**
+     * Save the edited experience description
+     */
+    public function saveExperienceEdit(): void
+    {
+        $index = $this->editing_experience['index'] ?? null;
+        if ($index !== null && isset($this->character->experiences[$index])) {
+            $this->character->experiences[$index]['description'] = $this->edit_experience_description;
+            $this->editing_experience = [];
+            $this->edit_experience_description = '';
+            $this->saveAndUpdateState();
+        }
+    }
+
+    /**
+     * Cancel editing experience description
+     */
+    public function cancelExperienceEdit(): void
+    {
+        $this->editing_experience = [];
+        $this->edit_experience_description = '';
+    }
+
     public function selectDomainCard(string $domain, string $ability_key): void
     {
         $ability = $this->game_data['abilities'][$ability_key] ?? null;
@@ -414,7 +475,7 @@ class CharacterBuilder extends Component
             // Card is already selected, remove it (deselect)
             unset($this->character->selected_domain_cards[$existing_index]);
             $this->character->selected_domain_cards = array_values($this->character->selected_domain_cards);
-        } elseif (count($this->character->selected_domain_cards) < 2) {
+        } elseif (count($this->character->selected_domain_cards) < $this->character->getMaxDomainCards()) {
             // Card is not selected and we have space, add it
             $this->character->selected_domain_cards[] = [
                 'domain' => $domain,
@@ -1137,6 +1198,21 @@ class CharacterBuilder extends Component
             'tabs' => $this->getTabsData(),
             'equipment_progress' => $this->getEquipmentProgress(),
             'connection_progress' => $this->getConnectionProgress(),
+            'computed_stats' => $this->getComputedStats(),
+            'ancestry_bonuses' => $this->character->getAncestryBonuses(),
         ]);
+    }
+
+    /**
+     * Get computed character stats for display
+     */
+    public function getComputedStats(): array
+    {
+        if (!$this->character->selected_class || !isset($this->game_data['classes'][$this->character->selected_class])) {
+            return [];
+        }
+
+        $class_data = $this->game_data['classes'][$this->character->selected_class];
+        return $this->character->getComputedStats($class_data);
     }
 }

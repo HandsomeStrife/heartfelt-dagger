@@ -17,6 +17,9 @@ class CharacterBuilderControllerTest extends TestCase
     #[Test]
     public function create_creates_new_character_and_redirects(): void
     {
+        // Ensure clean database state
+        Character::query()->delete();
+        
         $response = $this->get('/character-builder');
 
         $response->assertStatus(302);
@@ -123,6 +126,9 @@ class CharacterBuilderControllerTest extends TestCase
     #[Test]
     public function character_key_generation_produces_unique_keys(): void
     {
+        // Ensure clean database state
+        Character::query()->delete();
+        
         // Create multiple characters to ensure uniqueness
         $response1 = $this->get('/character-builder');
         $response2 = $this->get('/character-builder');
@@ -230,6 +236,9 @@ class CharacterBuilderControllerTest extends TestCase
     #[Test]
     public function multiple_character_creation_sessions_work_independently(): void
     {
+        // Ensure clean database state
+        Character::query()->delete();
+        
         // Simulate multiple users creating characters simultaneously
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();

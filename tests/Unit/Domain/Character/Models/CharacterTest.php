@@ -151,6 +151,9 @@ class CharacterTest extends TestCase
     #[Test]
     public function it_scopes_public_characters(): void
     {
+        // Clear existing characters to ensure test isolation
+        Character::query()->delete();
+        
         Character::factory()->create(['is_public' => true]);
         Character::factory()->create(['is_public' => false]);
         Character::factory()->create(['is_public' => true]);

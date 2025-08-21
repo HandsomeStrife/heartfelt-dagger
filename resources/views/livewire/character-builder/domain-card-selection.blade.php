@@ -3,11 +3,15 @@
     <!-- Step Header -->
     <div class="mb-8">
         <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Select Domain Cards</h2>
-        <p class="text-slate-300 font-roboto">Choose 2 starting domain cards from your class domains to represent your character's initial magical abilities.</p>
+        <p class="text-slate-300 font-roboto">Choose {{ $character->getMaxDomainCards() }} starting domain card{{ $character->getMaxDomainCards() !== 1 ? 's' : '' }} from your class domains to represent your character's initial magical abilities.
+        @if($character->getMaxDomainCards() > 2)
+            <span class="text-purple-300"> (includes {{ $character->getMaxDomainCards() - 2 }} bonus card{{ $character->getMaxDomainCards() - 2 !== 1 ? 's' : '' }} from {{ ucfirst($character->selected_subclass) }})</span>
+        @endif
+        </p>
     </div>
 
     <!-- Step Completion Indicator -->
-    @if(count($character->selected_domain_cards) >= 2)
+    @if(count($character->selected_domain_cards) >= $character->getMaxDomainCards())
         <div class="my-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
             <div class="flex items-center">
                 <div class="bg-emerald-500 rounded-full p-2 mr-3">
@@ -17,7 +21,21 @@
                 </div>
                 <div>
                     <p class="text-emerald-400 font-semibold">Domain Card Selection Complete!</p>
-                    <p class="text-slate-300 text-sm">You have selected {{ count($character->selected_domain_cards) }} domain card{{ count($character->selected_domain_cards) !== 1 ? 's' : '' }} for your character.</p>
+                    <p class="text-slate-300 text-sm">You have selected {{ count($character->selected_domain_cards) }} of {{ $character->getMaxDomainCards() }} domain card{{ $character->getMaxDomainCards() !== 1 ? 's' : '' }} for your character.</p>
+                </div>
+            </div>
+        </div>
+    @elseif(count($character->selected_domain_cards) >= 2)
+        <div class="my-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl">
+            <div class="flex items-center">
+                <div class="bg-purple-500 rounded-full p-2 mr-3">
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-purple-400 font-semibold">Minimum Cards Selected</p>
+                    <p class="text-slate-300 text-sm">You have selected {{ count($character->selected_domain_cards) }} of {{ $character->getMaxDomainCards() }} domain cards. You can select {{ $character->getMaxDomainCards() - count($character->selected_domain_cards) }} more bonus card{{ ($character->getMaxDomainCards() - count($character->selected_domain_cards)) !== 1 ? 's' : '' }}.</p>
                 </div>
             </div>
         </div>
@@ -108,7 +126,7 @@
                             $isSelected = collect($character->selected_domain_cards)->contains(fn($card) => 
                                 $card['ability_key'] === $abilityKey && $card['domain'] === $domainKey
                             );
-                            $canSelect = count($character->selected_domain_cards) < 2 || $isSelected;
+                            $canSelect = count($character->selected_domain_cards) < $character->getMaxDomainCards() || $isSelected;
                         @endphp
                         
                         @php

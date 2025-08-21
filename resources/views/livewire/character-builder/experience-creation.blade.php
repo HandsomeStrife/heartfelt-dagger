@@ -47,6 +47,7 @@
             <p class="text-amber-300 text-sm mb-2">
                 <strong>How Experiences Work:</strong> Each experience is a word or phrase representing specific skills, 
                 personality traits, or aptitudes your character has acquired. All experiences have a +2 modifier.
+
             </p>
             <p class="text-amber-300 text-xs">
                 <strong>Guidelines:</strong> Experiences can't be too broadly applicable (avoid "Lucky" or "Highly Skilled") 
@@ -57,6 +58,7 @@
     </div>
 
     <!-- Add New Experience -->
+    @if(count($character->experiences) < 2)
     <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6" 
          x-data="{ experienceName: '' }"
          @experience-added.window="experienceName = ''">
@@ -67,22 +69,7 @@
             </div>
         </div>
         
-        @if(count($character->experiences) >= 2)
-            <!-- Experience Limit Reached -->
-            <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 text-amber-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-                    </svg>
-                    <p class="text-amber-300 font-medium">
-                        Experience Limit Reached
-                    </p>
-                </div>
-                <p class="text-amber-200 text-sm mt-1 ml-7">
-                    Your character already has the maximum of 2 experiences for character creation. You can edit or remove existing experiences if needed.
-                </p>
-            </div>
-        @else
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div class="lg:col-span-1">
                     <label for="new-experience-name" class="block text-sm font-medium text-slate-300 mb-2">Experience Name</label>
@@ -90,7 +77,7 @@
                         dusk="new-experience-name"
                         type="text" 
                         id="new-experience-name"
-                        wire:model="newExperienceName"
+                        wire:model="new_experience_name"
                         x-model="experienceName"
                         placeholder="e.g., Blacksmith, Silver Tongue, Fast Learner"
                         maxlength="50"
@@ -104,7 +91,7 @@
                         dusk="new-experience-description"
                         type="text" 
                         id="new-experience-description"
-                        wire:model="newExperienceDescription"
+                        wire:model="new_experience_description"
                         placeholder="Brief description (optional)"
                         maxlength="100"
                         class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
@@ -134,7 +121,7 @@
 
     <!-- Experience List -->
     @if(count($character->experiences) > 0)
-        <div class="space-y-4">
+        <div class="space-y-4 mt-6">
             <div class="flex items-center justify-between">
                 <h4 class="text-white font-semibold font-outfit">Your Experiences</h4>
                 @if(count($character->experiences) > 2)
@@ -153,37 +140,140 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach($character->experiences as $index => $experience)
+                    @php
+                        $modifier = $character->getExperienceModifier($experience['name']);
+                        $hasExperienceBonus = $character->hasExperienceBonusSelection();
+                        $isBonusExperience = $hasExperienceBonus && $character->clank_bonus_experience === $experience['name'];
+                        $canSelectBonus = $hasExperienceBonus && !$character->clank_bonus_experience;
+                    @endphp
                     <div 
                         dusk="experience-card-{{ $index }}"
-                        class="relative group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 rounded-xl p-5 transition-all duration-300 hover:border-slate-600/70"
+                        @if($hasExperienceBonus)
+                            wire:click="selectClankBonusExperience('{{ $experience['name'] }}')"
+                            style="cursor: pointer;"
+                        @endif
+                        class="relative group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border transition-all duration-300 rounded-xl p-5 {{ 
+                            $isBonusExperience 
+                                ? 'border-purple-400/70 ring-2 ring-purple-400/30' 
+                                : ($canSelectBonus 
+                                    ? 'border-slate-700/50 hover:border-purple-500/50 hover:bg-purple-500/5' 
+                                    : 'border-slate-700/50 hover:border-slate-600/70')
+                        }}"
                     >
                         <!-- Experience Header -->
                         <div class="flex items-start justify-between mb-3">
                             <div class="flex-1">
                                 <h5 class="text-white font-bold font-outfit text-lg">{{ $experience['name'] }}</h5>
-                                @if(!empty($experience['description']))
-                                    <p class="text-slate-300 text-sm mt-1">{{ $experience['description'] }}</p>
+                                @if(($editing_experience['index'] ?? null) === $index)
+                                    <!-- Edit mode -->
+                                    <div class="mt-2">
+                                        <textarea 
+                                            wire:model="edit_experience_description"
+                                            placeholder="Enter description..."
+                                            maxlength="100"
+                                            class="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                                            rows="2"
+                                        ></textarea>
+                                        <div class="flex items-center justify-between mt-2">
+                                            <div class="flex gap-2">
+                                                <button 
+                                                    wire:click="saveExperienceEdit"
+                                                    class="px-3 py-1 bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30 hover:border-green-500/50 rounded text-xs font-medium transition-all duration-200"
+                                                >
+                                                    Save
+                                                </button>
+                                                <button 
+                                                    wire:click="cancelExperienceEdit"
+                                                    class="px-3 py-1 bg-slate-600/20 hover:bg-slate-600/30 text-slate-300 border border-slate-500/30 hover:border-slate-500/50 rounded text-xs font-medium transition-all duration-200"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                            <span class="text-xs text-slate-400">{{ strlen($edit_experience_description) }}/100</span>
+                                        </div>
+                                    </div>
+                                @else
+                                    <!-- Display mode -->
+                                    @if(!empty($experience['description']))
+                                        <p class="text-slate-300 text-sm mt-1">{{ $experience['description'] }}</p>
+                                    @else
+                                        <p class="text-slate-400 text-sm mt-1 italic">No description</p>
+                                    @endif
                                 @endif
                             </div>
                             
-                            <button 
-                                dusk="remove-experience-{{ $index }}"
-                                wire:click="removeExperience({{ $index }})"
-                                class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 hover:bg-red-600/20 rounded-lg"
-                            >
-                                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
+                            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                @if(($editing_experience['index'] ?? null) !== $index)
+                                    <button 
+                                        wire:click="startEditingExperience({{ $index }})"
+                                        class="p-2 hover:bg-blue-600/20 rounded-lg"
+                                        title="Edit description"
+                                    >
+                                        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                @endif
+                                <button 
+                                    dusk="remove-experience-{{ $index }}"
+                                    wire:click="removeExperience({{ $index }})"
+                                    class="p-2 hover:bg-red-600/20 rounded-lg"
+                                    title="Remove experience"
+                                >
+                                    <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Experience Modifier -->
-                        <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg p-3">
+                        <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg p-3 {{ 
+                            $modifier > 2 ? 'ring-2 ring-purple-400/30' : '' 
+                        }}">
                             <div class="flex items-center justify-between">
                                 <span class="text-amber-300 font-medium text-sm">Experience Modifier</span>
-                                <span class="text-white font-bold text-lg">+{{ $experience['modifier'] ?? 2 }}</span>
+                                <div class="flex items-center">
+                                    <span class="text-white font-bold text-lg">+{{ $modifier }}</span>
+                                    @if($modifier > 2)
+                                        @php
+                                            $ancestryName = ucfirst($character->selected_ancestry);
+                                        @endphp
+                                        <span class="ml-2 text-xs px-2 py-1 bg-purple-500/20 text-purple-300 rounded">
+                                            {{ $ancestryName }} Bonus
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
-                            <p class="text-slate-300 text-xs mt-1">Added to relevant rolls when this experience applies</p>
+                            <div class="flex items-center justify-between mt-1">
+                                <p class="text-slate-300 text-xs">
+                                    Added to relevant rolls when this experience applies
+                                    @if($modifier > 2)
+                                        @php
+                                            $ancestryName = ucfirst($character->selected_ancestry);
+                                            $featureName = null;
+                                            if ($hasExperienceBonus) {
+                                                $ancestriesData = json_decode(file_get_contents(resource_path('json/ancestries.json')), true);
+                                                $ancestryData = $ancestriesData[$character->selected_ancestry] ?? null;
+                                                if ($ancestryData) {
+                                                    foreach ($ancestryData['features'] ?? [] as $feature) {
+                                                        foreach ($feature['effects'] ?? [] as $effect) {
+                                                            if (($effect['type'] ?? '') === 'experience_bonus_selection') {
+                                                                $featureName = $feature['name'];
+                                                                break 2;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        @endphp
+                                        <span class="text-purple-300"> (includes +1 from {{ $ancestryName }} {{ $featureName ?? 'heritage' }})</span>
+                                    @endif
+                                </p>
+                                @if($hasExperienceBonus && !$isBonusExperience && !$character->clank_bonus_experience)
+                                    <span class="text-purple-400 text-xs italic">Click to select for your {{ ucfirst($character->selected_ancestry) }} heritage bonus (+3)</span>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -192,132 +282,58 @@
     @endif
 
     <!-- Experience Examples -->
-    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-8">
-        <h4 class="text-blue-300 font-semibold font-outfit text-xl mb-6">Experience Examples</h4>
-        
-        <!-- Remember Notice -->
-        <div class="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-lg p-4 mb-8">
-            <p class="text-slate-200 text-sm">
-                <strong class="text-blue-300">Remember:</strong> All experiences provide a +2 modifier when relevant. 
-                Choose experiences that reflect your character's background, personality, and unique skills.
-            </p>
+    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 mt-6" x-data="{ showExamples: false }">
+        <div class="flex items-center justify-between mb-4">
+            <h4 class="text-blue-300 font-semibold font-outfit text-lg">Experience Examples</h4>
+            <button @click="showExamples = !showExamples" class="text-blue-300 hover:text-blue-200 transition-colors">
+                <span x-show="!showExamples">Show Examples</span>
+                <span x-show="showExamples">Hide Examples</span>
+                <svg class="w-4 h-4 inline ml-1 transition-transform" :class="{'rotate-180': showExamples}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
         </div>
         
-        <!-- Main Categories Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            <!-- Backgrounds -->
-            <div class="bg-slate-800/30 rounded-lg p-6">
-                <h5 class="text-white font-bold font-outfit text-lg mb-4 text-center border-b border-slate-600 pb-2">Backgrounds</h5>
-                <ul class="space-y-2 text-sm text-slate-300">
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Assassin</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Blacksmith</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Bodyguard</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Bounty Hunter</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Chef to the Royal Family</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Circus Performer</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Con Artist</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Fallen Monarch</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Field Medic</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> High Priestess</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Merchant</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Noble</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Pirate</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Politician</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Runaway</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Scholar</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Sellsword</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Soldier</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Storyteller</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Thief</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> World Traveler</li>
-                </ul>
-            </div>
-
-            <!-- Characteristics -->
-            <div class="bg-slate-800/30 rounded-lg p-6">
-                <h5 class="text-white font-bold font-outfit text-lg mb-4 text-center border-b border-slate-600 pb-2">Characteristics</h5>
-                <ul class="space-y-2 text-sm text-slate-300">
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Affable</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Battle-Hardened</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Bookworm</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Charming</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Cowardly</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Friend to All</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Helpful</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Intimidating Presence</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Leader</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Lone Wolf</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Loyal</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Observant</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Prankster</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Silver Tongue</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Sticky Fingers</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Stubborn to a Fault</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Survivor</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Young and Naive</li>
-                </ul>
-            </div>
-
-            <!-- Specialties & Skills -->
-            <div class="bg-slate-800/30 rounded-lg p-6">
-                <h5 class="text-white font-bold font-outfit text-lg mb-4 text-center border-b border-slate-600 pb-2">Specialties & Skills</h5>
-                <div class="mb-4">
-                    <h6 class="text-amber-300 font-semibold text-sm mb-2 uppercase tracking-wide">Specialties</h6>
-                    <ul class="space-y-2 text-sm text-slate-300">
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Acrobat</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Gambler</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Healer</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Inventor</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Magical Historian</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Mapmaker</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Master of Disguise</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Navigator</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Sharpshooter</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Survivalist</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Swashbuckler</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Tactician</li>
-                    </ul>
+        <div x-show="showExamples" x-transition class="space-y-4">
+            <!-- Compact Categories Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Backgrounds & Roles -->
+                <div class="bg-slate-800/30 rounded-lg p-4">
+                    <h5 class="text-white font-bold text-sm mb-3 border-b border-slate-600 pb-2">Backgrounds & Roles</h5>
+                    <div class="text-xs text-slate-300 space-y-1">
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Blacksmith</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Scholar</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Soldier</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Merchant</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Healer</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Thief</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Noble</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Sailor</span>
+                    </div>
                 </div>
-                <div>
-                    <h6 class="text-amber-300 font-semibold text-sm mb-2 uppercase tracking-wide">Skills</h6>
-                    <ul class="space-y-2 text-sm text-slate-300">
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Animal Whisperer</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Barter</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Deadly Aim</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Fast Learner</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Incredible Strength</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Liar</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Light Feet</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Negotiator</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Photographic Memory</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Quick Hands</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Repair</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Scavenger</li>
-                        <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Tracker</li>
-                    </ul>
+
+                <!-- Traits & Skills -->
+                <div class="bg-slate-800/30 rounded-lg p-4">
+                    <h5 class="text-white font-bold text-sm mb-3 border-b border-slate-600 pb-2">Traits & Skills</h5>
+                    <div class="text-xs text-slate-300 space-y-1">
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Silver Tongue</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Battle-Hardened</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Fast Learner</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Observant</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Leader</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Tracker</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Negotiator</span>
+                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Survivor</span>
+                    </div>
                 </div>
             </div>
-
-            <!-- Phrases -->
-            <div class="bg-slate-800/30 rounded-lg p-6">
-                <h5 class="text-white font-bold font-outfit text-lg mb-4 text-center border-b border-slate-600 pb-2">Phrases</h5>
-                <ul class="space-y-2 text-sm text-slate-300">
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Catch Me If You Can</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Fake It Till You Make It</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> First Time's the Charm</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Hold the Line</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> I Won't Let You Down</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> I'll Catch You</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> I've Got Your Back</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Knowledge Is Power</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Nature's Friend</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Never Again</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> No One Left Behind</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Pick on Someone Your Own Size</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> The Show Must Go On</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> This Is Not a Negotiation</li>
-                    <li class="flex items-center"><span class="text-amber-400 mr-2">•</span> Wolf in Sheep's Clothing</li>
-                </ul>
+            
+            <!-- Popular Examples -->
+            <div class="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-lg p-3">
+                <p class="text-slate-200 text-sm">
+                    <strong class="text-blue-300">Popular examples:</strong> 
+                    Blacksmith, Silver Tongue, Battle-Hardened, Fast Learner, Healer, Tracker, I've Got Your Back, Hold the Line
+                </p>
             </div>
         </div>
     </div>

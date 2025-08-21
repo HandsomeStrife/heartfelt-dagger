@@ -69,6 +69,7 @@ class LoadCharacterAction
         $background_answers = $character_data['background']['answers'] ?? [];
         $connection_answers = $character_data['connections'] ?? [];
         $manual_step_completions = $character_data['manualStepCompletions'] ?? [];
+        $clank_bonus_experience = $character_data['clank_bonus_experience'] ?? null;
 
         return new CharacterBuilderData(
             character_key: $character->character_key,
@@ -90,6 +91,7 @@ class LoadCharacterAction
             personal_history: $character_data['background']['personalHistory'] ?? null,
             motivations: $character_data['background']['motivations'] ?? null,
             manual_step_completions: $manual_step_completions,
+            clank_bonus_experience: $clank_bonus_experience,
         );
     }
 
