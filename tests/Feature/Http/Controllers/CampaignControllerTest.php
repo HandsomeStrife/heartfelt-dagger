@@ -427,4 +427,55 @@ class CampaignControllerTest extends TestCase
         $response = $this->actingAs($user)->get("/join/{$campaign->invite_code}");
         $response->assertOk();
     }
+
+    #[Test]
+    public function user_can_join_campaign_by_invite_code(): void
+    {
+        $creator = User::factory()->create();
+        $joiner = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+
+        $response = $this->actingAs($joiner)->post(route('campaigns.join'), [
+            'invite_code' => $campaign->invite_code,
+        ]);
+
+        $response->assertRedirect(route('campaigns.show', $campaign->campaign_code));
+        $response->assertSessionHas('success', 'Successfully joined the campaign!');
+
+        $this->assertTrue($campaign->fresh()->hasMember($joiner));
+    }
+
+    #[Test]
+    public function joining_with_invalid_invite_code_shows_error(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('campaigns.join'), [
+            'invite_code' => 'INVALID1',
+        ]);
+
+        $response->assertRedirect(route('campaigns.index'));
+        $response->assertSessionHasErrors(['invite_code']);
+    }
+
+    #[Test]
+    public function user_cannot_join_campaign_twice_via_invite_code(): void
+    {
+        $creator = User::factory()->create();
+        $joiner = User::factory()->create();
+        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+
+        // Join first time
+        $this->actingAs($joiner)->post(route('campaigns.join'), [
+            'invite_code' => $campaign->invite_code,
+        ]);
+
+        // Try to join again
+        $response = $this->actingAs($joiner)->post(route('campaigns.join'), [
+            'invite_code' => $campaign->invite_code,
+        ]);
+
+        $response->assertRedirect(route('campaigns.show', $campaign->campaign_code));
+        $response->assertSessionHas('info', 'You are already a member of this campaign.');
+    }
 }

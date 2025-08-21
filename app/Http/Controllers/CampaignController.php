@@ -107,6 +107,40 @@ class CampaignController extends Controller
     }
 
     /**
+     * Join a campaign by invite code
+     */
+    public function joinByCode(Request $request)
+    {
+        $validated = $request->validate([
+            'invite_code' => 'required|string|size:8',
+        ]);
+
+        $campaign = Campaign::where('invite_code', $validated['invite_code'])->first();
+
+        if (!$campaign) {
+            return redirect()->route('campaigns.index')
+                ->withErrors(['invite_code' => 'Invalid invite code. Please check the code and try again.']);
+        }
+
+        // Check if user is already a member
+        $user = Auth::user();
+        if ($campaign->hasMember($user)) {
+            return redirect()->route('campaigns.show', $campaign->campaign_code)
+                ->with('info', 'You are already a member of this campaign.');
+        }
+
+        try {
+            $this->join_campaign_action->execute($campaign, $user);
+            
+            return redirect()->route('campaigns.show', $campaign->campaign_code)
+                ->with('success', 'Successfully joined the campaign!');
+        } catch (\Exception $e) {
+            return redirect()->route('campaigns.index')
+                ->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Join a campaign
      */
     public function join(Request $request, Campaign $campaign)

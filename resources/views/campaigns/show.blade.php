@@ -35,7 +35,7 @@
                             <div class="flex items-center gap-3">
                                 <!-- Share Invite Button -->
                                 <button 
-                                    onclick="copyInviteLink()"
+                                    onclick="showModal('campaignInviteModal')"
                                     class="inline-flex items-center bg-emerald-500 hover:bg-emerald-400 text-white font-semibold py-2 px-4 rounded-xl transition-colors"
                                 >
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,24 +136,13 @@
     </div>
 
     @if($user_is_creator)
-    <!-- Hidden input for invite link -->
-    <input type="hidden" id="inviteLink" value="{{ route('campaigns.join', $campaign->invite_code) }}">
-
-    <script>
-        function copyInviteLink() {
-            const inviteLink = document.getElementById('inviteLink').value;
-            navigator.clipboard.writeText(inviteLink).then(function() {
-                // Show success message
-                const button = event.target;
-                const originalText = button.innerHTML;
-                button.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Copied!';
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                }, 2000);
-            }, function(err) {
-                console.error('Could not copy text: ', err);
-            });
-        }
-    </script>
+        <x-invite-modal 
+            modal-id="campaignInviteModal"
+            title="Share Campaign Invite"
+            :invite-code="$campaign->invite_code"
+            :invite-url="route('campaigns.join', $campaign->invite_code)"
+            code-label="Campaign Code"
+            link-label="Campaign Link"
+        />
     @endif
 </x-layout>

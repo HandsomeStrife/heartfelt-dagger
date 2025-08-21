@@ -12,12 +12,20 @@
                             Manage your epic adventures
                         </p>
                     </div>
-                    <a href="{{ route('campaigns.create') }}" class="inline-flex items-center bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-violet-500/25">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                        </svg>
-                        Create Campaign
-                    </a>
+                    <div class="flex items-center gap-3">
+                        <button onclick="showModal('joinCampaignModal')" class="inline-flex items-center bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/25">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM12 14c-1.49 0-2.92.6-4 1.67V19h8v-3.33c-1.08-1.07-2.51-1.67-4-1.67z" />
+                            </svg>
+                            Join Campaign
+                        </button>
+                        <a href="{{ route('campaigns.create') }}" class="inline-flex items-center bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-violet-500/25">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Create Campaign
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Development Notice -->
@@ -157,4 +165,83 @@
             </div>
         </div>
     </div>
+
+    <!-- Join Campaign Modal -->
+    <div id="joinCampaignModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-outfit font-bold text-white">Join Campaign</h3>
+                <button onclick="hideModal('joinCampaignModal')" class="text-slate-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <form action="{{ route('campaigns.join') }}" method="POST" class="space-y-6">
+                @csrf
+                <div>
+                    <label class="block text-slate-300 text-sm font-semibold mb-2">Campaign Invite Code</label>
+                    <input 
+                        type="text" 
+                        name="invite_code" 
+                        id="join_invite_code"
+                        required 
+                        maxlength="8"
+                        pattern="[A-Z0-9]{8}"
+                        placeholder="e.g., ABC12345"
+                        class="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-600 font-mono text-lg tracking-wider uppercase focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                        autocomplete="off"
+                    >
+                    <p class="text-slate-400 text-xs mt-2">Enter the 8-character code provided by the campaign creator</p>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="hideModal('joinCampaignModal')" class="px-6 py-3 text-slate-400 hover:text-white font-semibold transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg">
+                        Join Campaign
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Auto-format invite code input
+        document.getElementById('join_invite_code').addEventListener('input', function(e) {
+            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        });
+
+        // Include the modal functions from the component
+        window.showModal = window.showModal || function(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        window.hideModal = window.hideModal || function(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Setup modal event listeners when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close modal when clicking outside
+            document.getElementById('joinCampaignModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    hideModal('joinCampaignModal');
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    hideModal('joinCampaignModal');
+                }
+            });
+        });
+    </script>
 </x-layout>

@@ -42,8 +42,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [App\Http\Controllers\CampaignController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\CampaignController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\CampaignController::class, 'store'])->name('store');
+        Route::post('/join', [App\Http\Controllers\CampaignController::class, 'joinByCode'])->name('join');
         Route::get('/{campaign}', [App\Http\Controllers\CampaignController::class, 'show'])->name('show');
-        Route::post('/{campaign}/join', [App\Http\Controllers\CampaignController::class, 'join'])->name('join');
+        Route::post('/{campaign}/join', [App\Http\Controllers\CampaignController::class, 'join'])->name('join_campaign');
         Route::delete('/{campaign}/leave', [App\Http\Controllers\CampaignController::class, 'leave'])->name('leave');
     });
     
