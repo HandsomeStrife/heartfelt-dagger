@@ -281,58 +281,123 @@
         </div>
     @endif
 
-    <!-- Experience Examples -->
-    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 mt-6" x-data="{ showExamples: false }">
+    <!-- Experience Guide -->
+    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 mt-6" x-data="{ showGuide: false }">
         <div class="flex items-center justify-between mb-4">
-            <h4 class="text-blue-300 font-semibold font-outfit text-lg">Experience Examples</h4>
-            <button @click="showExamples = !showExamples" class="text-blue-300 hover:text-blue-200 transition-colors">
-                <span x-show="!showExamples">Show Examples</span>
-                <span x-show="showExamples">Hide Examples</span>
-                <svg class="w-4 h-4 inline ml-1 transition-transform" :class="{'rotate-180': showExamples}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h4 class="text-blue-300 font-semibold font-outfit text-lg">Creating G.R.E.A.T. Experiences</h4>
+            <button @click="showGuide = !showGuide" class="text-blue-300 hover:text-blue-200 transition-colors">
+                <span x-show="!showGuide">Show Guide</span>
+                <span x-show="showGuide">Hide Guide</span>
+                <svg class="w-4 h-4 inline ml-1 transition-transform" :class="{'rotate-180': showGuide}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
         </div>
         
-        <div x-show="showExamples" x-transition class="space-y-4">
-            <!-- Compact Categories Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Backgrounds & Roles -->
-                <div class="bg-slate-800/30 rounded-lg p-4">
-                    <h5 class="text-white font-bold text-sm mb-3 border-b border-slate-600 pb-2">Backgrounds & Roles</h5>
-                    <div class="text-xs text-slate-300 space-y-1">
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Blacksmith</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Scholar</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Soldier</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Merchant</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Healer</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Thief</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Noble</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Sailor</span>
-                    </div>
-                </div>
+        <div x-show="showGuide" x-transition class="space-y-6">
+            <!-- What Is an Experience -->
+            <div class="bg-slate-800/30 rounded-lg p-4">
+                <h5 class="text-white font-bold text-lg mb-3 font-outfit">What Is an Experience?</h5>
+                <p class="text-slate-300 text-sm mb-3">
+                    An Experience is a word or phrase used to encapsulate a specific set of skills, personality traits, or aptitudes your character has acquired over the course of their life.
+                </p>
+                <ul class="text-slate-300 text-sm space-y-1 list-disc list-inside">
+                    <li>Each PC starts with two Experiences, each with a +2 modifier</li>
+                    <li>You can spend a Hope to add an Experience modifier to a relevant action and reaction roll</li>
+                    <li>There's no official list -- Experiences are meant to be unique to your character</li>
+                    <li>However, they can't be too broad ("Lucky," "Highly Skilled") or too mechanical ("Supersonic Flight", "Invulnerable")</li>
+                </ul>
+            </div>
 
-                <!-- Traits & Skills -->
-                <div class="bg-slate-800/30 rounded-lg p-4">
-                    <h5 class="text-white font-bold text-sm mb-3 border-b border-slate-600 pb-2">Traits & Skills</h5>
-                    <div class="text-xs text-slate-300 space-y-1">
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Silver Tongue</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Battle-Hardened</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Fast Learner</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Observant</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Leader</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Tracker</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Negotiator</span>
-                        <span class="inline-block bg-slate-700 px-2 py-1 rounded mr-1 mb-1">Survivor</span>
+            <!-- The G.R.E.A.T. Framework -->
+            <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg p-4">
+                <h5 class="text-amber-300 font-bold text-lg mb-4 font-outfit">The G.R.E.A.T. Framework</h5>
+                
+                <div class="space-y-4">
+                    <!-- Grounded -->
+                    <div class="bg-slate-800/40 rounded-lg p-3">
+                        <h6 class="text-white font-bold text-sm mb-2"><span class="text-amber-300">G</span> - Grounded</h6>
+                        <p class="text-slate-300 text-sm mb-2">Experiences should stand on their own, and not require a specific mechanic or spell to be useful.</p>
+                        <div class="text-xs">
+                            <span class="text-red-300">❌ "Take Flight"</span> <span class="text-slate-400">- relies on having flight</span><br>
+                            <span class="text-green-300">✅ "Acrobat"</span> <span class="text-slate-400">- broadly useful without hinging on a single ability</span>
+                        </div>
+                    </div>
+
+                    <!-- Relatable -->
+                    <div class="bg-slate-800/40 rounded-lg p-3">
+                        <h6 class="text-white font-bold text-sm mb-2"><span class="text-amber-300">R</span> - Relatable</h6>
+                        <p class="text-slate-300 text-sm mb-2">Does the Experience connect naturally to the character's story, ancestry, class, or community?</p>
+                        <div class="text-xs">
+                            <span class="text-green-300">✅ "Mage's Apprentice"</span> <span class="text-slate-400">- ties into a clear backstory beat and skillset</span>
+                        </div>
+                    </div>
+
+                    <!-- Explainable -->
+                    <div class="bg-slate-800/40 rounded-lg p-3">
+                        <h6 class="text-white font-bold text-sm mb-2"><span class="text-amber-300">E</span> - Explainable</h6>
+                        <p class="text-slate-300 text-sm mb-2">Can you describe in plain terms when the Experience will apply to your roll?</p>
+                        <div class="text-xs">
+                            <span class="text-red-300">❌ "Always Ready"</span> <span class="text-slate-400">- too vague, what does it actually mean?</span><br>
+                            <span class="text-green-300">✅ "My Nightmares Warned Me"</span> <span class="text-slate-400">- clearly applies when rolling to avoid being surprised</span>
+                        </div>
+                    </div>
+
+                    <!-- Adaptable -->
+                    <div class="bg-slate-800/40 rounded-lg p-3">
+                        <h6 class="text-white font-bold text-sm mb-2"><span class="text-amber-300">A</span> - Adaptable</h6>
+                        <p class="text-slate-300 text-sm mb-2">Can the Experience apply in different situations, not just in one hyper-specific moment?</p>
+                        <div class="text-xs">
+                            <span class="text-red-300">❌ "Breaker of Windows"</span> <span class="text-slate-400">- too narrow, very specific</span><br>
+                            <span class="text-green-300">✅ "I've Got Your Back"</span> <span class="text-slate-400">- applies to any situation helping and protecting allies</span>
+                        </div>
+                    </div>
+
+                    <!-- Transformative -->
+                    <div class="bg-slate-800/40 rounded-lg p-3">
+                        <h6 class="text-white font-bold text-sm mb-2"><span class="text-amber-300">T</span> - Transformative</h6>
+                        <p class="text-slate-300 text-sm mb-2">Does the Experience shape how your character interacts with the world beyond the dice?</p>
+                        <div class="text-xs">
+                            <span class="text-green-300">✅ "Exploit the Male Gaze"</span> <span class="text-slate-400">- isn't just a roll bonus, it's roleplay fuel that shapes social encounters</span>
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Visual Chart -->
+            <div class="bg-slate-800/30 rounded-lg p-4 text-center">
+                <h6 class="text-white font-bold text-sm mb-3">Experience Creation Reference</h6>
+                <img src="{{ asset('img/experience/chart.webp') }}" alt="Experience Creation Chart" class="mx-auto rounded-lg max-w-full h-auto">
+            </div>
+
+            <!-- Real World Application -->
+            <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                <h6 class="text-purple-300 font-bold text-sm mb-3">Writing Experiences in the Real World</h6>
+                <p class="text-slate-300 text-sm mb-3">
+                    Because the definitions are fuzzy, it's inevitable that people will disagree about what constitutes "too vague" or "too specific". The important bit is that both the Player and the GM are on the same page.
+                </p>
+                <div class="bg-slate-800/40 rounded-lg p-3">
+                    <p class="text-slate-300 text-xs mb-2">
+                        <strong class="text-purple-300">Example:</strong> "One-Hit Killer" might start too broad and at odds with mechanics where most adversaries won't die in one hit. But after discussion between Player and GM, they agree that it represents a reputation the PC strives to uphold, and they play up their one-hit KOs when fighting Minions and Hordes.
+                    </p>
+                    <p class="text-slate-300 text-xs">
+                        This understanding transforms it from an always-on combat boost that conflicts with how combat functions, to a more specific situation that can apply in combat AND be adapted to social situations!
+                    </p>
+                </div>
+            </div>
+
             <!-- Popular Examples -->
             <div class="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 rounded-lg p-3">
                 <p class="text-slate-200 text-sm">
-                    <strong class="text-blue-300">Popular examples:</strong> 
-                    Blacksmith, Silver Tongue, Battle-Hardened, Fast Learner, Healer, Tracker, I've Got Your Back, Hold the Line
+                    <strong class="text-blue-300">Great examples:</strong> 
+                    Mage's Apprentice, I've Got Your Back, Silver Tongue, Battle-Hardened, My Nightmares Warned Me, Acrobat, Hold the Line, Blacksmith
+                </p>
+            </div>
+
+            <!-- Credit -->
+            <div class="text-center">
+                <p class="text-slate-400 text-xs italic">
+                    Experience creation guide by OneBoxyLlama
                 </p>
             </div>
         </div>
