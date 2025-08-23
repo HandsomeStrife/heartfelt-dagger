@@ -214,15 +214,7 @@
         "foundationFeatures": [
             {
                 "name": "Prepared",
-                "description": "Take an additional domain card of your level or lower from a domain you have access to.",
-                "effects": [
-                    {
-                        "type": "domain_card_bonus",
-                        "value": 1,
-                        "timing": "permanent",
-                        "description": "Gain +1 additional domain card"
-                    }
-                ]
+                "description": "You are always ready with the right knowledge for any situation. When you make a Knowledge roll, you can spend a Hope to gain a +3 bonus to the result."
             },
             {
                 "name": "Adept",
@@ -251,15 +243,7 @@
         "masteryFeatures": [
             {
                 "name": "Brilliant",
-                "description": "Take an additional domain card of your level or lower from a domain you have access to.",
-                "effects": [
-                    {
-                        "type": "domain_card_bonus",
-                        "value": 1,
-                        "timing": "permanent",
-                        "description": "Gain +1 additional domain card"
-                    }
-                ]
+                "description": "Your vast knowledge allows you to recall information with perfect clarity. Once per session, you can declare that you know a specific piece of obscure information relevant to the current situation."
             },
             {
                 "name": "Honed Expertise",

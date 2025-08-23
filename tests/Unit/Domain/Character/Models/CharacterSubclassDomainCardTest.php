@@ -21,11 +21,11 @@ class CharacterSubclassDomainCardTest extends TestCase
         $domainCardBonus = $character->getSubclassDomainCardBonus();
         $maxDomainCards = $character->getMaxDomainCards();
 
-        // School of Knowledge should get bonuses from foundation (+1), specialization (+1), and mastery (+1) = +3 total
-        $this->assertEquals(3, $domainCardBonus);
+        // School of Knowledge should get bonus only from specialization (+1) = +1 total
+        $this->assertEquals(1, $domainCardBonus);
         
-        // Base 2 cards + 3 bonus cards = 5 total
-        $this->assertEquals(5, $maxDomainCards);
+        // Base 2 cards + 1 bonus card = 3 total
+        $this->assertEquals(3, $maxDomainCards);
     }
 
     #[Test]
@@ -63,7 +63,7 @@ class CharacterSubclassDomainCardTest extends TestCase
     {
         // Test different subclasses that might have domain card bonuses
         $testCases = [
-            ['subclass' => 'school of knowledge', 'expected_bonus' => 3, 'expected_max' => 5],
+            ['subclass' => 'school of knowledge', 'expected_bonus' => 1, 'expected_max' => 3],
             ['subclass' => 'school of war', 'expected_bonus' => 0, 'expected_max' => 2],
             ['subclass' => 'stalwart', 'expected_bonus' => 0, 'expected_max' => 2],
             ['subclass' => 'nightwalker', 'expected_bonus' => 0, 'expected_max' => 2],

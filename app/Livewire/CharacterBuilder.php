@@ -146,6 +146,9 @@ class CharacterBuilder extends Component
 
         // Reset completed steps array
         $this->completed_steps = [];
+        
+        // Save changes to database
+        $this->saveAndUpdateState();
     }
 
     public function selectSubclass(string $subclass_key): void
@@ -164,6 +167,9 @@ class CharacterBuilder extends Component
 
         // Reset completed steps array
         $this->completed_steps = [];
+        
+        // Save changes to database
+        $this->saveAndUpdateState();
     }
 
     public function selectAncestry(?string $ancestry_key): void
