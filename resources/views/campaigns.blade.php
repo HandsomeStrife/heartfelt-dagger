@@ -1,5 +1,5 @@
 <x-layout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 p-4">
+    <div class="min-h-screen p-4">
         <div class="max-w-4xl mx-auto">
             <!-- Header -->
             <div class="text-center mb-8">

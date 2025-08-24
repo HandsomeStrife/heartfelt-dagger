@@ -31,6 +31,9 @@ class CharacterBuilder extends Component
     // Direct pronouns field (now stored as database column)
     public ?string $pronouns = null;
 
+    // Last saved timestamp
+    public ?string $last_saved_at = null;
+
     // Game Data
     public array $game_data = [];
 
@@ -91,9 +94,10 @@ class CharacterBuilder extends Component
         $this->character = $character_data;
         $this->storage_key = $characterKey;
         
-        // Load the character model to get pronouns from database
+        // Load the character model to get pronouns and last saved time from database
         $character_model = Character::where('character_key', $characterKey)->first();
         $this->pronouns = $character_model->pronouns ?? null;
+        $this->last_saved_at = $character_model?->updated_at?->diffForHumans();
         
         $this->updateCompletedSteps();
         $this->loadGameData();
@@ -716,9 +720,10 @@ class CharacterBuilder extends Component
             $load_action = new LoadCharacterAction;
             $this->character = $load_action->execute($this->storage_key);
             
-            // Reload pronouns from database
+            // Reload pronouns and update last saved time from database
             $character_model = Character::where('character_key', $this->storage_key)->first();
             $this->pronouns = $character_model->pronouns ?? null;
+            $this->last_saved_at = $character_model?->updated_at?->diffForHumans();
 
         } catch (\Exception $e) {
             $this->dispatch('notify', [

@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+<div class="min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Character Header -->
         <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl mb-8 overflow-hidden">

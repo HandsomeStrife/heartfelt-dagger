@@ -1,5 +1,5 @@
 <x-layout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+    <div class="min-h-screen">
         <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
             <div class="max-w-4xl mx-auto">
                 <!-- Development Notice -->

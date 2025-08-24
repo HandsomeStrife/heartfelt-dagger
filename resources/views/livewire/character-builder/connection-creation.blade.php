@@ -3,10 +3,9 @@
     <!-- Step Header -->
     <div class="mb-8">
         <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Create Connections</h2>
-        <p class="text-slate-300 font-roboto">Define connections with other party members.</p>
+        <p class="text-slate-300 font-roboto">Answer the connection questions to define relationships with other party members. These connections 
+            create bonds that can provide mechanical benefits and rich roleplay opportunities.</p>
     </div>
-
-
 
     <!-- Step Completion Indicator -->
     @if($connection_progress['answered_connections'] >= $connection_progress['total_connections'] && $connection_progress['total_connections'] > 0)
@@ -24,16 +23,6 @@
             </div>
         </div>
     @endif
-    <!-- Instructions -->
-    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
-        <h3 class="text-lg font-bold text-white font-outfit mb-3">Create Connections</h3>
-        <p class="text-slate-300 text-sm mb-4">
-            Answer the connection questions to define relationships with other party members. These connections 
-            create bonds that can provide mechanical benefits and rich roleplay opportunities.
-        </p>
-        
-
-    </div>
 
     <!-- Connection Questions -->
     @if(!empty($filtered_data['connection_questions']))

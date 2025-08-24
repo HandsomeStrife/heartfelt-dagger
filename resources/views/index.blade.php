@@ -1,5 +1,5 @@
 <x-layout>
-    <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div class="h-screen flex items-center justify-center">
         <div class="container mx-auto px-4 py-8 sm:py-16">
             <div class="text-center">
                 <div class="flex items-center justify-center mb-6 gap-2 sm:gap-4">

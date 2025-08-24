@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950" x-data="{
+<div class="min-h-screen" x-data="{
     selected_class: $wire.entangle('character.selected_class'),
     selected_subclass: $wire.entangle('character.selected_subclass'),
     selected_ancestry: $wire.entangle('character.selected_ancestry'),
@@ -94,34 +94,58 @@
         $wire.assignTrait(traitKey, null);
     }
 }">
-    <div class="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
-        <!-- Header -->
-        <div class="text-center mb-6 sm:mb-8 relative">
-            <h1 class="font-outfit text-3xl sm:text-4xl text-white tracking-wide mb-2">
-                Character Builder
-            </h1>
-            <p class="font-roboto text-slate-300 text-base sm:text-lg">
-                Create your Daggerheart character
-            </p>
+    <!-- Minimal Full-Width Sub-Header -->
+    <x-sub-navigation>
+        <div class="flex items-center justify-between">
+            <!-- Left: Title and Last Saved -->
+            <div class="flex items-center gap-4">
+                <h1 class="font-outfit text-lg font-semibold text-white">
+                    Character Builder
+                </h1>
+                
+                @if($last_saved_at)
+                    <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Saved {{ $last_saved_at }}</span>
+                    </div>
+                @endif
+            </div>
             
-            <!-- Preview Character Button (Top Right) -->
-            @if($character->selected_class)
-                <div class="absolute top-0 right-0">
+            <!-- Right: Actions -->
+            <div class="flex items-center gap-2">
+                <!-- Save Button -->
+                <button 
+                    dusk="save-character-button"
+                    wire:click="saveToDatabase"
+                    class="inline-flex items-center justify-center px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white text-sm font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-emerald-500/25"
+                >
+                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Save
+                </button>
+
+                <!-- Preview Button -->
+                @if($character->selected_class)
                     <button 
                         dusk="preview-character-button"
-                        onclick="viewCharacter()"
-                        class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
+                        onclick="viewCharacterInNewWindow()"
+                        class="inline-flex items-center justify-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white text-sm font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
                     >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
-                        <span class="hidden sm:inline">Preview Character</span>
-                        <span class="sm:hidden">Preview</span>
+                        Preview
                     </button>
-                </div>
-            @endif
+                @endif
+            </div>
         </div>
+    </x-sub-navigation>
+
+    <div class="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
 
         <!-- Character Information Section -->
         <div class="p-4 sm:p-8 mb-6 sm:mb-8">

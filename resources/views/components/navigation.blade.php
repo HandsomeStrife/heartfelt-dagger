@@ -1,5 +1,5 @@
 <nav class="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-amber-500/30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <!-- Logo/Brand -->
             <div class="flex items-center">

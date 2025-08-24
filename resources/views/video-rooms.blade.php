@@ -1,5 +1,5 @@
 <x-layout>
-    <div class="h-screen w-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 p-1">
+    <div class="h-screen w-screenp-1">
         <!-- 3x2 Fullscreen Grid Layout -->
         <div class="h-full w-full grid grid-cols-3 grid-rows-2 gap-1">
             <!-- Top Row - 3 Video Slots -->
