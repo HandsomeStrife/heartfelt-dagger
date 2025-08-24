@@ -65,122 +65,104 @@
     <div x-show="hasSelectedClass" class="w-full">
         @foreach($game_data['classes'] ?? [] as $classKey => $classData)
             <div x-show="selected_class === '{{ $classKey }}'" class="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-amber-500/50 rounded-2xl p-6">
-                <!-- Header Section -->
-                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-8 gap-4">
-                    <div class="flex items-center gap-6">
-                        <div class="class-banner-md-width">
-                            <x-class-banner className="{{ $classKey }}" class="absolute top-0 left-0" size="md" />
-                        </div>
-                        <div>
-                            <h3 class="text-3xl font-bold text-white font-outfit mb-2">{{ $classData['name'] }}</h3>
-                            <div class="flex flex-wrap gap-2 mb-3">
-                                @foreach($classData['domains'] ?? [] as $domain)
-                                    <span class="inline-flex items-center px-3 py-1 bg-slate-700/50 text-slate-300 text-sm font-medium rounded-lg border border-slate-600/50">
-                                        {{ ucfirst($domain) }}
-                                    </span>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                    <button 
-                        dusk="change-class-button"
-                        x-on:click="selectClass(null)"
-                        class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm font-medium"
-                    >
-                        Change Class
-                    </button>
-                </div>
-
                 <!-- Main Content Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Left Column: Description & Core Info -->
-                    <div class="lg:col-span-2 space-y-6">
-                        <!-- Description -->
-                        <div>
-                            <h4 class="text-lg font-semibold text-white font-outfit mb-3">Description</h4>
-                            <p class="text-slate-300 text-base leading-relaxed bg-slate-800/30 rounded-lg p-4">
-                                {{ $classData['description'] }}
-                            </p>
-                        </div>
-
-                        <!-- Hope Feature -->
-                        @if(isset($classData['hopeFeature']))
-                            <div>
-                                <h4 class="text-lg font-semibold text-white font-outfit mb-3">Hope Feature</h4>
-                                <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg p-4">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="text-amber-400 font-bold text-lg">{{ $classData['hopeFeature']['name'] }}</span>
-                                        <span class="bg-amber-500/20 text-amber-300 text-sm font-medium px-3 py-1 rounded-full">{{ $classData['hopeFeature']['hopeCost'] }} Hope</span>
-                                    </div>
-                                    <p class="text-slate-300 text-sm leading-relaxed">
-                                        {{ $classData['hopeFeature']['description'] }}
-                                    </p>
-                                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                    <!-- Left Column: Core Info -->
+                    <div class="col-span-1 xl:col-span-4">
+                        <!-- Class Header Section -->
+                        <div class="flex items-start gap-6 mb-8">
+                            <div class="class-banner-md-width flex-shrink-0">
+                                <x-class-banner className="{{ $classKey }}" class="absolute top-0 left-0" size="md" />
                             </div>
-                        @endif
-
-                        <!-- Class Features -->
-                        @if(!empty($classData['classFeatures']))
-                            <div>
-                                <h4 class="text-lg font-semibold text-white font-outfit mb-3">Class Features</h4>
-                                <div class="space-y-3">
-                                    @foreach($classData['classFeatures'] as $feature)
-                                        <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
-                                            <h5 class="text-white font-semibold text-base mb-2">{{ $feature['name'] }}</h5>
-                                            <p class="text-slate-300 text-sm leading-relaxed">{{ $feature['description'] }}</p>
-                                        </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-3xl font-bold text-white font-outfit mb-2">{{ $classData['name'] }}</h3>
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    @foreach($classData['domains'] ?? [] as $domain)
+                                        <span class="inline-flex items-center px-3 py-1 bg-slate-700/50 text-slate-300 text-sm font-medium rounded-lg border border-slate-600/50">
+                                            {{ ucfirst($domain) }}
+                                        </span>
                                     @endforeach
                                 </div>
+                                <!-- Description -->
+                                <p class="text-slate-300 text-base leading-relaxed">
+                                    {{ $classData['description'] }}
+                                </p>
+
+                                @if(isset($classData['classItems']))
+                                    <p class="text-slate-300 text-xs leading-relaxed mt-6">
+                                        Starting Items:
+                                        {{ $classData['classItems'] }}
+                                    </p>
+                                @endif
                             </div>
-                        @endif
+                        </div>
                     </div>
 
                     <!-- Right Column: Stats & Items -->
-                    <div class="space-y-6">
+                    <div class="col-span-1 xl:col-span-1 space-y-4">
+                        <!-- Change Class Button -->
+                        <div class="flex justify-end mb-4">
+                            <button 
+                                dusk="change-class-button"
+                                x-on:click="selectClass(null)"
+                                class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm font-medium"
+                            >
+                                Change Class
+                            </button>
+                        </div>
+                        
                         <!-- Starting Stats -->
-                        <div>
-                            <h4 class="text-lg font-semibold text-white font-outfit mb-3">Starting Stats</h4>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center bg-slate-800/50 rounded-lg px-4 py-3 border border-slate-700/50">
-                                    <span class="text-slate-400 font-medium">Evasion</span>
-                                    <span class="text-white font-bold text-xl">{{ $classData['startingEvasion'] ?? 10 }}</span>
+                        <div class="mb-6">
+                            <div class="space-y-2 mt-12">
+                                <div class="flex justify-between items-center bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
+                                    <span class="text-slate-400 font-medium text-sm">Evasion</span>
+                                    <span class="text-white font-bold">{{ $classData['startingEvasion'] ?? 10 }}</span>
                                 </div>
-                                <div class="flex justify-between items-center bg-slate-800/50 rounded-lg px-4 py-3 border border-slate-700/50">
-                                    <span class="text-slate-400 font-medium">Hit Points</span>
-                                    <span class="text-white font-bold text-xl">{{ $classData['startingHitPoints'] ?? 5 }}</span>
+                                <div class="flex justify-between items-center bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
+                                    <span class="text-slate-400 font-medium text-sm">Hit Points</span>
+                                    <span class="text-white font-bold">{{ $classData['startingHitPoints'] ?? 5 }}</span>
                                 </div>
-                                <div class="flex justify-between items-center bg-slate-800/50 rounded-lg px-4 py-3 border border-slate-700/50">
-                                    <span class="text-slate-400 font-medium">Stress</span>
-                                    <span class="text-white font-bold text-xl">6</span>
+                                <div class="flex justify-between items-center bg-slate-800/50 rounded-lg px-3 py-2 border border-slate-700/50">
+                                    <span class="text-slate-400 font-medium text-sm">Stress</span>
+                                    <span class="text-white font-bold">6</span>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Starting Items -->
-                        @if(isset($classData['classItems']))
-                            <div>
-                                <h4 class="text-lg font-semibold text-white font-outfit mb-3">Starting Items</h4>
-                                <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-                                    <p class="text-slate-300 text-sm leading-relaxed">
-                                        {{ $classData['classItems'] }}
-                                    </p>
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Domains Detail -->
+                <!-- Features Section - Two Column -->
+                <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Hope Feature -->
+                    @if(isset($classData['hopeFeature']))
                         <div>
-                            <h4 class="text-lg font-semibold text-white font-outfit mb-3">Domain Access</h4>
-                            <div class="space-y-2">
-                                @foreach($classData['domains'] ?? [] as $domain)
-                                    <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-                                        <span class="text-white font-medium text-sm">{{ ucfirst($domain) }} Domain</span>
-                                        <p class="text-slate-400 text-xs mt-1">Access to {{ ucfirst($domain) }} domain cards and abilities</p>
+                            <h4 class="text-lg font-semibold text-white font-outfit mb-3">Hope Feature</h4>
+                            <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-amber-400 font-bold text-lg">{{ $classData['hopeFeature']['name'] }}</span>
+                                    <span class="bg-amber-500/20 text-amber-300 text-sm font-medium px-3 py-1 rounded-full">{{ $classData['hopeFeature']['hopeCost'] }} Hope</span>
+                                </div>
+                                <p class="text-slate-300 text-sm leading-relaxed">
+                                    {{ $classData['hopeFeature']['description'] }}
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Class Features -->
+                    @if(!empty($classData['classFeatures']))
+                        <div>
+                            <h4 class="text-lg font-semibold text-white font-outfit mb-3">Class Features</h4>
+                            <div class="space-y-3">
+                                @foreach($classData['classFeatures'] as $feature)
+                                    <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                                        <h5 class="text-white font-semibold text-base mb-2">{{ $feature['name'] }}</h5>
+                                        <p class="text-slate-300 text-sm leading-relaxed">{{ $feature['description'] }}</p>
                                     </div>
                                 @endforeach
                             </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
         @endforeach
