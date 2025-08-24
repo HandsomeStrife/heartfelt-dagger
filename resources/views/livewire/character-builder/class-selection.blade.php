@@ -1,13 +1,13 @@
 <!-- Class Selection Step -->
 <div x-cloak>
     <!-- Step Header -->
-    <div class="mb-8">
+    <div class="mb-8" x-show="!selected_class">
         <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Choose a Class</h2>
         <p class="text-slate-300 font-roboto">Select your character's class to define their core abilities and role.</p>
     </div>
 
     <!-- Step Completion Indicator -->
-    <div x-show="selected_class" class="my-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
+    <div x-show="selected_class" class="mb-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
         <div class="flex items-center">
             <div class="bg-emerald-500 rounded-full p-2 mr-3">
                 <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">

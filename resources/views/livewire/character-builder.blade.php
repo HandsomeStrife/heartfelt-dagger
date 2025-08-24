@@ -251,17 +251,79 @@
                                     dusk="mobile-tab-{{ $step }}"
                                     @click="goToStep({{ $step }}); dropdownOpen = false"
                                     :class="{
-                                        'w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-slate-600 last:border-b-0': true,
-                                        'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300': currentStep === {{ $step }},
-                                        'text-white hover:bg-slate-700': currentStep !== {{ $step }}
+                                        'w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-600 last:border-b-0': true,
+                                        'bg-slate-700/50 text-white border-l-2 border-l-amber-500': currentStep === {{ $step }},
+                                        'bg-emerald-500/10 text-white border-emerald-500/20': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
+                                        'text-white hover:bg-slate-700': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
                                     }"
                                 >
-                                    <span class="text-sm font-medium">Step {{ $step }}: {{ $title }}</span>
-                                    @if(in_array($step, $completed_steps))
-                                        <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    @endif
+                                    <!-- Step Icon -->
+                                    <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                         :class="{
+                                             'bg-amber-500/20 text-amber-400': currentStep === {{ $step }},
+                                             'bg-emerald-500 text-white': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
+                                             'bg-slate-600 text-slate-400': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
+                                         }">
+                                        @if(in_array($step, $completed_steps))
+                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        @else
+                                            {{ $step }}
+                                        @endif
+                                    </div>
+                                    
+                                    <!-- Step Content -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-medium">{{ $title }}</div>
+                                        
+                                        <!-- Selected Option Display -->
+                                        @if($step === 1 && !empty($character->selected_class))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ $game_data['classes'][$character->selected_class]['name'] ?? 'Selected' }}
+                                            </div>
+                                        @elseif($step === 2 && !empty($character->selected_subclass))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ $game_data['subclasses'][$character->selected_subclass]['name'] ?? 'Selected' }}
+                                            </div>
+                                        @elseif($step === 3 && !empty($character->selected_ancestry))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ $game_data['ancestries'][$character->selected_ancestry]['name'] ?? 'Selected' }}
+                                            </div>
+                                        @elseif($step === 4 && !empty($character->selected_community))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ $game_data['communities'][$character->selected_community]['name'] ?? 'Selected' }}
+                                            </div>
+                                        @elseif($step === 5 && !empty($character->assigned_traits))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ count(array_filter($character->assigned_traits)) }}/6 assigned
+                                            </div>
+                                        @elseif($step === 6 && !empty($character->selected_equipment))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ count($character->selected_equipment) }} items
+                                            </div>
+                                        @elseif($step === 7 && !empty($character->background_answers))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ count(array_filter($character->background_answers)) }} answered
+                                            </div>
+                                        @elseif($step === 8 && !empty($character->experiences))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ count($character->experiences) }} experiences
+                                            </div>
+                                        @elseif($step === 9 && !empty($character->selected_domain_cards))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ count($character->selected_domain_cards) }} cards
+                                            </div>
+                                        @elseif($step === 10 && !empty($character->connection_answers))
+                                            <div class="text-xs mt-0.5 opacity-75">
+                                                {{ count(array_filter($character->connection_answers)) }} answered
+                                            </div>
+                                        @elseif(in_array($step, $completed_steps))
+                                            <div class="text-xs mt-0.5 opacity-75">Completed</div>
+                                        @else
+                                            <div class="text-xs mt-0.5 opacity-60">Not started</div>
+                                        @endif
+                                    </div>
                                 </button>
                             @endforeach
                         </div>
@@ -269,36 +331,96 @@
                 </div>
 
                 <!-- Desktop Sidebar -->
-                <nav id="character-builder-sidebar" class="hidden lg:block bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4">
-                    <h3 class="font-outfit text-lg font-semibold text-white mb-4">Character Steps</h3>
-                    <div class="space-y-2">
+                <nav id="character-builder-sidebar" class="hidden lg:block bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
+                    <h3 class="font-outfit text-xl font-bold text-white mb-6">Character Steps</h3>
+                    <div class="space-y-3">
                         @foreach($tabs as $step => $title)
                             <button 
                                 dusk="sidebar-tab-{{ $step }}"
                                 @click="goToStep({{ $step }})"
                                 :class="{
-                                    'w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 text-left group': true,
-                                    'bg-gradient-to-r from-amber-500 to-orange-500 text-black font-semibold shadow-lg': currentStep === {{ $step }},
-                                    'bg-slate-800/50 text-white border border-emerald-500/30 hover:bg-slate-700/50': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
-                                    'text-slate-400 hover:text-white hover:bg-slate-800/50': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
+                                    'w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left group': true,
+                                    'bg-slate-700/50 text-white border border-amber-500/50 shadow-md': currentStep === {{ $step }},
+                                    'bg-emerald-500/10 text-white border border-emerald-500/30 hover:bg-emerald-500/20': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
+                                    'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent hover:border-slate-600/50': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
                                 }"
                             >
-                                <div class="flex items-center gap-3">
-                                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
-                                         :class="{
-                                             'bg-black/20 text-black': currentStep === {{ $step }},
-                                             'bg-emerald-500/20 text-emerald-400': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
-                                             'bg-slate-700 text-slate-400 group-hover:bg-slate-600 group-hover:text-slate-300': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
-                                         }">
+                                <!-- Step Icon/Number -->
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
+                                     :class="{
+                                         'bg-amber-500/20 text-amber-400': currentStep === {{ $step }},
+                                         'bg-emerald-500 text-white': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
+                                         'bg-slate-700 text-slate-400 group-hover:bg-slate-600 group-hover:text-slate-300': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
+                                     }">
+                                    @if(in_array($step, $completed_steps))
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    @else
                                         {{ $step }}
-                                    </div>
-                                    <span class="text-sm font-medium">{{ $title }}</span>
+                                    @endif
                                 </div>
-                                @if(in_array($step, $completed_steps))
-                                    <svg dusk="sidebar-completion-checkmark" class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                @endif
+
+                                <!-- Step Content -->
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-semibold text-sm font-outfit">{{ $title }}</div>
+                                    
+                                    <!-- Selected Option Display -->
+                                    @if($step === 1 && !empty($character->selected_class))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ $game_data['classes'][$character->selected_class]['name'] ?? 'Selected' }}
+                                        </div>
+                                    @elseif($step === 2 && !empty($character->selected_subclass))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ $game_data['subclasses'][$character->selected_subclass]['name'] ?? 'Selected' }}
+                                        </div>
+                                    @elseif($step === 3 && !empty($character->selected_ancestry))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ $game_data['ancestries'][$character->selected_ancestry]['name'] ?? 'Selected' }}
+                                        </div>
+                                    @elseif($step === 4 && !empty($character->selected_community))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ $game_data['communities'][$character->selected_community]['name'] ?? 'Selected' }}
+                                        </div>
+                                    @elseif($step === 5 && !empty($character->assigned_traits))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ count(array_filter($character->assigned_traits)) }}/6 assigned
+                                        </div>
+                                    @elseif($step === 6 && !empty($character->selected_equipment))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ count($character->selected_equipment) }} items
+                                        </div>
+                                    @elseif($step === 7 && !empty($character->background_answers))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ count(array_filter($character->background_answers)) }} answered
+                                        </div>
+                                    @elseif($step === 8 && !empty($character->experiences))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ count($character->experiences) }} experiences
+                                        </div>
+                                    @elseif($step === 9 && !empty($character->selected_domain_cards))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ count($character->selected_domain_cards) }} cards
+                                        </div>
+                                    @elseif($step === 10 && !empty($character->connection_answers))
+                                        <div class="text-xs mt-1 opacity-80">
+                                            {{ count(array_filter($character->connection_answers)) }} answered
+                                        </div>
+                                    @elseif(in_array($step, $completed_steps))
+                                        <div class="text-xs mt-1 opacity-80">Completed</div>
+                                    @else
+                                        <div class="text-xs mt-1 opacity-60">Not started</div>
+                                    @endif
+                                </div>
+
+                                <!-- Current Step Indicator -->
+                                <div class="flex-shrink-0"
+                                     :class="{
+                                         'block': currentStep === {{ $step }},
+                                         'hidden': currentStep !== {{ $step }}
+                                     }">
+                                    <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                                </div>
                             </button>
                         @endforeach
                     </div>

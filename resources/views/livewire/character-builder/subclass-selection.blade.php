@@ -1,13 +1,13 @@
 <!-- Subclass Selection Step -->
 <div x-cloak>
     <!-- Step Header -->
-    <div class="mb-8">
+    <div class="mb-8" x-show="!selected_subclass">
         <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Choose Your Subclass</h2>
         <p class="text-slate-300 font-roboto">Select a subclass to further specialize your character's abilities and playstyle.</p>
     </div>
 
     <!-- Step Completion Indicator -->
-    <div x-show="selected_subclass" class="my-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
+    <div x-show="selected_subclass" class="mb-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
         <div class="flex items-center">
             <div class="bg-emerald-500 rounded-full p-2 mr-3">
                 <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
@@ -17,16 +17,6 @@
             <div>
                 <p class="text-emerald-400 font-semibold">Subclass Selection Complete!</p>
                 <p class="text-slate-300 text-sm">You have chosen <span x-text="selected_subclass ? ({{ json_encode($game_data['subclasses'] ?? []) }}[selected_subclass]?.name || '') : ''"></span></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Show class info first -->
-    <div x-show="selected_class" class="mb-8">
-        <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
-            <div class="flex items-center gap-3 mb-4">
-                <h3 class="text-lg font-semibold text-white font-outfit">Selected Class:</h3>
-                <span class="text-amber-400 font-semibold" x-text="selected_class ? ({{ json_encode($game_data['classes'] ?? []) }}[selected_class]?.name || '') : ''"></span>
             </div>
         </div>
     </div>
@@ -54,72 +44,76 @@
             <div x-show="selected_class === '{{ $classKey }}'">
                 <!-- Subclass Grid -->
                 @if(!empty($filtered_data['available_subclasses']))
-                    <div class="space-y-4">
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                         @foreach($filtered_data['available_subclasses'] as $subclassKey => $subclassData)
                             <div 
                                 dusk="subclass-card-{{ $subclassKey }}"
                                 x-on:click="selectSubclass('{{ $subclassKey }}')"
                                 :class="{
-                                    'relative group cursor-pointer transition-all duration-300 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border rounded-2xl p-6': true,
+                                    'relative group cursor-pointer transition-all duration-300 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border rounded-2xl overflow-hidden': true,
                                     'border-emerald-500/50 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/20': selected_subclass === '{{ $subclassKey }}',
-                                    'border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10': selected_subclass !== '{{ $subclassKey }}'
+                                    'border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 transform hover:scale-[1.02]': selected_subclass !== '{{ $subclassKey }}'
                                 }"
                             >
-                                <!-- Subclass Header -->
-                                <div class="flex items-start justify-between mb-4">
-                                    <div>
-                                        <h4 class="text-xl font-bold text-white font-outfit mb-1">{{ $subclassData['name'] }}</h4>
-                                        <p class="text-slate-400 text-sm">{{ $subclassData['description'] }}</p>
+                                <!-- Selection Indicator -->
+                                <template x-if="selected_subclass === '{{ $subclassKey }}'">
+                                    <div class="absolute top-4 right-4 bg-emerald-500 rounded-full p-2 z-10">
+                                        <svg class="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
                                     </div>
-                                    
-                                    <template x-if="selected_subclass === '{{ $subclassKey }}'">
-                                        <div class="bg-emerald-500 rounded-full p-1.5 flex-shrink-0">
-                                            <svg class="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    </template>
-                                </div>
+                                </template>
 
-                                <!-- Spellcast Trait -->
-                                @if(isset($subclassData['spellcastTrait']))
-                                    <div class="mb-4">
-                                        <div class="inline-flex items-center px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg">
-                                            <span class="text-purple-300 text-sm font-medium">Spellcast: {{ ucfirst($subclassData['spellcastTrait']) }}</span>
-                                        </div>
+                                <div class="p-6">
+                                    <!-- Subclass Header -->
+                                    <div class="mb-6">
+                                        <h4 class="text-2xl font-bold text-white font-outfit mb-3">{{ $subclassData['name'] }}</h4>
+                                        <p class="text-slate-300 text-base leading-relaxed mb-4">{{ $subclassData['description'] }}</p>
+                                        
+                                        <!-- Spellcast Trait -->
+                                        @if(isset($subclassData['spellcastTrait']))
+                                            <div class="inline-flex items-center px-3 py-1 bg-purple-500/20 border border-purple-500/30 rounded-lg">
+                                                <span class="text-purple-300 text-sm font-medium">Spellcast: {{ ucfirst($subclassData['spellcastTrait']) }}</span>
+                                            </div>
+                                        @endif
                                     </div>
-                                @endif
 
-                                <div class="space-y-3">
-                                    <!-- Foundation Features -->
-                                    @if(isset($subclassData['foundationFeatures']))
-                                        <div class="space-y-3">
-                                            <h5 class="text-emerald-400 font-semibold text-sm font-outfit">Foundation Features</h5>
-                                            @foreach($subclassData['foundationFeatures'] as $feature)
-                                                <div class="bg-slate-800/50 rounded-lg p-3">
-                                                    <div class="text-white font-medium text-sm mb-1">{{ $feature['name'] }}</div>
-                                                    <div class="text-slate-300 text-xs leading-relaxed prose">
-                                                        @markdown($feature['description'])
-                                                    </div>
+                                    <!-- Features Section -->
+                                    <div class="space-y-6">
+                                        <!-- Foundation Features -->
+                                        @if(isset($subclassData['foundationFeatures']))
+                                            <div>
+                                                <h5 class="text-emerald-400 font-semibold text-base font-outfit mb-3">Foundation Features</h5>
+                                                <div class="space-y-3">
+                                                    @foreach($subclassData['foundationFeatures'] as $feature)
+                                                        <div class="bg-slate-800/30 border border-slate-700/50 rounded-lg p-4">
+                                                            <div class="text-white font-semibold text-sm mb-2">{{ $feature['name'] }}</div>
+                                                            <div class="text-slate-300 text-sm leading-relaxed prose prose-slate prose-sm max-w-none">
+                                                                @markdown($feature['description'])
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
                                                 </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
+                                            </div>
+                                        @endif
 
-                                    <!-- Specialization Preview -->
-                                    @if(isset($subclassData['specializationFeatures']) && count($subclassData['specializationFeatures']) > 0)
-                                        <div class="space-y-3">
-                                            <h5 class="text-emerald-400 font-semibold text-sm font-outfit">Specialization Features</h5>
-                                            @foreach($subclassData['specializationFeatures'] as $feature)
-                                                <div class="bg-slate-800/50 rounded-lg p-3">
-                                                    <div class="text-white font-medium text-sm mb-1">{{ $feature['name'] }}</div>
-                                                    <div class="text-slate-300 text-xs leading-relaxed prose">
-                                                        @markdown($feature['description'])
-                                                    </div>
+                                        <!-- Specialization Features -->
+                                        @if(isset($subclassData['specializationFeatures']) && count($subclassData['specializationFeatures']) > 0)
+                                            <div>
+                                                <h5 class="text-amber-400 font-semibold text-base font-outfit mb-3">Specialization Features</h5>
+                                                <div class="space-y-3">
+                                                    @foreach($subclassData['specializationFeatures'] as $feature)
+                                                        <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg p-4">
+                                                            <div class="text-white font-semibold text-sm mb-2">{{ $feature['name'] }}</div>
+                                                            <div class="text-slate-300 text-sm leading-relaxed prose prose-slate prose-sm max-w-none">
+                                                                @markdown($feature['description'])
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
                                                 </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         @endforeach
