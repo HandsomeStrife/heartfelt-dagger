@@ -426,16 +426,16 @@
                                     <h4 class="text-white font-medium mb-2 text-sm">⚡ Choose One</h4>
                                     <div class="flex flex-wrap gap-2">
                                         @foreach ($filtered_data['processed_choose_one_items'] as $itemData)
-                                            <div @click="selectInventoryItem('{{ $itemData['item_name'] }}', '{{ $itemData['item_key'] }}', '{{ $itemData['item_type'] }}', {{ Js::from($itemData['item_data']) }}, 'chooseOne')"
+                                            <div @click="selectInventoryItem({{ Js::from($itemData['item_name']) }}, {{ Js::from($itemData['item_key']) }}, {{ Js::from($itemData['item_type']) }}, {{ Js::from($itemData['item_data']) }}, 'chooseOne')"
                                                 :class="{
                                                     'flex gap-2 items-center justify-between p-2 rounded-lg border cursor-pointer transition-all duration-200': true,
                                                     'bg-amber-400/20 border-amber-400': isInventoryItemSelected(
-                                                        '{{ $itemData['item_name'] }}'),
+                                                        {{ Js::from($itemData['item_name']) }}),
                                                     'bg-slate-700/50 border-slate-600 hover:border-amber-400': !
-                                                        isInventoryItemSelected('{{ $itemData['item_name'] }}')
+                                                        isInventoryItemSelected({{ Js::from($itemData['item_name']) }})
                                                 }">
                                                 <span class="text-white text-sm">{{ $itemData['item_name'] }}</span>
-                                                <div x-show="isInventoryItemSelected('{{ $itemData['item_name'] }}')"
+                                                <div x-show="isInventoryItemSelected({{ Js::from($itemData['item_name']) }})"
                                                     class="bg-amber-400 rounded-full p-1">
                                                     <svg class="w-2 h-2 text-black" fill="currentColor"
                                                         viewBox="0 0 20 20">
@@ -456,16 +456,16 @@
                                     <h4 class="text-white font-medium mb-2 text-sm">📦 Choose Extra Items</h4>
                                     <div class="flex flex-wrap gap-2">
                                         @foreach ($filtered_data['processed_choose_extra_items'] as $itemData)
-                                            <div @click="selectInventoryItem('{{ $itemData['item_name'] }}', '{{ $itemData['item_key'] }}', '{{ $itemData['item_type'] }}', {{ Js::from($itemData['item_data']) }}, 'chooseExtra')"
+                                            <div @click="selectInventoryItem({{ Js::from($itemData['item_name']) }}, {{ Js::from($itemData['item_key']) }}, {{ Js::from($itemData['item_type']) }}, {{ Js::from($itemData['item_data']) }}, 'chooseExtra')"
                                                 :class="{
                                                     'flex gap-2 items-center justify-between p-2 rounded-lg border cursor-pointer transition-all duration-200': true,
                                                     'bg-purple-400/20 border-purple-400': isInventoryItemSelected(
-                                                        '{{ $itemData['item_name'] }}'),
+                                                        {{ Js::from($itemData['item_name']) }}),
                                                     'bg-slate-700/50 border-slate-600 hover:border-purple-400': !
-                                                        isInventoryItemSelected('{{ $itemData['item_name'] }}')
+                                                        isInventoryItemSelected({{ Js::from($itemData['item_name']) }})
                                                 }">
                                                 <span class="text-white text-sm">{{ $itemData['item_name'] }}</span>
-                                                <div x-show="isInventoryItemSelected('{{ $itemData['item_name'] }}')"
+                                                <div x-show="isInventoryItemSelected({{ Js::from($itemData['item_name']) }})"
                                                     class="bg-purple-400 rounded-full p-1">
                                                     <svg class="w-2 h-2 text-black" fill="currentColor"
                                                         viewBox="0 0 20 20">

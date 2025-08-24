@@ -18,6 +18,8 @@ class CharacterGrid extends Component
     public function mount(): void
     {
         $this->characters = collect();
+        // Auto-load characters from localStorage on component mount
+        $this->dispatch('load-characters-from-storage');
     }
 
     public function loadCharacters(array $character_keys): void

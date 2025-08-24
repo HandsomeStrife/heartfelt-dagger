@@ -19,16 +19,16 @@ class CharacterBuilderSubHeaderTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($character) {
             $browser->visit("/character-builder/{$character->character_key}")
-                // Check that the black sub-header exists with full width
-                ->assertPresent('.bg-black')
+                // Check that the sub-navigation component exists
+                ->assertPresent('x-sub-navigation')
                 
                 // Check that the title is in the sub-header
-                ->within('.bg-black', function (Browser $browser) {
+                ->within('x-sub-navigation', function (Browser $browser) {
                     $browser->assertSeeIn('h1', 'Character Builder');
                 })
                 
                 // Check that both Save and Preview buttons are in the sub-header
-                ->within('.bg-black', function (Browser $browser) {
+                ->within('x-sub-navigation', function (Browser $browser) {
                     $browser->assertPresent('[dusk="save-character-button"]')
                         ->assertSee('Save')
                         ->assertPresent('[dusk="preview-character-button"]')
@@ -52,8 +52,9 @@ class CharacterBuilderSubHeaderTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($character) {
             $browser->visit("/character-builder/{$character->character_key}")
                 // Check that the last saved time is displayed
-                ->within('.bg-black', function (Browser $browser) {
-                    $browser->assertSee('Saved');
+                ->within('x-sub-navigation', function (Browser $browser) {
+                    $browser->assertSee('Saved')
+                        ->waitForText('just now', 5); // Wait for JavaScript to calculate time
                 });
         });
     }
@@ -70,7 +71,7 @@ class CharacterBuilderSubHeaderTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($character) {
             $browser->visit("/character-builder/{$character->character_key}")
                 // Check that the Save button is present but Preview button is not
-                ->within('.bg-black', function (Browser $browser) {
+                ->within('x-sub-navigation', function (Browser $browser) {
                     $browser->assertPresent('[dusk="save-character-button"]')
                         ->assertSee('Save')
                         ->assertMissing('[dusk="preview-character-button"]');

@@ -31,8 +31,8 @@ class CharacterBuilder extends Component
     // Direct pronouns field (now stored as database column)
     public ?string $pronouns = null;
 
-    // Last saved timestamp
-    public ?string $last_saved_at = null;
+    // Last saved timestamp for JavaScript tracking
+    public ?int $last_saved_timestamp = null;
 
     // Game Data
     public array $game_data = [];
@@ -64,6 +64,8 @@ class CharacterBuilder extends Component
     {
         return $this->character->getAncestryBonuses();
     }
+
+
 
     /**
      * Select which experience gets experience_bonus_selection ancestry bonus
@@ -97,7 +99,7 @@ class CharacterBuilder extends Component
         // Load the character model to get pronouns and last saved time from database
         $character_model = Character::where('character_key', $characterKey)->first();
         $this->pronouns = $character_model->pronouns ?? null;
-        $this->last_saved_at = $character_model?->updated_at?->diffForHumans();
+        $this->last_saved_timestamp = $character_model?->updated_at?->timestamp;
         
         $this->updateCompletedSteps();
         $this->loadGameData();
@@ -723,7 +725,18 @@ class CharacterBuilder extends Component
             // Reload pronouns and update last saved time from database
             $character_model = Character::where('character_key', $this->storage_key)->first();
             $this->pronouns = $character_model->pronouns ?? null;
-            $this->last_saved_at = $character_model?->updated_at?->diffForHumans();
+            
+            // Update timestamp and dispatch JS event for real-time updates
+            $this->last_saved_timestamp = time();
+            $this->dispatch('character-saved-timestamp', 
+                timestamp: $this->last_saved_timestamp
+            );
+
+            // Dispatch success notification
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'Character saved successfully!',
+            ]);
 
         } catch (\Exception $e) {
             $this->dispatch('notify', [

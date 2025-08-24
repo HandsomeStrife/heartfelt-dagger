@@ -103,12 +103,72 @@
                     Character Builder
                 </h1>
                 
-                @if($last_saved_at)
-                    <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                @if($last_saved_timestamp)
+                    <div 
+                        class="flex items-center gap-1.5 text-xs text-slate-500"
+                        x-data="{ 
+                            lastSavedTimestamp: {{ $last_saved_timestamp }},
+                            timeAgoText: '',
+                            updateTimer: null,
+                            
+                            init() {
+                                this.updateTimeAgo();
+                                this.startTimer();
+                                
+                                // Listen for save events from Livewire
+                                this.$wire.$on('character-saved-timestamp', (data) => {
+                                    this.lastSavedTimestamp = data.timestamp;
+                                    this.updateTimeAgo();
+                                    this.restartTimer();
+                                });
+                            },
+                            
+                            updateTimeAgo() {
+                                // Validate that we have a valid timestamp
+                                if (!this.lastSavedTimestamp || isNaN(this.lastSavedTimestamp)) {
+                                    this.timeAgoText = '';
+                                    return;
+                                }
+                                
+                                const now = Math.floor(Date.now() / 1000);
+                                const diffInSeconds = now - this.lastSavedTimestamp;
+                                
+                                // Handle negative values (future dates)
+                                if (diffInSeconds < 0) {
+                                    this.timeAgoText = 'just now';
+                                } else if (diffInSeconds < 60) {
+                                    this.timeAgoText = 'just now';
+                                } else if (diffInSeconds < 3600) {
+                                    const minutes = Math.floor(diffInSeconds / 60);
+                                    this.timeAgoText = minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
+                                } else if (diffInSeconds < 86400) {
+                                    const hours = Math.floor(diffInSeconds / 3600);
+                                    this.timeAgoText = hours + (hours === 1 ? ' hour ago' : ' hours ago');
+                                } else {
+                                    const days = Math.floor(diffInSeconds / 86400);
+                                    this.timeAgoText = days + (days === 1 ? ' day ago' : ' days ago');
+                                }
+                            },
+                            
+                            startTimer() {
+                                this.updateTimer = setInterval(() => {
+                                    this.updateTimeAgo();
+                                }, 30000); // Update every 30 seconds
+                            },
+                            
+                            restartTimer() {
+                                if (this.updateTimer) {
+                                    clearInterval(this.updateTimer);
+                                }
+                                this.startTimer();
+                            }
+                        }"
+                        x-init="init()"
+                    >
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>Saved {{ $last_saved_at }}</span>
+                        <span x-text="'Saved ' + timeAgoText"></span>
                     </div>
                 @endif
             </div>
@@ -145,7 +205,7 @@
         </div>
     </x-sub-navigation>
 
-    <div class="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
+    <div class="container mx-auto px-4 sm:px-6 pb-4 sm:pb-8">
 
         <!-- Character Information Section -->
         <div class="p-4 sm:p-8 mb-6 sm:mb-8">

@@ -1,4 +1,17 @@
-<div>
+<div x-data="{ 
+        loadCharactersFromStorage() {
+            try {
+                const keys = localStorage.getItem('daggerheart_characters');
+                const characterKeys = keys ? JSON.parse(keys) : [];
+                $wire.loadCharacters(characterKeys);
+            } catch (error) {
+                console.error('Error reading character keys from localStorage:', error);
+                $wire.loadCharacters([]);
+            }
+        }
+     }" 
+     @load-characters-from-storage.window="loadCharactersFromStorage()"
+     x-init="loadCharactersFromStorage()">
     <!-- Loading State -->
     <div wire:loading class="text-center">
         <div class="inline-flex items-center text-slate-300">
