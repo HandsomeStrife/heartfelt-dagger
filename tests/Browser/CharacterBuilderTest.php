@@ -11,7 +11,7 @@ test('user can access character builder', function () {
     $page->assertSee('Character Builder')
             ->assertSee('Create your Daggerheart character')
             ->assertSee('Choose a Class')
-        ->assertPresent('[dusk="tab-1"]');
+        ->assertPresent('[dusk="sidebar-tab-1"]');
 });
 
 test('user can select a class and see subclass options', function () {
@@ -65,10 +65,13 @@ test('user can navigate between tabs', function () {
     $page = visit('/character-builder');
     
     $page->wait(2)
-        ->click('[dusk="tab-2"]')
+        ->click('[dusk="sidebar-tab-2"]')
         ->wait(1)
-        ->assertSee('Heritage')
-        ->click('[dusk="tab-1"]')
+        ->assertSee('Choose Your Subclass')
+        ->click('[dusk="sidebar-tab-3"]')
+        ->wait(1)
+        ->assertSee('Choose Your Ancestry')
+        ->click('[dusk="sidebar-tab-1"]')
         ->wait(1)
         ->assertSee('Choose a Class');
 });

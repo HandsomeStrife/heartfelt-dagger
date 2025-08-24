@@ -94,7 +94,7 @@
         $wire.assignTrait(traitKey, null);
     }
 }">
-    <div class="w-full px-4 sm:px-6 py-4 sm:py-8">
+    <div class="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
         <!-- Header -->
         <div class="text-center mb-6 sm:mb-8 relative">
             <h1 class="font-outfit text-3xl sm:text-4xl text-white tracking-wide mb-2">
@@ -206,90 +206,107 @@
             </div>
         </div>
 
-        <!-- Tab Navigation -->
-        <div id="character-builder-tabs" class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl mb-6 sm:mb-8">
-            <!-- Mobile Dropdown -->
-            <div class="md:hidden" x-data="{ dropdownOpen: false }">
-                <button 
-                    @click="dropdownOpen = !dropdownOpen"
-                    class="w-full flex items-center justify-between p-4 text-white hover:bg-slate-800/50 rounded-2xl transition-colors"
-                >
-                    <div class="flex items-center gap-3">
+        <!-- Main Layout with Sidebar -->
+        <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+            <!-- Left Sidebar Navigation -->
+            <div class="lg:w-80 flex-shrink-0">
+                <!-- Mobile Dropdown -->
+                <div class="lg:hidden mb-6" x-data="{ dropdownOpen: false }">
+                    <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl">
+                        <button 
+                            @click="dropdownOpen = !dropdownOpen"
+                            class="w-full flex items-center justify-between p-4 text-white hover:bg-slate-800/50 rounded-2xl transition-colors"
+                        >
+                            <div class="flex items-center gap-3">
+                                @foreach($tabs as $step => $title)
+                                    <div x-show="currentStep === {{ $step }}" class="flex items-center gap-2">
+                                        <span class="text-sm font-medium">
+                                            Step {{ $step }}: {{ $title }}
+                                        </span>
+                                        @if(in_array($step, $completed_steps))
+                                            <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                            <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': dropdownOpen }" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        
+                        <div x-show="dropdownOpen" 
+                             x-cloak
+                             @click.away="dropdownOpen = false"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="mt-2 mx-4 mb-4 bg-slate-800 border border-slate-600 rounded-lg shadow-xl">
+                            @foreach($tabs as $step => $title)
+                                <button 
+                                    dusk="mobile-tab-{{ $step }}"
+                                    @click="goToStep({{ $step }}); dropdownOpen = false"
+                                    :class="{
+                                        'w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-slate-600 last:border-b-0': true,
+                                        'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300': currentStep === {{ $step }},
+                                        'text-white hover:bg-slate-700': currentStep !== {{ $step }}
+                                    }"
+                                >
+                                    <span class="text-sm font-medium">Step {{ $step }}: {{ $title }}</span>
+                                    @if(in_array($step, $completed_steps))
+                                        <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    @endif
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Sidebar -->
+                <nav id="character-builder-sidebar" class="hidden lg:block bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4">
+                    <h3 class="font-outfit text-lg font-semibold text-white mb-4">Character Steps</h3>
+                    <div class="space-y-2">
                         @foreach($tabs as $step => $title)
-                            <div x-show="currentStep === {{ $step }}" class="flex items-center gap-2">
-                                <span class="text-sm font-medium">
-                                    Step {{ $step }}: {{ $title }}
-                                </span>
+                            <button 
+                                dusk="sidebar-tab-{{ $step }}"
+                                @click="goToStep({{ $step }})"
+                                :class="{
+                                    'w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 text-left group': true,
+                                    'bg-gradient-to-r from-amber-500 to-orange-500 text-black font-semibold shadow-lg': currentStep === {{ $step }},
+                                    'bg-slate-800/50 text-white border border-emerald-500/30 hover:bg-slate-700/50': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
+                                    'text-slate-400 hover:text-white hover:bg-slate-800/50': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
+                                }"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold"
+                                         :class="{
+                                             'bg-black/20 text-black': currentStep === {{ $step }},
+                                             'bg-emerald-500/20 text-emerald-400': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
+                                             'bg-slate-700 text-slate-400 group-hover:bg-slate-600 group-hover:text-slate-300': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
+                                         }">
+                                        {{ $step }}
+                                    </div>
+                                    <span class="text-sm font-medium">{{ $title }}</span>
+                                </div>
                                 @if(in_array($step, $completed_steps))
-                                    <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg dusk="sidebar-completion-checkmark" class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 @endif
-                            </div>
+                            </button>
                         @endforeach
                     </div>
-                    <svg class="w-5 h-5 transition-transform" :class="{ 'rotate-180': dropdownOpen }" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                </button>
-                
-                <div x-show="dropdownOpen" 
-                     x-cloak
-                     @click.away="dropdownOpen = false"
-                     x-transition:enter="transition ease-out duration-100"
-                     x-transition:enter-start="transform opacity-0 scale-95"
-                     x-transition:enter-end="transform opacity-100 scale-100"
-                     x-transition:leave="transition ease-in duration-75"
-                     x-transition:leave-start="transform opacity-100 scale-100"
-                     x-transition:leave-end="transform opacity-0 scale-95"
-                     class="mt-2 mx-4 mb-4 bg-slate-800 border border-slate-600 rounded-lg shadow-xl">
-                    @foreach($tabs as $step => $title)
-                        <button 
-                            dusk="mobile-tab-{{ $step }}"
-                            @click="goToStep({{ $step }}); dropdownOpen = false"
-                            :class="{
-                                'w-full flex items-center justify-between px-4 py-3 text-left transition-colors border-b border-slate-600 last:border-b-0': true,
-                                'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300': currentStep === {{ $step }},
-                                'text-white hover:bg-slate-700': currentStep !== {{ $step }}
-                            }"
-                        >
-                            <span class="text-sm font-medium">Step {{ $step }}: {{ $title }}</span>
-                            @if(in_array($step, $completed_steps))
-                                <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                </svg>
-                            @endif
-                        </button>
-                    @endforeach
-                </div>
+                </nav>
             </div>
 
-            <!-- Desktop Tabs -->
-            <nav class="hidden md:flex p-2 space-x-1">
-                @foreach($tabs as $step => $title)
-                    <button 
-                        dusk="tab-{{ $step }}"
-                        @click="goToStep({{ $step }})"
-                        :class="{
-                            'flex-1 flex gap-2 items-center justify-center py-4 px-3 rounded-xl transition-all duration-300 text-center': true,
-                            'bg-gradient-to-r from-amber-500 to-orange-500 text-black font-semibold': currentStep === {{ $step }},
-                            'bg-slate-800/50 text-white border border-emerald-500/30': {{ in_array($step, $completed_steps) ? 'true' : 'false' }},
-                            'text-slate-400 hover:text-white hover:bg-slate-800/50': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
-                        }"
-                    >
-                        <span class="text-sm font-medium">{{ $title }}</span>
-                        @if(in_array($step, $completed_steps))
-                            <svg dusk="completion-checkmark" class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        @endif
-                    </button>
-                @endforeach
-            </nav>
-        </div>
-
-        <!-- Main Content -->
-        <div id="character-builder-content" class="w-full">
+            <!-- Main Content -->
+            <div id="character-builder-content" class="flex-1 min-w-0">
             <!-- Step Content Area -->
             <div class="w-full">
                 <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 sm:p-8">
@@ -301,38 +318,48 @@
                             @include('livewire.character-builder.class-selection')
                         </div>
                         
-                        <!-- Step 2: Heritage Selection -->
+                        <!-- Step 2: Subclass Selection -->
                         <div x-show="currentStep === 2" x-cloak>
-                            @include('livewire.character-builder.heritage-selection')
+                            @include('livewire.character-builder.subclass-selection')
                         </div>
                         
-                        <!-- Step 3: Trait Assignment -->
+                        <!-- Step 3: Ancestry Selection -->
                         <div x-show="currentStep === 3" x-cloak>
+                            @include('livewire.character-builder.ancestry-selection')
+                        </div>
+                        
+                        <!-- Step 4: Community Selection -->
+                        <div x-show="currentStep === 4" x-cloak>
+                            @include('livewire.character-builder.community-selection')
+                        </div>
+                        
+                        <!-- Step 5: Trait Assignment -->
+                        <div x-show="currentStep === 5" x-cloak>
                             @include('livewire.character-builder.trait-assignment')
                         </div>
                         
-                        <!-- Step 4: Equipment Selection -->
-                        <div x-show="currentStep === 4" x-cloak>
+                        <!-- Step 6: Equipment Selection -->
+                        <div x-show="currentStep === 6" x-cloak>
                             @include('livewire.character-builder.equipment-selection')
                         </div>
                         
-                        <!-- Step 5: Background Creation -->
-                        <div x-show="currentStep === 5" x-cloak>
+                        <!-- Step 7: Background Creation -->
+                        <div x-show="currentStep === 7" x-cloak>
                             @include('livewire.character-builder.background-creation')
                         </div>
                         
-                        <!-- Step 6: Experience Creation -->
-                        <div x-show="currentStep === 6" x-cloak>
+                        <!-- Step 8: Experience Creation -->
+                        <div x-show="currentStep === 8" x-cloak>
                             @include('livewire.character-builder.experience-creation')
                         </div>
                         
-                        <!-- Step 7: Domain Card Selection -->
-                        <div x-show="currentStep === 7" x-cloak>
+                        <!-- Step 9: Domain Card Selection -->
+                        <div x-show="currentStep === 9" x-cloak>
                             @include('livewire.character-builder.domain-card-selection')
                         </div>
                         
-                        <!-- Step 8: Connection Creation -->
-                        <div x-show="currentStep === 8" x-cloak>
+                        <!-- Step 10: Connection Creation -->
+                        <div x-show="currentStep === 10" x-cloak>
                             @include('livewire.character-builder.connection-creation')
                         </div>
                     </div>
@@ -414,6 +441,8 @@
                 </div>
             </div>
         </div>
+        
+        </div> <!-- Close main layout flex container -->
     </div>
 
 

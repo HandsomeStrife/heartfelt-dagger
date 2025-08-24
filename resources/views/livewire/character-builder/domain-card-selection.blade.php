@@ -120,7 +120,7 @@
                 </div>
 
                 <!-- Available Abilities -->
-                <div class="flex flex-wrap justify-start gap-6">
+                <div class="flex flex-wrap justify-start gap-8">
                     @foreach($domainData['abilities'] as $abilityKey => $abilityData)
                         @php
                             $isSelected = collect($character->selected_domain_cards)->contains(fn($card) => 
@@ -140,7 +140,8 @@
                                 'codex' => '#24395d',
                                 'bone' => '#a4a9a8',
                                 'blade' => '#af231c',
-                                'arcana' => '#4e345b'
+                                'arcana' => '#4e345b',
+                                'dread' => '#1e201f',
                             ];
                             $domainColor = $domainColors[$domainKey] ?? '#24395d';
                         @endphp
@@ -150,7 +151,7 @@
                             wire:click="selectDomainCard('{{ $domainKey }}', '{{ $abilityKey }}')"
                             @class([
                                 'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1',
-                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[400px] w-[350px] flex flex-col',
+                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[400px] w-[280px] flex flex-col',
                                 'border-blue-500 ring-4 ring-blue-400/50 shadow-xl shadow-blue-500/25 scale-[1.02] -translate-y-1' => $isSelected,
                                 'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20' => !$isSelected && $canSelect,
                                 'border-slate-800 opacity-60 cursor-not-allowed' => !$isSelected && !$canSelect,
@@ -170,7 +171,7 @@
                                         @endif
                                         <!-- Domain Icon -->
                                         <div class="w-9 h-auto aspect-contain">
-                                            @include('components.icons.' . $domainKey)
+                                            <x-dynamic-component component="icons.{{ $domainKey }}" class="fill-white size-8" />
                                         </div>
                                     </div>
                                 </div>

@@ -13,20 +13,28 @@ class CharacterBuilderMacros
         Browser::macro('completeClassSelection', function () {
             return $this->waitFor('[dusk="class-card-warrior"]', 10)
                 ->click('[dusk="class-card-warrior"]')
-                ->waitForText('Scroll down to choose your subclass', 10)
-                ->scroll(0, 500)
-                ->waitFor('[dusk="subclass-card-call of the brave"]', 5)
-                ->click('[dusk="subclass-card-call of the brave"]')
                 ->waitForText('Class Selection Complete!', 5);
         });
 
-        Browser::macro('completeHeritageSelection', function () {
+        Browser::macro('completeSubclassSelection', function () {
+            return $this->click('[dusk="next-step-button"]')
+                ->waitFor('[dusk="subclass-card-call of the brave"]', 10)
+                ->click('[dusk="subclass-card-call of the brave"]')
+                ->waitForText('Subclass Selection Complete!', 5);
+        });
+
+        Browser::macro('completeAncestrySelection', function () {
             return $this->click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="ancestry-card-human"]', 10)
                 ->click('[dusk="ancestry-card-human"]')
-                ->waitFor('[dusk="community-card-wanderborne"]', 5)
+                ->waitForText('Ancestry Selection Complete!', 5);
+        });
+
+        Browser::macro('completeCommunitySelection', function () {
+            return $this->click('[dusk="next-step-button"]')
+                ->waitFor('[dusk="community-card-wanderborne"]', 10)
                 ->click('[dusk="community-card-wanderborne"]')
-                ->waitFor('[dusk="completion-checkmark"]', 5);
+                ->waitForText('Community Selection Complete!', 5);
         });
 
         Browser::macro('assignTraits', function () {
@@ -136,7 +144,9 @@ class CharacterBuilderMacros
 
         Browser::macro('completeFullCharacterCreation', function () {
             return $this->completeClassSelection()
-                ->completeHeritageSelection()
+                ->completeSubclassSelection()
+                ->completeAncestrySelection()
+                ->completeCommunitySelection()
                 ->completeTraitAssignment()
                 ->completeCharacterInfo()
                 ->completeEquipmentSelection()
@@ -148,22 +158,22 @@ class CharacterBuilderMacros
         });
 
         Browser::macro('assertStepComplete', function (int $step) {
-            return $this->waitFor("[dusk=\"tab-{$step}\"] [dusk=\"completion-checkmark\"]", 5)
-                ->assertPresent("[dusk=\"tab-{$step}\"] [dusk=\"completion-checkmark\"]");
+            return $this->waitFor("[dusk=\"sidebar-tab-{$step}\"] [dusk=\"sidebar-completion-checkmark\"]", 5)
+                ->assertPresent("[dusk=\"sidebar-tab-{$step}\"] [dusk=\"sidebar-completion-checkmark\"]");
         });
 
         Browser::macro('goToStep', function (int $step) {
-            return $this->click("[dusk=\"tab-{$step}\"]")
+            return $this->click("[dusk=\"sidebar-tab-{$step}\"]")
                 ->waitFor('.step-content', 3);
         });
 
         Browser::macro('assertCurrentStep', function (int $step) {
-            return $this->assertPresent("[dusk=\"tab-{$step}\"].bg-gradient-to-r");
+            return $this->assertPresent("[dusk=\"sidebar-tab-{$step}\"].bg-gradient-to-r");
         });
 
         Browser::macro('waitForCharacterBuilderToLoad', function () {
             return $this->waitFor('[dusk="progress-bar"]', 10)
-                ->waitFor('[dusk="tab-1"]', 5)
+                ->waitFor('[dusk="sidebar-tab-1"]', 5)
                 ->waitFor('[dusk="character-summary"]', 5);
         });
 

@@ -37,32 +37,17 @@
         </div>
     @endif
     <!-- Instructions -->
-    <div class="bg-slate-800/30 rounded-lg p-4 flex gap-6">
-        <div class="w-1/2">
-            <h5 class="text-white font-bold text-lg mb-3 font-outfit">What Is an Experience?</h5>
-            <p class="text-slate-300 text-sm mb-3">
-                An Experience is a word or phrase used to encapsulate a specific set of skills, personality traits, or aptitudes your character has acquired over the course of their life.
-            </p>
-            <ul class="text-slate-300 text-sm space-y-1 list-disc list-inside">
-                <li>Each PC starts with two Experiences, each with a +2 modifier</li>
-                <li>You can spend a Hope to add an Experience modifier to a relevant action and reaction roll</li>
-                <li>There's no official list -- Experiences are meant to be unique to your character</li>
-                <li>However, they can't be too broad ("Lucky," "Highly Skilled") or too mechanical ("Supersonic Flight", "Invulnerable")</li>
-            </ul>
-        </div>
-        <div class="text-slate-300 text-sm w-1/2">
-            <h5 class="text-white font-bold text-lg mb-3 font-outfit">Examples</h5>
-            <div class="flex flex-wrap gap-2">
-                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-200">Mage's Apprentice</span>
-                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-500/30 text-blue-200">I've Got Your Back</span>
-                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-200">Silver Tongue</span>
-                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-red-500/20 to-orange-500/20 border border-red-500/30 text-red-200">Battle-Hardened</span>
-                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-slate-500/20 to-gray-500/20 border border-slate-500/30 text-slate-200">My Nightmares Warned Me</span>
-                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 text-green-200">Acrobat</span>
-                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border border-yellow-500/30 text-yellow-200">Hold the Line</span>
-                <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 text-cyan-200">Blacksmith</span>
-            </div>
-        </div>
+    <div class="bg-slate-800/30 rounded-lg p-4">
+        <h5 class="text-white font-bold text-lg mb-3 font-outfit">What Is an Experience?</h5>
+        <p class="text-slate-300 text-sm mb-3">
+            An Experience is a word or phrase used to encapsulate a specific set of skills, personality traits, or aptitudes your character has acquired over the course of their life.
+        </p>
+        <ul class="text-slate-300 text-sm space-y-1 list-disc list-inside">
+            <li>Each PC starts with two Experiences, each with a +2 modifier</li>
+            <li>You can spend a Hope to add an Experience modifier to a relevant action and reaction roll</li>
+            <li>There's no official list -- Experiences are meant to be unique to your character</li>
+            <li>However, they can't be too broad ("Lucky," "Highly Skilled") or too mechanical ("Supersonic Flight", "Invulnerable")</li>
+        </ul>
     </div>
 
     <!-- Add New Experience -->

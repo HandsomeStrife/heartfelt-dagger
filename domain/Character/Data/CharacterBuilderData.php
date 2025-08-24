@@ -52,8 +52,10 @@ class CharacterBuilderData extends Data implements Wireable
         }
 
         return match ($step) {
-            CharacterBuilderStep::CLASS_SELECTION => ! empty($this->selected_class) && ! empty($this->selected_subclass),
-            CharacterBuilderStep::HERITAGE => ! empty($this->selected_ancestry) && ! empty($this->selected_community),
+            CharacterBuilderStep::CLASS_SELECTION => ! empty($this->selected_class),
+            CharacterBuilderStep::SUBCLASS_SELECTION => ! empty($this->selected_subclass),
+            CharacterBuilderStep::ANCESTRY => ! empty($this->selected_ancestry),
+            CharacterBuilderStep::COMMUNITY => ! empty($this->selected_community),
             CharacterBuilderStep::TRAITS => count($this->assigned_traits) === 6 && $this->validateTraitValues(),
             CharacterBuilderStep::EQUIPMENT => $this->isEquipmentComplete(),
             CharacterBuilderStep::BACKGROUND => $this->isBackgroundComplete(),

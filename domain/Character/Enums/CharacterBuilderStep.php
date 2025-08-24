@@ -7,7 +7,9 @@ namespace Domain\Character\Enums;
 enum CharacterBuilderStep: string
 {
     case CLASS_SELECTION = 'class_selection';
-    case HERITAGE = 'heritage';
+    case SUBCLASS_SELECTION = 'subclass_selection';
+    case ANCESTRY = 'ancestry';
+    case COMMUNITY = 'community';
     case TRAITS = 'traits';
     case EQUIPMENT = 'equipment';
     case BACKGROUND = 'background';
@@ -19,7 +21,9 @@ enum CharacterBuilderStep: string
     {
         return match ($this) {
             self::CLASS_SELECTION => 'Class',
-            self::HERITAGE => 'Heritage',
+            self::SUBCLASS_SELECTION => 'Subclass',
+            self::ANCESTRY => 'Ancestry',
+            self::COMMUNITY => 'Community',
             self::TRAITS => 'Traits',
             self::EQUIPMENT => 'Equipment',
             self::BACKGROUND => 'Background',
@@ -50,7 +54,9 @@ enum CharacterBuilderStep: string
     {
         return [
             self::CLASS_SELECTION,
-            self::HERITAGE,
+            self::SUBCLASS_SELECTION,
+            self::ANCESTRY,
+            self::COMMUNITY,
             self::TRAITS,
             self::EQUIPMENT,
             self::BACKGROUND,

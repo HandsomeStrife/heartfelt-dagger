@@ -30,3 +30,45 @@
 [x-cloak] { 
     display: none !important; 
 }
+
+.class-banner-sm {
+    width: 75px;
+    height: 120px;
+}
+.class-banner-sm-height {
+    height: 120px;
+}
+.class-banner-sm-width {
+    width: 75px;
+}
+.class-banner-sm-bg-width {
+    width: 71px;
+}
+
+.class-banner-md {
+    width: 100px;
+    height: 150px;
+}
+.class-banner-md-height {
+    height: 150px;
+}
+.class-banner-md-width {
+    width: 100px;
+}
+.class-banner-md-bg-width {
+    width: 96px;
+}
+
+.class-banner-lg {
+    width: 125px;
+    height: 180px;
+}
+.class-banner-lg-height {
+    height: 180px;
+}
+.class-banner-lg-width {
+    width: 125px;
+}
+.class-banner-lg-bg-width {
+    width: 121px;
+}

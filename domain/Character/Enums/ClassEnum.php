@@ -28,10 +28,10 @@ enum ClassEnum: string
             self::GUARDIAN => [DomainEnum::VALOR, DomainEnum::BLADE],
             self::RANGER => [DomainEnum::BONE, DomainEnum::SAGE],
             self::ROGUE => [DomainEnum::MIDNIGHT, DomainEnum::GRACE],
-            self::SERAPH => [DomainEnum::VALOR, DomainEnum::SPLENDOR],
+            self::SERAPH => [DomainEnum::SPLENDOR, DomainEnum::VALOR],
             self::SORCERER => [DomainEnum::ARCANA, DomainEnum::MIDNIGHT],
             self::WARLOCK => [DomainEnum::DREAD, DomainEnum::GRACE],
-            self::WARRIOR => [DomainEnum::BONE, DomainEnum::BLADE],
+            self::WARRIOR => [DomainEnum::BLADE, DomainEnum::BONE],
             self::WITCH => [DomainEnum::DREAD, DomainEnum::SAGE],
             self::WIZARD => [DomainEnum::CODEX, DomainEnum::SPLENDOR]
         };
