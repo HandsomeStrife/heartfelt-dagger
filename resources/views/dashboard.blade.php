@@ -26,7 +26,7 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                     <!-- Character Creator -->
                     <div class="group relative">
                         <div class="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-25 transition-opacity duration-300"></div>
@@ -79,6 +79,25 @@
                                 <p class="text-slate-400 text-sm mb-4">Live sessions</p>
                                 <a href="{{ route('rooms.index') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
                                     Browse
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Campaign Frames -->
+                    <div class="group relative">
+                        <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-25 transition-opacity duration-300"></div>
+                        <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-indigo-500/30 transition-all duration-300">
+                            <div class="text-center">
+                                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500/20 to-blue-500/20 rounded-xl flex items-center justify-center border border-indigo-500/30 mx-auto mb-4">
+                                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                </div>
+                                <h3 class="font-outfit text-lg font-bold text-white mb-2">Frames</h3>
+                                <p class="text-slate-400 text-sm mb-4">Campaign templates</p>
+                                <a href="{{ route('campaign-frames.index') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
+                                    Manage
                                 </a>
                             </div>
                         </div>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Campaign\Models;
 
 use Domain\Campaign\Enums\CampaignStatus;
+use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +28,7 @@ class Campaign extends Model
         'name',
         'description',
         'creator_id',
+        'campaign_frame_id',
         'invite_code',
         'campaign_code',
         'status',
@@ -91,6 +93,14 @@ class Campaign extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    /**
+     * Get the campaign frame for this campaign
+     */
+    public function campaignFrame(): BelongsTo
+    {
+        return $this->belongsTo(CampaignFrame::class, 'campaign_frame_id');
     }
 
     /**

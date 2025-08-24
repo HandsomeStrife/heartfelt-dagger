@@ -1,230 +1,179 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Campaign\Actions;
-
 use Domain\Campaign\Actions\JoinCampaignAction;
 use Domain\Campaign\Data\CampaignMemberData;
 use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class JoinCampaignActionTest extends TestCase
-{
-    use RefreshDatabase;
+beforeEach(function () {
+    $this->action = new JoinCampaignAction();
+});
+it('joins campaign with character successfully', function () {
+    $campaign = Campaign::factory()->create();
+    $user = User::factory()->create();
+    $character = Character::factory()->create(['user_id' => $user->id]);
 
-    private JoinCampaignAction $action;
+    $result = $this->action->execute($campaign, $user, $character);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->action = new JoinCampaignAction();
-    }
+    expect($result)->toBeInstanceOf(CampaignMemberData::class);
+    expect($result->campaign_id)->toEqual($campaign->id);
+    expect($result->user_id)->toEqual($user->id);
+    expect($result->character_id)->toEqual($character->id);
+});
+it('joins campaign without character successfully', function () {
+    $campaign = Campaign::factory()->create();
+    $user = User::factory()->create();
 
-    #[Test]
-    public function it_joins_campaign_with_character_successfully(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user = User::factory()->create();
-        $character = Character::factory()->create(['user_id' => $user->id]);
+    $result = $this->action->execute($campaign, $user, null);
 
-        $result = $this->action->execute($campaign, $user, $character);
+    expect($result)->toBeInstanceOf(CampaignMemberData::class);
+    expect($result->campaign_id)->toEqual($campaign->id);
+    expect($result->user_id)->toEqual($user->id);
+    expect($result->character_id)->toBeNull();
+});
+it('persists membership to database', function () {
+    $campaign = Campaign::factory()->create();
+    $user = User::factory()->create();
+    $character = Character::factory()->create(['user_id' => $user->id]);
 
-        $this->assertInstanceOf(CampaignMemberData::class, $result);
-        $this->assertEquals($campaign->id, $result->campaign_id);
-        $this->assertEquals($user->id, $result->user_id);
-        $this->assertEquals($character->id, $result->character_id);
-    }
+    $result = $this->action->execute($campaign, $user, $character);
 
-    #[Test]
-    public function it_joins_campaign_without_character_successfully(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user = User::factory()->create();
+    $this->assertDatabaseHas('campaign_members', [
+        'id' => $result->id,
+        'campaign_id' => $campaign->id,
+        'user_id' => $user->id,
+        'character_id' => $character->id,
+    ]);
+});
+it('sets joined at timestamp', function () {
+    $campaign = Campaign::factory()->create();
+    $user = User::factory()->create();
 
-        $result = $this->action->execute($campaign, $user, null);
+    $beforeJoin = now()->subSecond();
+    // Give 1 second buffer
+    $result = $this->action->execute($campaign, $user, null);
+    $afterJoin = now()->addSecond();
 
-        $this->assertInstanceOf(CampaignMemberData::class, $result);
-        $this->assertEquals($campaign->id, $result->campaign_id);
-        $this->assertEquals($user->id, $result->user_id);
-        $this->assertNull($result->character_id);
-    }
+    // Give 1 second buffer
+    $joinedAt = \Carbon\Carbon::parse($result->joined_at);
+    expect($joinedAt->between($beforeJoin, $afterJoin))->toBeTrue();
+});
+it('loads all relationships', function () {
+    $campaign = Campaign::factory()->create(['name' => 'Test Campaign']);
+    $user = User::factory()->create(['username' => 'player1']);
+    $character = Character::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Legolas',
+    ]);
 
-    #[Test]
-    public function it_persists_membership_to_database(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user = User::factory()->create();
-        $character = Character::factory()->create(['user_id' => $user->id]);
+    $result = $this->action->execute($campaign, $user, $character);
 
-        $result = $this->action->execute($campaign, $user, $character);
+    expect($result->user)->not->toBeNull();
+    expect($result->user->username)->toEqual('player1');
 
-        $this->assertDatabaseHas('campaign_members', [
-            'id' => $result->id,
-            'campaign_id' => $campaign->id,
-            'user_id' => $user->id,
-            'character_id' => $character->id,
-        ]);
-    }
+    expect($result->character)->not->toBeNull();
+    expect($result->character->name)->toEqual('Legolas');
 
-    #[Test]
-    public function it_sets_joined_at_timestamp(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user = User::factory()->create();
+    expect($result->campaign)->not->toBeNull();
+    expect($result->campaign->name)->toEqual('Test Campaign');
+});
+it('prevents duplicate membership', function () {
+    $campaign = Campaign::factory()->create();
+    $user = User::factory()->create();
 
-        $beforeJoin = now()->subSecond(); // Give 1 second buffer
-        $result = $this->action->execute($campaign, $user, null);
-        $afterJoin = now()->addSecond(); // Give 1 second buffer
+    // Create existing membership
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $user->id,
+    ]);
 
-        $joinedAt = \Carbon\Carbon::parse($result->joined_at);
-        $this->assertTrue($joinedAt->between($beforeJoin, $afterJoin));
-    }
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage('User is already a member of this campaign');
 
-    #[Test]
-    public function it_loads_all_relationships(): void
-    {
-        $campaign = Campaign::factory()->create(['name' => 'Test Campaign']);
-        $user = User::factory()->create(['username' => 'player1']);
-        $character = Character::factory()->create([
-            'user_id' => $user->id,
-            'name' => 'Legolas',
-        ]);
+    $this->action->execute($campaign, $user, null);
+});
+it('validates character ownership', function () {
+    $campaign = Campaign::factory()->create();
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $character = Character::factory()->create(['user_id' => $otherUser->id]);
 
-        $result = $this->action->execute($campaign, $user, $character);
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage('Character does not belong to the user');
 
-        $this->assertNotNull($result->user);
-        $this->assertEquals('player1', $result->user->username);
-        
-        $this->assertNotNull($result->character);
-        $this->assertEquals('Legolas', $result->character->name);
-        
-        $this->assertNotNull($result->campaign);
-        $this->assertEquals('Test Campaign', $result->campaign->name);
-    }
+    $this->action->execute($campaign, $user, $character);
+});
+it('allows creator to join their own campaign', function () {
+    $creator = User::factory()->create();
+    $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+    $character = Character::factory()->create(['user_id' => $creator->id]);
 
-    #[Test]
-    public function it_prevents_duplicate_membership(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user = User::factory()->create();
+    $result = $this->action->execute($campaign, $creator, $character);
 
-        // Create existing membership
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $user->id,
-        ]);
+    expect($result->campaign_id)->toEqual($campaign->id);
+    expect($result->user_id)->toEqual($creator->id);
+    expect($result->character_id)->toEqual($character->id);
+});
+it('allows multiple users to join same campaign', function () {
+    $campaign = Campaign::factory()->create();
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('User is already a member of this campaign');
+    $result1 = $this->action->execute($campaign, $user1, null);
+    $result2 = $this->action->execute($campaign, $user2, null);
 
-        $this->action->execute($campaign, $user, null);
-    }
+    expect($result1->campaign_id)->toEqual($campaign->id);
+    expect($result2->campaign_id)->toEqual($campaign->id);
+    $this->assertNotEquals($result1->user_id, $result2->user_id);
+});
+it('allows user to join different campaigns', function () {
+    $campaign1 = Campaign::factory()->create();
+    $campaign2 = Campaign::factory()->create();
+    $user = User::factory()->create();
+    $character1 = Character::factory()->create(['user_id' => $user->id]);
+    $character2 = Character::factory()->create(['user_id' => $user->id]);
 
-    #[Test]
-    public function it_validates_character_ownership(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user = User::factory()->create();
-        $otherUser = User::factory()->create();
-        $character = Character::factory()->create(['user_id' => $otherUser->id]);
+    $result1 = $this->action->execute($campaign1, $user, $character1);
+    $result2 = $this->action->execute($campaign2, $user, $character2);
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Character does not belong to the user');
+    expect($result1->user_id)->toEqual($user->id);
+    expect($result2->user_id)->toEqual($user->id);
+    $this->assertNotEquals($result1->campaign_id, $result2->campaign_id);
+});
+it('handles null character gracefully', function () {
+    $campaign = Campaign::factory()->create();
+    $user = User::factory()->create();
 
-        $this->action->execute($campaign, $user, $character);
-    }
+    $result = $this->action->execute($campaign, $user, null);
 
-    #[Test]
-    public function it_allows_creator_to_join_their_own_campaign(): void
-    {
-        $creator = User::factory()->create();
-        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
-        $character = Character::factory()->create(['user_id' => $creator->id]);
+    expect($result->character_id)->toBeNull();
+    expect($result->character)->toBeNull();
+});
+it('maintains separate memberships per campaign', function () {
+    $campaign1 = Campaign::factory()->create();
+    $campaign2 = Campaign::factory()->create();
+    $user = User::factory()->create();
 
-        $result = $this->action->execute($campaign, $creator, $character);
+    $this->action->execute($campaign1, $user, null);
+    $this->action->execute($campaign2, $user, null);
 
-        $this->assertEquals($campaign->id, $result->campaign_id);
-        $this->assertEquals($creator->id, $result->user_id);
-        $this->assertEquals($character->id, $result->character_id);
-    }
+    $this->assertDatabaseCount('campaign_members', 2);
+    expect($campaign1->members()->count())->toEqual(1);
+    expect($campaign2->members()->count())->toEqual(1);
+});
+it('validates character exists when provided', function () {
+    $campaign = Campaign::factory()->create();
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $character = Character::factory()->create(['user_id' => $otherUser->id]);
 
-    #[Test]
-    public function it_allows_multiple_users_to_join_same_campaign(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage('Character does not belong to the user');
 
-        $result1 = $this->action->execute($campaign, $user1, null);
-        $result2 = $this->action->execute($campaign, $user2, null);
-
-        $this->assertEquals($campaign->id, $result1->campaign_id);
-        $this->assertEquals($campaign->id, $result2->campaign_id);
-        $this->assertNotEquals($result1->user_id, $result2->user_id);
-    }
-
-    #[Test]
-    public function it_allows_user_to_join_different_campaigns(): void
-    {
-        $campaign1 = Campaign::factory()->create();
-        $campaign2 = Campaign::factory()->create();
-        $user = User::factory()->create();
-        $character1 = Character::factory()->create(['user_id' => $user->id]);
-        $character2 = Character::factory()->create(['user_id' => $user->id]);
-
-        $result1 = $this->action->execute($campaign1, $user, $character1);
-        $result2 = $this->action->execute($campaign2, $user, $character2);
-
-        $this->assertEquals($user->id, $result1->user_id);
-        $this->assertEquals($user->id, $result2->user_id);
-        $this->assertNotEquals($result1->campaign_id, $result2->campaign_id);
-    }
-
-    #[Test]
-    public function it_handles_null_character_gracefully(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user = User::factory()->create();
-
-        $result = $this->action->execute($campaign, $user, null);
-
-        $this->assertNull($result->character_id);
-        $this->assertNull($result->character);
-    }
-
-    #[Test]
-    public function it_maintains_separate_memberships_per_campaign(): void
-    {
-        $campaign1 = Campaign::factory()->create();
-        $campaign2 = Campaign::factory()->create();
-        $user = User::factory()->create();
-
-        $this->action->execute($campaign1, $user, null);
-        $this->action->execute($campaign2, $user, null);
-
-        $this->assertDatabaseCount('campaign_members', 2);
-        $this->assertEquals(1, $campaign1->members()->count());
-        $this->assertEquals(1, $campaign2->members()->count());
-    }
-
-    #[Test]
-    public function it_validates_character_exists_when_provided(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $user = User::factory()->create();
-        $otherUser = User::factory()->create();
-        $character = Character::factory()->create(['user_id' => $otherUser->id]);
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Character does not belong to the user');
-
-        $this->action->execute($campaign, $user, $character);
-    }
-}
+    $this->action->execute($campaign, $user, $character);
+});

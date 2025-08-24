@@ -1799,5 +1799,612 @@
                 ]
             }
         }
+    },
+    "witch": {
+        "key": "witch",
+        "name": "Witch",
+        "description": "As a witch, you weave together the mysterious powers of earth, sky, and spirit to craft protective charms and hex your enemies.",
+        "domains": [
+            "dread",
+            "sage"
+        ],
+        "startingEvasion": 10,
+        "startingHitPoints": 6,
+        "classItems": "A handwritten journal or runestones",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "hopeFeature": {
+            "name": "Witch's Charm",
+            "description": "When you or an ally within Far range rolls a failure on an action roll, you can spend 3 Hope to change it into a success with Fear instead.",
+            "hopeCost": 3
+        },
+        "classFeatures": [
+            {
+                "name": "Hex",
+                "description": "When a creature causes you or an ally within Close range to mark any number of Hit Points, you can mark a Stress to Hex them. Action and damage rolls against a Hexed creature gain a bonus equal to your tier. This condition lasts until the GM spends a number of Fear equal to your Spellcast trait to remove it or you Hex another creature. Otherwise, remove it when the scene ends."
+            },
+            {
+                "name": "Commune",
+                "description": "Once per long rest, during a moment of calm, you can commune with an ancestor, deity, nature spirit, or otherworldly being. Ask them a question, then roll a number of d6s equal to your Spellcast trait. Choose one value from the rolled results and reference the chart below for the effect: 1-3: You taste a flavor, smell a scent, or feel a sensation relevant to the answer. 4-5: You hear sounds or see a vision relevant to the answer. 6: You psychically experience a scene relevant to the answer as if you were there."
+            }
+        ],
+        "subclasses": [
+            "hedge",
+            "moon"
+        ],
+        "backgroundQuestions": [
+            "How did you first discover your affinity for magical craft?",
+            "You once used your power to help someone in a dire situation. Who were they and why did they come to you?",
+            "Your magic once opened a door best left closed. Who or what was on the other side?"
+        ],
+        "connections": [
+            "What about my magical practice makes you most ill at ease?",
+            "I once appeared to you in a dream and shared a vision of the future. What did I tell you?",
+            "Why do you come to me for advice?"
+        ],
+        "suggestedTraits": {
+            "agility": 0,
+            "strength": -1,
+            "finesse": 0,
+            "instinct": 2,
+            "presence": 1,
+            "knowledge": 1
+        },
+        "suggestedWeapons": {
+            "primary": {
+                "name": "Dualstaff",
+                "trait": "Instinct",
+                "range": "Far",
+                "damage": "d6+3 mag",
+                "handedness": "Two-Handed"
+            }
+        },
+        "suggestedArmor": {
+            "name": "Gambeson Armor",
+            "thresholds": "5/11",
+            "score": 3,
+            "feature": "Flexible: +1 to Evasion"
+        },
+        "startingInventory": {
+            "always": [
+                "torch",
+                "50 feet of rope",
+                "basic supplies",
+                "handful of gold"
+            ],
+            "chooseOne": [
+                "Minor Health Potion",
+                "Minor Stamina Potion"
+            ],
+            "chooseExtra": [
+                "small harmless pet",
+                "talking skull"
+            ],
+            "special": [
+                "handwritten journal",
+                "runestones"
+            ]
+        },
+        "tierOptions": {
+            "tier2": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to (up to level 4).",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    }
+                ]
+            },
+            "tier3": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to (up to level 7).",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Take an upgraded subclass card. Then cross out the multiclass option for this tier.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Increase your Proficiency by +1.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Multiclass: Choose an additional class for your character, then cross out an unused 'Take an upgraded subclass card' and the other multiclass option on this sheet.",
+                        "maxSelections": 2,
+                        "mutuallyExclusive": "subclass"
+                    }
+                ]
+            },
+            "tier4": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Take an upgraded subclass card. Then cross out the multiclass option for this tier.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Increase your Proficiency by +1.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Multiclass: Choose an additional class for your character, then cross out an unused 'Take an upgraded subclass card' and the other multiclass option on this sheet.",
+                        "maxSelections": 2,
+                        "mutuallyExclusive": "subclass"
+                    }
+                ]
+            }
+        }
+    },
+    "warlock": {
+        "key": "warlock",
+        "name": "Warlock",
+        "description": "As a warlock, you've pledged your life to a patron in exchange for great power.",
+        "domains": [
+            "dread",
+            "grace"
+        ],
+        "startingEvasion": 11,
+        "startingHitPoints": 6,
+        "classItems": "A carving that symbolizes your patron or a ring you can't remove",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "hopeFeature": {
+            "name": "Patron's Boon",
+            "description": "Spend 3 Hope to call out to your patron for help, gaining 1d4 Favor.",
+            "hopeCost": 3
+        },
+        "classFeatures": [
+            {
+                "name": "Warlock Patron",
+                "description": "You have committed yourself to a patron (god, demon, fae, or other supernatural entity) in exchange for power. Write their name above. Then choose their spheres of Influence (Protection & Mischief, Love & War, Knowledge & Shadow, etc.), record them below, and set their values to 0. Anytime you increase your tier, these spheres of influence gain a permanent +1 bonus. Before making an action roll that falls into one of your patron's spheres of influence, you can spend a Favor to call on them and add its value to the roll."
+            },
+            {
+                "name": "Favor",
+                "description": "Start with 3 Favor. During a rest, spend one of your downtime moves to tithe to your patron. When you do so, gain Favor equal to your Presence. If you choose to forgo this offering, the GM instead gains a Fear."
+            }
+        ],
+        "subclasses": [
+            "pact of the endless",
+            "pact of the wrathful"
+        ],
+        "backgroundQuestions": [
+            "What desperate situation led you to pledge your life to your patron?",
+            "Your patron has given you one task you must accomplish above all else. What is it, and why does it worry you?",
+            "You and your patron are similar in a very specific way. What characteristic do you share, and how do you feel about it?"
+        ],
+        "connections": [
+            "I confide in you about what my patron says and does. Why?",
+            "You once saw me tithe to my patron and it's changed how you interact with me. What did you see and how has it affected you?",
+            "I once did something very foolish, and you have never let me live it down. What was it?"
+        ],
+        "suggestedTraits": {
+            "agility": 1,
+            "strength": -1,
+            "finesse": 0,
+            "instinct": 1,
+            "presence": 2,
+            "knowledge": 0
+        },
+        "suggestedWeapons": {
+            "primary": {
+                "name": "Scepter",
+                "trait": "Presence",
+                "range": "Far",
+                "damage": "d6 phy",
+                "handedness": "Two-Handed",
+                "feature": "Versatile: This weapon can also be used with these statistics: Presence, Melee, d8."
+            }
+        },
+        "suggestedArmor": {
+            "name": "Leather Armor",
+            "thresholds": "6/13",
+            "score": 3
+        },
+        "startingInventory": {
+            "always": [
+                "torch",
+                "50 feet of rope",
+                "basic supplies",
+                "handful of gold"
+            ],
+            "chooseOne": [
+                "Minor Health Potion",
+                "Minor Stamina Potion"
+            ],
+            "chooseExtra": [
+                "carving that symbolizes your patron",
+                "ring you can't remove"
+            ],
+            "special": [
+                "patron's contract",
+                "ritual components"
+            ]
+        },
+        "tierOptions": {
+            "tier2": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to (up to level 4).",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    }
+                ]
+            },
+            "tier3": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to (up to level 7).",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Take an upgraded subclass card. Then cross out the multiclass option for this tier.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Increase your Proficiency by +1.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Multiclass: Choose an additional class for your character, then cross out an unused 'Take an upgraded subclass card' and the other multiclass option on this sheet.",
+                        "maxSelections": 2,
+                        "mutuallyExclusive": "subclass"
+                    }
+                ]
+            },
+            "tier4": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Take an upgraded subclass card. Then cross out the multiclass option for this tier.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Increase your Proficiency by +1.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Multiclass: Choose an additional class for your character, then cross out an unused 'Take an upgraded subclass card' and the other multiclass option on this sheet.",
+                        "maxSelections": 2,
+                        "mutuallyExclusive": "subclass"
+                    }
+                ]
+            }
+        }
+    },
+    "brawler": {
+        "key": "brawler",
+        "name": "Brawler",
+        "description": "As a brawler, you can use your fists just as well as any weapon to fight off the threats that get in your way.",
+        "domains": [
+            "bone",
+            "valor"
+        ],
+        "startingEvasion": 10,
+        "startingHitPoints": 6,
+        "classItems": "Hand wraps from a mentor or a book about your secret hobby",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "hopeFeature": {
+            "name": "Staggering Strike",
+            "description": "Spend 3 Hope when you succeed on an attack to temporarily Stagger your target and force them to mark a Stress. While Staggered, they have disadvantage on attack rolls.",
+            "hopeCost": 3
+        },
+        "classFeatures": [
+            {
+                "name": "I Am the Weapon",
+                "description": "While you don't have any equipped weapons: You gain a +1 bonus to Evasion. Your unarmed strikes are considered a Melee weapon, use the trait of your choice, and deal d8+6 phy damage using your Proficiency."
+            },
+            {
+                "name": "Combo Strikes",
+                "description": "After making a damage roll with a Melee weapon but before dealing that damage to the target, mark a Stress to start a combo strike. When you do, roll your Combo Die and add that value. Then, roll your Combo Die again. If the value of the second roll is equal to or greater than your first roll, continue rolling until the last Combo Die's roll is less than the roll that preceded it. Total all rolled values and add that amount to your weapon's damage. Your Combo Die starts as a d4. When you level up, once per tier you may use one of your advancement options to increase your Combo Die instead."
+            }
+        ],
+        "subclasses": [
+            "juggernaut",
+            "martial artist"
+        ],
+        "backgroundQuestions": [
+            "Where did you spend time during your formative years that taught you, directly or indirectly, how to fight in the style you use?",
+            "What group or organization has always had your back, and how did you get in their good graces?",
+            "Who did you lose a fight to long ago that you are desperate for a rematch against?"
+        ],
+        "connections": [
+            "What is one thing we're both afraid of?",
+            "I rely on you for something important during our travels together. What is it and how do you feel about it?",
+            "I still haven't forgiven you for something you said to me. What was it and why did you say it?"
+        ],
+        "suggestedTraits": {
+            "agility": 1,
+            "strength": 1,
+            "finesse": 0,
+            "instinct": 2,
+            "presence": 0,
+            "knowledge": 1
+        },
+        "suggestedWeapons": {
+            "primary": {
+                "name": "Quarterstaff",
+                "trait": "Instinct",
+                "range": "Melee",
+                "damage": "d10+3 phy",
+                "handedness": "Two-Handed"
+            }
+        },
+        "suggestedArmor": {
+            "name": "Leather Armor",
+            "thresholds": "6/13",
+            "score": 3
+        },
+        "startingInventory": {
+            "always": [
+                "torch",
+                "50 feet of rope",
+                "basic supplies",
+                "handful of gold"
+            ],
+            "chooseOne": [
+                "Minor Health Potion",
+                "Minor Stamina Potion"
+            ],
+            "chooseExtra": [
+                "hand wraps from a mentor",
+                "book about your secret hobby"
+            ]
+        },
+        "tierOptions": {
+            "tier2": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to (up to level 4).",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    }
+                ]
+            },
+            "tier3": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to (up to level 7).",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Take an upgraded subclass card. Then cross out the multiclass option for this tier.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Increase your Proficiency by +1.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Multiclass: Choose an additional class for your character, then cross out an unused 'Take an upgraded subclass card' and the other multiclass option on this sheet.",
+                        "maxSelections": 2,
+                        "mutuallyExclusive": "subclass"
+                    }
+                ]
+            },
+            "tier4": {
+                "selectCount": 2,
+                "options": [
+                    {
+                        "description": "Gain a +1 bonus to two unmarked character traits and mark them.",
+                        "maxSelections": 3
+                    },
+                    {
+                        "description": "Permanently gain one Hit Point slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain one Stress slot.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to two Experiences.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Choose an additional domain card of your level or lower from a domain you have access to.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Permanently gain a +1 bonus to your Evasion.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Take an upgraded subclass card. Then cross out the multiclass option for this tier.",
+                        "maxSelections": 1
+                    },
+                    {
+                        "description": "Increase your Proficiency by +1.",
+                        "maxSelections": 2
+                    },
+                    {
+                        "description": "Multiclass: Choose an additional class for your character, then cross out an unused 'Take an upgraded subclass card' and the other multiclass option on this sheet.",
+                        "maxSelections": 2,
+                        "mutuallyExclusive": "subclass"
+                    }
+                ]
+            }
+        }
     }
 }

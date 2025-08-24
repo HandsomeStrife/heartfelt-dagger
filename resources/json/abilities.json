@@ -81,6 +81,23 @@
             "When the PCs roll with Fear, the Difficulty gains a -1 penalty and the target makes another reaction roll. On a success, they return from banishment."
         ]
     },
+    "avatar of terror": {
+        "key": "avatar of terror",
+        "name": "Avatar of Terror",
+        "domain": "dread",
+        "level": 10,
+        "type": "Spell",
+        "recallCost": 1,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Mark a Stress to transform into a creature fueled by fear. While in this form, your damage gains a +1d6 bonus for each Fear the GM has. Additionally, gain a Hope when the GM uses a Fear feature on an adversary within Close range.",
+            "You must spend a Hope to make an action roll while in this form. Otherwise, you drop out of this form."
+        ]
+    },
     "bare bones": {
         "key": "bare bones",
         "name": "Bare Bones",
@@ -140,6 +157,22 @@
             "When 4 or more of the domain cards in your loadout are from the Blade domain, gain the following benefits:",
             "- +2 bonus to your attack rolls",
             "- +4 bonus to your Severe damage threshold"
+        ]
+    },
+    "blighting strike": {
+        "key": "blighting strike",
+        "name": "Blighting Strike",
+        "domain": "dread",
+        "level": 1,
+        "type": "Spell",
+        "recallCost": 1,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Make a Spellcast Roll against a target within Far range. On a success, the target takes d6 magic damage using your Proficiency and the next time the target deals damage to an ally, it is reduced by 1d6. If you succeed with Fear, the target instead takes d10 magic damage using your Proficiency."
         ]
     },
     "blink out": {
@@ -409,6 +442,22 @@
             "Mark 2 Stress to make a Spellcast Roll, unleashing lightning on all targets within Close range. Targets you succeed against must make a reaction roll with a Difficulty equal to the result of your Spellcast Roll. Targets who fail take 2d8+4 magic damage. Additional adversaries not already targeted by Chain Lightning and within Close range of previous targets who took damage must also make the reaction roll. Targets who fail take 2d8+4 magic damage. This chain continues until there are no more adversaries within range."
         ]
     },
+    "chains of affliction": {
+        "key": "chains of affliction",
+        "name": "Chains of Affliction",
+        "domain": "dread",
+        "level": 3,
+        "type": "Spell",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Mark 2 Stress to temporarily Chain a target within Close range. When a chained creature deals damage, the target of their attack reduces the number of Hit Points they mark by one. You can't have more than one creature Chained at a time."
+        ]
+    },
     "champions edge": {
         "key": "champions edge",
         "name": "Champion's Edge",
@@ -561,6 +610,54 @@
             "When you make a successful attack with a weapon, gain a bonus to your damage roll equal to either your Finesse or Agility."
         ]
     },
+    "damnation": {
+        "key": "damnation",
+        "name": "Damnation",
+        "domain": "dread",
+        "level": 9,
+        "type": "Spell",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Make a Spellcast Roll against a target within Far range. On a success, mark any number of Stress to roll an equal number of d20s, dealing magic damage equal to the total rolled. If the target is defeated as a result of this attack, all adversaries within Far range of the target mark a Stress."
+        ]
+    },
+    "dark army": {
+        "key": "dark army",
+        "name": "Dark Army",
+        "domain": "dread",
+        "level": 8,
+        "type": "Spell",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Make a Spellcast Roll (14). Once per long rest, on a success you can call forth 8 tokens on this card. When you deal damage to a target in Close range, you can spend a token to increase it by 1d8. Additionally, when you take damage, you can spend a token to reduce it by 1d8. Each time you succeed on a token, you lose one token. Remove all tokens from this card on your next rest."
+        ]
+    },
+    "darkfire": {
+        "key": "darkfire",
+        "name": "Darkfire",
+        "domain": "dread",
+        "level": 6,
+        "type": "Spell",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Make a Spellcast Roll against all adversaries within Close range. You can spend a Hope for any you succeed against, and they must make a Reaction Roll (14). On a failure, they take d8+6 magic damage using your Proficiency as they are engulfed in dark fire. On a success, they take half damage."
+        ]
+    },
     "dark whispers": {
         "key": "dark whispers",
         "name": "Dark Whispers",
@@ -625,6 +722,40 @@
             "Spend a Hope to gain advantage on a roll to deceive or trick someone into believing a lie you tell them."
         ]
     },
+    "dire strike": {
+        "key": "dire strike",
+        "name": "Dire Strike",
+        "domain": "dread",
+        "level": 5,
+        "type": "Spell",
+        "recallCost": 1,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "After making a successful attack, you can spend 2 Hope to leech power from the target. For each Hit Point your target marked from this attack, the GM loses a Fear."
+        ]
+    },
+    "dreadtouched": {
+        "key": "dreadtouched",
+        "name": "Dread-Touched",
+        "domain": "dread",
+        "level": 7,
+        "type": "Ability",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "When 4 or more of the domain cards in your loadout are from the Dread domain, gain the following benefits:",
+            "- When you succeed with Fear, you can mark 2 Stress to prevent the GM from gaining a Fear.",
+            "- Once per rest, when you make an action roll, you can add a +1 bonus to the roll for each Fear token the GM has scored."
+        ]
+    },
     "deft maneuvers": {
         "key": "deft maneuvers",
         "name": "Deft Maneuvers",
@@ -682,6 +813,24 @@
             "Make a Spellcast Roll (16). Once per long rest on a success, plunge the entire area within Far range into complete darkness only you and your allies can see through. Attack rolls have disadvantage when targeting you or an ally within this shadow.",
             "Additionally, when you or an ally succeeds with Hope against an adversary within this shadow, the target must mark a Stress.",
             "This spell lasts until the GM spends a Fear on their turn to clear this effect or you take Severe damage."
+        ]
+    },
+    "eldritch flesh": {
+        "key": "eldritch flesh",
+        "name": "Eldritch Flesh",
+        "domain": "dread",
+        "level": 8,
+        "type": "Spell",
+        "recallCost": 1,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "You embody the darkness you have dallied with. When this card is in your loadout:",
+            "- Gain a +1 bonus to your damage thresholds for each Stress you have marked.",
+            "- When you roll with Fear, you can spend 2 Hope to clear an Armor Slot."
         ]
     },
     "encore": {
@@ -1008,6 +1157,22 @@
             "When you deal damage to an adversary, you can spend 2 Hope to clear a Hit Point on an ally within Close range."
         ]
     },
+    "hideous retribution": {
+        "key": "hideous retribution",
+        "name": "Hideous Retribution",
+        "domain": "dread",
+        "level": 2,
+        "type": "Spell",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "When an ally within Close range takes damage from a target, you can make a Spellcast Roll against the target. On a success, mark a Stress to deal them d6 magic damage using your Proficiency."
+        ]
+    },
     "hold the line": {
         "key": "hold the line",
         "name": "Hold the Line",
@@ -1102,6 +1267,22 @@
             "When you or an ally within Close range has used a feature that has an exhaustion limit (such as once per rest or once per session), you can spend any number of Hope and roll that many d6s. If any roll a 6, the feature can be used again."
         ]
     },
+    "invoke torment": {
+        "key": "invoke torment",
+        "name": "Invoke Torment",
+        "domain": "dread",
+        "level": 10,
+        "type": "Spell",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Targets with all of their Stress marked take double damage from your attacks. Additionally, when you defeat a creature with all of its Stress marked, you clear a Stress."
+        ]
+    },
     "invisibility": {
         "key": "invisibility",
         "name": "Invisibility",
@@ -1112,6 +1293,22 @@
         "descriptions": [
             "Make a Spellcast Roll (10). On a success, mark a Stress and choose yourself or an ally within Melee range to become Invisible. An Invisible creature can't be seen except through magical means and attack rolls against them are made with disadvantage. Place a number of tokens on this card equal to your Spellcast trait. When the Invisible creature takes an action, spend a token from this card. After the action that spends the last token is resolved, the effect ends.",
             "You can only hold Invisibility on one creature at a time."
+        ]
+    },
+    "jump scare": {
+        "key": "jump scare",
+        "name": "Jump Scare",
+        "domain": "dread",
+        "level": 6,
+        "type": "Spell",
+        "recallCost": 0,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "When you deal magic damage to a target, you can mark a Stress to teleport from them, leaving behind them. When you do so, they become Vulnerable until they mark one or more Hit Points."
         ]
     },
     "know thy enemy": {
@@ -1578,6 +1775,86 @@
             "If the Ward Die result is 8, the ward's power ends after it reduces damage this turn. It can be recharged for free on your next rest."
         ]
     },
+    "savor the anguish": {
+        "key": "savor the anguish",
+        "name": "Savor the Anguish",
+        "domain": "dread",
+        "level": 9,
+        "type": "Spell",
+        "recallCost": 0,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "When an adversary within Close range marks Stress or takes Severe damage, you can spend a Hope to clear a Stress or force the GM to lose a Fear."
+        ]
+    },
+    "shared trauma": {
+        "key": "shared trauma",
+        "name": "Shared Trauma",
+        "domain": "dread",
+        "level": 3,
+        "type": "Spell",
+        "recallCost": 1,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "You can transfer suffering from one creature to another. Once per rest, mark any number of Hit Points on a willing creature within Melee range to clear an equal number of Hit Points on another willing creature within Melee range. You can choose yourself in place of either creature."
+        ]
+    },
+    "siphon essence": {
+        "key": "siphon essence",
+        "name": "Siphon Essence",
+        "domain": "dread",
+        "level": 2,
+        "type": "Spell",
+        "recallCost": 1,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Make a Spellcast Roll against a target within Very Close range. On a success, once during the target takes d20 magic damage using your Proficiency. You clear a number of Hit Points equal to the number of Hit Points the target marked from this attack. On a success with Fear, you gain a +1 bonus to your Proficiency for this attack."
+        ]
+    },
+    "spectral mist": {
+        "key": "spectral mist",
+        "name": "Spectral Mist",
+        "domain": "dread",
+        "level": 5,
+        "type": "Spell",
+        "recallCost": 0,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Mark a Stress to summon an eerie mist that turns you and any targets within Close range momentarily incorporeal. While a creature is incorporeal, it can move through solid objects and are immune to physical damage. A creature becomes corporeal again if it makes an attack, attempts to interact with a solid object or make an action roll. Otherwise, this effect drops at the end of the scene."
+        ]
+    },
+    "summon horror": {
+        "key": "summon horror",
+        "name": "Summon Horror",
+        "domain": "dread",
+        "level": 3,
+        "type": "Spell",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Make a Spellcast Roll against a target within Far range. On a success, spend a Hope to call forth an otherworldly creature to attack them and deal d10 magic damage using your Proficiency. The target must succeed on a Reaction Roll (12) to steel themselves from the horror or mark 1d4 Stress. After making the attack, the creature dissipates."
+        ]
+    },
     "safe haven": {
         "key": "safe haven",
         "name": "Safe Haven",
@@ -1917,6 +2194,22 @@
             "Make a Spellcast Roll against a target within Very Close range. On a success, they can't lie to you while they remain within Close range, but they are not compelled to speak. If you ask them a question and they refuse to answer, they must mark a Stress and the effect ends. The target is typically unaware this spell has been cast on them until it causes them to utter the truth."
         ]
     },
+    "terrify": {
+        "key": "terrify",
+        "name": "Terrify",
+        "domain": "dread",
+        "level": 2,
+        "type": "Spell",
+        "recallCost": 1,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Make a Spellcast Roll against a target within Far range. On a success, the target marks 1d4 Stress and you can choose to make the target run one range away from you (Very Close to Close, Close to Far, etc). On a success with Fear, the target becomes temporarily Vulnerable."
+        ]
+    },
     "tempest": {
         "key": "tempest",
         "name": "Tempest",
@@ -2010,6 +2303,22 @@
         "descriptions": [
             "Choose a target within Far range. When you succeed on an action roll against them that doesn't result in making a damage roll, place a token on this card. When you deal damage to this target, spend any number of tokens to add a d12 for each token spent to your damage roll. You can only hold Twilight Toll on one creature at a time.",
             "When you choose a new target or take a rest, clear all unspent tokens."
+        ]
+    },
+    "umbral veil": {
+        "key": "umbral veil",
+        "name": "Umbral Veil",
+        "domain": "dread",
+        "level": 1,
+        "type": "Spell",
+        "recallCost": 1,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Once per rest, when you roll with Fear, you can spend any number of Hope to place an equal number of tokens on this card, encasing yourself in a shadowy veil. After an attack roll is made against you, you can spend a number of tokens to increase it by 1d8. Additionally, when you take damage, you can spend a token to reduce it by 1d8. Each time you succeed on a token, you lose one token. On your next rest, remove all tokens from this card."
         ]
     },
     "unbreakable": {
@@ -2156,6 +2465,22 @@
             "Additionally, you're emboldened in moments of duress. When all of your Stress slots are marked, you gain a +1 bonus to your Proficiency for damage rolls."
         ]
     },
+    "voice of dread": {
+        "key": "voice of dread",
+        "name": "Voice of Dread",
+        "domain": "dread",
+        "level": 1,
+        "type": "Spell",
+        "recallCost": 0,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "You can magically speak directly into the ears of a creature you can see. To torment them with your words, make a Spellcast Roll against them. On a success, they must mark a Stress and become temporarily Vulnerable."
+        ]
+    },
     "wall walk": {
         "key": "wall walk",
         "name": "Wall Walk",
@@ -2165,6 +2490,22 @@
         "recallCost": 1,
         "descriptions": [
             "Spend a Hope to allow a creature you can touch to climb on walls and ceilings as easily as walking on the ground. This lasts until the end of the scene or you cast Wall Walk again."
+        ]
+    },
+    "wall of hunger": {
+        "key": "wall of hunger",
+        "name": "Wall of Hunger",
+        "domain": "dread",
+        "level": 7,
+        "type": "Spell",
+        "recallCost": 2,
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "descriptions": [
+            "Succeed on a Spellcast Roll (13) to create a visible wall of writhing, necrotic energy at any point within Far range that lasts until you mark a Hit Point or cast this spell again. Creatures inside the wall when it appears or who try to pass through the wall must mark 2 Stress, then make a Reaction Roll (16). On a failure, they are temporarily Restrained by the wall."
         ]
     },
     "whirlwind": {

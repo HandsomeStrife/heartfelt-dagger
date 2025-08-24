@@ -1,286 +1,239 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Campaign\Actions;
-
 use Domain\Campaign\Actions\LeaveCampaignAction;
 use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
 use Domain\User\Models\User;
-use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class LeaveCampaignActionTest extends TestCase
-{
-    use RefreshDatabase;
+beforeEach(function () {
+    $this->action = new LeaveCampaignAction();
+});
+it('allows member to leave campaign', function () {
+    $campaign = Campaign::factory()->create();
+    $member = User::factory()->create();
 
-    private LeaveCampaignAction $action;
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member->id,
+    ]);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->action = new LeaveCampaignAction();
-    }
+    $result = $this->action->execute($campaign, $member);
 
-    #[Test]
-    public function it_allows_member_to_leave_campaign(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $member = User::factory()->create();
-        
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member->id,
-        ]);
+    expect($result)->toBeTrue();
+    $this->assertDatabaseMissing('campaign_members', [
+        'campaign_id' => $campaign->id,
+        'user_id' => $member->id,
+    ]);
+});
+it('removes membership from database', function () {
+    $campaign = Campaign::factory()->create();
+    $member = User::factory()->create();
 
-        $result = $this->action->execute($campaign, $member);
+    $membership = CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member->id,
+    ]);
 
-        $this->assertTrue($result);
-        $this->assertDatabaseMissing('campaign_members', [
-            'campaign_id' => $campaign->id,
-            'user_id' => $member->id,
-        ]);
-    }
+    $this->assertDatabaseHas('campaign_members', [
+        'id' => $membership->id,
+        'campaign_id' => $campaign->id,
+        'user_id' => $member->id,
+    ]);
 
-    #[Test]
-    public function it_removes_membership_from_database(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $member = User::factory()->create();
-        
-        $membership = CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member->id,
-        ]);
+    $this->action->execute($campaign, $member);
 
-        $this->assertDatabaseHas('campaign_members', [
-            'id' => $membership->id,
-            'campaign_id' => $campaign->id,
-            'user_id' => $member->id,
-        ]);
+    $this->assertDatabaseMissing('campaign_members', [
+        'id' => $membership->id,
+    ]);
+});
+it('prevents creator from leaving own campaign', function () {
+    $creator = User::factory()->create();
+    $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
-        $this->action->execute($campaign, $member);
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage('Campaign creator cannot leave their own campaign');
 
-        $this->assertDatabaseMissing('campaign_members', [
-            'id' => $membership->id,
-        ]);
-    }
+    $this->action->execute($campaign, $creator);
+});
+it('prevents non member from leaving', function () {
+    $campaign = Campaign::factory()->create();
+    $nonMember = User::factory()->create();
 
-    #[Test]
-    public function it_prevents_creator_from_leaving_own_campaign(): void
-    {
-        $creator = User::factory()->create();
-        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage('User is not a member of this campaign');
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Campaign creator cannot leave their own campaign');
+    $this->action->execute($campaign, $nonMember);
+});
+it('allows multiple members to leave independently', function () {
+    $campaign = Campaign::factory()->create();
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
 
-        $this->action->execute($campaign, $creator);
-    }
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member1->id,
+    ]);
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member2->id,
+    ]);
 
-    #[Test]
-    public function it_prevents_non_member_from_leaving(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $nonMember = User::factory()->create();
+    // Member 1 leaves
+    $result1 = $this->action->execute($campaign, $member1);
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('User is not a member of this campaign');
+    expect($result1)->toBeTrue();
+    $this->assertDatabaseMissing('campaign_members', [
+        'campaign_id' => $campaign->id,
+        'user_id' => $member1->id,
+    ]);
+    $this->assertDatabaseHas('campaign_members', [
+        'campaign_id' => $campaign->id,
+        'user_id' => $member2->id,
+    ]);
 
-        $this->action->execute($campaign, $nonMember);
-    }
+    // Member 2 leaves
+    $result2 = $this->action->execute($campaign, $member2);
 
-    #[Test]
-    public function it_allows_multiple_members_to_leave_independently(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $member1 = User::factory()->create();
-        $member2 = User::factory()->create();
-        
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member1->id,
-        ]);
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member2->id,
-        ]);
+    expect($result2)->toBeTrue();
+    $this->assertDatabaseMissing('campaign_members', [
+        'campaign_id' => $campaign->id,
+        'user_id' => $member2->id,
+    ]);
+});
+it('handles member in multiple campaigns', function () {
+    $campaign1 = Campaign::factory()->create();
+    $campaign2 = Campaign::factory()->create();
+    $member = User::factory()->create();
 
-        // Member 1 leaves
-        $result1 = $this->action->execute($campaign, $member1);
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign1->id,
+        'user_id' => $member->id,
+    ]);
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign2->id,
+        'user_id' => $member->id,
+    ]);
 
-        $this->assertTrue($result1);
-        $this->assertDatabaseMissing('campaign_members', [
-            'campaign_id' => $campaign->id,
-            'user_id' => $member1->id,
-        ]);
-        $this->assertDatabaseHas('campaign_members', [
-            'campaign_id' => $campaign->id,
-            'user_id' => $member2->id,
-        ]);
+    // Leave only campaign1
+    $result = $this->action->execute($campaign1, $member);
 
-        // Member 2 leaves
-        $result2 = $this->action->execute($campaign, $member2);
+    expect($result)->toBeTrue();
+    $this->assertDatabaseMissing('campaign_members', [
+        'campaign_id' => $campaign1->id,
+        'user_id' => $member->id,
+    ]);
+    $this->assertDatabaseHas('campaign_members', [
+        'campaign_id' => $campaign2->id,
+        'user_id' => $member->id,
+    ]);
+});
+it('does not affect other members when one leaves', function () {
+    $campaign = Campaign::factory()->create();
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
+    $member3 = User::factory()->create();
 
-        $this->assertTrue($result2);
-        $this->assertDatabaseMissing('campaign_members', [
-            'campaign_id' => $campaign->id,
-            'user_id' => $member2->id,
-        ]);
-    }
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member1->id,
+    ]);
+    $membership2 = CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member2->id,
+    ]);
+    $membership3 = CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member3->id,
+    ]);
 
-    #[Test]
-    public function it_handles_member_in_multiple_campaigns(): void
-    {
-        $campaign1 = Campaign::factory()->create();
-        $campaign2 = Campaign::factory()->create();
-        $member = User::factory()->create();
-        
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign1->id,
-            'user_id' => $member->id,
-        ]);
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign2->id,
-            'user_id' => $member->id,
-        ]);
+    $this->action->execute($campaign, $member1);
 
-        // Leave only campaign1
-        $result = $this->action->execute($campaign1, $member);
+    // Other memberships should remain
+    $this->assertDatabaseHas('campaign_members', [
+        'id' => $membership2->id,
+        'campaign_id' => $campaign->id,
+        'user_id' => $member2->id,
+    ]);
+    $this->assertDatabaseHas('campaign_members', [
+        'id' => $membership3->id,
+        'campaign_id' => $campaign->id,
+        'user_id' => $member3->id,
+    ]);
+});
+it('handles leaving with character attached', function () {
+    $campaign = Campaign::factory()->create();
+    $member = User::factory()->create();
 
-        $this->assertTrue($result);
-        $this->assertDatabaseMissing('campaign_members', [
-            'campaign_id' => $campaign1->id,
-            'user_id' => $member->id,
-        ]);
-        $this->assertDatabaseHas('campaign_members', [
-            'campaign_id' => $campaign2->id,
-            'user_id' => $member->id,
-        ]);
-    }
+    $membership = CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member->id,
+        // character_id will be set by factory
+    ]);
 
-    #[Test]
-    public function it_does_not_affect_other_members_when_one_leaves(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $member1 = User::factory()->create();
-        $member2 = User::factory()->create();
-        $member3 = User::factory()->create();
-        
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member1->id,
-        ]);
-        $membership2 = CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member2->id,
-        ]);
-        $membership3 = CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member3->id,
-        ]);
+    $result = $this->action->execute($campaign, $member);
 
-        $this->action->execute($campaign, $member1);
+    expect($result)->toBeTrue();
+    $this->assertDatabaseMissing('campaign_members', [
+        'id' => $membership->id,
+    ]);
+});
+it('handles leaving without character', function () {
+    $campaign = Campaign::factory()->create();
+    $member = User::factory()->create();
 
-        // Other memberships should remain
-        $this->assertDatabaseHas('campaign_members', [
-            'id' => $membership2->id,
-            'campaign_id' => $campaign->id,
-            'user_id' => $member2->id,
-        ]);
-        $this->assertDatabaseHas('campaign_members', [
-            'id' => $membership3->id,
-            'campaign_id' => $campaign->id,
-            'user_id' => $member3->id,
-        ]);
-    }
+    $membership = CampaignMember::factory()->withoutCharacter()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member->id,
+    ]);
 
-    #[Test]
-    public function it_handles_leaving_with_character_attached(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $member = User::factory()->create();
-        
-        $membership = CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member->id,
-            // character_id will be set by factory
-        ]);
+    $result = $this->action->execute($campaign, $member);
 
-        $result = $this->action->execute($campaign, $member);
+    expect($result)->toBeTrue();
+    $this->assertDatabaseMissing('campaign_members', [
+        'id' => $membership->id,
+    ]);
+});
+it('prevents double leaving', function () {
+    $campaign = Campaign::factory()->create();
+    $member = User::factory()->create();
 
-        $this->assertTrue($result);
-        $this->assertDatabaseMissing('campaign_members', [
-            'id' => $membership->id,
-        ]);
-    }
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member->id,
+    ]);
 
-    #[Test]
-    public function it_handles_leaving_without_character(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $member = User::factory()->create();
-        
-        $membership = CampaignMember::factory()->withoutCharacter()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member->id,
-        ]);
+    // First leave should work
+    $result1 = $this->action->execute($campaign, $member);
+    expect($result1)->toBeTrue();
 
-        $result = $this->action->execute($campaign, $member);
+    // Second leave should fail
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage('User is not a member of this campaign');
 
-        $this->assertTrue($result);
-        $this->assertDatabaseMissing('campaign_members', [
-            'id' => $membership->id,
-        ]);
-    }
+    $this->action->execute($campaign, $member);
+});
+it('maintains campaign integrity after leave', function () {
+    $creator = User::factory()->create();
+    $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
+    $member = User::factory()->create();
 
-    #[Test]
-    public function it_prevents_double_leaving(): void
-    {
-        $campaign = Campaign::factory()->create();
-        $member = User::factory()->create();
-        
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member->id,
-        ]);
+    CampaignMember::factory()->create([
+        'campaign_id' => $campaign->id,
+        'user_id' => $member->id,
+    ]);
 
-        // First leave should work
-        $result1 = $this->action->execute($campaign, $member);
-        $this->assertTrue($result1);
+    $this->action->execute($campaign, $member);
 
-        // Second leave should fail
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('User is not a member of this campaign');
+    // Campaign should still exist and be accessible
+    $this->assertDatabaseHas('campaigns', [
+        'id' => $campaign->id,
+        'creator_id' => $creator->id,
+    ]);
 
-        $this->action->execute($campaign, $member);
-    }
-
-    #[Test]
-    public function it_maintains_campaign_integrity_after_leave(): void
-    {
-        $creator = User::factory()->create();
-        $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
-        $member = User::factory()->create();
-        
-        CampaignMember::factory()->create([
-            'campaign_id' => $campaign->id,
-            'user_id' => $member->id,
-        ]);
-
-        $this->action->execute($campaign, $member);
-
-        // Campaign should still exist and be accessible
-        $this->assertDatabaseHas('campaigns', [
-            'id' => $campaign->id,
-            'creator_id' => $creator->id,
-        ]);
-
-        $campaign->refresh();
-        $this->assertNotNull($campaign);
-        $this->assertEquals($creator->id, $campaign->creator_id);
-    }
-}
+    $campaign->refresh();
+    expect($campaign)->not->toBeNull();
+    expect($campaign->creator_id)->toEqual($creator->id);
+});

@@ -44,6 +44,18 @@
                             @click="selectAncestry('{{ $ancestryKey }}')"
                             class="relative group cursor-pointer transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 rounded-2xl p-6"
                         >
+                            <!-- Playtest Badge -->
+                            @if(isset($ancestryData['playtest']['isPlaytest']) && $ancestryData['playtest']['isPlaytest'])
+                                <div class="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full border-2 border-slate-800 shadow-lg">
+                                    <div class="flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        {{ $ancestryData['playtest']['label'] ?? 'Void - Playtest' }}
+                                    </div>
+                                </div>
+                            @endif
+                            
                             <div class="flex flex-row gap-4">
                                 <div class="w-24 h-24 bg-gradient-to-r from-emerald-700 to-emerald-600 rounded-xl flex items-center justify-center">
                                     <span class="text-2xl">{{ substr($ancestryData['name'], 0, 1) }}</span>
@@ -78,8 +90,32 @@
                         </div>
                         
                         <div class="relative group cursor-pointer transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 rounded-2xl p-6">
+                            <!-- Playtest Badge for Selected View -->
+                            @if(isset($ancestryData['playtest']['isPlaytest']) && $ancestryData['playtest']['isPlaytest'])
+                                <div class="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full border-2 border-slate-800 shadow-lg">
+                                    <div class="flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        {{ $ancestryData['playtest']['label'] ?? 'Void - Playtest' }}
+                                    </div>
+                                </div>
+                            @endif
+                            
                             <div>
                                 <h2 class="text-2xl font-bold text-white font-outfit mb-4">{{ $ancestryData['name'] }}</h2>
+                                
+                                @if(isset($ancestryData['playtest']['isPlaytest']) && $ancestryData['playtest']['isPlaytest'])
+                                    <div class="mb-4 p-3 bg-purple-900/30 border border-purple-500/30 rounded-lg">
+                                        <p class="text-purple-300 text-sm">
+                                            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                            </svg>
+                                            This ancestry is part of DaggerHeart's {{ $ancestryData['playtest']['label'] ?? 'playtest' }} content and may be subject to changes based on community feedback.
+                                        </p>
+                                    </div>
+                                @endif
+                                
                                 <p class="text-slate-300 text-base leading-relaxed">
                                     {{ $ancestryData['description'] }}
                                 </p>
@@ -168,6 +204,18 @@
                             @click="selectCommunity('{{ $communityKey }}')"
                             class="relative group cursor-pointer transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 rounded-2xl p-6"
                         >
+                            <!-- Playtest Badge -->
+                            @if(isset($communityData['playtest']['isPlaytest']) && $communityData['playtest']['isPlaytest'])
+                                <div class="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full border-2 border-slate-800 shadow-lg">
+                                    <div class="flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        {{ $communityData['playtest']['label'] ?? 'Void - Playtest' }}
+                                    </div>
+                                </div>
+                            @endif
+                            
                             <div class="flex flex-row gap-4">
                                 <div class="w-24 h-24 bg-gradient-to-r from-blue-700 to-blue-600 rounded-xl flex items-center justify-center">
                                     <span class="text-2xl">{{ substr($communityData['name'], 0, 1) }}</span>
@@ -202,8 +250,32 @@
                         </div>
                         
                         <div class="relative group cursor-pointer transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 rounded-2xl p-6">
+                            <!-- Playtest Badge for Selected View -->
+                            @if(isset($communityData['playtest']['isPlaytest']) && $communityData['playtest']['isPlaytest'])
+                                <div class="absolute -top-2 -right-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white text-xs font-bold px-3 py-1 rounded-full border-2 border-slate-800 shadow-lg">
+                                    <div class="flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        {{ $communityData['playtest']['label'] ?? 'Void - Playtest' }}
+                                    </div>
+                                </div>
+                            @endif
+                            
                             <div>
                                 <h2 class="text-2xl font-bold text-white font-outfit mb-4">{{ $communityData['name'] }}</h2>
+                                
+                                @if(isset($communityData['playtest']['isPlaytest']) && $communityData['playtest']['isPlaytest'])
+                                    <div class="mb-4 p-3 bg-purple-900/30 border border-purple-500/30 rounded-lg">
+                                        <p class="text-purple-300 text-sm">
+                                            <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                            </svg>
+                                            This community is part of DaggerHeart's {{ $communityData['playtest']['label'] ?? 'playtest' }} content and may be subject to changes based on community feedback.
+                                        </p>
+                                    </div>
+                                @endif
+                                
                                 <div class="text-slate-300 text-base leading-relaxed">
                                     @markdown($communityData['description'])
                                 </div>

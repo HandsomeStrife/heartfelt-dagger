@@ -88,5 +88,89 @@
             "name": "Lightfoot",
             "description": "Your movement is naturally silent. You have advantage on rolls to move without being heard."
         }
+    },
+    "duneborne": {
+        "key": "duneborne",
+        "name": "Duneborne",
+        "description": "Being part of a duneborne community means you've made a home among the shifting sands and arid climate of the desert.",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "communityFeature": {
+            "name": "Oasis",
+            "description": "During a short rest, you or an ally can reroll a die used for a downtime action."
+        }
+    },
+    "freeborne": {
+        "key": "freeborne",
+        "name": "Freeborne",
+        "description": "Being part of a freeborne community means you're from a collective that lived under tyrannical rule and is now liberated.",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "communityFeature": {
+            "name": "Unbound",
+            "description": "Once per session, when you make an action roll with Fear, you can change it to a roll with Hope instead."
+        }
+    },
+    "frostborne": {
+        "key": "frostborne",
+        "name": "Frostborne",
+        "description": "Being part of a frostborne community means you come from a place of snow and ice.",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "communityFeature": {
+            "name": "Hardy",
+            "description": "Once per rest, you can Help an Ally traverse difficult terrain without spending a Hope."
+        }
+    },
+    "hearthborne": {
+        "key": "hearthborne",
+        "name": "Hearthborne",
+        "description": "Coming from a hearthborne community means you come from humble origins, having lived in a small village or the countryside.",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "communityFeature": {
+            "name": "Close-Knit",
+            "description": "Once per long rest, you can spend any number of Hope to give an ally the same number of Hope."
+        }
+    },
+    "reborne": {
+        "key": "reborne",
+        "name": "Reborne",
+        "description": "You were once a member of another community, but you can no longer remember it.",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "communityFeature": {
+            "name": "Found Family",
+            "description": "Once per session, you can spend a Hope to use an ally's community ability. When you do, your ally gains a Hope. At any point, when you've discovered the community you were once a part of, or have joined a new community, you can permanently trade this community card for that one instead."
+        }
+    },
+    "warborne": {
+        "key": "warborne",
+        "name": "Warborne",
+        "description": "Being part of a warborne community means you come from a place that is, or was, ravaged by war.",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "communityFeature": {
+            "name": "Brave Face",
+            "description": "Once per session, when an attack would cause you to mark a Stress, you can spend a Hope instead."
+        }
     }
 }

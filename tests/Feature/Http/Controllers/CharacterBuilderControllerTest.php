@@ -1,259 +1,209 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Feature\Http\Controllers;
-
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class CharacterBuilderControllerTest extends TestCase
-{
-    use RefreshDatabase;
+test('create creates new character and redirects', function () {
+    // Ensure clean database state
+    Character::query()->delete();
 
-    #[Test]
-    public function create_creates_new_character_and_redirects(): void
-    {
-        // Ensure clean database state
-        Character::query()->delete();
-        
-        $response = $this->get('/character-builder');
+    $response = $this->get('/character-builder');
 
-        $response->assertStatus(302);
-        
-        $this->assertDatabaseCount('characters', 1);
+    $response->assertStatus(302);
 
-        $character = Character::latest()->first();
-        $this->assertNotNull($character);
-        $this->assertNotNull($character->character_key);
-        $this->assertEquals(10, strlen($character->character_key));
-        $this->assertNull($character->user_id); // Guest user
-        $this->assertNull($character->name);
-        $this->assertNull($character->class);
-        $this->assertFalse($character->is_public);
-        
-        $response->assertRedirectToRoute('character-builder.edit', ['character_key' => $character->character_key]);
-    }
+    $this->assertDatabaseCount('characters', 1);
 
-    #[Test]
-    public function create_associates_character_with_authenticated_user(): void
-    {
-        $user = User::factory()->create();
+    $character = Character::latest()->first();
+    expect($character)->not->toBeNull();
+    expect($character->character_key)->not->toBeNull();
+    expect(strlen($character->character_key))->toEqual(10);
+    expect($character->user_id)->toBeNull();
+    // Guest user
+    expect($character->name)->toBeNull();
+    expect($character->class)->toBeNull();
+    expect($character->is_public)->toBeFalse();
 
-        $response = $this->actingAs($user)->get('/character-builder');
+    $response->assertRedirectToRoute('character-builder.edit', ['character_key' => $character->character_key]);
+});
+test('create associates character with authenticated user', function () {
+    $user = User::factory()->create();
 
-        $response->assertStatus(302);
+    $response = $this->actingAs($user)->get('/character-builder');
 
-        $character = Character::latest()->first();
-        $this->assertEquals($user->id, $character->user_id);
-    }
+    $response->assertStatus(302);
 
-    #[Test]
-    public function edit_shows_character_builder_for_existing_character(): void
-    {
-        $character = Character::factory()->create([
-            'character_key' => 'ABC1234567',
-            'name' => 'Test Hero',
-            'class' => 'warrior',
-        ]);
+    $character = Character::latest()->first();
+    expect($character->user_id)->toEqual($user->id);
+});
+test('edit shows character builder for existing character', function () {
+    $character = Character::factory()->create([
+        'character_key' => 'ABC1234567',
+        'name' => 'Test Hero',
+        'class' => 'warrior',
+    ]);
 
-        $response = $this->get("/character-builder/{$character->character_key}");
+    $response = $this->get("/character-builder/{$character->character_key}");
 
-        $response->assertStatus(200);
-        $response->assertViewIs('characters.edit');
-        $response->assertViewHas('character_key', 'ABC1234567');
-        $response->assertViewHas('character');
-    }
+    $response->assertStatus(200);
+    $response->assertViewIs('characters.edit');
+    $response->assertViewHas('character_key', 'ABC1234567');
+    $response->assertViewHas('character');
+});
+test('edit returns 404 for non existent character', function () {
+    $response = $this->get('/character-builder/NOTEXIST');
 
-    #[Test]
-    public function edit_returns_404_for_non_existent_character(): void
-    {
-        $response = $this->get('/character-builder/NOTEXIST');
+    $response->assertStatus(404);
+});
+test('show displays character for viewing', function () {
+    $character = Character::factory()->create([
+        'character_key' => 'ABC1234567',
+        'name' => 'Test Hero',
+        'class' => 'warrior',
+    ]);
 
-        $response->assertStatus(404);
-    }
+    $response = $this->get("/character/{$character->character_key}");
 
-    #[Test]
-    public function show_displays_character_for_viewing(): void
-    {
-        $character = Character::factory()->create([
-            'character_key' => 'ABC1234567',
-            'name' => 'Test Hero',
-            'class' => 'warrior',
-        ]);
+    $response->assertStatus(200);
+    $response->assertViewIs('characters.show');
+    $response->assertViewHas('character_key', 'ABC1234567');
+    $response->assertViewHas('character');
+});
+test('show returns 404 for non existent character', function () {
+    $response = $this->get('/character/NOTEXIST');
 
-        $response = $this->get("/character/{$character->character_key}");
+    $response->assertStatus(404);
+});
+test('routes are properly configured', function () {
+    // Test that routes exist and point to correct methods
+    expect(\Route::has('character-builder'))->toBeTrue();
+    expect(\Route::has('character-builder.edit'))->toBeTrue();
+    expect(\Route::has('character.show'))->toBeTrue();
 
-        $response->assertStatus(200);
-        $response->assertViewIs('characters.show');
-        $response->assertViewHas('character_key', 'ABC1234567');
-        $response->assertViewHas('character');
-    }
+    // Test route parameters
+    $createRoute = \Route::getRoutes()->getByName('character-builder');
+    expect($createRoute->methods()[0])->toEqual('GET');
+    expect($createRoute->uri())->toEqual('character-builder');
 
-    #[Test]
-    public function show_returns_404_for_non_existent_character(): void
-    {
-        $response = $this->get('/character/NOTEXIST');
+    $editRoute = \Route::getRoutes()->getByName('character-builder.edit');
+    expect($editRoute->methods()[0])->toEqual('GET');
+    expect($editRoute->uri())->toEqual('character-builder/{character_key}');
 
-        $response->assertStatus(404);
-    }
+    $showRoute = \Route::getRoutes()->getByName('character.show');
+    expect($showRoute->methods()[0])->toEqual('GET');
+    expect($showRoute->uri())->toEqual('character/{character_key}');
+});
+test('character key generation produces unique keys', function () {
+    // Ensure clean database state
+    Character::query()->delete();
 
-    #[Test]
-    public function routes_are_properly_configured(): void
-    {
-        // Test that routes exist and point to correct methods
-        $this->assertTrue(\Route::has('character-builder'));
-        $this->assertTrue(\Route::has('character-builder.edit'));
-        $this->assertTrue(\Route::has('character.show'));
+    // Create multiple characters to ensure uniqueness
+    $response1 = $this->get('/character-builder');
+    $response2 = $this->get('/character-builder');
+    $response3 = $this->get('/character-builder');
 
-        // Test route parameters
-        $createRoute = \Route::getRoutes()->getByName('character-builder');
-        $this->assertEquals('GET', $createRoute->methods()[0]);
-        $this->assertEquals('character-builder', $createRoute->uri());
+    $characters = Character::all();
+    expect($characters)->toHaveCount(3);
 
-        $editRoute = \Route::getRoutes()->getByName('character-builder.edit');
-        $this->assertEquals('GET', $editRoute->methods()[0]);
-        $this->assertEquals('character-builder/{character_key}', $editRoute->uri());
+    $keys = $characters->pluck('character_key')->toArray();
+    expect(count(array_unique($keys)))->toEqual(3);
+});
+test('character creation uses database defaults', function () {
+    $response = $this->get('/character-builder');
 
-        $showRoute = \Route::getRoutes()->getByName('character.show');
-        $this->assertEquals('GET', $showRoute->methods()[0]);
-        $this->assertEquals('character/{character_key}', $showRoute->uri());
-    }
+    $character = Character::latest()->first();
+    expect($character->level)->toEqual(1);
+    expect($character->character_data)->toEqual([]);
+    expect($character->is_public)->toBeFalse();
+    expect($character->profile_image_path)->toBeNull();
+});
+test('edit loads character data correctly', function () {
+    $character = Character::factory()->create([
+        'character_key' => 'ABC1234567',
+        'name' => 'Test Hero',
+        'class' => 'warrior',
+        'subclass' => 'call-of-the-brave',
+        'ancestry' => 'human',
+        'community' => 'order-of-scholars',
+        'character_data' => [
+            'background' => ['answers' => ['Answer 1', 'Answer 2']],
+            'connections' => ['Connection 1'],
+        ],
+    ]);
 
-    #[Test]
-    public function character_key_generation_produces_unique_keys(): void
-    {
-        // Ensure clean database state
-        Character::query()->delete();
-        
-        // Create multiple characters to ensure uniqueness
-        $response1 = $this->get('/character-builder');
-        $response2 = $this->get('/character-builder');
-        $response3 = $this->get('/character-builder');
+    $response = $this->get("/character-builder/{$character->character_key}");
 
-        $characters = Character::all();
-        $this->assertCount(3, $characters);
+    $response->assertStatus(200);
+    $loadedCharacter = $response->viewData('character');
 
-        $keys = $characters->pluck('character_key')->toArray();
-        $this->assertEquals(3, count(array_unique($keys)));
-    }
+    expect($loadedCharacter->name)->toEqual('Test Hero');
+    expect($loadedCharacter->selected_class)->toEqual('warrior');
+    expect($loadedCharacter->selected_subclass)->toEqual('call-of-the-brave');
+    expect($loadedCharacter->selected_ancestry)->toEqual('human');
+    expect($loadedCharacter->selected_community)->toEqual('order-of-scholars');
+    expect($loadedCharacter->background_answers)->toEqual(['Answer 1', 'Answer 2']);
+    expect($loadedCharacter->connection_answers)->toEqual(['Connection 1']);
+});
+test('show loads character data correctly', function () {
+    $character = Character::factory()->create([
+        'character_key' => 'ABC1234567',
+        'name' => 'Public Hero',
+        'class' => 'ranger',
+    ]);
 
-    #[Test]
-    public function character_creation_uses_database_defaults(): void
-    {
-        $response = $this->get('/character-builder');
+    $response = $this->get("/character/{$character->character_key}");
 
-        $character = Character::latest()->first();
-        $this->assertEquals(1, $character->level);
-        $this->assertEquals([], $character->character_data);
-        $this->assertFalse($character->is_public);
-        $this->assertNull($character->profile_image_path);
-    }
+    $response->assertStatus(200);
+    $loadedCharacter = $response->viewData('character');
 
-    #[Test]
-    public function edit_loads_character_data_correctly(): void
-    {
-        $character = Character::factory()->create([
-            'character_key' => 'ABC1234567',
-            'name' => 'Test Hero',
-            'class' => 'warrior',
-            'subclass' => 'call-of-the-brave',
-            'ancestry' => 'human',
-            'community' => 'order-of-scholars',
-            'character_data' => [
-                'background' => ['answers' => ['Answer 1', 'Answer 2']],
-                'connections' => ['Connection 1'],
-            ],
-        ]);
+    expect($loadedCharacter->name)->toEqual('Public Hero');
+    expect($loadedCharacter->selected_class)->toEqual('ranger');
+});
+test('character key validation works', function () {
+    // Test with various invalid character keys
+    $this->get('/character-builder/short')->assertStatus(404);
+    $this->get('/character-builder/toolongkey123456')->assertStatus(404);
+    $this->get('/character-builder/invalid@chr')->assertStatus(404);
 
-        $response = $this->get("/character-builder/{$character->character_key}");
+    $this->get('/character/short')->assertStatus(404);
+    $this->get('/character/toolongkey123456')->assertStatus(404);
+    $this->get('/character/invalid@chr')->assertStatus(404);
+});
+test('controller handles load character action errors', function () {
+    // This tests the error handling when LoadCharacterAction fails
+    // We can't easily mock the action in a feature test, but we can test edge cases
+    // Test with a character that exists but has malformed data
+    $character = Character::factory()->create([
+        'character_key' => 'ABC1234567',
+        'character_data' => 'invalid-json-data', // This would cause issues in real scenarios
+    ]);
 
-        $response->assertStatus(200);
-        $loadedCharacter = $response->viewData('character');
+    // The action should handle this gracefully and not crash
+    $response = $this->get("/character-builder/{$character->character_key}");
 
-        $this->assertEquals('Test Hero', $loadedCharacter->name);
-        $this->assertEquals('warrior', $loadedCharacter->selected_class);
-        $this->assertEquals('call-of-the-brave', $loadedCharacter->selected_subclass);
-        $this->assertEquals('human', $loadedCharacter->selected_ancestry);
-        $this->assertEquals('order-of-scholars', $loadedCharacter->selected_community);
-        $this->assertEquals(['Answer 1', 'Answer 2'], $loadedCharacter->background_answers);
-        $this->assertEquals(['Connection 1'], $loadedCharacter->connection_answers);
-    }
+    // Should either work (if action handles it) or return proper error
+    expect(in_array($response->status(), [200, 404, 500]))->toBeTrue();
+});
+test('multiple character creation sessions work independently', function () {
+    // Ensure clean database state
+    Character::query()->delete();
 
-    #[Test]
-    public function show_loads_character_data_correctly(): void
-    {
-        $character = Character::factory()->create([
-            'character_key' => 'ABC1234567',
-            'name' => 'Public Hero',
-            'class' => 'ranger',
-        ]);
+    // Simulate multiple users creating characters simultaneously
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
 
-        $response = $this->get("/character/{$character->character_key}");
+    $response1 = $this->actingAs($user1)->get('/character-builder');
+    $response2 = $this->actingAs($user2)->get('/character-builder');
 
-        $response->assertStatus(200);
-        $loadedCharacter = $response->viewData('character');
+    $characters = Character::all();
+    expect($characters)->toHaveCount(2);
 
-        $this->assertEquals('Public Hero', $loadedCharacter->name);
-        $this->assertEquals('ranger', $loadedCharacter->selected_class);
-    }
+    $character1 = Character::where('user_id', $user1->id)->first();
+    $character2 = Character::where('user_id', $user2->id)->first();
 
-    #[Test]
-    public function character_key_validation_works(): void
-    {
-        // Test with various invalid character keys
-        $this->get('/character-builder/short')->assertStatus(404);
-        $this->get('/character-builder/toolongkey123456')->assertStatus(404);
-        $this->get('/character-builder/invalid@chr')->assertStatus(404);
-
-        $this->get('/character/short')->assertStatus(404);
-        $this->get('/character/toolongkey123456')->assertStatus(404);
-        $this->get('/character/invalid@chr')->assertStatus(404);
-    }
-
-    #[Test]
-    public function controller_handles_load_character_action_errors(): void
-    {
-        // This tests the error handling when LoadCharacterAction fails
-        // We can't easily mock the action in a feature test, but we can test edge cases
-
-        // Test with a character that exists but has malformed data
-        $character = Character::factory()->create([
-            'character_key' => 'ABC1234567',
-            'character_data' => 'invalid-json-data', // This would cause issues in real scenarios
-        ]);
-
-        // The action should handle this gracefully and not crash
-        $response = $this->get("/character-builder/{$character->character_key}");
-
-        // Should either work (if action handles it) or return proper error
-        $this->assertTrue(in_array($response->status(), [200, 404, 500]));
-    }
-
-    #[Test]
-    public function multiple_character_creation_sessions_work_independently(): void
-    {
-        // Ensure clean database state
-        Character::query()->delete();
-        
-        // Simulate multiple users creating characters simultaneously
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
-
-        $response1 = $this->actingAs($user1)->get('/character-builder');
-        $response2 = $this->actingAs($user2)->get('/character-builder');
-
-        $characters = Character::all();
-        $this->assertCount(2, $characters);
-
-        $character1 = Character::where('user_id', $user1->id)->first();
-        $character2 = Character::where('user_id', $user2->id)->first();
-
-        $this->assertNotEquals($character1->character_key, $character2->character_key);
-        $this->assertEquals($user1->id, $character1->user_id);
-        $this->assertEquals($user2->id, $character2->user_id);
-    }
-}
+    $this->assertNotEquals($character1->character_key, $character2->character_key);
+    expect($character1->user_id)->toEqual($user1->id);
+    expect($character2->user_id)->toEqual($user2->id);
+});

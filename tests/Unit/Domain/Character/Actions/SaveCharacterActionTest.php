@@ -1,9 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Character\Actions;
-
 use Domain\Character\Actions\SaveCharacterAction;
 use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Models\Character;
@@ -12,323 +9,277 @@ use Domain\Character\Models\CharacterEquipment;
 use Domain\Character\Models\CharacterExperience;
 use Domain\Character\Models\CharacterTrait;
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class SaveCharacterActionTest extends TestCase
-{
-    use RefreshDatabase;
+beforeEach(function () {
+    $this->action = new SaveCharacterAction;
+});
+it('creates new character with basic data', function () {
+    $user = User::factory()->create();
+    $builderData = new CharacterBuilderData(
+        name: 'Test Hero',
+        selected_class: 'warrior',
+        selected_subclass: 'call-of-the-brave',
+        selected_ancestry: 'human',
+        selected_community: 'order-of-scholars'
+    );
 
-    private SaveCharacterAction $action;
+    $character = $this->action->execute($builderData, $user);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->action = new SaveCharacterAction;
-    }
+    expect($character)->toBeInstanceOf(Character::class);
+    expect($character->name)->toEqual('Test Hero');
+    expect($character->class)->toEqual('warrior');
+    expect($character->subclass)->toEqual('call-of-the-brave');
+    expect($character->ancestry)->toEqual('human');
+    expect($character->community)->toEqual('order-of-scholars');
+    expect($character->user_id)->toEqual($user->id);
+    expect($character->character_key)->not->toBeNull();
+    expect(strlen($character->character_key))->toEqual(10);
+});
+it('creates character without user', function () {
+    $builderData = new CharacterBuilderData(
+        name: 'Anonymous Hero',
+        selected_class: 'ranger'
+    );
 
-    #[Test]
-    public function it_creates_new_character_with_basic_data(): void
-    {
-        $user = User::factory()->create();
-        $builderData = new CharacterBuilderData(
-            name: 'Test Hero',
-            selected_class: 'warrior',
-            selected_subclass: 'call-of-the-brave',
-            selected_ancestry: 'human',
-            selected_community: 'order-of-scholars'
-        );
+    $character = $this->action->execute($builderData, null);
 
-        $character = $this->action->execute($builderData, $user);
+    expect($character)->toBeInstanceOf(Character::class);
+    expect($character->name)->toEqual('Anonymous Hero');
+    expect($character->class)->toEqual('ranger');
+    expect($character->user_id)->toBeNull();
+});
+it('creates character with null values', function () {
+    $builderData = new CharacterBuilderData(
+        name: null,
+        selected_class: null,
+        selected_subclass: null,
+        selected_ancestry: null,
+        selected_community: null
+    );
 
-        $this->assertInstanceOf(Character::class, $character);
-        $this->assertEquals('Test Hero', $character->name);
-        $this->assertEquals('warrior', $character->class);
-        $this->assertEquals('call-of-the-brave', $character->subclass);
-        $this->assertEquals('human', $character->ancestry);
-        $this->assertEquals('order-of-scholars', $character->community);
-        $this->assertEquals($user->id, $character->user_id);
-        $this->assertNotNull($character->character_key);
-        $this->assertEquals(10, strlen($character->character_key));
-    }
+    $character = $this->action->execute($builderData, null);
 
-    #[Test]
-    public function it_creates_character_without_user(): void
-    {
-        $builderData = new CharacterBuilderData(
-            name: 'Anonymous Hero',
-            selected_class: 'ranger'
-        );
+    expect($character)->toBeInstanceOf(Character::class);
+    expect($character->name)->toBeNull();
+    expect($character->class)->toBeNull();
+    expect($character->subclass)->toBeNull();
+    expect($character->ancestry)->toBeNull();
+    expect($character->community)->toBeNull();
+});
+it('saves character traits', function () {
+    $builderData = new CharacterBuilderData(
+        name: 'Test Hero',
+        assigned_traits: [
+            'agility' => 2,
+            'strength' => -1,
+            'finesse' => 0,
+        ]
+    );
 
-        $character = $this->action->execute($builderData, null);
+    $character = $this->action->execute($builderData, null);
 
-        $this->assertInstanceOf(Character::class, $character);
-        $this->assertEquals('Anonymous Hero', $character->name);
-        $this->assertEquals('ranger', $character->class);
-        $this->assertNull($character->user_id);
-    }
+    expect($character->traits)->toHaveCount(3);
 
-    #[Test]
-    public function it_creates_character_with_null_values(): void
-    {
-        $builderData = new CharacterBuilderData(
-            name: null,
-            selected_class: null,
-            selected_subclass: null,
-            selected_ancestry: null,
-            selected_community: null
-        );
+    $traits = $character->traits->keyBy('trait_name');
+    expect($traits['agility']->trait_value)->toEqual(2);
+    expect($traits['strength']->trait_value)->toEqual(-1);
+    expect($traits['finesse']->trait_value)->toEqual(0);
+});
+it('saves character equipment', function () {
+    $builderData = new CharacterBuilderData(
+        name: 'Test Hero',
+        selected_equipment: [
+            [
+                'key' => 'shortsword',
+                'type' => 'weapon',
+                'data' => ['damage' => '1d6'],
+            ],
+            [
+                'key' => 'leather-armor',
+                'type' => 'armor',
+                'data' => ['armor_value' => 2],
+            ],
+        ]
+    );
 
-        $character = $this->action->execute($builderData, null);
+    $character = $this->action->execute($builderData, null);
 
-        $this->assertInstanceOf(Character::class, $character);
-        $this->assertNull($character->name);
-        $this->assertNull($character->class);
-        $this->assertNull($character->subclass);
-        $this->assertNull($character->ancestry);
-        $this->assertNull($character->community);
-    }
+    expect($character->equipment)->toHaveCount(2);
 
-    #[Test]
-    public function it_saves_character_traits(): void
-    {
-        $builderData = new CharacterBuilderData(
-            name: 'Test Hero',
-            assigned_traits: [
-                'agility' => 2,
-                'strength' => -1,
-                'finesse' => 0,
-            ]
-        );
+    $equipment = $character->equipment->keyBy('equipment_key');
+    expect($equipment->has('shortsword'))->toBeTrue();
+    expect($equipment->has('leather-armor'))->toBeTrue();
 
-        $character = $this->action->execute($builderData, null);
+    $sword = $equipment['shortsword'];
+    expect($sword->equipment_type)->toEqual('weapon');
+    expect($sword->equipment_data)->toEqual(['damage' => '1d6']);
 
-        $this->assertCount(3, $character->traits);
+    $armor = $equipment['leather-armor'];
+    expect($armor->equipment_type)->toEqual('armor');
+    expect($armor->equipment_data)->toEqual(['armor_value' => 2]);
+});
+it('saves character experiences', function () {
+    $builderData = new CharacterBuilderData(
+        name: 'Test Hero',
+        experiences: [
+            [
+                'name' => 'Combat Training',
+                'description' => 'Trained with the city guard',
+                'modifier' => 2,
+            ],
+            [
+                'name' => 'Academic Study',
+                'description' => 'Studied ancient texts',
+                'modifier' => 1,
+            ],
+        ]
+    );
 
-        $traits = $character->traits->keyBy('trait_name');
-        $this->assertEquals(2, $traits['agility']->trait_value);
-        $this->assertEquals(-1, $traits['strength']->trait_value);
-        $this->assertEquals(0, $traits['finesse']->trait_value);
-    }
+    $character = $this->action->execute($builderData, null);
 
-    #[Test]
-    public function it_saves_character_equipment(): void
-    {
-        $builderData = new CharacterBuilderData(
-            name: 'Test Hero',
-            selected_equipment: [
-                [
-                    'key' => 'shortsword',
-                    'type' => 'weapon',
-                    'data' => ['damage' => '1d6'],
-                ],
-                [
-                    'key' => 'leather-armor',
-                    'type' => 'armor',
-                    'data' => ['armor_value' => 2],
-                ],
-            ]
-        );
+    expect($character->experiences)->toHaveCount(2);
 
-        $character = $this->action->execute($builderData, null);
+    $experiences = $character->experiences;
+    expect($experiences[0]->experience_name)->toEqual('Combat Training');
+    expect($experiences[0]->experience_description)->toEqual('Trained with the city guard');
+    expect($experiences[0]->modifier)->toEqual(2);
 
-        $this->assertCount(2, $character->equipment);
+    expect($experiences[1]->experience_name)->toEqual('Academic Study');
+    expect($experiences[1]->experience_description)->toEqual('Studied ancient texts');
+    expect($experiences[1]->modifier)->toEqual(1);
+});
+it('saves character domain cards', function () {
+    $builderData = new CharacterBuilderData(
+        name: 'Test Hero',
+        selected_domain_cards: [
+            [
+                'domain' => 'blade',
+                'ability_key' => 'strike',
+                'ability_level' => 1,
+            ],
+            [
+                'domain' => 'grace',
+                'ability_key' => 'dodge',
+                'ability_level' => 2,
+            ],
+        ]
+    );
 
-        $equipment = $character->equipment->keyBy('equipment_key');
-        $this->assertTrue($equipment->has('shortsword'));
-        $this->assertTrue($equipment->has('leather-armor'));
+    $character = $this->action->execute($builderData, null);
 
-        $sword = $equipment['shortsword'];
-        $this->assertEquals('weapon', $sword->equipment_type);
-        $this->assertEquals(['damage' => '1d6'], $sword->equipment_data);
+    expect($character->domainCards)->toHaveCount(2);
 
-        $armor = $equipment['leather-armor'];
-        $this->assertEquals('armor', $armor->equipment_type);
-        $this->assertEquals(['armor_value' => 2], $armor->equipment_data);
-    }
+    $domainCards = $character->domainCards;
+    expect($domainCards[0]->domain)->toEqual('blade');
+    expect($domainCards[0]->ability_key)->toEqual('strike');
+    expect($domainCards[0]->ability_level)->toEqual(1);
 
-    #[Test]
-    public function it_saves_character_experiences(): void
-    {
-        $builderData = new CharacterBuilderData(
-            name: 'Test Hero',
-            experiences: [
-                [
-                    'name' => 'Combat Training',
-                    'description' => 'Trained with the city guard',
-                    'modifier' => 2,
-                ],
-                [
-                    'name' => 'Academic Study',
-                    'description' => 'Studied ancient texts',
-                    'modifier' => 1,
-                ],
-            ]
-        );
+    expect($domainCards[1]->domain)->toEqual('grace');
+    expect($domainCards[1]->ability_key)->toEqual('dodge');
+    expect($domainCards[1]->ability_level)->toEqual(2);
+});
+it('saves background and connection data', function () {
+    $builderData = new CharacterBuilderData(
+        name: 'Test Hero',
+        background_answers: ['Answer 1', 'Answer 2', 'Answer 3'],
+        connection_answers: ['Connection 1', 'Connection 2'],
+        physical_description: 'Tall and strong',
+        personality_traits: 'Brave and loyal',
+        personal_history: 'Born in a small village',
+        motivations: 'To protect the innocent'
+    );
 
-        $character = $this->action->execute($builderData, null);
+    $character = $this->action->execute($builderData, null);
 
-        $this->assertCount(2, $character->experiences);
+    $characterData = $character->character_data;
+    expect($characterData['background']['answers'])->toEqual(['Answer 1', 'Answer 2', 'Answer 3']);
+    expect($characterData['connections'])->toEqual(['Connection 1', 'Connection 2']);
+    expect($characterData['background']['physicalDescription'])->toEqual('Tall and strong');
+    expect($characterData['background']['personalityTraits'])->toEqual('Brave and loyal');
+    expect($characterData['background']['personalHistory'])->toEqual('Born in a small village');
+    expect($characterData['background']['motivations'])->toEqual('To protect the innocent');
+});
+it('updates existing character', function () {
+    $existingCharacter = Character::factory()->create([
+        'name' => 'Old Name',
+        'class' => 'warrior',
+    ]);
 
-        $experiences = $character->experiences;
-        $this->assertEquals('Combat Training', $experiences[0]->experience_name);
-        $this->assertEquals('Trained with the city guard', $experiences[0]->experience_description);
-        $this->assertEquals(2, $experiences[0]->modifier);
+    // Add some existing related data
+    CharacterTrait::factory()->create([
+        'character_id' => $existingCharacter->id,
+        'trait_name' => 'agility',
+        'trait_value' => 1,
+    ]);
 
-        $this->assertEquals('Academic Study', $experiences[1]->experience_name);
-        $this->assertEquals('Studied ancient texts', $experiences[1]->experience_description);
-        $this->assertEquals(1, $experiences[1]->modifier);
-    }
+    $builderData = new CharacterBuilderData(
+        name: 'Updated Name',
+        selected_class: 'ranger',
+        assigned_traits: [
+            'strength' => 2,
+            'finesse' => -1,
+        ]
+    );
 
-    #[Test]
-    public function it_saves_character_domain_cards(): void
-    {
-        $builderData = new CharacterBuilderData(
-            name: 'Test Hero',
-            selected_domain_cards: [
-                [
-                    'domain' => 'blade',
-                    'ability_key' => 'strike',
-                    'ability_level' => 1,
-                ],
-                [
-                    'domain' => 'grace',
-                    'ability_key' => 'dodge',
-                    'ability_level' => 2,
-                ],
-            ]
-        );
+    $updatedCharacter = $this->action->updateCharacter($existingCharacter, $builderData);
 
-        $character = $this->action->execute($builderData, null);
+    expect($updatedCharacter->name)->toEqual('Updated Name');
+    expect($updatedCharacter->class)->toEqual('ranger');
 
-        $this->assertCount(2, $character->domainCards);
+    // Old traits should be replaced with new ones
+    expect($updatedCharacter->traits)->toHaveCount(2);
+    $traits = $updatedCharacter->traits->keyBy('trait_name');
+    $this->assertArrayNotHasKey('agility', $traits->toArray());
+    expect($traits['strength']->trait_value)->toEqual(2);
+    expect($traits['finesse']->trait_value)->toEqual(-1);
+});
+it('clears related data when updating', function () {
+    $existingCharacter = Character::factory()->create();
 
-        $domainCards = $character->domainCards;
-        $this->assertEquals('blade', $domainCards[0]->domain);
-        $this->assertEquals('strike', $domainCards[0]->ability_key);
-        $this->assertEquals(1, $domainCards[0]->ability_level);
+    // Add existing related data
+    CharacterTrait::factory()->create(['character_id' => $existingCharacter->id]);
+    CharacterEquipment::factory()->create(['character_id' => $existingCharacter->id]);
+    CharacterExperience::factory()->create(['character_id' => $existingCharacter->id]);
+    CharacterDomainCard::factory()->create(['character_id' => $existingCharacter->id]);
 
-        $this->assertEquals('grace', $domainCards[1]->domain);
-        $this->assertEquals('dodge', $domainCards[1]->ability_key);
-        $this->assertEquals(2, $domainCards[1]->ability_level);
-    }
+    $builderData = new CharacterBuilderData(name: 'Test Hero');
 
-    #[Test]
-    public function it_saves_background_and_connection_data(): void
-    {
-        $builderData = new CharacterBuilderData(
-            name: 'Test Hero',
-            background_answers: ['Answer 1', 'Answer 2', 'Answer 3'],
-            connection_answers: ['Connection 1', 'Connection 2'],
-            physical_description: 'Tall and strong',
-            personality_traits: 'Brave and loyal',
-            personal_history: 'Born in a small village',
-            motivations: 'To protect the innocent'
-        );
+    $updatedCharacter = $this->action->updateCharacter($existingCharacter, $builderData);
 
-        $character = $this->action->execute($builderData, null);
+    // All related data should be cleared since builderData has empty arrays
+    expect($updatedCharacter->traits)->toHaveCount(0);
+    expect($updatedCharacter->equipment)->toHaveCount(0);
+    expect($updatedCharacter->experiences)->toHaveCount(0);
+    expect($updatedCharacter->domainCards)->toHaveCount(0);
+});
+it('handles profile image path', function () {
+    $builderData = new CharacterBuilderData(
+        name: 'Test Hero',
+        profile_image_path: 'portraits/hero.jpg'
+    );
 
-        $characterData = $character->character_data;
-        $this->assertEquals(['Answer 1', 'Answer 2', 'Answer 3'], $characterData['background']['answers']);
-        $this->assertEquals(['Connection 1', 'Connection 2'], $characterData['connections']);
-        $this->assertEquals('Tall and strong', $characterData['background']['physicalDescription']);
-        $this->assertEquals('Brave and loyal', $characterData['background']['personalityTraits']);
-        $this->assertEquals('Born in a small village', $characterData['background']['personalHistory']);
-        $this->assertEquals('To protect the innocent', $characterData['background']['motivations']);
-    }
+    $character = $this->action->execute($builderData, null);
 
-    #[Test]
-    public function it_updates_existing_character(): void
-    {
-        $existingCharacter = Character::factory()->create([
-            'name' => 'Old Name',
-            'class' => 'warrior',
-        ]);
+    expect($character->profile_image_path)->toEqual('portraits/hero.jpg');
+});
+it('wraps operation in transaction', function () {
+    // This test ensures that if anything fails, everything is rolled back
+    $builderData = new CharacterBuilderData(
+        name: 'Test Hero',
+        assigned_traits: [
+            'agility' => 2,
+        ]
+    );
 
-        // Add some existing related data
-        CharacterTrait::factory()->create([
-            'character_id' => $existingCharacter->id,
-            'trait_name' => 'agility',
-            'trait_value' => 1,
-        ]);
+    $character = $this->action->execute($builderData, null);
 
-        $builderData = new CharacterBuilderData(
-            name: 'Updated Name',
-            selected_class: 'ranger',
-            assigned_traits: [
-                'strength' => 2,
-                'finesse' => -1,
-            ]
-        );
-
-        $updatedCharacter = $this->action->updateCharacter($existingCharacter, $builderData);
-
-        $this->assertEquals('Updated Name', $updatedCharacter->name);
-        $this->assertEquals('ranger', $updatedCharacter->class);
-
-        // Old traits should be replaced with new ones
-        $this->assertCount(2, $updatedCharacter->traits);
-        $traits = $updatedCharacter->traits->keyBy('trait_name');
-        $this->assertArrayNotHasKey('agility', $traits->toArray());
-        $this->assertEquals(2, $traits['strength']->trait_value);
-        $this->assertEquals(-1, $traits['finesse']->trait_value);
-    }
-
-    #[Test]
-    public function it_clears_related_data_when_updating(): void
-    {
-        $existingCharacter = Character::factory()->create();
-
-        // Add existing related data
-        CharacterTrait::factory()->create(['character_id' => $existingCharacter->id]);
-        CharacterEquipment::factory()->create(['character_id' => $existingCharacter->id]);
-        CharacterExperience::factory()->create(['character_id' => $existingCharacter->id]);
-        CharacterDomainCard::factory()->create(['character_id' => $existingCharacter->id]);
-
-        $builderData = new CharacterBuilderData(name: 'Test Hero');
-
-        $updatedCharacter = $this->action->updateCharacter($existingCharacter, $builderData);
-
-        // All related data should be cleared since builderData has empty arrays
-        $this->assertCount(0, $updatedCharacter->traits);
-        $this->assertCount(0, $updatedCharacter->equipment);
-        $this->assertCount(0, $updatedCharacter->experiences);
-        $this->assertCount(0, $updatedCharacter->domainCards);
-    }
-
-    #[Test]
-    public function it_handles_profile_image_path(): void
-    {
-        $builderData = new CharacterBuilderData(
-            name: 'Test Hero',
-            profile_image_path: 'portraits/hero.jpg'
-        );
-
-        $character = $this->action->execute($builderData, null);
-
-        $this->assertEquals('portraits/hero.jpg', $character->profile_image_path);
-    }
-
-    #[Test]
-    public function it_wraps_operation_in_transaction(): void
-    {
-        // This test ensures that if anything fails, everything is rolled back
-        $builderData = new CharacterBuilderData(
-            name: 'Test Hero',
-            assigned_traits: [
-                'agility' => 2,
-            ]
-        );
-
-        $character = $this->action->execute($builderData, null);
-
-        // Verify both character and traits were created
-        $this->assertDatabaseHas('characters', ['name' => 'Test Hero']);
-        $this->assertDatabaseHas('character_traits', [
-            'character_id' => $character->id,
-            'trait_name' => 'agility',
-            'trait_value' => 2,
-        ]);
-    }
-}
+    // Verify both character and traits were created
+    $this->assertDatabaseHas('characters', ['name' => 'Test Hero']);
+    $this->assertDatabaseHas('character_traits', [
+        'character_id' => $character->id,
+        'trait_name' => 'agility',
+        'trait_value' => 2,
+    ]);
+});

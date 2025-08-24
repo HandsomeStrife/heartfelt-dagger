@@ -1,272 +1,228 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Campaign\Data;
-
 use Domain\Campaign\Data\CampaignData;
 use Domain\Campaign\Enums\CampaignStatus;
 use Domain\Campaign\Models\Campaign;
 use Domain\User\Data\UserData;
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Wireable;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class CampaignDataTest extends TestCase
-{
-    use RefreshDatabase;
+it('implements wireable interface', function () {
+    $campaignData = new CampaignData(
+        id: 1,
+        name: 'Test Campaign',
+        description: 'Test Description',
+        creator_id: 1,
+        invite_code: 'ABC12345',
+        campaign_code: 'XYZ67890',
+        status: CampaignStatus::ACTIVE
+    );
 
-    #[Test]
-    public function it_implements_wireable_interface(): void
-    {
+    expect($campaignData)->toBeInstanceOf(Wireable::class);
+});
+it('creates from array', function () {
+    $data = [
+        'id' => 1,
+        'name' => 'Array Campaign',
+        'description' => 'Created from array',
+        'creator_id' => 2,
+        'invite_code' => 'ARRAY123',
+        'campaign_code' => 'CAMP4567',
+        'status' => CampaignStatus::ACTIVE,
+        'created_at' => '2023-01-01 12:00:00',
+        'updated_at' => '2023-01-02 12:00:00',
+        'member_count' => 5,
+    ];
+
+    $campaignData = CampaignData::from($data);
+
+    expect($campaignData->id)->toEqual(1);
+    expect($campaignData->name)->toEqual('Array Campaign');
+    expect($campaignData->description)->toEqual('Created from array');
+    expect($campaignData->creator_id)->toEqual(2);
+    expect($campaignData->invite_code)->toEqual('ARRAY123');
+    expect($campaignData->campaign_code)->toEqual('CAMP4567');
+    expect($campaignData->status)->toEqual(CampaignStatus::ACTIVE);
+    expect($campaignData->created_at)->toEqual('2023-01-01 12:00:00');
+    expect($campaignData->updated_at)->toEqual('2023-01-02 12:00:00');
+    expect($campaignData->member_count)->toEqual(5);
+});
+it('creates from model', function () {
+    $user = User::factory()->create();
+    $campaign = Campaign::factory()->create([
+        'name' => 'Model Campaign',
+        'description' => 'Created from model',
+        'creator_id' => $user->id,
+        'status' => CampaignStatus::ARCHIVED,
+    ]);
+
+    $campaignData = CampaignData::from($campaign);
+
+    expect($campaignData->id)->toEqual($campaign->id);
+    expect($campaignData->name)->toEqual('Model Campaign');
+    expect($campaignData->description)->toEqual('Created from model');
+    expect($campaignData->creator_id)->toEqual($user->id);
+    expect($campaignData->invite_code)->toEqual($campaign->invite_code);
+    expect($campaignData->campaign_code)->toEqual($campaign->campaign_code);
+    expect($campaignData->status)->toEqual(CampaignStatus::ARCHIVED);
+    expect($campaignData->created_at)->not->toBeNull();
+    expect($campaignData->updated_at)->not->toBeNull();
+});
+it('creates from model with relationships', function () {
+    $user = User::factory()->create(['username' => 'test_creator']);
+    $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
+    $campaign->load('creator');
+
+    $campaignData = CampaignData::from($campaign);
+
+    expect($campaignData->creator)->not->toBeNull();
+    expect($campaignData->creator)->toBeInstanceOf(UserData::class);
+    expect($campaignData->creator->username)->toEqual('test_creator');
+    expect($campaignData->creator->id)->toEqual($user->id);
+});
+it('handles null optional fields', function () {
+    $campaignData = new CampaignData(
+        id: 1,
+        name: 'Minimal Campaign',
+        description: 'Minimal description',
+        creator_id: 1,
+        invite_code: 'MIN12345',
+        campaign_code: 'MINC6789',
+        status: CampaignStatus::ACTIVE,
+        created_at: null,
+        updated_at: null,
+        creator: null,
+        member_count: null
+    );
+
+    expect($campaignData->created_at)->toBeNull();
+    expect($campaignData->updated_at)->toBeNull();
+    expect($campaignData->creator)->toBeNull();
+    expect($campaignData->member_count)->toBeNull();
+});
+it('handles all status types', function () {
+    $statuses = [
+        CampaignStatus::ACTIVE,
+        CampaignStatus::ARCHIVED,
+        CampaignStatus::COMPLETED,
+        CampaignStatus::PAUSED,
+    ];
+
+    foreach ($statuses as $status) {
         $campaignData = new CampaignData(
             id: 1,
-            name: 'Test Campaign',
-            description: 'Test Description',
+            name: 'Status Test',
+            description: 'Testing status',
             creator_id: 1,
-            invite_code: 'ABC12345',
-            campaign_code: 'XYZ67890',
-            status: CampaignStatus::ACTIVE
+            invite_code: 'STATUS12',
+            campaign_code: 'STAT3456',
+            status: $status
         );
 
-        $this->assertInstanceOf(Wireable::class, $campaignData);
+        expect($campaignData->status)->toEqual($status);
+        expect($campaignData->status)->toBeInstanceOf(CampaignStatus::class);
     }
+});
+it('creates with member count from array', function () {
+    $data = [
+        'id' => 1,
+        'name' => 'Count Test',
+        'description' => 'Testing member count',
+        'creator_id' => 1,
+        'invite_code' => 'COUNT123',
+        'campaign_code' => 'CNT45678',
+        'status' => CampaignStatus::ACTIVE,
+        'member_count' => 42,
+    ];
 
-    #[Test]
-    public function it_creates_from_array(): void
-    {
-        $data = [
-            'id' => 1,
-            'name' => 'Array Campaign',
-            'description' => 'Created from array',
-            'creator_id' => 2,
-            'invite_code' => 'ARRAY123',
-            'campaign_code' => 'CAMP4567',
-            'status' => CampaignStatus::ACTIVE,
-            'created_at' => '2023-01-01 12:00:00',
-            'updated_at' => '2023-01-02 12:00:00',
-            'member_count' => 5,
-        ];
+    $campaignData = CampaignData::from($data);
 
-        $campaignData = CampaignData::from($data);
+    expect($campaignData->member_count)->toEqual(42);
+});
+it('preserves string status from array', function () {
+    $data = [
+        'id' => 1,
+        'name' => 'String Status',
+        'description' => 'Testing string status',
+        'creator_id' => 1,
+        'invite_code' => 'STR12345',
+        'campaign_code' => 'STRG6789',
+        'status' => 'paused', // String status
+    ];
 
-        $this->assertEquals(1, $campaignData->id);
-        $this->assertEquals('Array Campaign', $campaignData->name);
-        $this->assertEquals('Created from array', $campaignData->description);
-        $this->assertEquals(2, $campaignData->creator_id);
-        $this->assertEquals('ARRAY123', $campaignData->invite_code);
-        $this->assertEquals('CAMP4567', $campaignData->campaign_code);
-        $this->assertEquals(CampaignStatus::ACTIVE, $campaignData->status);
-        $this->assertEquals('2023-01-01 12:00:00', $campaignData->created_at);
-        $this->assertEquals('2023-01-02 12:00:00', $campaignData->updated_at);
-        $this->assertEquals(5, $campaignData->member_count);
-    }
+    $campaignData = CampaignData::from($data);
 
-    #[Test]
-    public function it_creates_from_model(): void
-    {
-        $user = User::factory()->create();
-        $campaign = Campaign::factory()->create([
-            'name' => 'Model Campaign',
-            'description' => 'Created from model',
-            'creator_id' => $user->id,
-            'status' => CampaignStatus::ARCHIVED,
-        ]);
+    expect($campaignData->status)->toEqual(CampaignStatus::PAUSED);
+});
+it('works with livewire to livewire', function () {
+    $campaignData = new CampaignData(
+        id: 1,
+        name: 'Livewire Test',
+        description: 'Testing Livewire compatibility',
+        creator_id: 1,
+        invite_code: 'LIVE1234',
+        campaign_code: 'LW567890',
+        status: CampaignStatus::ACTIVE,
+        member_count: 10
+    );
 
-        $campaignData = CampaignData::from($campaign);
+    $livewireData = $campaignData->toLivewire();
 
-        $this->assertEquals($campaign->id, $campaignData->id);
-        $this->assertEquals('Model Campaign', $campaignData->name);
-        $this->assertEquals('Created from model', $campaignData->description);
-        $this->assertEquals($user->id, $campaignData->creator_id);
-        $this->assertEquals($campaign->invite_code, $campaignData->invite_code);
-        $this->assertEquals($campaign->campaign_code, $campaignData->campaign_code);
-        $this->assertEquals(CampaignStatus::ARCHIVED, $campaignData->status);
-        $this->assertNotNull($campaignData->created_at);
-        $this->assertNotNull($campaignData->updated_at);
-    }
+    expect($livewireData)->toBeArray();
+    expect($livewireData)->toHaveKey('id');
+    expect($livewireData)->toHaveKey('name');
+    expect($livewireData)->toHaveKey('status');
+    expect($livewireData['id'])->toEqual(1);
+    expect($livewireData['name'])->toEqual('Livewire Test');
+});
+it('works with livewire from livewire', function () {
+    $livewireData = [
+        'id' => 2,
+        'name' => 'From Livewire',
+        'description' => 'Created from Livewire data',
+        'creator_id' => 2,
+        'invite_code' => 'FROM1234',
+        'campaign_code' => 'FLW56789',
+        'status' => CampaignStatus::COMPLETED,
+        'member_count' => 8,
+    ];
 
-    #[Test]
-    public function it_creates_from_model_with_relationships(): void
-    {
-        $user = User::factory()->create(['username' => 'test_creator']);
-        $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
-        $campaign->load('creator');
+    $campaignData = CampaignData::fromLivewire($livewireData);
 
-        $campaignData = CampaignData::from($campaign);
+    expect($campaignData)->toBeInstanceOf(CampaignData::class);
+    expect($campaignData->id)->toEqual(2);
+    expect($campaignData->name)->toEqual('From Livewire');
+    expect($campaignData->status)->toEqual(CampaignStatus::COMPLETED);
+    expect($campaignData->member_count)->toEqual(8);
+});
+it('handles large member counts', function () {
+    $campaignData = new CampaignData(
+        id: 1,
+        name: 'Large Campaign',
+        description: 'Testing large member count',
+        creator_id: 1,
+        invite_code: 'LARGE123',
+        campaign_code: 'LRG45678',
+        status: CampaignStatus::ACTIVE,
+        member_count: 999999
+    );
 
-        $this->assertNotNull($campaignData->creator);
-        $this->assertInstanceOf(UserData::class, $campaignData->creator);
-        $this->assertEquals('test_creator', $campaignData->creator->username);
-        $this->assertEquals($user->id, $campaignData->creator->id);
-    }
+    expect($campaignData->member_count)->toEqual(999999);
+});
+it('handles zero member count', function () {
+    $campaignData = new CampaignData(
+        id: 1,
+        name: 'Empty Campaign',
+        description: 'No members yet',
+        creator_id: 1,
+        invite_code: 'EMPTY123',
+        campaign_code: 'EMP45678',
+        status: CampaignStatus::ACTIVE,
+        member_count: 0
+    );
 
-    #[Test]
-    public function it_handles_null_optional_fields(): void
-    {
-        $campaignData = new CampaignData(
-            id: 1,
-            name: 'Minimal Campaign',
-            description: 'Minimal description',
-            creator_id: 1,
-            invite_code: 'MIN12345',
-            campaign_code: 'MINC6789',
-            status: CampaignStatus::ACTIVE,
-            created_at: null,
-            updated_at: null,
-            creator: null,
-            member_count: null
-        );
-
-        $this->assertNull($campaignData->created_at);
-        $this->assertNull($campaignData->updated_at);
-        $this->assertNull($campaignData->creator);
-        $this->assertNull($campaignData->member_count);
-    }
-
-    #[Test]
-    public function it_handles_all_status_types(): void
-    {
-        $statuses = [
-            CampaignStatus::ACTIVE,
-            CampaignStatus::ARCHIVED,
-            CampaignStatus::COMPLETED,
-            CampaignStatus::PAUSED,
-        ];
-
-        foreach ($statuses as $status) {
-            $campaignData = new CampaignData(
-                id: 1,
-                name: 'Status Test',
-                description: 'Testing status',
-                creator_id: 1,
-                invite_code: 'STATUS12',
-                campaign_code: 'STAT3456',
-                status: $status
-            );
-
-            $this->assertEquals($status, $campaignData->status);
-            $this->assertInstanceOf(CampaignStatus::class, $campaignData->status);
-        }
-    }
-
-    #[Test]
-    public function it_creates_with_member_count_from_array(): void
-    {
-        $data = [
-            'id' => 1,
-            'name' => 'Count Test',
-            'description' => 'Testing member count',
-            'creator_id' => 1,
-            'invite_code' => 'COUNT123',
-            'campaign_code' => 'CNT45678',
-            'status' => CampaignStatus::ACTIVE,
-            'member_count' => 42,
-        ];
-
-        $campaignData = CampaignData::from($data);
-
-        $this->assertEquals(42, $campaignData->member_count);
-    }
-
-    #[Test]
-    public function it_preserves_string_status_from_array(): void
-    {
-        $data = [
-            'id' => 1,
-            'name' => 'String Status',
-            'description' => 'Testing string status',
-            'creator_id' => 1,
-            'invite_code' => 'STR12345',
-            'campaign_code' => 'STRG6789',
-            'status' => 'paused', // String status
-        ];
-
-        $campaignData = CampaignData::from($data);
-
-        $this->assertEquals(CampaignStatus::PAUSED, $campaignData->status);
-    }
-
-    #[Test]
-    public function it_works_with_livewire_toLivewire(): void
-    {
-        $campaignData = new CampaignData(
-            id: 1,
-            name: 'Livewire Test',
-            description: 'Testing Livewire compatibility',
-            creator_id: 1,
-            invite_code: 'LIVE1234',
-            campaign_code: 'LW567890',
-            status: CampaignStatus::ACTIVE,
-            member_count: 10
-        );
-
-        $livewireData = $campaignData->toLivewire();
-
-        $this->assertIsArray($livewireData);
-        $this->assertArrayHasKey('id', $livewireData);
-        $this->assertArrayHasKey('name', $livewireData);
-        $this->assertArrayHasKey('status', $livewireData);
-        $this->assertEquals(1, $livewireData['id']);
-        $this->assertEquals('Livewire Test', $livewireData['name']);
-    }
-
-    #[Test]
-    public function it_works_with_livewire_fromLivewire(): void
-    {
-        $livewireData = [
-            'id' => 2,
-            'name' => 'From Livewire',
-            'description' => 'Created from Livewire data',
-            'creator_id' => 2,
-            'invite_code' => 'FROM1234',
-            'campaign_code' => 'FLW56789',
-            'status' => CampaignStatus::COMPLETED,
-            'member_count' => 8,
-        ];
-
-        $campaignData = CampaignData::fromLivewire($livewireData);
-
-        $this->assertInstanceOf(CampaignData::class, $campaignData);
-        $this->assertEquals(2, $campaignData->id);
-        $this->assertEquals('From Livewire', $campaignData->name);
-        $this->assertEquals(CampaignStatus::COMPLETED, $campaignData->status);
-        $this->assertEquals(8, $campaignData->member_count);
-    }
-
-    #[Test]
-    public function it_handles_large_member_counts(): void
-    {
-        $campaignData = new CampaignData(
-            id: 1,
-            name: 'Large Campaign',
-            description: 'Testing large member count',
-            creator_id: 1,
-            invite_code: 'LARGE123',
-            campaign_code: 'LRG45678',
-            status: CampaignStatus::ACTIVE,
-            member_count: 999999
-        );
-
-        $this->assertEquals(999999, $campaignData->member_count);
-    }
-
-    #[Test]
-    public function it_handles_zero_member_count(): void
-    {
-        $campaignData = new CampaignData(
-            id: 1,
-            name: 'Empty Campaign',
-            description: 'No members yet',
-            creator_id: 1,
-            invite_code: 'EMPTY123',
-            campaign_code: 'EMP45678',
-            status: CampaignStatus::ACTIVE,
-            member_count: 0
-        );
-
-        $this->assertEquals(0, $campaignData->member_count);
-    }
-}
+    expect($campaignData->member_count)->toEqual(0);
+});

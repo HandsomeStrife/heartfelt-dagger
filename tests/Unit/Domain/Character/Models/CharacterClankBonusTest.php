@@ -1,75 +1,49 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Character\Models;
-
 use Domain\Character\Models\Character;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class CharacterClankBonusTest extends TestCase
-{
-    use RefreshDatabase;
+test('clank ancestry can select bonus experience', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'clank',
+        'character_data' => ['clank_bonus_experience' => 'Blacksmith'],
+    ]);
 
-    #[Test]
-    public function clank_ancestry_can_select_bonus_experience(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'clank',
-            'character_data' => ['clank_bonus_experience' => 'Blacksmith'],
-        ]);
+    expect($character->getClankBonusExperience())->toEqual('Blacksmith');
+});
+test('non clank ancestry returns null for bonus experience', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'human',
+        'character_data' => ['clank_bonus_experience' => 'Blacksmith'],
+    ]);
 
-        $this->assertEquals('Blacksmith', $character->getClankBonusExperience());
-    }
+    expect($character->getClankBonusExperience())->toBeNull();
+});
+test('clank bonus experience increases modifier to three', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'clank',
+        'character_data' => ['clank_bonus_experience' => 'Blacksmith'],
+    ]);
 
-    #[Test]
-    public function non_clank_ancestry_returns_null_for_bonus_experience(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'human',
-            'character_data' => ['clank_bonus_experience' => 'Blacksmith'],
-        ]);
+    expect($character->getExperienceModifier('Blacksmith'))->toEqual(3);
+    expect($character->getExperienceModifier('Other Experience'))->toEqual(2);
+});
+test('non clank ancestry always has base modifier', function () {
+    $character = Character::factory()->create(['ancestry' => 'human']);
 
-        $this->assertNull($character->getClankBonusExperience());
-    }
+    expect($character->getExperienceModifier('Blacksmith'))->toEqual(2);
+    expect($character->getExperienceModifier('Other Experience'))->toEqual(2);
+});
+test('clank ancestry without selected bonus has base modifier', function () {
+    $character = Character::factory()->create(['ancestry' => 'clank']);
 
-    #[Test]
-    public function clank_bonus_experience_increases_modifier_to_three(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'clank',
-            'character_data' => ['clank_bonus_experience' => 'Blacksmith'],
-        ]);
+    expect($character->getExperienceModifier('Blacksmith'))->toEqual(2);
+    expect($character->getExperienceModifier('Other Experience'))->toEqual(2);
+});
+test('clank bonus experience returns null when not set', function () {
+    $character = Character::factory()->create(['ancestry' => 'clank']);
 
-        $this->assertEquals(3, $character->getExperienceModifier('Blacksmith'));
-        $this->assertEquals(2, $character->getExperienceModifier('Other Experience'));
-    }
-
-    #[Test]
-    public function non_clank_ancestry_always_has_base_modifier(): void
-    {
-        $character = Character::factory()->create(['ancestry' => 'human']);
-
-        $this->assertEquals(2, $character->getExperienceModifier('Blacksmith'));
-        $this->assertEquals(2, $character->getExperienceModifier('Other Experience'));
-    }
-
-    #[Test]
-    public function clank_ancestry_without_selected_bonus_has_base_modifier(): void
-    {
-        $character = Character::factory()->create(['ancestry' => 'clank']);
-
-        $this->assertEquals(2, $character->getExperienceModifier('Blacksmith'));
-        $this->assertEquals(2, $character->getExperienceModifier('Other Experience'));
-    }
-
-    #[Test]
-    public function clank_bonus_experience_returns_null_when_not_set(): void
-    {
-        $character = Character::factory()->create(['ancestry' => 'clank']);
-
-        $this->assertNull($character->getClankBonusExperience());
-    }
-}
+    expect($character->getClankBonusExperience())->toBeNull();
+});

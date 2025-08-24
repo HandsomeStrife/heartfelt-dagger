@@ -138,6 +138,144 @@
             }
         ]
     },
+    "hedge": {
+        "key": "hedge",
+        "name": "Hedge",
+        "description": "Play the Hedge if you want to craft protective charms and protective essences.",
+        "spellcastTrait": "Knowledge",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "foundationFeatures": [
+            {
+                "name": "Herbal Remedies",
+                "description": "When you or an ally clear one or more Hit Points or Stress as the result of using a consumable, increase the number cleared by one."
+            },
+            {
+                "name": "Tethered Talisman",
+                "description": "Once per rest, you can imbue a small item with your protective essence. When the person holding the talisman takes damage, you can expend its magic to reduce the number of Hit Points they mark by one. You can't create a new talisman until the old one has been used."
+            }
+        ],
+        "specializationFeatures": [
+            {
+                "name": "Walk Between Worlds",
+                "description": "Make a Spellcast Roll (13) to step beyond the veil of death and converse with any nearby spirits. Place a number of tokens equal to your Spellcast trait on this card and remove one each time a spirit answers a question. You return to the mortal realm when the last token is removed."
+            },
+            {
+                "name": "Enhanced Hex",
+                "description": "Attacks you make against Hexed creatures gain a damage bonus equal to your Proficiency."
+            }
+        ],
+        "masteryFeatures": [
+            {
+                "name": "Circle of Power",
+                "description": "Once per rest, mark a circle on the ground around you up to Very Close range and place a number of tokens equal to your Spellcast Trait on this card. Each time you or an ally within the circle makes an action roll or is hit with an attack, remove a token. This spell lasts until the last token is removed or you step out of the circle. While within this circle, you and any allies: Gain a +4 bonus to your damage thresholds. Gain a +2 bonus to your attack rolls. Gain a +1 bonus to your Evasion."
+            }
+        ]
+    },
+    "juggernaut": {
+        "key": "juggernaut",
+        "name": "Juggernaut",
+        "description": "Play the Juggernaut if you want to focus on raw power and multi-target destruction.",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "foundationFeatures": [
+            {
+                "name": "Powerhouse",
+                "description": "Increase the d8 damage dice for your unarmed attack to d10. Additionally, you can mark a Stress to target two creatures within Melee range with a single attack roll."
+            }
+        ],
+        "specializationFeatures": [
+            {
+                "name": "Rugged",
+                "description": "Gain a permanent +3 bonus to your Severe damage threshold. Additionally, your \"Powerhouse\" feature can target up to three creatures instead of two."
+            }
+        ],
+        "masteryFeatures": [
+            {
+                "name": "Pummeljoy",
+                "description": "When you achieve a critical success on a weapon attack in Melee range, you gain an additional Hope, clear an additional Stress, and gain a +1 bonus to your Proficiency for the attack."
+            },
+            {
+                "name": "Not Done Yet",
+                "description": "When you would mark more than one Hit Point from an attack, you can gain a Hope or clear a Stress."
+            }
+        ]
+    },
+    "martial artist": {
+        "key": "martial artist",
+        "name": "Martial Artist",
+        "description": "Play the Martial Artist if you want stance-based combat with Focus resource management and tactical flexibility.",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "foundationFeatures": [
+            {
+                "name": "Martial Form",
+                "description": "You start with two martial stances from Tier 1. When you reach a new tier, take two martial stances of your tier or lower. You have access to 16 different stances across 4 tiers, allowing for customizable fighting styles."
+            },
+            {
+                "name": "Focus Mechanics",
+                "description": "When you rest, roll a number of d6s equal to your Instinct and place a number of Focus tokens equal to the highest value rolled. Spend a Focus to shift into a stance until you take Severe damage, the scene ends, you mark your last Hit Point, or you shift into another stance."
+            }
+        ],
+        "specializationFeatures": [
+            {
+                "name": "Keen Defenses",
+                "description": "When you are targeted by an attack, you can spend a Focus to give the attack roll disadvantage."
+            },
+            {
+                "name": "Spirit Blast",
+                "description": "Spend a Focus to make an Instinct Roll against an adversary within Close range. On a success, deal d20+3 magic damage using your Proficiency, and you can spend an additional Focus to make them temporarily Vulnerable."
+            }
+        ],
+        "masteryFeatures": [
+            {
+                "name": "Limit Breaker",
+                "description": "Once per rest, you can perform an unbelievable feat such as running across water, leaping between distant rooftops, or scaling the side of a building without needing to roll. When you do, gain a Hope and clear a Stress."
+            }
+        ]
+    },
+    "moon": {
+        "key": "moon",
+        "name": "Moon",
+        "description": "Play the Moon if you want to use illusion and lunar magic to confound your enemies.",
+        "spellcastTrait": "Instinct",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "foundationFeatures": [
+            {
+                "name": "Night's Glamour",
+                "description": "Mark a Stress to Glamour yourself in a magical facade that lasts until you mark a Hit Point, make an attack, or take a rest. While Glamoured, you can: Disguise yourself to look like any creature of your approximate size that you've seen. Enhance your own appearance. You gain advantage on Presence Rolls that leverage this change."
+            }
+        ],
+        "specializationFeatures": [
+            {
+                "name": "Moonbeam",
+                "description": "Once per session, you can conjure a column of moonlight that illuminates the area within Close range until the end of the scene. While bathed in this moonlight, you and any allies gain a +1 bonus to Spellcast Rolls and advantage on rolls to see through illusions."
+            },
+            {
+                "name": "Ire of Pale Light",
+                "description": "When a Hexed creature within Far range fails an attack roll, they must mark a Stress."
+            }
+        ],
+        "masteryFeatures": [
+            {
+                "name": "Lunar Phases",
+                "description": "Your spirit ebbs and flows like the phases of the moon. At the beginning of each session, roll a d4 and gain the matching effect until the end of the session: 1: New - You can always spend a Hope to reduce Minor damage to None. 2: Waxing - Gain a +2 bonus to your damage rolls. 3: Full - Gain a +2 bonus to your damage thresholds. 4: Waning - Gain a +1 bonus to your Evasion."
+            }
+        ]
+    },
     "nightwalker": {
         "key": "nightwalker",
         "name": "Nightwalker",
@@ -177,6 +315,84 @@
                 "name": "Vanishing Act",
                 "description": "Mark a Stress to become Cloaked at any time. When Cloaked from this feature, you automatically clear the Restrained condition if you have it. You remain Cloaked in this way until you roll with Fear or until your next rest.",
                 "stressCost": 1
+            }
+        ]
+    },
+    "pact of the endless": {
+        "key": "pact of the endless",
+        "name": "Pact of the Endless",
+        "description": "Play the Pact of the Endless if you want to drain your enemies while protecting yourself and your allies.",
+        "spellcastTrait": "Presence",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "foundationFeatures": [
+            {
+                "name": "Patron's Mantle",
+                "description": "Mark a Stress to cloak yourself in a terrifying aspect of your Patron that lasts until you take Severe damage or the scene ends: When you would mark an Armor Slot, you can spend 2 Favor instead. You can boost your target for action rolls to intimidate a target."
+            },
+            {
+                "name": "Deathly Devotion",
+                "description": "Once per long rest, you can spend a Favor to gain a +1 bonus to your Evasion until you mark a Hit Point or take a rest."
+            }
+        ],
+        "specializationFeatures": [
+            {
+                "name": "Draining Invocation",
+                "description": "When an adversary attacks you or an ally within Very Close range, you can spend a Favor to make them use a d12 instead of a d20 for the attack roll. Additionally, the adversary must mark a Stress, and you can clear a Stress."
+            }
+        ],
+        "masteryFeatures": [
+            {
+                "name": "Dark Aegis",
+                "description": "Once per long rest, when you would mark any number of Hit Points, you can spend a Favor instead."
+            },
+            {
+                "name": "Draining Bane",
+                "description": "When an adversary attacks you or an ally within Very Close range, you can spend 2 Favor to temporarily Drain them. When you do, they must mark a Stress and you can clear a Stress. A Drained creature uses a d12 instead of a d20 for attack rolls."
+            }
+        ]
+    },
+    "pact of the wrathful": {
+        "key": "pact of the wrathful",
+        "name": "Pact of the Wrathful",
+        "description": "Play the Pact of the Wrathful if you want to enhance your weapon attacks with your patron's fury.",
+        "spellcastTrait": "Presence",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "foundationFeatures": [
+            {
+                "name": "Favored Weapon",
+                "description": "Mark a Stress to cloak your weapon with your Patron's fury until you deal Severe damage. On a successful melee weapon attack, you can spend any number of Favor to gain a +1d6 damage bonus for each Favor spent."
+            },
+            {
+                "name": "Herald of Death",
+                "description": "When you fail an attack roll, you can spend a Favor to reroll it. If it fails again, mark a Stress and take the new result."
+            }
+        ],
+        "specializationFeatures": [
+            {
+                "name": "Menacing Reach",
+                "description": "When you imbue your weapon with your Patron's fury, you can spend an additional Stress to increase its range by one step (Melee to Very Close, Very Close to Close, etc.)."
+            },
+            {
+                "name": "Diminish My Foes",
+                "description": "When you succeed with Hope on an action roll against a target, you can spend a Hope to make your target mark a Stress."
+            }
+        ],
+        "masteryFeatures": [
+            {
+                "name": "Fearsome Attack",
+                "description": "You can always spend a Favor to reroll any number of your damage dice and continue spending Favor to reroll the same dice as many times as you'd like."
+            },
+            {
+                "name": "Divine Ire",
+                "description": "Once per rest, when you take damage, you can spend any number of Favor to deal that many Hit Points to adversaries within Close range. Each target must mark a Hit Point."
             }
         ]
     },

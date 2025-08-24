@@ -1,168 +1,148 @@
 <?php
 
-namespace Tests\Feature;
-
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class NavigationTest extends TestCase
-{
-    use RefreshDatabase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-    public function test_navigation_shows_character_links_for_unauthenticated_users(): void
-    {
-        $response = $this->get('/');
-        
-        // Guest users should see branding and guest navigation links
-        $response->assertSee('HeartfeltDagger');
-        $response->assertSee('Create');
-        $response->assertSee('Characters');
-        $response->assertSee('Login');
-        $response->assertSee('Register');
-        
-        // But should NOT see auth-only features  
-        $response->assertDontSee('Dashboard');
-        $response->assertDontSee('Campaigns');
-        $response->assertDontSee('Logout');
-    }
+test('navigation shows character links for unauthenticated users', function () {
+    $response = $this->get('/');
 
-    public function test_navigation_shows_user_menu_for_authenticated_users(): void
-    {
-        $user = User::factory()->create([
-            'username' => 'testuser',
-        ]);
+    // Guest users should see branding and guest navigation links
+    $response->assertSee('HeartfeltDagger');
+    $response->assertSee('Create');
+    $response->assertSee('Characters');
+    $response->assertSee('Login');
+    $response->assertSee('Register');
 
-        $response = $this->actingAs($user)->get('/dashboard');
+    // But should NOT see auth-only features  
+    $response->assertDontSee('Dashboard');
+    $response->assertDontSee('Campaigns');
+    $response->assertDontSee('Logout');
+});
 
-        $response->assertSee('testuser');
-        $response->assertSee('Dashboard');
-        $response->assertSee('My Characters');
-        $response->assertSee('Create Character');
-        $response->assertSee('Campaigns');
-        $response->assertSee('Logout');
-        $response->assertDontSee('Login');
-        $response->assertDontSee('Register');
-    }
+test('navigation shows user menu for authenticated users', function () {
+    $user = User::factory()->create([
+        'username' => 'testuser',
+    ]);
 
-    public function test_navigation_displays_user_avatar_initial(): void
-    {
-        $user = User::factory()->create([
-            'username' => 'TestUser',
-        ]);
+    $response = $this->actingAs($user)->get('/dashboard');
 
-        $response = $this->actingAs($user)->get('/');
+    $response->assertSee('testuser');
+    $response->assertSee('Dashboard');
+    $response->assertSee('My Characters');
+    $response->assertSee('Create Character');
+    $response->assertSee('Campaigns');
+    $response->assertSee('Logout');
+    $response->assertDontSee('Login');
+    $response->assertDontSee('Register');
+});
 
-        // Should show first letter of username
-        $response->assertSee('T');
-    }
+test('navigation displays user avatar initial', function () {
+    $user = User::factory()->create([
+        'username' => 'TestUser',
+    ]);
 
-    public function test_navigation_brand_links_to_home(): void
-    {
-        $response = $this->get('/');
+    $response = $this->actingAs($user)->get('/');
 
-        $response->assertSee('HeartfeltDagger');
-        $response->assertSee('href="/"', false);
-    }
+    // Should show first letter of username
+    $response->assertSee('T');
+});
 
-    public function test_character_builder_link_works(): void
-    {
-        $response = $this->get('/character-builder');
+test('navigation brand links to home', function () {
+    $response = $this->get('/');
 
-        $response->assertStatus(302);
-        $response->assertRedirect();
-        // Should redirect to the character builder edit page with new character
-        $this->assertTrue(str_contains($response->headers->get('location'), '/character-builder/'));
-    }
+    $response->assertSee('HeartfeltDagger');
+    $response->assertSee('href="/"', false);
+});
 
-    public function test_campaigns_link_works(): void
-    {
-        $user = User::factory()->create();
+test('character builder link works', function () {
+    $response = $this->get('/character-builder');
 
-        $response = $this->actingAs($user)->get('/campaigns');
+    $response->assertStatus(302);
+    $response->assertRedirect();
 
-        $response->assertStatus(200);
-    }
+    // Should redirect to the character builder edit page with new character
+    expect(str_contains($response->headers->get('location'), '/character-builder/'))->toBeTrue();
+});
 
-    public function test_navigation_is_not_shown_on_login_page(): void
-    {
-        $response = $this->get('/login');
+test('campaigns link works', function () {
+    $user = User::factory()->create();
 
-        // Navigation should not be visible on login page
-        $response->assertDontSee('Create Character');
-        $response->assertDontSee('My Characters');
-        $response->assertDontSee('Dashboard');
-    }
+    $response = $this->actingAs($user)->get('/campaigns');
 
-    public function test_navigation_is_not_shown_on_register_page(): void
-    {
-        $response = $this->get('/register');
+    $response->assertStatus(200);
+});
 
-        // Navigation should not be visible on register page
-        $response->assertDontSee('Create Character');
-        $response->assertDontSee('My Characters');
-        $response->assertDontSee('Dashboard');
-    }
+test('navigation is not shown on login page', function () {
+    $response = $this->get('/login');
 
-    public function test_navigation_is_shown_on_protected_pages(): void
-    {
-        $user = User::factory()->create();
+    // Navigation should not be visible on login page
+    $response->assertDontSee('Create Character');
+    $response->assertDontSee('My Characters');
+    $response->assertDontSee('Dashboard');
+});
 
-        $response = $this->actingAs($user)->get('/dashboard');
+test('navigation is not shown on register page', function () {
+    $response = $this->get('/register');
 
-        $response->assertSee('HeartfeltDagger');
-        $response->assertSee($user->username);
-    }
+    // Navigation should not be visible on register page
+    $response->assertDontSee('Create Character');
+    $response->assertDontSee('My Characters');
+    $response->assertDontSee('Dashboard');
+});
 
-    public function test_logout_form_submission(): void
-    {
-        $user = User::factory()->create();
+test('navigation is shown on protected pages', function () {
+    $user = User::factory()->create();
 
-        $this->actingAs($user);
-        $this->assertAuthenticated();
+    $response = $this->actingAs($user)->get('/dashboard');
 
-        $response = $this->post('/logout');
+    $response->assertSee('HeartfeltDagger');
+    $response->assertSee($user->username);
+});
 
-        $response->assertRedirect('/');
-        $this->assertGuest();
-    }
+test('logout form submission', function () {
+    $user = User::factory()->create();
 
-    public function test_register_page_works_directly(): void
-    {
-        // Register page should work when accessed directly
-        $registerResponse = $this->get('/register');
-        $registerResponse->assertStatus(200);
-        $registerResponse->assertSee('Join the Adventure');
-    }
+    $this->actingAs($user);
+    $this->assertAuthenticated();
 
-    public function test_login_page_works_directly(): void
-    {
-        // Login page should work when accessed directly
-        $loginResponse = $this->get('/login');
-        $loginResponse->assertStatus(200);
-        $loginResponse->assertSee('Enter the Realm');
-    }
+    $response = $this->post('/logout');
 
-    public function test_dropdown_menu_structure(): void
-    {
-        $user = User::factory()->create();
+    $response->assertRedirect('/');
+    $this->assertGuest();
+});
 
-        $response = $this->actingAs($user)->get('/dashboard');
+test('register page works directly', function () {
+    // Register page should work when accessed directly
+    $registerResponse = $this->get('/register');
+    $registerResponse->assertStatus(200);
+    $registerResponse->assertSee('Join the Adventure');
+});
 
-        // Check for dropdown elements
-        $response->assertSee('Dashboard');
-        $response->assertSee('Create Character');
-        $response->assertSee('Campaigns');
-        $response->assertSee('Logout');
-    }
+test('login page works directly', function () {
+    // Login page should work when accessed directly
+    $loginResponse = $this->get('/login');
+    $loginResponse->assertStatus(200);
+    $loginResponse->assertSee('Enter the Realm');
+});
 
-    public function test_navigation_styling_includes_heartfeltdagger_branding(): void
-    {
-        $response = $this->get('/');
+test('dropdown menu structure', function () {
+    $user = User::factory()->create();
 
-        // Check for HeartfeltDagger branding and styling
-        $response->assertSee('HeartfeltDagger');
-        $response->assertSee('font-outfit');
-        $response->assertSee('text-white');
-    }
-}
+    $response = $this->actingAs($user)->get('/dashboard');
+
+    // Check for dropdown elements
+    $response->assertSee('Dashboard');
+    $response->assertSee('Create Character');
+    $response->assertSee('Campaigns');
+    $response->assertSee('Logout');
+});
+
+test('navigation styling includes heartfeltdagger branding', function () {
+    $response = $this->get('/');
+
+    // Check for HeartfeltDagger branding and styling
+    $response->assertSee('HeartfeltDagger');
+    $response->assertSee('font-outfit');
+    $response->assertSee('text-white');
+});

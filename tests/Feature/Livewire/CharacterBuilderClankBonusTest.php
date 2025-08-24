@@ -1,143 +1,108 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Feature\Livewire;
-
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+test('character builder shows clank bonus functionality for clank ancestry', function () {
+    $character = createTestCharacter();
 
-class CharacterBuilderClankBonusTest extends TestCase
-{
-    use RefreshDatabase;
+    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+        ->call('selectClass', 'warrior')
+        ->call('selectAncestry', 'clank')
+        ->call('selectCommunity', 'wildborne')
+        ->call('addExperience', 'Blacksmith', 'Working with metal and tools');
 
-    protected function createTestCharacter(): Character
-    {
-        return Character::factory()->create();
-    }
+    $component->assertSee('Click to select for your Clank heritage bonus (+3)');
+});
+test('character builder does not show clank bonus for other ancestries', function () {
+    $character = createTestCharacter();
 
-    #[Test]
-    public function character_builder_shows_clank_bonus_functionality_for_clank_ancestry(): void
-    {
-        $character = $this->createTestCharacter();
-        
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
-            ->call('selectClass', 'warrior')
-            ->call('selectAncestry', 'clank')
-            ->call('selectCommunity', 'wildborne')
-            ->call('addExperience', 'Blacksmith', 'Working with metal and tools');
+    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+        ->call('selectClass', 'warrior')
+        ->call('selectAncestry', 'human')
+        ->call('selectCommunity', 'highborne');
 
-        $component->assertSee('Click to select for your Clank heritage bonus (+3)');
-    }
+    $component->assertDontSee('As a Clank, you can select one experience for a +3 modifier (Purposeful Design)');
+});
+test('character builder can select clank bonus experience', function () {
+    $character = createTestCharacter();
 
-    #[Test]
-    public function character_builder_does_not_show_clank_bonus_for_other_ancestries(): void
-    {
-        $character = $this->createTestCharacter();
-        
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
-            ->call('selectClass', 'warrior')
-            ->call('selectAncestry', 'human')
-            ->call('selectCommunity', 'highborne');
+    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+        ->call('selectClass', 'warrior')
+        ->call('selectAncestry', 'clank')
+        ->call('selectCommunity', 'wildborne')
+        ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
+        ->call('selectClankBonusExperience', 'Blacksmith');
 
-        $component->assertDontSee('As a Clank, you can select one experience for a +3 modifier (Purposeful Design)');
-    }
+    // Check that the bonus experience was set
+    expect($component->get('character.clank_bonus_experience'))->toEqual('Blacksmith');
+});
+test('character builder shows enhanced modifier for clank bonus experience', function () {
+    $character = createTestCharacter();
 
-    #[Test]
-    public function character_builder_can_select_clank_bonus_experience(): void
-    {
-        $character = $this->createTestCharacter();
-        
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
-            ->call('selectClass', 'warrior')
-            ->call('selectAncestry', 'clank')
-            ->call('selectCommunity', 'wildborne')
-            ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
-            ->call('selectClankBonusExperience', 'Blacksmith');
+    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+        ->call('selectClass', 'warrior')
+        ->call('selectAncestry', 'clank')
+        ->call('selectCommunity', 'wildborne')
+        ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
+        ->call('addExperience', 'Silver Tongue', 'Persuasive speaking')
+        ->call('selectClankBonusExperience', 'Blacksmith');
 
-        // Check that the bonus experience was set
-        $this->assertEquals('Blacksmith', $component->get('character.clank_bonus_experience'));
-    }
+    // The selected experience should show +3, the other should show +2
+    $component->assertSee('Clank Bonus');
+    $component->assertSee('includes +1 from Clank Purposeful Design');
+});
+test('character builder non clank cannot select bonus experience', function () {
+    $character = createTestCharacter();
 
-    #[Test]
-    public function character_builder_shows_enhanced_modifier_for_clank_bonus_experience(): void
-    {
-        $character = $this->createTestCharacter();
-        
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
-            ->call('selectClass', 'warrior')
-            ->call('selectAncestry', 'clank')
-            ->call('selectCommunity', 'wildborne')
-            ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
-            ->call('addExperience', 'Silver Tongue', 'Persuasive speaking')
-            ->call('selectClankBonusExperience', 'Blacksmith');
+    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+        ->call('selectClass', 'warrior')
+        ->call('selectAncestry', 'human')
+        ->call('selectCommunity', 'highborne')
+        ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
+        ->call('selectClankBonusExperience', 'Blacksmith');
 
-        // The selected experience should show +3, the other should show +2
-        $component->assertSee('Clank Bonus');
-        $component->assertSee('includes +1 from Clank Purposeful Design');
-    }
+    // Non-clank should not have the bonus set
+    expect($component->get('character.clank_bonus_experience'))->toBeNull();
+});
+test('character builder clank bonus persists through save and load', function () {
+    $character = createTestCharacter();
 
-    #[Test]
-    public function character_builder_non_clank_cannot_select_bonus_experience(): void
-    {
-        $character = $this->createTestCharacter();
-        
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
-            ->call('selectClass', 'warrior')
-            ->call('selectAncestry', 'human')
-            ->call('selectCommunity', 'highborne')
-            ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
-            ->call('selectClankBonusExperience', 'Blacksmith');
+    // Set up character with Clank bonus
+    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+        ->call('selectClass', 'warrior')
+        ->call('selectAncestry', 'clank')
+        ->call('selectCommunity', 'wildborne')
+        ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
+        ->call('selectClankBonusExperience', 'Blacksmith');
 
-        // Non-clank should not have the bonus set
-        $this->assertNull($component->get('character.clank_bonus_experience'));
-    }
+    $character_key = $component->get('character.character_key');
 
-    #[Test]
-    public function character_builder_clank_bonus_persists_through_save_and_load(): void
-    {
-        $character = $this->createTestCharacter();
-        
-        // Set up character with Clank bonus
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
-            ->call('selectClass', 'warrior')
-            ->call('selectAncestry', 'clank')
-            ->call('selectCommunity', 'wildborne')
-            ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
-            ->call('selectClankBonusExperience', 'Blacksmith');
+    // Load in a new component instance
+    $newComponent = Livewire::test(CharacterBuilder::class, ['characterKey' => $character_key]);
 
-        $character_key = $component->get('character.character_key');
+    // Verify the bonus experience is preserved
+    expect($newComponent->get('character.clank_bonus_experience'))->toEqual('Blacksmith');
+    expect($newComponent->get('character.selected_ancestry'))->toEqual('clank');
+});
+test('character builder clank experience modifier calculation', function () {
+    $character = createTestCharacter();
 
-        // Load in a new component instance
-        $newComponent = Livewire::test(CharacterBuilder::class, ['characterKey' => $character_key]);
+    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+        ->call('selectClass', 'warrior')
+        ->call('selectAncestry', 'clank')
+        ->call('selectCommunity', 'wildborne')
+        ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
+        ->call('addExperience', 'Silver Tongue', 'Persuasive speaking')
+        ->call('selectClankBonusExperience', 'Blacksmith');
 
-        // Verify the bonus experience is preserved
-        $this->assertEquals('Blacksmith', $newComponent->get('character.clank_bonus_experience'));
-        $this->assertEquals('clank', $newComponent->get('character.selected_ancestry'));
-    }
+    $character_data = $component->get('character');
 
-    #[Test]
-    public function character_builder_clank_experience_modifier_calculation(): void
-    {
-        $character = $this->createTestCharacter();
-        
-        $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
-            ->call('selectClass', 'warrior')
-            ->call('selectAncestry', 'clank')
-            ->call('selectCommunity', 'wildborne')
-            ->call('addExperience', 'Blacksmith', 'Working with metal and tools')
-            ->call('addExperience', 'Silver Tongue', 'Persuasive speaking')
-            ->call('selectClankBonusExperience', 'Blacksmith');
-
-        $character_data = $component->get('character');
-        
-        // Test modifier calculation
-        $this->assertEquals(3, $character_data->getExperienceModifier('Blacksmith'));
-        $this->assertEquals(2, $character_data->getExperienceModifier('Silver Tongue'));
-        $this->assertEquals(2, $character_data->getExperienceModifier('NonExistent'));
-    }
-}
+    // Test modifier calculation
+    expect($character_data->getExperienceModifier('Blacksmith'))->toEqual(3);
+    expect($character_data->getExperienceModifier('Silver Tongue'))->toEqual(2);
+    expect($character_data->getExperienceModifier('NonExistent'))->toEqual(2);
+});

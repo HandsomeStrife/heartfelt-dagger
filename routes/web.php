@@ -50,6 +50,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/{campaign}/rooms', [App\Http\Controllers\RoomController::class, 'storeForCampaign'])->name('rooms.store');
     });
     
+    // Campaign Frame routes
+    Route::prefix('campaign-frames')->name('campaign-frames.')->group(function () {
+        Route::get('/', [App\Http\Controllers\CampaignFrameController::class, 'index'])->name('index');
+        Route::get('/browse', [App\Http\Controllers\CampaignFrameController::class, 'browse'])->name('browse');
+        Route::get('/create', [App\Http\Controllers\CampaignFrameController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\CampaignFrameController::class, 'store'])->name('store');
+        Route::get('/{campaign_frame}', [App\Http\Controllers\CampaignFrameController::class, 'show'])->name('show');
+        Route::get('/{campaign_frame}/edit', [App\Http\Controllers\CampaignFrameController::class, 'edit'])->name('edit');
+        Route::put('/{campaign_frame}', [App\Http\Controllers\CampaignFrameController::class, 'update'])->name('update');
+        Route::delete('/{campaign_frame}', [App\Http\Controllers\CampaignFrameController::class, 'destroy'])->name('destroy');
+    });
+    
     // Campaign invite routes (separate from auth to allow invite sharing)
     Route::get('/join/{invite_code}', [App\Http\Controllers\CampaignController::class, 'showJoin'])->name('campaigns.invite');
     

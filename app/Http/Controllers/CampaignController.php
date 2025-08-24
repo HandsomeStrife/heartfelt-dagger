@@ -10,6 +10,7 @@ use Domain\Campaign\Actions\LeaveCampaignAction;
 use Domain\Campaign\Data\CreateCampaignData;
 use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Repositories\CampaignRepository;
+use Domain\CampaignFrame\Repositories\CampaignFrameRepository;
 use Domain\Character\Models\Character;
 use Domain\Room\Repositories\RoomRepository;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class CampaignController extends Controller
 {
     public function __construct(
         private CampaignRepository $campaign_repository,
+        private CampaignFrameRepository $campaign_frame_repository,
         private RoomRepository $room_repository,
         private CreateCampaignAction $create_campaign_action,
         private JoinCampaignAction $join_campaign_action,
@@ -45,7 +47,11 @@ class CampaignController extends Controller
      */
     public function create()
     {
-        return view('campaigns.create');
+        $available_frames = $this->campaign_frame_repository->getFramesAvailableForCampaign(Auth::user());
+
+        return view('campaigns.create', [
+            'available_frames' => $available_frames,
+        ]);
     }
 
     /**
@@ -56,6 +62,7 @@ class CampaignController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:100',
             'description' => 'required|string|max:1000',
+            'campaign_frame_id' => 'nullable|exists:campaign_frames,id',
         ]);
 
         $create_data = CreateCampaignData::from($validated);

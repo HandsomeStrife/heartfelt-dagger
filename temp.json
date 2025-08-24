@@ -1,0 +1,3042 @@
+{
+    "results": [
+        {
+            "hits": [
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">Once per <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"long-rest\" nexus=\"daggerheart\">long rest</tooltip>, when you compliment someone or ask them about something they’re good at, you can both gain 3 <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\">Hope</tooltip>.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Mila Pesic</strong></em></p><p class=\"Credit-Text\">DH Core 106/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "A Soldier’s Bond",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "Once per long rest, when you compliment someone or ask them about something they're good at, you can both gain 3 Hope.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "a-soldiers-bond",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-24-blade-a-soldier-bond.jpg",
+                    "stressCost": 1,
+                    "level": 2,
+                    "type": "Ability",
+                    "domain": "Blade",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99630",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">Once per <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"long-rest\" nexus=\"daggerheart\">long rest</tooltip>, when you compliment someone or ask them about something they’re good at, you can both gain 3 <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\">Hope</tooltip>.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Mila Pesic</strong></em></p><p class=\"Credit-Text\">DH Core 106/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "A Soldier’s Bond",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "Once per long rest, when you compliment someone or ask them about something they're good at, you can both gain 3 Hope.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "a-soldiers-bond",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-24-blade-a-soldier-bond.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "2",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Blade",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">After you or a willing ally make any roll, you can <strong>spend 5 </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to change the numerical result of that roll to a result of your choice instead. The result must be plausible within the range of the dice.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Geoffrey Ernault</strong></em></p><p class=\"Credit-Text\">DH Core 101/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/arcana-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Adjust Reality",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "After you or a willing ally make any roll, you can spend 5 Hope to change the result of that roll to a result of your choice instead.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "adjust-reality",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-19-arcana-adjust-reality.jpg",
+                    "stressCost": 1,
+                    "level": 10,
+                    "type": "Spell",
+                    "domain": "Arcana",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99625",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">After you or a willing ally make any roll, you can <strong>spend 5 </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to change the numerical result of that roll to a result of your choice instead. The result must be plausible within the range of the dice.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Geoffrey Ernault</strong></em></p><p class=\"Credit-Text\">DH Core 101/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/arcana-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Adjust Reality",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "After you or a willing ally make any roll, you can spend 5 Hope to change the result of that roll to a result of your choice instead.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "adjust-reality",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-19-arcana-adjust-reality.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "10",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Spell",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Arcana",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">When 4 or more of the domain cards in your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"loadout-and-vault\" nexus=\"daggerheart\">loadout</tooltip> are from the Arcana domain, gain the following benefits:</p><ul class=\"\"><li class=\"vertical-card-list-found\">+1 bonus to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\">Spellcast Rolls</tooltip></li><li class=\"vertical-card-list-found\">Once per rest, you can switch the results of your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\">Hope</tooltip> and <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip> Dice.</li></ul><p class=\"Credit-Text ParaOverride-2\"><em><strong>Cybercatbug</strong></em></p><p class=\"Credit-Text\">DH Core 095/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/arcana-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Arcana-Touched",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "When 4 or more of the domain cards in your loadout are from the Arcana domain, gain benefits from this card.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "arcana-touched",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-13-arcana-arcana-touched.jpg",
+                    "stressCost": 2,
+                    "level": 7,
+                    "type": "Ability",
+                    "domain": "Arcana",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99619",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">When 4 or more of the domain cards in your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"loadout-and-vault\" nexus=\"daggerheart\">loadout</tooltip> are from the Arcana domain, gain the following benefits:</p><ul class=\"\"><li class=\"vertical-card-list-found\">+1 bonus to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\">Spellcast Rolls</tooltip></li><li class=\"vertical-card-list-found\">Once per rest, you can switch the results of your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\">Hope</tooltip> and <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip> Dice.</li></ul><p class=\"Credit-Text ParaOverride-2\"><em><strong>Cybercatbug</strong></em></p><p class=\"Credit-Text\">DH Core 095/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/arcana-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Arcana-Touched",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "When 4 or more of the domain cards in your loadout are from the Arcana domain, gain benefits from this card.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "arcana-touched",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-13-arcana-arcana-touched.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "2",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "7",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Arcana",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">When you would take magic damage, you can <strong>spend any number of </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to roll that many <strong>d6s</strong>. If any roll a 6, the attack is reflected back to the caster, dealing the damage to them instead.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Carlos Cardona</strong></em></p><p class=\"Credit-Text\">DH Core 097/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/arcana-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Arcane Reflection",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "When you would take magic damage, you can try to reflect the attack back to the caster.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "arcane-reflection",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-15-arcana-arcane-reflection.jpg",
+                    "stressCost": 1,
+                    "level": 8,
+                    "type": "Spell",
+                    "domain": "Arcana",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99621",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">When you would take magic damage, you can <strong>spend any number of </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to roll that many <strong>d6s</strong>. If any roll a 6, the attack is reflected back to the caster, dealing the damage to them instead.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Carlos Cardona</strong></em></p><p class=\"Credit-Text\">DH Core 097/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/arcana-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Arcane Reflection",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "When you would take magic damage, you can try to reflect the attack back to the caster.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "arcane-reflection",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-15-arcana-arcane-reflection.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "8",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Spell",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Arcana",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">While you’re wearing armor, gain a +1 bonus to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"armor-score\" nexus=\"daggerheart\">Armor Score</tooltip>.</p><p class=\"Body-Foundation\">During a rest, when you choose to repair your armor as a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"downtime\" nexus=\"daggerheart\">downtime</tooltip> move, your allies also clear an <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"armor-slot\" nexus=\"daggerheart\">Armor Slot</tooltip>.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Alex Konstad</strong></em></p><p class=\"Credit-Text\">DH Core 259/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/valor-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Armorer",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "While you're wearing armor, gain a +1 bonus to your Armor Score.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "armorer",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-51-valor-armorer.jpg",
+                    "stressCost": 1,
+                    "level": 5,
+                    "type": "Ability",
+                    "domain": "Valor",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99741",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">While you’re wearing armor, gain a +1 bonus to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"armor-score\" nexus=\"daggerheart\">Armor Score</tooltip>.</p><p class=\"Body-Foundation\">During a rest, when you choose to repair your armor as a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"downtime\" nexus=\"daggerheart\">downtime</tooltip> move, your allies also clear an <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"armor-slot\" nexus=\"daggerheart\">Armor Slot</tooltip>.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Alex Konstad</strong></em></p><p class=\"Credit-Text\">DH Core 259/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/valor-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Armorer",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "While you're wearing armor, gain a +1 bonus to your Armor Score.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "armorer",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-51-valor-armorer.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "5",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Valor",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">Once per long rest, <strong>mark a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"stress\" nexus=\"daggerheart\"><strong>Stress</strong></tooltip> to create a projected copy of yourself that can appear anywhere you’ve been before.        </p><p class=\"Body-Foundation\">You can see and hear through the projection as though it were you and affect the world as though you were there. A creature investigating the projection can tell it’s of magical origin. This effect lasts until your next rest or your projection takes any damage.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Dominik Mayer</strong></em></p><p class=\"Credit-Text\">DH Core 181/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/grace-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Astral Projection",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "Once per long rest, mark a Stress to create a projected copy of yourself that can appear anywhere you've been before.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "astral-projection",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/12-35-grace-astral-projection.jpg",
+                    "stressCost": 0,
+                    "level": 8,
+                    "type": "Spell",
+                    "domain": "Grace",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99684",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">Once per long rest, <strong>mark a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"stress\" nexus=\"daggerheart\"><strong>Stress</strong></tooltip> to create a projected copy of yourself that can appear anywhere you’ve been before.        </p><p class=\"Body-Foundation\">You can see and hear through the projection as though it were you and affect the world as though you were there. A creature investigating the projection can tell it’s of magical origin. This effect lasts until your next rest or your projection takes any damage.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Dominik Mayer</strong></em></p><p class=\"Credit-Text\">DH Core 181/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/grace-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Astral Projection",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "Once per long rest, mark a Stress to create a projected copy of yourself that can appear anywhere you've been before.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "astral-projection",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/12-35-grace-astral-projection.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "0",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "8",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Spell",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Grace",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">You can <strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"marking-stress\" nexus=\"daggerheart\">mark a Stress</tooltip></strong> to transform into an avatar of malice, gaining the following benefits:</p><ul class=\"\"><li class=\"vertical-card-list\">All adversaries within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"close\" nexus=\"daggerheart\">Close</tooltip> range must spend an additional <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip> when using a Fear feature.</li><li class=\"vertical-card-list\">When you defeat a creature within Close range, you absorb their life essence and clear a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hit-points\" nexus=\"daggerheart\">Hit Point</tooltip>.</li><li class=\"vertical-card-list ParaOverride-3\">You can <strong>mark a Stress</strong> to teleport to a location within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"very-far\" nexus=\"daggerheart\">Very Far</tooltip> range. </li></ul><p class=\"Body-Foundation\">Every time you make an <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"action-roll\" nexus=\"daggerheart\">action roll</tooltip> in this form, you must <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"using-hope\" nexus=\"daggerheart\">spend a Hope</tooltip>. If you can’t, you drop this form.</p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/dread-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Avatar of Malice",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "the-void-warlock-and-fighter",
+                    "shortDescription": "You can mark a Stress to transform into an avatar of malice.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "avatar-of-malice-playtest",
+                    "sources": [
+                        "The Void #1"
+                    ],
+                    "sourceSlugs": [
+                        "the-void-warlock-and-fighter"
+                    ],
+                    "elementImage": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/playtest-card.jpg",
+                    "stressCost": 1,
+                    "level": 10,
+                    "type": "Spell",
+                    "domain": "Dread",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "101971",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">You can <strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"marking-stress\" nexus=\"daggerheart\">mark a Stress</tooltip></strong> to transform into an avatar of malice, gaining the following benefits:</p><ul class=\"\"><li class=\"vertical-card-list\">All adversaries within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"close\" nexus=\"daggerheart\">Close</tooltip> range must spend an additional <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip> when using a Fear feature.</li><li class=\"vertical-card-list\">When you defeat a creature within Close range, you absorb their life essence and clear a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hit-points\" nexus=\"daggerheart\">Hit Point</tooltip>.</li><li class=\"vertical-card-list ParaOverride-3\">You can <strong>mark a Stress</strong> to teleport to a location within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"very-far\" nexus=\"daggerheart\">Very Far</tooltip> range. </li></ul><p class=\"Body-Foundation\">Every time you make an <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"action-roll\" nexus=\"daggerheart\">action roll</tooltip> in this form, you must <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"using-hope\" nexus=\"daggerheart\">spend a Hope</tooltip>. If you can’t, you drop this form.</p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/dread-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Avatar of Malice",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "the-void-warlock-and-fighter",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "You can mark a Stress to transform into an avatar of malice.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "avatar-of-malice-playtest",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "The Void #1",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "the-void-warlock-and-fighter",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/playtest-card.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "10",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Spell",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Dread",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">Make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\"><strong>Spellcast Roll</strong></tooltip> against a target within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"close\" nexus=\"daggerheart\">Close</tooltip> range. On a success, roll a number of <strong>d20</strong>s equal to your Spellcast trait. The target must make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"reaction-roll\" nexus=\"daggerheart\">reaction roll</tooltip> with a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"difficulty\" nexus=\"daggerheart\">Difficulty</tooltip> equal to your highest result. On a success, the target must mark a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"stress\" nexus=\"daggerheart\">Stress</tooltip> but isn’t banished. Once per rest on a failure, they are banished from this realm. </p><p class=\"Body-Foundation\">When the PCs roll with <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip>, the Difficulty gains a −1 penalty and the target makes another reaction roll. On a success, they return from banishment.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Bear Frymire</strong></em></p><p class=\"Credit-Text\">DH Core 156/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/codex-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Banish",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "core",
+                    "shortDescription": "Make a Spellcast Roll to either make a target mark a Stress or banish them from this realm.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "banish",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/12-11-codex-banish.jpg",
+                    "stressCost": 0,
+                    "level": 6,
+                    "type": "Spell",
+                    "domain": "Codex",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "100637",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">Make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\"><strong>Spellcast Roll</strong></tooltip> against a target within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"close\" nexus=\"daggerheart\">Close</tooltip> range. On a success, roll a number of <strong>d20</strong>s equal to your Spellcast trait. The target must make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"reaction-roll\" nexus=\"daggerheart\">reaction roll</tooltip> with a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"difficulty\" nexus=\"daggerheart\">Difficulty</tooltip> equal to your highest result. On a success, the target must mark a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"stress\" nexus=\"daggerheart\">Stress</tooltip> but isn’t banished. Once per rest on a failure, they are banished from this realm. </p><p class=\"Body-Foundation\">When the PCs roll with <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip>, the Difficulty gains a −1 penalty and the target makes another reaction roll. On a success, they return from banishment.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Bear Frymire</strong></em></p><p class=\"Credit-Text\">DH Core 156/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/codex-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Banish",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "core",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "Make a Spellcast Roll to either make a target mark a Stress or banish them from this realm.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "banish",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/12-11-codex-banish.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "0",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "6",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Spell",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Codex",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">When you choose not to equip <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"armor\" nexus=\"daggerheart\">armor</tooltip>, you have a base <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"armor-score\" nexus=\"daggerheart\">Armor Score</tooltip> of 3 + your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"strength\" nexus=\"daggerheart\">Strength </tooltip>and use the following as your base damage thresholds:</p><ul class=\"\"><li class=\"vertical-card-list-found\"><em><strong>Tier 1:</strong></em> 9/19</li><li class=\"vertical-card-list-found\"><em><strong>Tier 2:</strong></em> 11/24</li><li class=\"vertical-card-list-found\"><em><strong>Tier 3:</strong></em> 13/31</li><li class=\"vertical-card-list-found\"><em><strong>Tier 4:</strong></em> 15/38</li></ul><p class=\"Credit-Text ParaOverride-2\"><em><strong>Simon Pape</strong></em></p><p class=\"Credit-Text\">DH Core 250/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/valor-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Bare Bones",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "When you choose not to equip armor, you have a base Armor Score of 3 + your Strength.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "bare-bones",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-42-valor-bare-bones.jpg",
+                    "stressCost": 0,
+                    "level": 1,
+                    "type": "Ability",
+                    "domain": "Valor",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99732",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">When you choose not to equip <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"armor\" nexus=\"daggerheart\">armor</tooltip>, you have a base <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"armor-score\" nexus=\"daggerheart\">Armor Score</tooltip> of 3 + your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"strength\" nexus=\"daggerheart\">Strength </tooltip>and use the following as your base damage thresholds:</p><ul class=\"\"><li class=\"vertical-card-list-found\"><em><strong>Tier 1:</strong></em> 9/19</li><li class=\"vertical-card-list-found\"><em><strong>Tier 2:</strong></em> 11/24</li><li class=\"vertical-card-list-found\"><em><strong>Tier 3:</strong></em> 13/31</li><li class=\"vertical-card-list-found\"><em><strong>Tier 4:</strong></em> 15/38</li></ul><p class=\"Credit-Text ParaOverride-2\"><em><strong>Simon Pape</strong></em></p><p class=\"Credit-Text\">DH Core 250/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/valor-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Bare Bones",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "When you choose not to equip armor, you have a base Armor Score of 3 + your Strength.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "bare-bones",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-42-valor-bare-bones.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "0",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Valor",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">Once per <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"long-rest\" nexus=\"daggerheart\">long rest</tooltip>, while you’re charging into danger, you can muster a rousing call that inspires your allies. All allies who can hear you each clear a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"stress\" nexus=\"daggerheart\">Stress</tooltip> and gain a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\">Hope</tooltip>. Additionally, your allies gain <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"advantage-and-disadvantage\" nexus=\"daggerheart\">advantage</tooltip> on <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"attack-roll\" nexus=\"daggerheart\">attack rolls</tooltip> until you or an ally rolls a failure with <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip>.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Daarken</strong></em></p><p class=\"Credit-Text\">DH Core 118/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Battle Cry",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "Once per long rest, while you're charging into danger, you can muster a rousing call that inspires your allies.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "battle-cry",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-36-blade-battle-cry.jpg",
+                    "stressCost": 2,
+                    "level": 8,
+                    "type": "Ability",
+                    "domain": "Blade",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99642",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">Once per <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"long-rest\" nexus=\"daggerheart\">long rest</tooltip>, while you’re charging into danger, you can muster a rousing call that inspires your allies. All allies who can hear you each clear a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"stress\" nexus=\"daggerheart\">Stress</tooltip> and gain a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\">Hope</tooltip>. Additionally, your allies gain <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"advantage-and-disadvantage\" nexus=\"daggerheart\">advantage</tooltip> on <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"attack-roll\" nexus=\"daggerheart\">attack rolls</tooltip> until you or an ally rolls a failure with <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip>.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Daarken</strong></em></p><p class=\"Credit-Text\">DH Core 118/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Battle Cry",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "Once per long rest, while you're charging into danger, you can muster a rousing call that inspires your allies.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "battle-cry",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-36-blade-battle-cry.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "2",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "8",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Blade",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">When you make a successful attack against an adversary, you can <strong>mark 4 </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"stress\" nexus=\"daggerheart\"><strong>Stress</strong></tooltip> to force the target to mark a number of <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hit-points\" nexus=\"daggerheart\">Hit Points</tooltip> equal to the number of Hit Points you currently have marked instead of rolling for damage.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Geoffrey Ernault</strong></em></p><p class=\"Credit-Text\">DH Core 122/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Battle Monster",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "When you make a successful attack against an adversary, you can force the target to mark Hit Points equal to yours.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "battle-monster",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-40-blade-battle-monster.jpg",
+                    "stressCost": 0,
+                    "level": 10,
+                    "type": "Ability",
+                    "domain": "Blade",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99646",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">When you make a successful attack against an adversary, you can <strong>mark 4 </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"stress\" nexus=\"daggerheart\"><strong>Stress</strong></tooltip> to force the target to mark a number of <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hit-points\" nexus=\"daggerheart\">Hit Points</tooltip> equal to the number of Hit Points you currently have marked instead of rolling for damage.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Geoffrey Ernault</strong></em></p><p class=\"Credit-Text\">DH Core 122/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Battle Monster",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "When you make a successful attack against an adversary, you can force the target to mark Hit Points equal to yours.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "battle-monster",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-40-blade-battle-monster.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "0",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "10",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Blade",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">Once per <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"long-rest\" nexus=\"daggerheart\">long rest</tooltip> when you would make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"death-move\" nexus=\"daggerheart\">Death Move</tooltip>, you can <strong>spend a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to clear a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hit-points\" nexus=\"daggerheart\">Hit Point</tooltip> instead.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Arturo Gutiérrez González</strong></em></p><p class=\"Credit-Text\">DH Core 114/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Battle-Hardened",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "Once per long rest when you make a Death Move, you can spend a Hope to clear a Hit Point instead.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "battle-hardened",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-32-blade-battle-hardened.jpg",
+                    "stressCost": 2,
+                    "level": 6,
+                    "type": "Ability",
+                    "domain": "Blade",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99638",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">Once per <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"long-rest\" nexus=\"daggerheart\">long rest</tooltip> when you would make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"death-move\" nexus=\"daggerheart\">Death Move</tooltip>, you can <strong>spend a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to clear a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hit-points\" nexus=\"daggerheart\">Hit Point</tooltip> instead.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Arturo Gutiérrez González</strong></em></p><p class=\"Credit-Text\">DH Core 114/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Battle-Hardened",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "Once per long rest when you make a Death Move, you can spend a Hope to clear a Hit Point instead.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "battle-hardened",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-32-blade-battle-hardened.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "2",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "6",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Blade",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation-No-BOLDITALIC\">When 4 or more of the domain cards in your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"loadout-and-vault\" nexus=\"daggerheart\">loadout</tooltip> are from the Blade domain, gain the following benefits:</p><ul class=\"\"><li class=\"vertical-card-list-found\">+2 bonus to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"attack-roll\" nexus=\"daggerheart\">attack rolls</tooltip></li><li class=\"vertical-card-list-found\">+4 bonus to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"severe-damage\" nexus=\"daggerheart\">Severe</tooltip> damage threshold</li></ul><p class=\"Credit-Text ParaOverride-2\"><em><strong>Simon Pape</strong></em></p><p class=\"Credit-Text\">DH Core 116/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Blade-Touched",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "When 4 or more of the domain cards in your loadout are from the Blade domain, gain benefits from this card.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "blade-touched",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-34-blade-blade-touched.jpg",
+                    "stressCost": 1,
+                    "level": 7,
+                    "type": "Ability",
+                    "domain": "Blade",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99640",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation-No-BOLDITALIC\">When 4 or more of the domain cards in your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"loadout-and-vault\" nexus=\"daggerheart\">loadout</tooltip> are from the Blade domain, gain the following benefits:</p><ul class=\"\"><li class=\"vertical-card-list-found\">+2 bonus to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"attack-roll\" nexus=\"daggerheart\">attack rolls</tooltip></li><li class=\"vertical-card-list-found\">+4 bonus to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"severe-damage\" nexus=\"daggerheart\">Severe</tooltip> damage threshold</li></ul><p class=\"Credit-Text ParaOverride-2\"><em><strong>Simon Pape</strong></em></p><p class=\"Credit-Text\">DH Core 116/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/blade-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Blade-Touched",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "When 4 or more of the domain cards in your loadout are from the Blade domain, gain benefits from this card.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "blade-touched",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-34-blade-blade-touched.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "7",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Blade",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation-No-BOLDITALIC\">Make a <strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\">Spellcast Roll</tooltip></strong> against a target within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"far\" nexus=\"daggerheart\">Far</tooltip> range. On a success, the target takes <strong>d6</strong> <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"magic-damage-type\" nexus=\"daggerheart\">magic</tooltip> damage using your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"proficiency\" nexus=\"daggerheart\">Proficiency</tooltip> and the next time the target deals damage to an ally, it is reduced by <strong>1d6</strong>. If you succeed with <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip>, the target instead takes <strong>d10</strong> magic damage using your Proficiency.        </p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/dread-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Blighting Strike",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "the-void-warlock-and-fighter",
+                    "shortDescription": "Make a Spellcast Roll against a target within Far range. On a success, the target takes d6 magic damage using your Proficiency.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "blighting-strike-playtest",
+                    "sources": [
+                        "The Void #1"
+                    ],
+                    "sourceSlugs": [
+                        "the-void-warlock-and-fighter"
+                    ],
+                    "elementImage": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/playtest-card.jpg",
+                    "stressCost": 1,
+                    "level": 1,
+                    "type": "Spell",
+                    "domain": "Dread",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "101951",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation-No-BOLDITALIC\">Make a <strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\">Spellcast Roll</tooltip></strong> against a target within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"far\" nexus=\"daggerheart\">Far</tooltip> range. On a success, the target takes <strong>d6</strong> <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"magic-damage-type\" nexus=\"daggerheart\">magic</tooltip> damage using your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"proficiency\" nexus=\"daggerheart\">Proficiency</tooltip> and the next time the target deals damage to an ally, it is reduced by <strong>1d6</strong>. If you succeed with <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"fear\" nexus=\"daggerheart\">Fear</tooltip>, the target instead takes <strong>d10</strong> magic damage using your Proficiency.        </p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/dread-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Blighting Strike",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "the-void-warlock-and-fighter",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "Make a Spellcast Roll against a target within Far range. On a success, the target takes d6 magic damage using your Proficiency.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "blighting-strike-playtest",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "The Void #1",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "the-void-warlock-and-fighter",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/playtest-card.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Spell",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Dread",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">Make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\"><strong>Spellcast Roll</strong></tooltip><strong> (12)</strong>. On a success, <strong>spend a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to teleport to another point you can see within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"far\" nexus=\"daggerheart\">Far</tooltip> range. If any willing creatures are within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"very-close\" nexus=\"daggerheart\">Very Close</tooltip> range, <strong>spend an additional Hope</strong> for each creature to bring them with you.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Dominik Mayer</strong></em></p><p class=\"Credit-Text\">DH Core 089/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/arcana-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Blink Out",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "Teleport to another point you can see within Far range.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "blink-out",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-07-arcana-blink-out.jpg",
+                    "stressCost": 1,
+                    "level": 4,
+                    "type": "Spell",
+                    "domain": "Arcana",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99613",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">Make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\"><strong>Spellcast Roll</strong></tooltip><strong> (12)</strong>. On a success, <strong>spend a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to teleport to another point you can see within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"far\" nexus=\"daggerheart\">Far</tooltip> range. If any willing creatures are within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"very-close\" nexus=\"daggerheart\">Very Close</tooltip> range, <strong>spend an additional Hope</strong> for each creature to bring them with you.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Dominik Mayer</strong></em></p><p class=\"Credit-Text\">DH Core 089/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/arcana-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Blink Out",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "Teleport to another point you can see within Far range.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "blink-out",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/11-07-arcana-blink-out.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "4",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Spell",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Arcana",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">You use the full force of your body in a fight. On a successful attack using a weapon with a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"melee\" nexus=\"daggerheart\">Melee</tooltip> range, gain a bonus to your damage roll equal to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"strength\" nexus=\"daggerheart\">Strength</tooltip>.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Ilya Royz</strong></em></p><p class=\"Credit-Text\">DH Core 253/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/valor-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Body Basher",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "You use the full force of your body in a fight.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "body-basher",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-45-valor-body-basher.jpg",
+                    "stressCost": 1,
+                    "level": 2,
+                    "type": "Ability",
+                    "domain": "Valor",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99735",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">You use the full force of your body in a fight. On a successful attack using a weapon with a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"melee\" nexus=\"daggerheart\">Melee</tooltip> range, gain a bonus to your damage roll equal to your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"strength\" nexus=\"daggerheart\">Strength</tooltip>.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Ilya Royz</strong></em></p><p class=\"Credit-Text\">DH Core 253/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/valor-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Body Basher",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "You use the full force of your body in a fight.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "body-basher",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-45-valor-body-basher.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "2",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Valor",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">When you make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"presence\" nexus=\"daggerheart\">Presence</tooltip> Roll, you can <strong>spend a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to add your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"strength\" nexus=\"daggerheart\">Strength </tooltip>to the roll.        </p><p class=\"Body-Foundation\">Additionally, once per rest when you would gain a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"condition\" nexus=\"daggerheart\">condition</tooltip>, you can describe how your bold presence aids you in the situation and avoid gaining the condition.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Bear Frymire</strong></em></p><p class=\"Credit-Text\">DH Core 254/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/valor-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Bold Presence",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "quick-start-adventure",
+                    "shortDescription": "When you make a Presence Roll, you can spend a Hope to add your Strength to the roll.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "bold-presence",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core",
+                        "Quickstart Adventure"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core",
+                        "quick-start-adventure"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-46-valor-bold-presence.jpg",
+                    "stressCost": 0,
+                    "level": 2,
+                    "type": "Ability",
+                    "domain": "Valor",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "99736",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">When you make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"presence\" nexus=\"daggerheart\">Presence</tooltip> Roll, you can <strong>spend a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to add your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"strength\" nexus=\"daggerheart\">Strength </tooltip>to the roll.        </p><p class=\"Body-Foundation\">Additionally, once per rest when you would gain a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"condition\" nexus=\"daggerheart\">condition</tooltip>, you can describe how your bold presence aids you in the situation and avoid gaining the condition.</p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Bear Frymire</strong></em></p><p class=\"Credit-Text\">DH Core 254/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/valor-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Bold Presence",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "quick-start-adventure",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "When you make a Presence Roll, you can spend a Hope to add your Strength to the roll.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "bold-presence",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Quickstart Adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "quick-start-adventure",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-46-valor-bold-presence.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "0",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "2",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Ability",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Valor",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                },
+                {
+                    "dataType": "domain",
+                    "elementDisplay": "<p class=\"Body-Foundation\">Make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\"><strong>Spellcast Roll</strong></tooltip> against a target within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"far\" nexus=\"daggerheart\">Far</tooltip> range. On a success, <strong>spend a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to send a bolt of shimmering light toward them, dealing <strong>d8+2</strong> magic damage using your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"proficiency\" nexus=\"daggerheart\">Proficiency</tooltip>. The target becomes temporarily <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"vulnerable\" nexus=\"daggerheart\"><em>Vulnerable</em></tooltip> and glows brightly until this condition is cleared.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Anthony Jones</strong></em></p><p class=\"Credit-Text\">DH Core 229/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                    "elementThumbnail": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/splendor-t.jpg",
+                    "isHomebrew": false,
+                    "longDescription": null,
+                    "name": "Bolt Beacon",
+                    "nexusesIn": [
+                        "Daggerheart"
+                    ],
+                    "nexusSlug": "daggerheart",
+                    "primarySourceSlug": "core",
+                    "shortDescription": "Send a bolt of shimmering light towards a target within Far range.",
+                    "showInBuilder": true,
+                    "showInListing": true,
+                    "showInSearch": true,
+                    "showInSheet": true,
+                    "slug": "bolt-beacon",
+                    "sources": [
+                        "Daggerheart System Reference",
+                        "Core"
+                    ],
+                    "sourceSlugs": [
+                        "daggerheart-system-reference",
+                        "core"
+                    ],
+                    "token": "",
+                    "tokenSize": "",
+                    "elementImage": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-21-splendor-bolt-beacon.jpg",
+                    "stressCost": 1,
+                    "level": 1,
+                    "type": "Spell",
+                    "domain": "Splendor",
+                    "campaignFrame": [
+                        "None"
+                    ],
+                    "objectID": "100647",
+                    "_highlightResult": {
+                        "dataType": {
+                            "value": "domain",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementDisplay": {
+                            "value": "<p class=\"Body-Foundation\">Make a <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"spellcast-roll\" nexus=\"daggerheart\"><strong>Spellcast Roll</strong></tooltip> against a target within <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"far\" nexus=\"daggerheart\">Far</tooltip> range. On a success, <strong>spend a </strong><tooltip category=\"rule\" class=\"tooltip-convert\" element=\"hope\" nexus=\"daggerheart\"><strong>Hope</strong></tooltip> to send a bolt of shimmering light toward them, dealing <strong>d8+2</strong> magic damage using your <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"proficiency\" nexus=\"daggerheart\">Proficiency</tooltip>. The target becomes temporarily <tooltip category=\"rule\" class=\"tooltip-convert\" element=\"vulnerable\" nexus=\"daggerheart\"><em>Vulnerable</em></tooltip> and glows brightly until this condition is cleared.        </p><p class=\"Credit-Text ParaOverride-2\"><em><strong>Anthony Jones</strong></em></p><p class=\"Credit-Text\">DH Core 229/270 | <em>Daggerheart © Darrington Press 2025</em></p>",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementThumbnail": {
+                            "value": "https://content.demiplane.com/elements/daggerheart/domains/thumbnail/splendor-t.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "name": {
+                            "value": "Bolt Beacon",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "nexusesIn": [
+                            {
+                                "value": "Daggerheart",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "nexusSlug": {
+                            "value": "daggerheart",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "primarySourceSlug": {
+                            "value": "core",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "shortDescription": {
+                            "value": "Send a bolt of shimmering light towards a target within Far range.",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "slug": {
+                            "value": "bolt-beacon",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "sources": [
+                            {
+                                "value": "Daggerheart System Reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "Core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "sourceSlugs": [
+                            {
+                                "value": "daggerheart-system-reference",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            },
+                            {
+                                "value": "core",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ],
+                        "token": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "tokenSize": {
+                            "value": "",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "elementImage": {
+                            "value": "https://content.demiplane.com/compendium/daggerheart/core/Z0cMnhP5TP69gCrY/13-21-splendor-bolt-beacon.jpg",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "stressCost": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "level": {
+                            "value": "1",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "type": {
+                            "value": "Spell",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "domain": {
+                            "value": "Splendor",
+                            "matchLevel": "none",
+                            "matchedWords": []
+                        },
+                        "campaignFrame": [
+                            {
+                                "value": "None",
+                                "matchLevel": "none",
+                                "matchedWords": []
+                            }
+                        ]
+                    }
+                }
+            ],
+            "nbHits": 210,
+            "nbSortedHits": 210,
+            "page": 0,
+            "nbPages": 12,
+            "hitsPerPage": 18,
+            "facets": {
+                "type": {
+                    "Spell": 107,
+                    "Ability": 90,
+                    "Grimoire": 13
+                },
+                "level": {
+                    "1": 30,
+                    "2": 20,
+                    "3": 20,
+                    "4": 20,
+                    "5": 20,
+                    "6": 20,
+                    "7": 20,
+                    "8": 20,
+                    "9": 20,
+                    "10": 20
+                },
+                "domain": {
+                    "Arcana": 21,
+                    "Blade": 21,
+                    "Bone": 21,
+                    "Codex": 21,
+                    "Dread": 21,
+                    "Grace": 21,
+                    "Midnight": 21,
+                    "Sage": 21,
+                    "Splendor": 21,
+                    "Valor": 21
+                },
+                "sources": {
+                    "Core": 189,
+                    "Daggerheart System Reference": 189,
+                    "Quickstart Adventure": 147,
+                    "The Void #1": 21
+                },
+                "isHomebrew": {
+                    "false": 210
+                },
+                "showInListing": {
+                    "true": 210
+                }
+            },
+            "facets_stats": {
+                "level": {
+                    "min": 1,
+                    "max": 10,
+                    "avg": 5,
+                    "sum": 1110
+                }
+            },
+            "exhaustiveFacetsCount": true,
+            "exhaustiveNbHits": true,
+            "exhaustiveTypo": true,
+            "exhaustive": {
+                "facetsCount": true,
+                "nbHits": true,
+                "typo": true
+            },
+            "query": "",
+            "params": "facetFilters=%5B%5B%22isHomebrew%3Afalse%22%5D%2C%5B%22showInListing%3Atrue%22%5D%5D&facets=%5B%22domain%22%2C%22isHomebrew%22%2C%22level%22%2C%22showInListing%22%2C%22sources%22%2C%22stressCost%22%2C%22type%22%5D&filters=sourceSlugs%3A'the-void-warlock-and-fighter'%20OR%20sourceSlugs%3A'quick-start-adventure'%20OR%20sourceSlugs%3A'daggerheart-system-reference'%20OR%20sourceSlugs%3A'the-void-2'%20OR%20sourceSlugs%3A'core'&highlightPostTag=%3C%2Fais-highlight-0000000000%3E&highlightPreTag=%3Cais-highlight-0000000000%3E&hitsPerPage=18&maxValuesPerFacet=1000&page=0&query=",
+            "index": "daggerheart_domain_name_asc",
+            "appliedRelevancyStrictness": 0,
+            "renderingContent": {},
+            "processingTimeMS": 3,
+            "processingTimingsMS": {
+                "_request": {
+                    "roundTrip": 60
+                },
+                "afterFetch": {
+                    "format": {
+                        "highlighting": 2,
+                        "total": 3
+                    }
+                },
+                "fetch": {
+                    "total": 1
+                },
+                "getIdx": {
+                    "load": {
+                        "total": 1
+                    },
+                    "total": 1
+                },
+                "total": 3
+            },
+            "serverTimeMS": 8
+        },
+        {
+            "hits": [],
+            "nbHits": 210,
+            "nbSortedHits": 210,
+            "page": 0,
+            "nbPages": 0,
+            "hitsPerPage": 0,
+            "facets": {
+                "isHomebrew": {
+                    "false": 210
+                }
+            },
+            "exhaustiveFacetsCount": true,
+            "exhaustiveNbHits": true,
+            "exhaustiveTypo": true,
+            "exhaustive": {
+                "facetsCount": true,
+                "nbHits": true,
+                "typo": true
+            },
+            "query": "",
+            "params": "analytics=false&clickAnalytics=false&facetFilters=%5B%5B%22showInListing%3Atrue%22%5D%2C%22isHomebrew%3Afalse%22%5D&facets=isHomebrew&filters=sourceSlugs%3A'the-void-warlock-and-fighter'%20OR%20sourceSlugs%3A'quick-start-adventure'%20OR%20sourceSlugs%3A'daggerheart-system-reference'%20OR%20sourceSlugs%3A'the-void-2'%20OR%20sourceSlugs%3A'core'&highlightPostTag=%3C%2Fais-highlight-0000000000%3E&highlightPreTag=%3Cais-highlight-0000000000%3E&hitsPerPage=0&maxValuesPerFacet=1000&page=0&query=",
+            "index": "daggerheart_domain_name_asc",
+            "appliedRelevancyStrictness": 0,
+            "renderingContent": {},
+            "processingTimeMS": 1,
+            "processingTimingsMS": {
+                "_request": {
+                    "roundTrip": 60
+                },
+                "total": 0
+            },
+            "serverTimeMS": 9
+        },
+        {
+            "hits": [],
+            "nbHits": 210,
+            "nbSortedHits": 210,
+            "page": 0,
+            "nbPages": 0,
+            "hitsPerPage": 0,
+            "facets": {
+                "showInListing": {
+                    "true": 210
+                }
+            },
+            "exhaustiveFacetsCount": true,
+            "exhaustiveNbHits": true,
+            "exhaustiveTypo": true,
+            "exhaustive": {
+                "facetsCount": true,
+                "nbHits": true,
+                "typo": true
+            },
+            "query": "",
+            "params": "analytics=false&clickAnalytics=false&facetFilters=%5B%5B%22isHomebrew%3Afalse%22%5D%2C%22isHomebrew%3Afalse%22%5D&facets=showInListing&filters=sourceSlugs%3A'the-void-warlock-and-fighter'%20OR%20sourceSlugs%3A'quick-start-adventure'%20OR%20sourceSlugs%3A'daggerheart-system-reference'%20OR%20sourceSlugs%3A'the-void-2'%20OR%20sourceSlugs%3A'core'&highlightPostTag=%3C%2Fais-highlight-0000000000%3E&highlightPreTag=%3Cais-highlight-0000000000%3E&hitsPerPage=0&maxValuesPerFacet=1000&page=0&query=",
+            "index": "daggerheart_domain_name_asc",
+            "appliedRelevancyStrictness": 0,
+            "renderingContent": {},
+            "processingTimeMS": 1,
+            "processingTimingsMS": {
+                "_request": {
+                    "roundTrip": 60
+                },
+                "total": 0
+            },
+            "serverTimeMS": 10
+        }
+    ]
+}

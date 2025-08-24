@@ -19,6 +19,7 @@ class CreateCampaignAction
             'name' => $create_data->name,
             'description' => $create_data->description,
             'creator_id' => $creator->id,
+            'campaign_frame_id' => $create_data->campaign_frame_id,
             'status' => CampaignStatus::ACTIVE,
         ]);
 

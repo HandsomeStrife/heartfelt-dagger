@@ -19,5 +19,6 @@ class CreateCampaignData extends Data implements Wireable
         public string $name,
         #[Required, Max(1000)]
         public string $description,
+        public ?int $campaign_frame_id = null,
     ) {}
 }

@@ -311,6 +311,86 @@
             }
         }
     },
+    "dread": {
+        "key": "dread",
+        "name": "Dread",
+        "description": "Dread is the domain of fear, shadow, and dark power. Those who wield this domain tap into the terrifying forces that lurk in the depths of nightmares and the spaces between worlds. Practitioners of Dread can instill terror in their enemies, manipulate dark energies, and transform themselves into instruments of malice. The Dread domain represents a powerful but dangerous path that offers great strength to those willing to embrace the darkness.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "blighting strike",
+                    "voice of dread",
+                    "umbral veil"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "hideous retribution",
+                    "siphon essence",
+                    "terrify"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "shared trauma",
+                    "chains of affliction",
+                    "summon horror"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "chains of affliction",
+                    "summon horror"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "spectral mist",
+                    "dire strike"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "darkfire",
+                    "jump scare"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "dreadtouched",
+                    "wall of hunger"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "dark army",
+                    "eldritch flesh"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "damnation",
+                    "savor the anguish"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "invoke torment",
+                    "avatar of terror"
+                ]
+            }
+        }
+    },
     "grace": {
         "key": "grace",
         "name": "Grace",

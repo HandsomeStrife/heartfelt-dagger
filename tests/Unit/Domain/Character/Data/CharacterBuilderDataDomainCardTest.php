@@ -1,104 +1,76 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Character\Data;
-
 use Domain\Character\Data\CharacterBuilderData;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+test('school of knowledge builder provides domain card bonuses', function () {
+    $builder = new CharacterBuilderData(
+        selected_class: 'wizard',
+        selected_subclass: 'school of knowledge'
+    );
 
-class CharacterBuilderDataDomainCardTest extends TestCase
-{
-    #[Test]
-    public function school_of_knowledge_builder_provides_domain_card_bonuses(): void
-    {
-        $builder = new CharacterBuilderData(
-            selected_class: 'wizard',
-            selected_subclass: 'school of knowledge'
-        );
+    $domainCardBonus = $builder->getSubclassDomainCardBonus();
+    $maxDomainCards = $builder->getMaxDomainCards();
 
-        $domainCardBonus = $builder->getSubclassDomainCardBonus();
-        $maxDomainCards = $builder->getMaxDomainCards();
+    // School of Knowledge should get bonus only from specialization (+1) = +1 total
+    expect($domainCardBonus)->toEqual(1);
 
-        // School of Knowledge should get bonus only from specialization (+1) = +1 total
-        $this->assertEquals(1, $domainCardBonus);
-        
-        // Base 2 cards + 1 bonus card = 3 total
-        $this->assertEquals(3, $maxDomainCards);
-    }
+    // Base 2 cards + 1 bonus card = 3 total
+    expect($maxDomainCards)->toEqual(3);
+});
+test('non bonus subclass builder has default domain cards', function () {
+    $builder = new CharacterBuilderData(
+        selected_class: 'ranger',
+        selected_subclass: 'beastbound'
+    );
 
-    #[Test]
-    public function non_bonus_subclass_builder_has_default_domain_cards(): void
-    {
-        $builder = new CharacterBuilderData(
-            selected_class: 'ranger',
-            selected_subclass: 'beastbound'
-        );
+    $domainCardBonus = $builder->getSubclassDomainCardBonus();
+    $maxDomainCards = $builder->getMaxDomainCards();
 
-        $domainCardBonus = $builder->getSubclassDomainCardBonus();
-        $maxDomainCards = $builder->getMaxDomainCards();
+    expect($domainCardBonus)->toEqual(0);
+    expect($maxDomainCards)->toEqual(2);
+    // Base cards only
+});
+test('null subclass builder has default domain cards', function () {
+    $builder = new CharacterBuilderData(
+        selected_class: 'warrior',
+        selected_subclass: null
+    );
 
-        $this->assertEquals(0, $domainCardBonus);
-        $this->assertEquals(2, $maxDomainCards); // Base cards only
-    }
+    $domainCardBonus = $builder->getSubclassDomainCardBonus();
+    $maxDomainCards = $builder->getMaxDomainCards();
 
-    #[Test]
-    public function null_subclass_builder_has_default_domain_cards(): void
-    {
-        $builder = new CharacterBuilderData(
-            selected_class: 'warrior',
-            selected_subclass: null
-        );
+    expect($domainCardBonus)->toEqual(0);
+    expect($maxDomainCards)->toEqual(2);
+    // Base cards only
+});
+test('builder domain card calculations match different subclasses', function () {
+    $testCases = [
+        ['subclass' => 'school of knowledge', 'expected_bonus' => 1, 'expected_max' => 3],
+        ['subclass' => 'school of war', 'expected_bonus' => 0, 'expected_max' => 2],
+        ['subclass' => 'stalwart', 'expected_bonus' => 0, 'expected_max' => 2],
+        ['subclass' => 'nightwalker', 'expected_bonus' => 0, 'expected_max' => 2],
+    ];
 
-        $domainCardBonus = $builder->getSubclassDomainCardBonus();
-        $maxDomainCards = $builder->getMaxDomainCards();
-
-        $this->assertEquals(0, $domainCardBonus);
-        $this->assertEquals(2, $maxDomainCards); // Base cards only
-    }
-
-    #[Test]
-    public function builder_domain_card_calculations_match_different_subclasses(): void
-    {
-        $testCases = [
-            ['subclass' => 'school of knowledge', 'expected_bonus' => 1, 'expected_max' => 3],
-            ['subclass' => 'school of war', 'expected_bonus' => 0, 'expected_max' => 2],
-            ['subclass' => 'stalwart', 'expected_bonus' => 0, 'expected_max' => 2],
-            ['subclass' => 'nightwalker', 'expected_bonus' => 0, 'expected_max' => 2],
-        ];
-
-        foreach ($testCases as $testCase) {
-            $builder = new CharacterBuilderData(
-                selected_class: 'warrior',
-                selected_subclass: $testCase['subclass']
-            );
-
-            $this->assertEquals(
-                $testCase['expected_bonus'],
-                $builder->getSubclassDomainCardBonus(),
-                "Builder with subclass {$testCase['subclass']} should have {$testCase['expected_bonus']} domain card bonus"
-            );
-
-            $this->assertEquals(
-                $testCase['expected_max'],
-                $builder->getMaxDomainCards(),
-                "Builder with subclass {$testCase['subclass']} should have {$testCase['expected_max']} max domain cards"
-            );
-        }
-    }
-
-    #[Test]
-    public function builder_domain_card_methods_handle_missing_subclass_json(): void
-    {
-        // Create a builder with a non-existent subclass
+    foreach ($testCases as $testCase) {
         $builder = new CharacterBuilderData(
             selected_class: 'warrior',
-            selected_subclass: 'non-existent-subclass'
+            selected_subclass: $testCase['subclass']
         );
 
-        // Should gracefully return 0 for non-existent subclass
-        $this->assertEquals(0, $builder->getSubclassDomainCardBonus());
-        $this->assertEquals(2, $builder->getMaxDomainCards());
+        expect($builder->getSubclassDomainCardBonus())->toEqual($testCase['expected_bonus'], "Builder with subclass {$testCase['subclass']} should have {$testCase['expected_bonus']} domain card bonus");
+
+        expect($builder->getMaxDomainCards())->toEqual($testCase['expected_max'], "Builder with subclass {$testCase['subclass']} should have {$testCase['expected_max']} max domain cards");
     }
-}
+});
+test('builder domain card methods handle missing subclass json', function () {
+    // Create a builder with a non-existent subclass
+    $builder = new CharacterBuilderData(
+        selected_class: 'warrior',
+        selected_subclass: 'non-existent-subclass'
+    );
+
+    // Should gracefully return 0 for non-existent subclass
+    expect($builder->getSubclassDomainCardBonus())->toEqual(0);
+    expect($builder->getMaxDomainCards())->toEqual(2);
+});

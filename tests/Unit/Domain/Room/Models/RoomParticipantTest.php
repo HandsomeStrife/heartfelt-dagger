@@ -1,259 +1,179 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Room\Models;
-
 use Domain\Character\Models\Character;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class RoomParticipantTest extends TestCase
-{
-    use RefreshDatabase;
+it('belongs to room', function () {
+    $roomParticipant = RoomParticipant::factory()->create();
 
-    #[Test]
-    public function it_belongs_to_room(): void
-    {
-        $roomParticipant = RoomParticipant::factory()->create();
+    expect($roomParticipant->room)->toBeInstanceOf(Room::class);
+});
+it('belongs to user', function () {
+    $roomParticipant = RoomParticipant::factory()->create();
 
-        $this->assertInstanceOf(Room::class, $roomParticipant->room);
-    }
+    expect($roomParticipant->user)->toBeInstanceOf(User::class);
+});
+it('belongs to character', function () {
+    $roomParticipant = RoomParticipant::factory()->create();
 
-    #[Test]
-    public function it_belongs_to_user(): void
-    {
-        $roomParticipant = RoomParticipant::factory()->create();
+    expect($roomParticipant->character)->toBeInstanceOf(Character::class);
+});
+it('can have null character', function () {
+    $roomParticipant = RoomParticipant::factory()->withoutCharacter()->create();
 
-        $this->assertInstanceOf(User::class, $roomParticipant->user);
-    }
+    expect($roomParticipant->character_id)->toBeNull();
+    expect($roomParticipant->character)->toBeNull();
+});
+it('checks if has character', function () {
+    $withCharacter = RoomParticipant::factory()->create();
+    $withoutCharacter = RoomParticipant::factory()->withoutCharacter()->create();
 
-    #[Test]
-    public function it_belongs_to_character(): void
-    {
-        $roomParticipant = RoomParticipant::factory()->create();
+    expect($withCharacter->hasCharacter())->toBeTrue();
+    expect($withoutCharacter->hasCharacter())->toBeFalse();
+});
+it('gets display name with character', function () {
+    $character = Character::factory()->create(['name' => 'Aragorn']);
+    $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
 
-        $this->assertInstanceOf(Character::class, $roomParticipant->character);
-    }
+    expect($participant->getDisplayName())->toEqual('Aragorn');
+});
+it('gets display name with temporary character', function () {
+    $participant = RoomParticipant::factory()->withTemporaryCharacter()->create([
+        'character_name' => 'Legolas'
+    ]);
 
-    #[Test]
-    public function it_can_have_null_character(): void
-    {
-        $roomParticipant = RoomParticipant::factory()->withoutCharacter()->create();
+    expect($participant->getDisplayName())->toEqual('Legolas');
+});
+it('gets display name without character', function () {
+    $user = User::factory()->create(['username' => 'unique_player_123']);
+    $participant = RoomParticipant::factory()->withoutCharacter()->create([
+        'user_id' => $user->id,
+        'character_name' => null
+    ]);
 
-        $this->assertNull($roomParticipant->character_id);
-        $this->assertNull($roomParticipant->character);
-    }
+    expect($participant->getDisplayName())->toEqual('unique_player_123');
+});
+it('gets character class with character', function () {
+    $character = Character::factory()->create(['class' => 'Warrior']);
+    $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
 
-    #[Test]
-    public function it_checks_if_has_character(): void
-    {
-        $withCharacter = RoomParticipant::factory()->create();
-        $withoutCharacter = RoomParticipant::factory()->withoutCharacter()->create();
+    expect($participant->getCharacterClass())->toEqual('Warrior');
+});
+it('gets character class with temporary character', function () {
+    $participant = RoomParticipant::factory()->withTemporaryCharacter()->create([
+        'character_class' => 'Rogue'
+    ]);
 
-        $this->assertTrue($withCharacter->hasCharacter());
-        $this->assertFalse($withoutCharacter->hasCharacter());
-    }
+    expect($participant->getCharacterClass())->toEqual('Rogue');
+});
+it('gets null character class without character', function () {
+    $participant = RoomParticipant::factory()->withoutCharacter()->create();
 
-    #[Test]
-    public function it_gets_display_name_with_character(): void
-    {
-        $character = Character::factory()->create(['name' => 'Aragorn']);
-        $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
+    expect($participant->getCharacterClass())->toBeNull();
+});
+it('gets character subclass with character', function () {
+    $character = Character::factory()->create(['subclass' => 'Vengeance']);
+    $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
 
-        $this->assertEquals('Aragorn', $participant->getDisplayName());
-    }
+    expect($participant->getCharacterSubclass())->toEqual('Vengeance');
+});
+it('gets null character subclass without character', function () {
+    $participant = RoomParticipant::factory()->withoutCharacter()->create();
 
-    #[Test]
-    public function it_gets_display_name_with_temporary_character(): void
-    {
-        $participant = RoomParticipant::factory()->withTemporaryCharacter()->create([
-            'character_name' => 'Legolas'
-        ]);
+    expect($participant->getCharacterSubclass())->toBeNull();
+});
+it('gets character ancestry with character', function () {
+    $character = Character::factory()->create(['ancestry' => 'Human']);
+    $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
 
-        $this->assertEquals('Legolas', $participant->getDisplayName());
-    }
+    expect($participant->getCharacterAncestry())->toEqual('Human');
+});
+it('gets null character ancestry without character', function () {
+    $participant = RoomParticipant::factory()->withoutCharacter()->create();
 
-    #[Test]
-    public function it_gets_display_name_without_character(): void
-    {
-        $user = User::factory()->create(['username' => 'unique_player_123']);
-        $participant = RoomParticipant::factory()->withoutCharacter()->create([
-            'user_id' => $user->id,
-            'character_name' => null
-        ]);
+    expect($participant->getCharacterAncestry())->toBeNull();
+});
+it('gets character community with character', function () {
+    $character = Character::factory()->create(['community' => 'Wildborne']);
+    $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
 
-        $this->assertEquals('unique_player_123', $participant->getDisplayName());
-    }
+    expect($participant->getCharacterCommunity())->toEqual('Wildborne');
+});
+it('gets null character community without character', function () {
+    $participant = RoomParticipant::factory()->withoutCharacter()->create();
 
-    #[Test]
-    public function it_gets_character_class_with_character(): void
-    {
-        $character = Character::factory()->create(['class' => 'Warrior']);
-        $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
+    expect($participant->getCharacterCommunity())->toBeNull();
+});
+it('checks if active', function () {
+    $activeParticipant = RoomParticipant::factory()->create(['left_at' => null]);
+    $inactiveParticipant = RoomParticipant::factory()->leftAt(now())->create();
 
-        $this->assertEquals('Warrior', $participant->getCharacterClass());
-    }
+    expect($activeParticipant->isActive())->toBeTrue();
+    expect($inactiveParticipant->isActive())->toBeFalse();
+});
+it('scopes active participants', function () {
+    $room = Room::factory()->create();
 
-    #[Test]
-    public function it_gets_character_class_with_temporary_character(): void
-    {
-        $participant = RoomParticipant::factory()->withTemporaryCharacter()->create([
-            'character_class' => 'Rogue'
-        ]);
+    RoomParticipant::factory()->count(3)->create([
+        'room_id' => $room->id,
+        'left_at' => null
+    ]);
 
-        $this->assertEquals('Rogue', $participant->getCharacterClass());
-    }
+    RoomParticipant::factory()->count(2)->leftAt(now())->create([
+        'room_id' => $room->id
+    ]);
 
-    #[Test]
-    public function it_gets_null_character_class_without_character(): void
-    {
-        $participant = RoomParticipant::factory()->withoutCharacter()->create();
+    $activeParticipants = RoomParticipant::active()->where('room_id', $room->id)->get();
 
-        $this->assertNull($participant->getCharacterClass());
-    }
+    expect($activeParticipants)->toHaveCount(3);
+    expect($activeParticipants->every(fn($p) => $p->left_at === null))->toBeTrue();
+});
+it('scopes participants with characters', function () {
+    $room = Room::factory()->create();
 
-    #[Test]
-    public function it_gets_character_subclass_with_character(): void
-    {
-        $character = Character::factory()->create(['subclass' => 'Vengeance']);
-        $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
+    RoomParticipant::factory()->count(2)->create(['room_id' => $room->id]);
+    RoomParticipant::factory()->count(3)->withoutCharacter()->create(['room_id' => $room->id]);
 
-        $this->assertEquals('Vengeance', $participant->getCharacterSubclass());
-    }
+    $withCharacters = RoomParticipant::withCharacters()->where('room_id', $room->id)->get();
 
-    #[Test]
-    public function it_gets_null_character_subclass_without_character(): void
-    {
-        $participant = RoomParticipant::factory()->withoutCharacter()->create();
+    expect($withCharacters)->toHaveCount(2);
+    expect($withCharacters->every(fn($p) => $p->character_id !== null))->toBeTrue();
+});
+it('scopes participants without characters', function () {
+    $room = Room::factory()->create();
 
-        $this->assertNull($participant->getCharacterSubclass());
-    }
+    RoomParticipant::factory()->count(2)->create(['room_id' => $room->id]);
+    RoomParticipant::factory()->count(3)->withoutCharacter()->create(['room_id' => $room->id]);
 
-    #[Test]
-    public function it_gets_character_ancestry_with_character(): void
-    {
-        $character = Character::factory()->create(['ancestry' => 'Human']);
-        $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
+    $withoutCharacters = RoomParticipant::withoutCharacters()->where('room_id', $room->id)->get();
 
-        $this->assertEquals('Human', $participant->getCharacterAncestry());
-    }
+    expect($withoutCharacters)->toHaveCount(3);
+    expect($withoutCharacters->every(fn($p) => $p->character_id === null))->toBeTrue();
+});
+it('casts joined at to datetime', function () {
+    $participant = RoomParticipant::factory()->create();
 
-    #[Test]
-    public function it_gets_null_character_ancestry_without_character(): void
-    {
-        $participant = RoomParticipant::factory()->withoutCharacter()->create();
+    expect($participant->joined_at)->toBeInstanceOf(\Carbon\Carbon::class);
+});
+it('casts left at to datetime', function () {
+    $participant = RoomParticipant::factory()->leftAt(now())->create();
 
-        $this->assertNull($participant->getCharacterAncestry());
-    }
+    expect($participant->left_at)->toBeInstanceOf(\Carbon\Carbon::class);
+});
+it('handles missing character gracefully', function () {
+    $participant = RoomParticipant::factory()->withoutCharacter()->create([
+        'character_name' => null,
+        'character_class' => null
+    ]);
 
-    #[Test]
-    public function it_gets_character_community_with_character(): void
-    {
-        $character = Character::factory()->create(['community' => 'Wildborne']);
-        $participant = RoomParticipant::factory()->create(['character_id' => $character->id]);
-
-        $this->assertEquals('Wildborne', $participant->getCharacterCommunity());
-    }
-
-    #[Test]
-    public function it_gets_null_character_community_without_character(): void
-    {
-        $participant = RoomParticipant::factory()->withoutCharacter()->create();
-
-        $this->assertNull($participant->getCharacterCommunity());
-    }
-
-    #[Test]
-    public function it_checks_if_active(): void
-    {
-        $activeParticipant = RoomParticipant::factory()->create(['left_at' => null]);
-        $inactiveParticipant = RoomParticipant::factory()->leftAt(now())->create();
-
-        $this->assertTrue($activeParticipant->isActive());
-        $this->assertFalse($inactiveParticipant->isActive());
-    }
-
-    #[Test]
-    public function it_scopes_active_participants(): void
-    {
-        $room = Room::factory()->create();
-        
-        RoomParticipant::factory()->count(3)->create([
-            'room_id' => $room->id,
-            'left_at' => null
-        ]);
-        
-        RoomParticipant::factory()->count(2)->leftAt(now())->create([
-            'room_id' => $room->id
-        ]);
-
-        $activeParticipants = RoomParticipant::active()->where('room_id', $room->id)->get();
-
-        $this->assertCount(3, $activeParticipants);
-        $this->assertTrue($activeParticipants->every(fn($p) => $p->left_at === null));
-    }
-
-    #[Test]
-    public function it_scopes_participants_with_characters(): void
-    {
-        $room = Room::factory()->create();
-        
-        RoomParticipant::factory()->count(2)->create(['room_id' => $room->id]);
-        RoomParticipant::factory()->count(3)->withoutCharacter()->create(['room_id' => $room->id]);
-
-        $withCharacters = RoomParticipant::withCharacters()->where('room_id', $room->id)->get();
-
-        $this->assertCount(2, $withCharacters);
-        $this->assertTrue($withCharacters->every(fn($p) => $p->character_id !== null));
-    }
-
-    #[Test]
-    public function it_scopes_participants_without_characters(): void
-    {
-        $room = Room::factory()->create();
-        
-        RoomParticipant::factory()->count(2)->create(['room_id' => $room->id]);
-        RoomParticipant::factory()->count(3)->withoutCharacter()->create(['room_id' => $room->id]);
-
-        $withoutCharacters = RoomParticipant::withoutCharacters()->where('room_id', $room->id)->get();
-
-        $this->assertCount(3, $withoutCharacters);
-        $this->assertTrue($withoutCharacters->every(fn($p) => $p->character_id === null));
-    }
-
-    #[Test]
-    public function it_casts_joined_at_to_datetime(): void
-    {
-        $participant = RoomParticipant::factory()->create();
-
-        $this->assertInstanceOf(\Carbon\Carbon::class, $participant->joined_at);
-    }
-
-    #[Test]
-    public function it_casts_left_at_to_datetime(): void
-    {
-        $participant = RoomParticipant::factory()->leftAt(now())->create();
-
-        $this->assertInstanceOf(\Carbon\Carbon::class, $participant->left_at);
-    }
-
-    #[Test]
-    public function it_handles_missing_character_gracefully(): void
-    {
-        $participant = RoomParticipant::factory()->withoutCharacter()->create([
-            'character_name' => null,
-            'character_class' => null
-        ]);
-
-        $this->assertNull($participant->getCharacterClass());
-        $this->assertNull($participant->getCharacterSubclass());
-        $this->assertNull($participant->getCharacterAncestry());
-        $this->assertNull($participant->getCharacterCommunity());
-        $this->assertEquals($participant->user->username, $participant->getDisplayName());
-    }
-}
+    expect($participant->getCharacterClass())->toBeNull();
+    expect($participant->getCharacterSubclass())->toBeNull();
+    expect($participant->getCharacterAncestry())->toBeNull();
+    expect($participant->getCharacterCommunity())->toBeNull();
+    expect($participant->getDisplayName())->toEqual($participant->user->username);
+});

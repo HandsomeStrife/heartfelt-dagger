@@ -1,43 +1,26 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Feature;
-
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class DiscordRedirectTest extends TestCase
-{
-    use RefreshDatabase;
+test('discord route redirects to discord url', function () {
+    $response = $this->get('/discord');
 
-    #[Test]
-    public function discord_route_redirects_to_discord_url(): void
-    {
-        $response = $this->get('/discord');
+    $response->assertStatus(302);
+    $response->assertRedirect('https://discord.gg/dNAkDYevGx');
+});
+test('discord route is accessible to guests', function () {
+    // Guests should be able to access the Discord redirect
+    $response = $this->get('/discord');
 
-        $response->assertStatus(302);
-        $response->assertRedirect('https://discord.gg/dNAkDYevGx');
-    }
+    $response->assertStatus(302);
+});
+test('discord route is accessible to authenticated users', function () {
+    $user = \Domain\User\Models\User::factory()->create();
 
-    #[Test]
-    public function discord_route_is_accessible_to_guests(): void
-    {
-        // Guests should be able to access the Discord redirect
-        $response = $this->get('/discord');
+    $response = $this->actingAs($user)->get('/discord');
 
-        $response->assertStatus(302);
-    }
-
-    #[Test]
-    public function discord_route_is_accessible_to_authenticated_users(): void
-    {
-        $user = \Domain\User\Models\User::factory()->create();
-
-        $response = $this->actingAs($user)->get('/discord');
-
-        $response->assertStatus(302);
-        $response->assertRedirect('https://discord.gg/dNAkDYevGx');
-    }
-}
+    $response->assertStatus(302);
+    $response->assertRedirect('https://discord.gg/dNAkDYevGx');
+});

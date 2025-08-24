@@ -1,124 +1,92 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Character\Models;
-
 use Domain\Character\Models\Character;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-class CharacterAncestryBonusTest extends TestCase
-{
-    use RefreshDatabase;
+test('simiah ancestry provides evasion bonus', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'simiah',
+    ]);
 
-    #[Test]
-    public function simiah_ancestry_provides_evasion_bonus(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'simiah',
-        ]);
+    expect($character->getAncestryEvasionBonus())->toEqual(1);
+});
+test('giant ancestry provides hit point bonus', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'giant',
+    ]);
 
-        $this->assertEquals(1, $character->getAncestryEvasionBonus());
-    }
+    expect($character->getAncestryHitPointBonus())->toEqual(1);
+});
+test('human ancestry provides stress bonus', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'human',
+    ]);
 
-    #[Test]
-    public function giant_ancestry_provides_hit_point_bonus(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'giant',
-        ]);
+    expect($character->getAncestryStressBonus())->toEqual(1);
+});
+test('galapa ancestry provides damage threshold bonus', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'galapa',
+        'level' => 2, // Proficiency +1 at level 2
+    ]);
 
-        $this->assertEquals(1, $character->getAncestryHitPointBonus());
-    }
+    // Galapa gets damage threshold bonus equal to proficiency
+    expect($character->getAncestryDamageThresholdBonus())->toEqual(1);
+});
+test('galapa proficiency bonus scales with level', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'galapa',
+        'level' => 5, // Proficiency +2 at level 5
+    ]);
 
-    #[Test]
-    public function human_ancestry_provides_stress_bonus(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'human',
-        ]);
+    expect($character->getAncestryDamageThresholdBonus())->toEqual(2);
+});
+test('non bonus ancestries return zero', function () {
+    $character = Character::factory()->create([
+        'ancestry' => 'elf', // Not one of the bonus-providing ancestries
+    ]);
 
-        $this->assertEquals(1, $character->getAncestryStressBonus());
-    }
+    expect($character->getAncestryEvasionBonus())->toEqual(0);
+    expect($character->getAncestryHitPointBonus())->toEqual(0);
+    expect($character->getAncestryStressBonus())->toEqual(0);
+    expect($character->getAncestryDamageThresholdBonus())->toEqual(0);
+});
+test('all ancestry bonus methods handle null ancestry', function () {
+    $character = Character::factory()->create([
+        'ancestry' => null,
+    ]);
 
-    #[Test]
-    public function galapa_ancestry_provides_damage_threshold_bonus(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'galapa',
-            'level' => 2, // Proficiency +1 at level 2
-        ]);
+    expect($character->getAncestryEvasionBonus())->toEqual(0);
+    expect($character->getAncestryHitPointBonus())->toEqual(0);
+    expect($character->getAncestryStressBonus())->toEqual(0);
+    expect($character->getAncestryDamageThresholdBonus())->toEqual(0);
+});
+test('multiple ancestries with different bonuses', function () {
+    $simiah = Character::factory()->create(['ancestry' => 'simiah']);
+    $giant = Character::factory()->create(['ancestry' => 'giant']);
+    $human = Character::factory()->create(['ancestry' => 'human']);
+    $galapa = Character::factory()->create(['ancestry' => 'galapa', 'level' => 3]);
 
-        // Galapa gets damage threshold bonus equal to proficiency
-        $this->assertEquals(1, $character->getAncestryDamageThresholdBonus());
-    }
+    // Verify each has only their specific bonus
+    expect($simiah->getAncestryEvasionBonus())->toEqual(1);
+    expect($simiah->getAncestryHitPointBonus())->toEqual(0);
+    expect($simiah->getAncestryStressBonus())->toEqual(0);
+    expect($simiah->getAncestryDamageThresholdBonus())->toEqual(0);
 
-    #[Test]
-    public function galapa_proficiency_bonus_scales_with_level(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'galapa',
-            'level' => 5, // Proficiency +2 at level 5
-        ]);
+    expect($giant->getAncestryEvasionBonus())->toEqual(0);
+    expect($giant->getAncestryHitPointBonus())->toEqual(1);
+    expect($giant->getAncestryStressBonus())->toEqual(0);
+    expect($giant->getAncestryDamageThresholdBonus())->toEqual(0);
 
-        $this->assertEquals(2, $character->getAncestryDamageThresholdBonus());
-    }
+    expect($human->getAncestryEvasionBonus())->toEqual(0);
+    expect($human->getAncestryHitPointBonus())->toEqual(0);
+    expect($human->getAncestryStressBonus())->toEqual(1);
+    expect($human->getAncestryDamageThresholdBonus())->toEqual(0);
 
-    #[Test]
-    public function non_bonus_ancestries_return_zero(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => 'elf', // Not one of the bonus-providing ancestries
-        ]);
-
-        $this->assertEquals(0, $character->getAncestryEvasionBonus());
-        $this->assertEquals(0, $character->getAncestryHitPointBonus());
-        $this->assertEquals(0, $character->getAncestryStressBonus());
-        $this->assertEquals(0, $character->getAncestryDamageThresholdBonus());
-    }
-
-    #[Test]
-    public function all_ancestry_bonus_methods_handle_null_ancestry(): void
-    {
-        $character = Character::factory()->create([
-            'ancestry' => null,
-        ]);
-
-        $this->assertEquals(0, $character->getAncestryEvasionBonus());
-        $this->assertEquals(0, $character->getAncestryHitPointBonus());
-        $this->assertEquals(0, $character->getAncestryStressBonus());
-        $this->assertEquals(0, $character->getAncestryDamageThresholdBonus());
-    }
-
-    #[Test]
-    public function multiple_ancestries_with_different_bonuses(): void
-    {
-        $simiah = Character::factory()->create(['ancestry' => 'simiah']);
-        $giant = Character::factory()->create(['ancestry' => 'giant']);
-        $human = Character::factory()->create(['ancestry' => 'human']);
-        $galapa = Character::factory()->create(['ancestry' => 'galapa', 'level' => 3]);
-
-        // Verify each has only their specific bonus
-        $this->assertEquals(1, $simiah->getAncestryEvasionBonus());
-        $this->assertEquals(0, $simiah->getAncestryHitPointBonus());
-        $this->assertEquals(0, $simiah->getAncestryStressBonus());
-        $this->assertEquals(0, $simiah->getAncestryDamageThresholdBonus());
-
-        $this->assertEquals(0, $giant->getAncestryEvasionBonus());
-        $this->assertEquals(1, $giant->getAncestryHitPointBonus());
-        $this->assertEquals(0, $giant->getAncestryStressBonus());
-        $this->assertEquals(0, $giant->getAncestryDamageThresholdBonus());
-
-        $this->assertEquals(0, $human->getAncestryEvasionBonus());
-        $this->assertEquals(0, $human->getAncestryHitPointBonus());
-        $this->assertEquals(1, $human->getAncestryStressBonus());
-        $this->assertEquals(0, $human->getAncestryDamageThresholdBonus());
-
-        $this->assertEquals(0, $galapa->getAncestryEvasionBonus());
-        $this->assertEquals(0, $galapa->getAncestryHitPointBonus());
-        $this->assertEquals(0, $galapa->getAncestryStressBonus());
-        $this->assertEquals(1, $galapa->getAncestryDamageThresholdBonus());
-    }
-}
+    expect($galapa->getAncestryEvasionBonus())->toEqual(0);
+    expect($galapa->getAncestryHitPointBonus())->toEqual(0);
+    expect($galapa->getAncestryStressBonus())->toEqual(0);
+    expect($galapa->getAncestryDamageThresholdBonus())->toEqual(1);
+});

@@ -1,408 +1,323 @@
 <?php
 
 declare(strict_types=1);
-
-namespace Tests\Unit\Domain\Room\Data;
-
 use Domain\Room\Data\CreateRoomData;
 use Illuminate\Validation\ValidationException;
 use Livewire\Wireable;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+it('implements wireable interface', function () {
+    $createData = new CreateRoomData(
+        name: 'Test Room',
+        description: 'Test Description',
+        password: 'password',
+        guest_count: 3
+    );
 
-class CreateRoomDataTest extends TestCase
-{
-    #[Test]
-    public function it_implements_wireable_interface(): void
-    {
-        $createData = new CreateRoomData(
-            name: 'Test Room',
-            description: 'Test Description',
-            password: 'password',
-            guest_count: 3
-        );
+    expect($createData)->toBeInstanceOf(Wireable::class);
+});
+it('creates from valid array', function () {
+    $data = [
+        'name' => 'Epic Adventure Room',
+        'description' => 'A room for epic adventures',
+        'password' => 'secret123',
+        'guest_count' => 4,
+    ];
 
-        $this->assertInstanceOf(Wireable::class, $createData);
-    }
+    $createData = CreateRoomData::from($data);
 
-    #[Test]
-    public function it_creates_from_valid_array(): void
-    {
-        $data = [
-            'name' => 'Epic Adventure Room',
-            'description' => 'A room for epic adventures',
-            'password' => 'secret123',
-            'guest_count' => 4,
-        ];
+    expect($createData->name)->toEqual('Epic Adventure Room');
+    expect($createData->description)->toEqual('A room for epic adventures');
+    expect($createData->password)->toEqual('secret123');
+    expect($createData->guest_count)->toEqual(4);
+});
+it('validates required name field', function () {
+    $this->expectException(ValidationException::class);
 
-        $createData = CreateRoomData::from($data);
+    CreateRoomData::validate([
+        'description' => 'Missing name field',
+        'password' => 'password',
+        'guest_count' => 2,
+    ]);
+});
+it('validates required description field', function () {
+    $this->expectException(ValidationException::class);
 
-        $this->assertEquals('Epic Adventure Room', $createData->name);
-        $this->assertEquals('A room for epic adventures', $createData->description);
-        $this->assertEquals('secret123', $createData->password);
-        $this->assertEquals(4, $createData->guest_count);
-    }
+    CreateRoomData::validate([
+        'name' => 'Test Room',
+        'password' => 'password',
+        'guest_count' => 2,
+    ]);
+});
+it('validates required password field', function () {
+    $this->expectException(ValidationException::class);
 
-    #[Test]
-    public function it_validates_required_name_field(): void
-    {
-        $this->expectException(ValidationException::class);
+    CreateRoomData::validate([
+        'name' => 'Test Room',
+        'description' => 'Test Description',
+        'guest_count' => 2,
+    ]);
+});
+it('validates required guest count field', function () {
+    $this->expectException(ValidationException::class);
 
-        CreateRoomData::validate([
-            'description' => 'Missing name field',
-            'password' => 'password',
-            'guest_count' => 2,
-        ]);
-    }
+    CreateRoomData::validate([
+        'name' => 'Test Room',
+        'description' => 'Test Description',
+        'password' => 'password',
+    ]);
+});
+it('validates name max length', function () {
+    $this->expectException(ValidationException::class);
 
-    #[Test]
-    public function it_validates_required_description_field(): void
-    {
-        $this->expectException(ValidationException::class);
+    CreateRoomData::validate([
+        'name' => str_repeat('A', 101), // Exceeds max length
+        'description' => 'Valid description',
+        'password' => 'password',
+        'guest_count' => 3,
+    ]);
+});
+it('validates description max length', function () {
+    $this->expectException(ValidationException::class);
 
-        CreateRoomData::validate([
-            'name' => 'Test Room',
-            'password' => 'password',
-            'guest_count' => 2,
-        ]);
-    }
+    CreateRoomData::validate([
+        'name' => 'Valid name',
+        'description' => str_repeat('B', 501), // Exceeds max length
+        'password' => 'password',
+        'guest_count' => 3,
+    ]);
+});
+it('validates password max length', function () {
+    $this->expectException(ValidationException::class);
 
-    #[Test]
-    public function it_validates_required_password_field(): void
-    {
-        $this->expectException(ValidationException::class);
+    CreateRoomData::validate([
+        'name' => 'Valid name',
+        'description' => 'Valid description',
+        'password' => str_repeat('P', 256), // Exceeds max length
+        'guest_count' => 3,
+    ]);
+});
+it('validates guest count minimum', function () {
+    $this->expectException(ValidationException::class);
 
-        CreateRoomData::validate([
-            'name' => 'Test Room',
-            'description' => 'Test Description',
-            'guest_count' => 2,
-        ]);
-    }
+    CreateRoomData::validate([
+        'name' => 'Valid name',
+        'description' => 'Valid description',
+        'password' => 'password',
+        'guest_count' => 0, // Below minimum
+    ]);
+});
+it('validates guest count maximum', function () {
+    $this->expectException(ValidationException::class);
 
-    #[Test]
-    public function it_validates_required_guest_count_field(): void
-    {
-        $this->expectException(ValidationException::class);
+    CreateRoomData::validate([
+        'name' => 'Valid name',
+        'description' => 'Valid description',
+        'password' => 'password',
+        'guest_count' => 6, // Exceeds maximum
+    ]);
+});
+it('accepts name at max length', function () {
+    $data = [
+        'name' => str_repeat('A', 100), // Exactly max length
+        'description' => 'Valid description',
+        'password' => 'password',
+        'guest_count' => 3,
+    ];
 
-        CreateRoomData::validate([
-            'name' => 'Test Room',
-            'description' => 'Test Description',
-            'password' => 'password',
-        ]);
-    }
+    $createData = CreateRoomData::from($data);
 
-    #[Test]
-    public function it_validates_name_max_length(): void
-    {
-        $this->expectException(ValidationException::class);
+    expect($createData->name)->toEqual(str_repeat('A', 100));
+});
+it('accepts description at max length', function () {
+    $data = [
+        'name' => 'Valid name',
+        'description' => str_repeat('B', 500), // Exactly max length
+        'password' => 'password',
+        'guest_count' => 3,
+    ];
 
-        CreateRoomData::validate([
-            'name' => str_repeat('A', 101), // Exceeds max length
-            'description' => 'Valid description',
-            'password' => 'password',
-            'guest_count' => 3,
-        ]);
-    }
+    $createData = CreateRoomData::from($data);
 
-    #[Test]
-    public function it_validates_description_max_length(): void
-    {
-        $this->expectException(ValidationException::class);
+    expect($createData->description)->toEqual(str_repeat('B', 500));
+});
+it('accepts password at max length', function () {
+    $data = [
+        'name' => 'Valid name',
+        'description' => 'Valid description',
+        'password' => str_repeat('P', 255), // Exactly max length
+        'guest_count' => 3,
+    ];
 
-        CreateRoomData::validate([
-            'name' => 'Valid name',
-            'description' => str_repeat('B', 501), // Exceeds max length
-            'password' => 'password',
-            'guest_count' => 3,
-        ]);
-    }
+    $createData = CreateRoomData::from($data);
 
-    #[Test]
-    public function it_validates_password_max_length(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        CreateRoomData::validate([
-            'name' => 'Valid name',
-            'description' => 'Valid description',
-            'password' => str_repeat('P', 256), // Exceeds max length
-            'guest_count' => 3,
-        ]);
-    }
-
-    #[Test]
-    public function it_validates_guest_count_minimum(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        CreateRoomData::validate([
-            'name' => 'Valid name',
-            'description' => 'Valid description',
-            'password' => 'password',
-            'guest_count' => 0, // Below minimum
-        ]);
-    }
-
-    #[Test]
-    public function it_validates_guest_count_maximum(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        CreateRoomData::validate([
-            'name' => 'Valid name',
-            'description' => 'Valid description',
-            'password' => 'password',
-            'guest_count' => 6, // Exceeds maximum
-        ]);
-    }
-
-    #[Test]
-    public function it_accepts_name_at_max_length(): void
-    {
-        $data = [
-            'name' => str_repeat('A', 100), // Exactly max length
-            'description' => 'Valid description',
-            'password' => 'password',
-            'guest_count' => 3,
-        ];
-
-        $createData = CreateRoomData::from($data);
-
-        $this->assertEquals(str_repeat('A', 100), $createData->name);
-    }
-
-    #[Test]
-    public function it_accepts_description_at_max_length(): void
-    {
-        $data = [
-            'name' => 'Valid name',
-            'description' => str_repeat('B', 500), // Exactly max length
-            'password' => 'password',
-            'guest_count' => 3,
-        ];
-
-        $createData = CreateRoomData::from($data);
-
-        $this->assertEquals(str_repeat('B', 500), $createData->description);
-    }
-
-    #[Test]
-    public function it_accepts_password_at_max_length(): void
-    {
+    expect($createData->password)->toEqual(str_repeat('P', 255));
+});
+it('accepts all valid guest counts', function () {
+    foreach ([1, 2, 3, 4, 5] as $guestCount) {
         $data = [
             'name' => 'Valid name',
             'description' => 'Valid description',
-            'password' => str_repeat('P', 255), // Exactly max length
-            'guest_count' => 3,
-        ];
-
-        $createData = CreateRoomData::from($data);
-
-        $this->assertEquals(str_repeat('P', 255), $createData->password);
-    }
-
-    #[Test]
-    public function it_accepts_all_valid_guest_counts(): void
-    {
-        foreach ([1, 2, 3, 4, 5] as $guestCount) {
-            $data = [
-                'name' => 'Valid name',
-                'description' => 'Valid description',
-                'password' => 'password',
-                'guest_count' => $guestCount,
-            ];
-
-            $createData = CreateRoomData::from($data);
-            $this->assertEquals($guestCount, $createData->guest_count);
-        }
-    }
-
-    #[Test]
-    public function it_accepts_minimal_valid_data(): void
-    {
-        $data = [
-            'name' => 'A',
-            'description' => 'B',
-            'password' => 'p',
-            'guest_count' => 1,
-        ];
-
-        $createData = CreateRoomData::from($data);
-
-        $this->assertEquals('A', $createData->name);
-        $this->assertEquals('B', $createData->description);
-        $this->assertEquals('p', $createData->password);
-        $this->assertEquals(1, $createData->guest_count);
-    }
-
-    #[Test]
-    public function it_handles_whitespace_in_fields(): void
-    {
-        $data = [
-            'name' => '  Test Room  ',
-            'description' => '  Test Description  ',
-            'password' => '  password  ',
-            'guest_count' => 2,
-        ];
-
-        $createData = CreateRoomData::from($data);
-
-        // Values should be preserved as-is (trimming is usually done at validation level)
-        $this->assertEquals('  Test Room  ', $createData->name);
-        $this->assertEquals('  Test Description  ', $createData->description);
-        $this->assertEquals('  password  ', $createData->password);
-    }
-
-    #[Test]
-    public function it_handles_special_characters(): void
-    {
-        $data = [
-            'name' => 'Room with émojis 🎲 & symbols!',
-            'description' => 'Description with special chars: @#$%^&*()',
-            'password' => 'p@$$w0rd!',
-            'guest_count' => 3,
-        ];
-
-        $createData = CreateRoomData::from($data);
-
-        $this->assertEquals('Room with émojis 🎲 & symbols!', $createData->name);
-        $this->assertEquals('Description with special chars: @#$%^&*()', $createData->description);
-        $this->assertEquals('p@$$w0rd!', $createData->password);
-    }
-
-    #[Test]
-    public function it_validates_empty_string_as_invalid(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        CreateRoomData::validate([
-            'name' => '',
-            'description' => 'Valid description',
             'password' => 'password',
-            'guest_count' => 2,
-        ]);
-    }
-
-    #[Test]
-    public function it_validates_null_values_as_invalid(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        CreateRoomData::validate([
-            'name' => null,
-            'description' => 'Valid description',
-            'password' => 'password',
-            'guest_count' => 2,
-        ]);
-    }
-
-    #[Test]
-    public function it_works_with_livewire_to_livewire(): void
-    {
-        $createData = new CreateRoomData(
-            name: 'Livewire Room',
-            description: 'Testing Livewire',
-            password: 'secret123',
-            guest_count: 4
-        );
-
-        $livewireArray = $createData->toLivewire();
-        $restoredData = CreateRoomData::fromLivewire($livewireArray);
-
-        $this->assertEquals($createData->name, $restoredData->name);
-        $this->assertEquals($createData->description, $restoredData->description);
-        $this->assertEquals($createData->password, $restoredData->password);
-        $this->assertEquals($createData->guest_count, $restoredData->guest_count);
-    }
-
-    #[Test]
-    public function it_works_with_livewire_from_livewire(): void
-    {
-        $originalData = [
-            'name' => 'Original Room',
-            'description' => 'Original Description',
-            'password' => 'original123',
-            'guest_count' => 2,
-        ];
-
-        $createData = CreateRoomData::from($originalData);
-        $livewireArray = $createData->toLivewire();
-        $restoredData = CreateRoomData::fromLivewire($livewireArray);
-
-        $this->assertEquals($createData->name, $restoredData->name);
-        $this->assertEquals($createData->description, $restoredData->description);
-        $this->assertEquals($createData->password, $restoredData->password);
-        $this->assertEquals($createData->guest_count, $restoredData->guest_count);
-    }
-
-    #[Test]
-    public function it_handles_multiline_descriptions(): void
-    {
-        $data = [
-            'name' => 'Multiline Room',
-            'description' => "Line 1\nLine 2\nLine 3",
-            'password' => 'password',
-            'guest_count' => 3,
+            'guest_count' => $guestCount,
         ];
 
         $createData = CreateRoomData::from($data);
-
-        $this->assertEquals("Line 1\nLine 2\nLine 3", $createData->description);
+        expect($createData->guest_count)->toEqual($guestCount);
     }
+});
+it('accepts minimal valid data', function () {
+    $data = [
+        'name' => 'A',
+        'description' => 'B',
+        'password' => 'p',
+        'guest_count' => 1,
+    ];
 
-    #[Test]
-    public function it_preserves_unicode_characters(): void
-    {
-        $data = [
-            'name' => 'Room 中文 العربية русский',
-            'description' => 'Unicode test: 🎲 ♠️ ♥️ ♦️ ♣️',
-            'password' => 'pässwörd',
-            'guest_count' => 2,
-        ];
+    $createData = CreateRoomData::from($data);
 
-        $createData = CreateRoomData::from($data);
+    expect($createData->name)->toEqual('A');
+    expect($createData->description)->toEqual('B');
+    expect($createData->password)->toEqual('p');
+    expect($createData->guest_count)->toEqual(1);
+});
+it('handles whitespace in fields', function () {
+    $data = [
+        'name' => '  Test Room  ',
+        'description' => '  Test Description  ',
+        'password' => '  password  ',
+        'guest_count' => 2,
+    ];
 
-        $this->assertEquals('Room 中文 العربية русский', $createData->name);
-        $this->assertEquals('Unicode test: 🎲 ♠️ ♥️ ♦️ ♣️', $createData->description);
-        $this->assertEquals('pässwörd', $createData->password);
-    }
+    $createData = CreateRoomData::from($data);
 
-    #[Test]
-    public function it_handles_numeric_strings(): void
-    {
-        $data = [
-            'name' => '123',
-            'description' => '456',
-            'password' => '789',
-            'guest_count' => 1,
-        ];
+    // Values should be preserved as-is (trimming is usually done at validation level)
+    expect($createData->name)->toEqual('  Test Room  ');
+    expect($createData->description)->toEqual('  Test Description  ');
+    expect($createData->password)->toEqual('  password  ');
+});
+it('handles special characters', function () {
+    $data = [
+        'name' => 'Room with émojis 🎲 & symbols!',
+        'description' => 'Description with special chars: @#$%^&*()',
+        'password' => 'p@$$w0rd!',
+        'guest_count' => 3,
+    ];
 
-        $createData = CreateRoomData::from($data);
+    $createData = CreateRoomData::from($data);
 
-        $this->assertEquals('123', $createData->name);
-        $this->assertEquals('456', $createData->description);
-        $this->assertEquals('789', $createData->password);
-        $this->assertEquals(1, $createData->guest_count);
-    }
+    expect($createData->name)->toEqual('Room with émojis 🎲 & symbols!');
+    expect($createData->description)->toEqual('Description with special chars: @#$%^&*()');
+    expect($createData->password)->toEqual('p@$$w0rd!');
+});
+it('validates empty string as invalid', function () {
+    $this->expectException(ValidationException::class);
 
-    #[Test]
-    public function it_handles_extra_fields_gracefully(): void
-    {
-        $data = [
-            'name' => 'Test Room',
-            'description' => 'Test Description',
-            'password' => 'password',
-            'guest_count' => 2,
-            'extra_field' => 'should be ignored',
-            'another_field' => 123,
-        ];
+    CreateRoomData::validate([
+        'name' => '',
+        'description' => 'Valid description',
+        'password' => 'password',
+        'guest_count' => 2,
+    ]);
+});
+it('validates null values as invalid', function () {
+    $this->expectException(ValidationException::class);
 
-        $createData = CreateRoomData::from($data);
+    CreateRoomData::validate([
+        'name' => null,
+        'description' => 'Valid description',
+        'password' => 'password',
+        'guest_count' => 2,
+    ]);
+});
+it('works with livewire to livewire', function () {
+    $createData = new CreateRoomData(
+        name: 'Livewire Room',
+        description: 'Testing Livewire',
+        password: 'secret123',
+        guest_count: 4
+    );
 
-        $this->assertEquals('Test Room', $createData->name);
-        $this->assertEquals('Test Description', $createData->description);
-        $this->assertEquals('password', $createData->password);
-        $this->assertEquals(2, $createData->guest_count);
-        // Extra fields should not cause errors
-    }
-}
+    $livewireArray = $createData->toLivewire();
+    $restoredData = CreateRoomData::fromLivewire($livewireArray);
+
+    expect($restoredData->name)->toEqual($createData->name);
+    expect($restoredData->description)->toEqual($createData->description);
+    expect($restoredData->password)->toEqual($createData->password);
+    expect($restoredData->guest_count)->toEqual($createData->guest_count);
+});
+it('works with livewire from livewire', function () {
+    $originalData = [
+        'name' => 'Original Room',
+        'description' => 'Original Description',
+        'password' => 'original123',
+        'guest_count' => 2,
+    ];
+
+    $createData = CreateRoomData::from($originalData);
+    $livewireArray = $createData->toLivewire();
+    $restoredData = CreateRoomData::fromLivewire($livewireArray);
+
+    expect($restoredData->name)->toEqual($createData->name);
+    expect($restoredData->description)->toEqual($createData->description);
+    expect($restoredData->password)->toEqual($createData->password);
+    expect($restoredData->guest_count)->toEqual($createData->guest_count);
+});
+it('handles multiline descriptions', function () {
+    $data = [
+        'name' => 'Multiline Room',
+        'description' => "Line 1\nLine 2\nLine 3",
+        'password' => 'password',
+        'guest_count' => 3,
+    ];
+
+    $createData = CreateRoomData::from($data);
+
+    expect($createData->description)->toEqual("Line 1\nLine 2\nLine 3");
+});
+it('preserves unicode characters', function () {
+    $data = [
+        'name' => 'Room 中文 العربية русский',
+        'description' => 'Unicode test: 🎲 ♠️ ♥️ ♦️ ♣️',
+        'password' => 'pässwörd',
+        'guest_count' => 2,
+    ];
+
+    $createData = CreateRoomData::from($data);
+
+    expect($createData->name)->toEqual('Room 中文 العربية русский');
+    expect($createData->description)->toEqual('Unicode test: 🎲 ♠️ ♥️ ♦️ ♣️');
+    expect($createData->password)->toEqual('pässwörd');
+});
+it('handles numeric strings', function () {
+    $data = [
+        'name' => '123',
+        'description' => '456',
+        'password' => '789',
+        'guest_count' => 1,
+    ];
+
+    $createData = CreateRoomData::from($data);
+
+    expect($createData->name)->toEqual('123');
+    expect($createData->description)->toEqual('456');
+    expect($createData->password)->toEqual('789');
+    expect($createData->guest_count)->toEqual(1);
+});
+it('handles extra fields gracefully', function () {
+    $data = [
+        'name' => 'Test Room',
+        'description' => 'Test Description',
+        'password' => 'password',
+        'guest_count' => 2,
+        'extra_field' => 'should be ignored',
+        'another_field' => 123,
+    ];
+
+    $createData = CreateRoomData::from($data);
+
+    expect($createData->name)->toEqual('Test Room');
+    expect($createData->description)->toEqual('Test Description');
+    expect($createData->password)->toEqual('password');
+    expect($createData->guest_count)->toEqual(2);
+    // Extra fields should not cause errors
+});
