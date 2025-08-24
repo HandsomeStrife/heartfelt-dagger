@@ -2,23 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Domain\CampaignFrame\Actions;
-
 use Domain\CampaignFrame\Actions\CreateCampaignFrameAction;
 use Domain\CampaignFrame\Data\CreateCampaignFrameData;
 use Domain\CampaignFrame\Enums\ComplexityRating;
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class CreateCampaignFrameActionTest extends TestCase
-{
-    use RefreshDatabase;
-
-    #[Test]
-    public function it_creates_a_campaign_frame_successfully(): void
-    {
+test('it creates a campaign frame successfully', function () {
     // Arrange
     $user = User::factory()->create();
     $data = CreateCampaignFrameData::from([
@@ -43,23 +33,21 @@ class CreateCampaignFrameActionTest extends TestCase
     $frame = $action->execute($data, $user);
 
     // Assert
-    $this->assertInstanceOf(CampaignFrame::class, $frame);
-    $this->assertEquals('Test Campaign Frame', $frame->name);
-    $this->assertEquals('A test campaign frame description', $frame->description);
-    $this->assertEquals(ComplexityRating::MODERATE->value, $frame->complexity_rating);
-    $this->assertTrue($frame->is_public);
-    $this->assertEquals($user->id, $frame->creator_id);
-    $this->assertEquals(['First pitch point', 'Second pitch point'], $frame->pitch);
-    $this->assertEquals(['Dark', 'Mystery', 'Adventure'], $frame->tone_and_themes);
-    $this->assertEquals('This is a detailed background overview.', $frame->background_overview);
-    $this->assertEquals('A dragon awakens in the nearby mountains.', $frame->inciting_incident);
+    expect($frame)->toBeInstanceOf(CampaignFrame::class);
+    expect($frame->name)->toBe('Test Campaign Frame');
+    expect($frame->description)->toBe('A test campaign frame description');
+    expect($frame->complexity_rating)->toBe(ComplexityRating::MODERATE->value);
+    expect($frame->is_public)->toBe(true);
+    expect($frame->creator_id)->toBe($user->id);
+    expect($frame->pitch)->toBe(['First pitch point', 'Second pitch point']);
+    expect($frame->tone_and_themes)->toBe(['Dark', 'Mystery', 'Adventure']);
+    expect($frame->background_overview)->toBe('This is a detailed background overview.');
+    expect($frame->inciting_incident)->toBe('A dragon awakens in the nearby mountains.');
 
-    $this->assertEquals(1, CampaignFrame::count());
-    }
+    expect(CampaignFrame::count())->toBe(1);
+});
 
-    #[Test]
-    public function it_creates_a_private_campaign_frame_by_default(): void
-    {
+test('it creates a private campaign frame by default', function () {
     // Arrange
     $user = User::factory()->create();
     $data = CreateCampaignFrameData::from([
@@ -75,6 +63,5 @@ class CreateCampaignFrameActionTest extends TestCase
     $frame = $action->execute($data, $user);
 
     // Assert
-    $this->assertFalse($frame->is_public);
-    }
-}
+    expect($frame->is_public)->toBe(false);
+});

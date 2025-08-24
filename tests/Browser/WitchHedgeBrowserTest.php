@@ -103,15 +103,15 @@ test('witch hedge subclass features are correctly loaded', function () {
 test('witch hedge character builder integration works correctly', function () {
     $this->browse(function ($browser) {
         $browser->visit('/')
-            ->assertSee('DaggerHeart Character Builder')
-            ->click('[data-class="witch"]')
+            ->assertSee('Character Builder')
+            ->click('[dusk="class-card-witch"]')
             ->waitForText('Witch')
             ->assertSee('Void - Playtest v1.5')
             ->assertSee('As a witch, you weave together the mysterious powers of earth, sky, and spirit')
             ->assertSee('Starting Evasion: 10')
             ->assertSee('Starting Hit Points: 6')
             ->assertSee('Domains: Dread, Sage')
-            ->click('[data-subclass="hedge"]')
+            ->click('[dusk="subclass-card-hedge"]')
             ->waitForText('Hedge')
             ->assertSee('Play the Hedge if you want to craft protective charms')
             ->assertSee('Spellcast Trait: Knowledge')
@@ -210,3 +210,4 @@ test('witch hedge background and connection questions are loaded', function () {
     expect($connections[1])->toBe('I once appeared to you in a dream and shared a vision of the future. What did I tell you?');
     expect($connections[2])->toBe('Why do you come to me for advice?');
 });
+

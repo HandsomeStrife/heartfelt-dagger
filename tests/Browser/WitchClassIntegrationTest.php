@@ -273,3 +273,4 @@ test('completed witch character shows all correct information', function () {
             ->assertSee('Healing Hands');
     });
 });
+

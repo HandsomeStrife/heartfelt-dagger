@@ -2,23 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Domain\CampaignFrame\Actions;
-
 use Domain\CampaignFrame\Actions\UpdateCampaignFrameAction;
 use Domain\CampaignFrame\Data\UpdateCampaignFrameData;
 use Domain\CampaignFrame\Enums\ComplexityRating;
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class UpdateCampaignFrameActionTest extends TestCase
-{
-    use RefreshDatabase;
-
-    #[Test]
-    public function it_updates_a_campaign_frame_successfully(): void
-    {
+test('it updates a campaign frame successfully', function () {
     // Arrange
     $user = User::factory()->create();
     $frame = CampaignFrame::factory()->create([
@@ -51,18 +41,16 @@ class UpdateCampaignFrameActionTest extends TestCase
     $updated_frame = $action->execute($frame, $update_data);
 
     // Assert
-    $this->assertEquals('Updated Name', $updated_frame->name);
-    $this->assertEquals('Updated Description', $updated_frame->description);
-    $this->assertEquals(ComplexityRating::COMPLEX->value, $updated_frame->complexity_rating);
-    $this->assertTrue($updated_frame->is_public);
-    $this->assertEquals(['Updated pitch'], $updated_frame->pitch);
-    $this->assertEquals('Updated background', $updated_frame->background_overview);
-    $this->assertEquals('Updated incident', $updated_frame->inciting_incident);
-    }
+    expect($updated_frame->name)->toBe('Updated Name');
+    expect($updated_frame->description)->toBe('Updated Description');
+    expect($updated_frame->complexity_rating)->toBe(ComplexityRating::COMPLEX->value);
+    expect($updated_frame->is_public)->toBe(true);
+    expect($updated_frame->pitch)->toBe(['Updated pitch']);
+    expect($updated_frame->background_overview)->toBe('Updated background');
+    expect($updated_frame->inciting_incident)->toBe('Updated incident');
+});
 
-    #[Test]
-    public function it_maintains_the_creator_when_updating(): void
-    {
+test('it maintains the creator when updating', function () {
     // Arrange
     $user = User::factory()->create();
     $frame = CampaignFrame::factory()->create(['creator_id' => $user->id]);
@@ -80,6 +68,5 @@ class UpdateCampaignFrameActionTest extends TestCase
     $updated_frame = $action->execute($frame, $update_data);
 
     // Assert
-    $this->assertEquals($user->id, $updated_frame->creator_id);
-    }
-}
+    expect($updated_frame->creator_id)->toBe($user->id);
+});

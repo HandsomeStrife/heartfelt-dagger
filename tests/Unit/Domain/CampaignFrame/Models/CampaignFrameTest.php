@@ -2,21 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Domain\CampaignFrame\Models;
-
-use Domain\Campaign\Models\Campaign;
 use Domain\CampaignFrame\Models\CampaignFrame;
-use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class CampaignFrameTest extends TestCase
-{
-    use RefreshDatabase;
-
-    #[Test]
-    public function it_has_the_correct_fillable_attributes(): void
-    {
+test('it has the correct fillable attributes', function () {
     // Arrange
     $data = [
         'name' => 'Test Frame',
@@ -39,16 +27,14 @@ class CampaignFrameTest extends TestCase
     $frame = new CampaignFrame($data);
 
     // Assert
-    $this->assertEquals('Test Frame', $frame->name);
-    $this->assertEquals('Test Description', $frame->description);
-    $this->assertEquals(2, $frame->complexity_rating);
-    $this->assertTrue($frame->is_public);
-    $this->assertEquals(1, $frame->creator_id);
-    }
+    expect($frame->name)->toBe('Test Frame');
+    expect($frame->description)->toBe('Test Description');
+    expect($frame->complexity_rating)->toBe(2);
+    expect($frame->is_public)->toBe(true);
+    expect($frame->creator_id)->toBe(1);
+});
 
-    #[Test]
-    public function it_casts_attributes_correctly(): void
-    {
+test('it casts attributes correctly', function () {
     // Arrange & Act
     $frame = CampaignFrame::factory()->create([
         'is_public' => '1',
@@ -57,8 +43,7 @@ class CampaignFrameTest extends TestCase
     ]);
 
     // Assert
-    $this->assertTrue($frame->is_public);
-    $this->assertEquals(3, $frame->complexity_rating);
-    $this->assertEquals(['item1', 'item2'], $frame->pitch);
-    }
-}
+    expect($frame->is_public)->toBe(true);
+    expect($frame->complexity_rating)->toBe(3);
+    expect($frame->pitch)->toBe(['item1', 'item2']);
+});

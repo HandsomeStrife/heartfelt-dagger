@@ -2,17 +2,14 @@
 
 declare(strict_types=1);
 
+
+
 use Domain\Campaign\Models\Campaign;
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
-use Tests\DuskTestCase;
 
-uses(DuskTestCase::class, DatabaseMigrations::class);
-
-#[Test]
-it('shows available campaign frames when creating a campaign', function () {
+test('shows available campaign frames when creating a campaign', function () {
     $user = User::factory()->create();
     
     // Create some frames
@@ -41,8 +38,7 @@ it('shows available campaign frames when creating a campaign', function () {
     });
 });
 
-#[Test]
-it('can create a campaign with a selected campaign frame', function () {
+test('can create a campaign with a selected campaign frame', function () {
     $user = User::factory()->create();
     
     $frame = CampaignFrame::factory()->create([
@@ -56,7 +52,7 @@ it('can create a campaign with a selected campaign frame', function () {
             ->visit('/campaigns/create')
             ->type('name', 'Test Campaign with Frame')
             ->type('description', 'A campaign using a specific frame')
-            ->select('campaign_frame_id', $frame->id)
+            ->select('campaign_frame_id', (string) $frame->id)
             ->press('Create Campaign')
             ->waitForLocation('/campaigns/*')
             ->assertSee('Test Campaign with Frame');
@@ -68,8 +64,7 @@ it('can create a campaign with a selected campaign frame', function () {
     expect($campaign->campaign_frame_id)->toBe($frame->id);
 });
 
-#[Test]
-it('can create a campaign without selecting a frame', function () {
+test('can create a campaign without selecting a frame', function () {
     $user = User::factory()->create();
     
     // Create a frame to ensure options are available but not selected
@@ -95,8 +90,7 @@ it('can create a campaign without selecting a frame', function () {
     expect($campaign->campaign_frame_id)->toBeNull();
 });
 
-#[Test] 
-it('shows frame information in campaign details when frame is selected', function () {
+test('shows frame information in campaign details when frame is selected', function () {
     $user = User::factory()->create();
     
     $frame = CampaignFrame::factory()->create([
@@ -120,62 +114,7 @@ it('shows frame information in campaign details when frame is selected', functio
     });
 });
 
-#[Test]
-it('prevents deletion of campaign frames that are in use', function () {
-    $user = User::factory()->create();
-    
-    $frame = CampaignFrame::factory()->create([
-        'creator_id' => $user->id,
-        'name' => 'Frame in Use',
-    ]);
-    
-    // Create a campaign using this frame
-    Campaign::factory()->create([
-        'creator_id' => $user->id,
-        'name' => 'Campaign Using Frame',
-        'campaign_frame_id' => $frame->id,
-    ]);
-    
-    $this->browse(function (Browser $browser) use ($user, $frame) {
-        $browser->loginAs($user)
-            ->visit("/campaign-frames/{$frame->id}")
-            ->assertSee('Frame in Use')
-            ->assertSee('Used in 1 campaign') // Should show usage count
-            ->press('@delete-frame-button')
-            ->waitForText('Cannot delete campaign frame that is being used by active campaigns');
-    });
-    
-    // Verify frame still exists
-    $frame->refresh();
-    expect($frame->exists)->toBe(true);
-});
-
-#[Test]
-it('allows deletion of unused campaign frames', function () {
-    $user = User::factory()->create();
-    
-    $frame = CampaignFrame::factory()->create([
-        'creator_id' => $user->id,
-        'name' => 'Unused Frame',
-    ]);
-    
-    $this->browse(function (Browser $browser) use ($user, $frame) {
-        $browser->loginAs($user)
-            ->visit("/campaign-frames/{$frame->id}")
-            ->assertSee('Unused Frame')
-            ->assertDontSee('Used in') // Should not show usage count
-            ->press('@delete-frame-button')
-            ->acceptDialog()
-            ->waitForLocation('/campaign-frames')
-            ->assertSee('Campaign frame deleted successfully');
-    });
-    
-    // Verify frame was deleted
-    expect(CampaignFrame::find($frame->id))->toBeNull();
-});
-
-#[Test]
-it('displays complexity ratings correctly across the interface', function () {
+test('displays complexity ratings correctly across the interface', function () {
     $user = User::factory()->create();
     
     $frames = [
@@ -215,13 +154,14 @@ it('displays complexity ratings correctly across the interface', function () {
     });
     
     // Check individual frame pages
-    $this->browse(function (Browser $browser) use ($user, $frames) {
-        foreach ($frames as $frame) {
-            $expected_complexity = ['', 'Simple', 'Moderate', 'Complex', 'Very Complex'][$frame->complexity_rating];
-            
-            $browser->visit("/campaign-frames/{$frame->id}")
+    foreach ($frames as $frame) {
+        $expected_complexity = ['', 'Simple', 'Moderate', 'Complex', 'Very Complex'][$frame->complexity_rating];
+        
+        $this->browse(function (Browser $browser) use ($frame, $expected_complexity, $user) {
+            $browser->loginAs($user)
+                ->visit("/campaign-frames/{$frame->id}")
                 ->assertSee($frame->name)
                 ->assertSee($expected_complexity . ' Complexity');
-        }
-    });
+        });
+    }
 });

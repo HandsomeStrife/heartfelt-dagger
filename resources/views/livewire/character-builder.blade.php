@@ -96,13 +96,31 @@
 }">
     <div class="w-full px-4 sm:px-6 py-4 sm:py-8">
         <!-- Header -->
-        <div class="text-center mb-6 sm:mb-8">
+        <div class="text-center mb-6 sm:mb-8 relative">
             <h1 class="font-outfit text-3xl sm:text-4xl text-white tracking-wide mb-2">
                 Character Builder
             </h1>
             <p class="font-roboto text-slate-300 text-base sm:text-lg">
                 Create your Daggerheart character
             </p>
+            
+            <!-- Preview Character Button (Top Right) -->
+            @if($character->selected_class)
+                <div class="absolute top-0 right-0">
+                    <button 
+                        dusk="preview-character-button"
+                        onclick="viewCharacter()"
+                        class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
+                    >
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span class="hidden sm:inline">Preview Character</span>
+                        <span class="sm:hidden">Preview</span>
+                    </button>
+                </div>
+            @endif
         </div>
 
         <!-- Character Information Section -->
@@ -178,7 +196,7 @@
                         <input 
                             type="text" 
                             id="character-pronouns"
-                            wire:model.live.debounce.500ms="character.pronouns"
+                            wire:model.live.debounce.500ms="pronouns"
                             wire:change="updatePronouns($event.target.value)"
                             placeholder="e.g., they/them, she/her, he/him..."
                             class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
@@ -353,6 +371,46 @@
                             </svg>
                         </button>
                     </div>
+
+                    <!-- Character Complete Actions -->
+                    @if($is_complete)
+                        <div class="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-700/50">
+                            <div class="text-center">
+                                <div class="mb-4">
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="font-semibold">Character Complete!</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col sm:flex-row justify-center gap-3">
+                                    <!-- View Character Button -->
+                                    <button 
+                                        dusk="view-character-button"
+                                        onclick="viewCharacter()"
+                                        class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
+                                    >
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        View Character Sheet
+                                    </button>
+                                    
+                                    <!-- Return to Characters List -->
+                                    <a href="{{ route('characters') }}" 
+                                       class="inline-flex items-center justify-center px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-300 border border-slate-600 hover:border-slate-500">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                        </svg>
+                                        My Characters
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

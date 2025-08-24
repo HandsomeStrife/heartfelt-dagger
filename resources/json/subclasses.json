@@ -138,6 +138,47 @@
             }
         ]
     },
+    "executioners guild": {
+        "key": "executioners guild",
+        "name": "Executioners Guild",
+        "description": "Play the Executioners Guild if you want to focus on pure combat effectiveness and burst damage.",
+        "spellcastTrait": "Agility",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "foundationFeatures": [
+            {
+                "name": "First Strike",
+                "description": "The first time in a scene you succeed on an attack roll, double the damage of the attack."
+            },
+            {
+                "name": "Ambush",
+                "description": "Your \"Marked for Death\" feature uses d6s instead of d4s."
+            }
+        ],
+        "specializationFeatures": [
+            {
+                "name": "Death Strike",
+                "description": "When you deal severe damage to a creature, you can mark a Stress to make them mark an additional Hit Point."
+            },
+            {
+                "name": "Scorpion's Poise",
+                "description": "You gain a +2 bonus to your Evasion against any attacks made by a creature Marked for Death."
+            }
+        ],
+        "masteryFeatures": [
+            {
+                "name": "True Strike",
+                "description": "Once per long rest, when you fail an attack roll, you can spend a Hope to make it a success instead."
+            },
+            {
+                "name": "Backstab",
+                "description": "Your \"Marked for Death\" feature uses d8s instead of d6s."
+            }
+        ]
+    },
     "hedge": {
         "key": "hedge",
         "name": "Hedge",
@@ -393,6 +434,35 @@
             {
                 "name": "Divine Ire",
                 "description": "Once per rest, when you take damage, you can spend any number of Favor to deal that many Hit Points to adversaries within Close range. Each target must mark a Hit Point."
+            }
+        ]
+    },
+    "poisoners guild": {
+        "key": "poisoners guild",
+        "name": "Poisoners Guild",
+        "description": "Play the Poisoners Guild if you want to specialize in toxin application and debuffing enemies.",
+        "spellcastTrait": "Knowledge",
+        "playtest": {
+            "isPlaytest": true,
+            "version": "1.5",
+            "label": "Void - Playtest v1.5"
+        },
+        "foundationFeatures": [
+            {
+                "name": "Toxic Concoctions",
+                "description": "Mark a Stress to add 1d4+1 toxins to this card. On your next long rest, clear this card. You know these poisons: Beguile Toxin (target gains -1 penalty to their Difficulty, once per target), Grave Mold (gain +1d6 damage bonus on this attack), Leech Weed (gain +1d6 damage bonus on this attack), Envenomate (spend a token to afflict target with a known poison's effect on successful weapon attack)."
+            }
+        ],
+        "specializationFeatures": [
+            {
+                "name": "Poison Compendium",
+                "description": "You know these additional poisons: Midnight's Veil (target gains permanent -2 penalty to attack rolls, once per target), Ghost Petal (permanently decrease target's damage dice by one step: d10→d8→d6, once per target), Adder's Blessing (you are immune to poisons and other toxins)."
+            }
+        ],
+        "masteryFeatures": [
+            {
+                "name": "Venomancer",
+                "description": "You know these advanced poisons: Blight Seed (target gains permanent -3 penalty to damage threshold, once per target), Fear Leaf (attack gains damage bonus equal to Fear Die result), Twin Fang (when afflicting with poison, spend additional token to inflict a second known poison)."
             }
         ]
     },

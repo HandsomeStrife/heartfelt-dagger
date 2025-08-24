@@ -2,21 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Domain\CampaignFrame\Repositories;
-
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\CampaignFrame\Repositories\CampaignFrameRepository;
 use Domain\User\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class CampaignFrameRepositoryTest extends TestCase
-{
-    use RefreshDatabase;
-
-    #[Test]
-    public function it_gets_public_frames(): void
-    {
+test('it gets public frames', function () {
     // Arrange
     CampaignFrame::factory()->create(['is_public' => true, 'name' => 'A Frame']);
     CampaignFrame::factory()->create(['is_public' => false]);
@@ -28,13 +18,12 @@ class CampaignFrameRepositoryTest extends TestCase
     $frames = $repository->getPublicFrames();
 
     // Assert
-    $this->assertCount(2, $frames);
-    $this->assertEquals('A Frame', $frames->first()->name); // Should be ordered by name
-    $this->assertEquals('B Frame', $frames->last()->name);
-    }
+    expect($frames)->toHaveCount(2);
+    expect($frames->first()->name)->toBe('A Frame'); // Should be ordered by name
+    expect($frames->last()->name)->toBe('B Frame');
+});
 
-#[Test]
-it('gets frames by user', function () {
+test('gets frames by user', function () {
     // Arrange
     $user = User::factory()->create();
     $other_user = User::factory()->create();
@@ -54,8 +43,7 @@ it('gets frames by user', function () {
     expect($frames->first()->updated_at)->toBeGreaterThan($frames->last()->updated_at);
 });
 
-#[Test]
-it('finds frame by id', function () {
+test('finds frame by id', function () {
     // Arrange
     $frame = CampaignFrame::factory()->create();
     $repository = new CampaignFrameRepository();
@@ -69,8 +57,7 @@ it('finds frame by id', function () {
     expect($found_frame->name)->toBe($frame->name);
 });
 
-#[Test]
-it('returns null when frame not found by id', function () {
+test('returns null when frame not found by id', function () {
     // Arrange
     $repository = new CampaignFrameRepository();
 
@@ -81,8 +68,7 @@ it('returns null when frame not found by id', function () {
     expect($found_frame)->toBeNull();
 });
 
-#[Test]
-it('finds frame by id for user with access', function () {
+test('finds frame by id for user with access', function () {
     // Arrange
     $user = User::factory()->create();
     $other_user = User::factory()->create();
@@ -111,8 +97,7 @@ it('finds frame by id for user with access', function () {
     expect($found_frame)->toBeNull();
 });
 
-#[Test]
-it('searches public frames', function () {
+test('searches public frames', function () {
     // Arrange
     CampaignFrame::factory()->create([
         'is_public' => true,
@@ -146,8 +131,7 @@ it('searches public frames', function () {
     expect($space_frames->first()->name)->toBe('Sci-Fi Campaign');
 });
 
-#[Test]
-it('gets frames available for campaign', function () {
+test('gets frames available for campaign', function () {
     // Arrange
     $user = User::factory()->create();
     
@@ -173,8 +157,7 @@ it('gets frames available for campaign', function () {
     ]);
 });
 
-#[Test]
-it('gets only public frames when no user provided', function () {
+test('gets only public frames when no user provided', function () {
     // Arrange
     $user = User::factory()->create();
     

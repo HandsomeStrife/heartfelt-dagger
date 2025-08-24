@@ -35,5 +35,34 @@
                 storeCharacterKey(character_key);
             }
         });
+        
+        // View character function for the character builder
+        async function viewCharacter() {
+            const character_key = '{{ $character_key }}';
+            if (!character_key) {
+                console.error('No character key available');
+                return;
+            }
+            
+            try {
+                // Get character data to find the public_key
+                const response = await fetch(`/api/character/${character_key}`);
+                if (response.ok) {
+                    const character = await response.json();
+                    if (character.public_key) {
+                        window.location.href = `/character/${character.public_key}`;
+                    } else {
+                        console.error('No public_key found for character');
+                        alert('Unable to view character. Please try again.');
+                    }
+                } else {
+                    console.error('Failed to load character data');
+                    alert('Unable to view character. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error viewing character:', error);
+                alert('An error occurred while viewing the character. Please try again.');
+            }
+        }
     </script>
 </x-layout>

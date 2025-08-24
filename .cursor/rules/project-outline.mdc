@@ -9,7 +9,7 @@ ALWAYS check that components exist before making assumptions.
 
 The project uses Laravel 12, TailwindCSS, Livewire and AlpineJS.
 
-All code changes should be accompanied with automated tests, and use Laravel Dusk for JS based tests.
+All code changes should be accompanied with automated tests, and use Pest for browser based tests.
 
 ## **KEY INFORMATION** 
 

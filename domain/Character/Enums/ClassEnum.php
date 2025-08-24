@@ -4,6 +4,7 @@ namespace Domain\Character\Enums;
 
 enum ClassEnum: string
 {
+    case ASSASSIN = 'assassin';
     case BARD = 'bard';
     case BRAWLER = 'brawler';
     case DRUID = 'druid';
@@ -20,6 +21,7 @@ enum ClassEnum: string
     public function getDomains(): array
     {
         return match ($this) {
+            self::ASSASSIN => [DomainEnum::MIDNIGHT, DomainEnum::BLADE],
             self::BARD => [DomainEnum::GRACE, DomainEnum::CODEX],
             self::BRAWLER => [DomainEnum::BONE, DomainEnum::VALOR],
             self::DRUID => [DomainEnum::SAGE, DomainEnum::ARCANA],

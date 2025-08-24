@@ -17,25 +17,7 @@ require_once __DIR__ . '/Helpers.php';
 // Feature tests use the full Laravel TestCase with database
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Feature');
-
-// Domain unit tests need Laravel (models, factories, etc.)
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Unit/Domain');
-
-// User model test needs Laravel but not necessarily database refresh
-pest()->extend(Tests\TestCase::class)
-    ->in('Unit/UserModelTest.php');
-
-// Pure unit tests use PHPUnit's base TestCase
-pest()->extend(PHPUnit\Framework\TestCase::class)
-    ->in('Unit/ExampleTest.php');
-
-// Browser tests use Laravel TestCase for full integration testing
-pest()->extend(Tests\TestCase::class)
-    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Browser');
+    ->in('Unit', 'Feature', 'Browser');
 
 /*
 |--------------------------------------------------------------------------

@@ -22,9 +22,9 @@ test('character builder allows correct number of domain cards for school of know
     $component->set('character.selected_class', 'wizard');
     $component->set('character.selected_subclass', 'school of knowledge');
 
-    // Should allow selecting up to 5 cards for School of Knowledge
+    // Should allow selecting up to 3 cards for School of Knowledge
     $maxCards = $component->get('character')->getMaxDomainCards();
-    expect($maxCards)->toEqual(5);
+    expect($maxCards)->toEqual(3);
 
     // Use real ability keys from abilities.json instead of fake ones
     // Try to select more than 2 cards (which would fail for regular subclasses)

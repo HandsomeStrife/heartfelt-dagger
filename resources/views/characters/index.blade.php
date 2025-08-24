@@ -201,7 +201,13 @@
                 },
 
                 viewCharacter(character_key) {
-                    window.location.href = `/character/${character_key}`;
+                    // Find the character to get the public_key
+                    const character = this.characters.find(char => char.character_key === character_key);
+                    if (character && character.public_key) {
+                        window.location.href = `/character/${character.public_key}`;
+                    } else {
+                        console.error('Could not find public_key for character');
+                    }
                 },
 
                 editCharacter(character_key) {

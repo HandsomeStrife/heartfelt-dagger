@@ -234,3 +234,4 @@ test('witch moon glamour feature mechanics description', function () {
     expect($glamourFeature['description'])->toContain('Enhance your own appearance');
     expect($glamourFeature['description'])->toContain('advantage on Presence Rolls that leverage this change');
 });
+

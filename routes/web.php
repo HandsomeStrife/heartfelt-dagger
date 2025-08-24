@@ -89,7 +89,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/characters', [App\Http\Controllers\CharacterBuilderController::class, 'index'])->name('characters');
 Route::get('/character-builder', [App\Http\Controllers\CharacterBuilderController::class, 'create'])->name('character-builder');
 Route::get('/character-builder/{character_key}', [App\Http\Controllers\CharacterBuilderController::class, 'edit'])->name('character-builder.edit');
-Route::get('/character/{character_key}', [App\Http\Controllers\CharacterBuilderController::class, 'show'])->name('character.show');
+Route::get('/character/{public_key}', [App\Http\Controllers\CharacterBuilderController::class, 'show'])->name('character.show');
 
 // API routes for character data
 Route::get('/api/character/{character_key}', [App\Http\Controllers\CharacterBuilderController::class, 'apiShow'])->name('api.character.show');
