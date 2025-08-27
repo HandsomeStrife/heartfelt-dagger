@@ -26,7 +26,7 @@
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     <!-- Character Creator -->
                     <div class="group relative">
                         <div class="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-25 transition-opacity duration-300"></div>
@@ -98,26 +98,6 @@
                                 <p class="text-slate-400 text-sm mb-4">Campaign templates</p>
                                 <a href="{{ route('campaign-frames.index') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-400 hover:to-blue-400 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
                                     Manage
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Settings -->
-                    <div class="group relative">
-                        <div class="absolute inset-0 bg-gradient-to-r from-slate-500 to-gray-500 rounded-2xl blur-lg opacity-20 group-hover:opacity-25 transition-opacity duration-300"></div>
-                        <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 hover:border-slate-500/30 transition-all duration-300">
-                            <div class="text-center">
-                                <div class="w-12 h-12 bg-gradient-to-br from-slate-500/20 to-gray-500/20 rounded-xl flex items-center justify-center border border-slate-500/30 mx-auto mb-4">
-                                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                </div>
-                                <h3 class="font-outfit text-lg font-bold text-white mb-2">Settings</h3>
-                                <p class="text-slate-400 text-sm mb-4">Preferences</p>
-                                <a href="#" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-500 hover:to-gray-500 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
-                                    Configure
                                 </a>
                             </div>
                         </div>
