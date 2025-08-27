@@ -23,7 +23,7 @@ class RoomFactory extends Factory
             'name' => $this->faker->words(rand(2, 4), true),
             'description' => $this->faker->paragraph,
             'password' => bcrypt('password'),
-            'guest_count' => $this->faker->numberBetween(1, 5),
+            'guest_count' => $this->faker->numberBetween(2, 6),
             'creator_id' => User::factory(),
             'status' => RoomStatus::Active,
         ];
@@ -55,6 +55,13 @@ class RoomFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'campaign_id' => $campaign->id,
             'creator_id' => $campaign->creator_id,
+        ]);
+    }
+
+    public function passwordless(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'password' => null,
         ]);
     }
 }

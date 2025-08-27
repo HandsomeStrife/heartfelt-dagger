@@ -1,6 +1,6 @@
 @props(['slotId', 'participant' => null, 'isHost' => false])
 
-<div class="video-slot h-full w-full bg-gradient-to-br from-slate-800 to-slate-900 border {{ $isHost ? 'border-emerald-500/30' : 'border-amber-500/30' }} overflow-hidden hover:border-{{ $isHost ? 'emerald' : 'amber' }}-400/60 transition-all duration-300" data-slot-id="{{ $slotId }}">
+<div class="video-slot h-full w-full bg-gradient-to-br from-slate-800 to-slate-900 border {{ $isHost ? 'border-emerald-500/30' : 'border-amber-500/30' }} overflow-hidden hover:border-{{ $isHost ? 'emerald' : 'amber' }}-400/60 transition-all duration-300" data-slot-id="{{ $slotId }}" data-testid="video-slot">
     <div class="h-full w-full bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 flex items-center justify-center relative">
         <video class="local-video hidden w-full h-full object-cover" autoplay muted playsinline></video>
         <div class="remote-videos absolute inset-0 gap-1 p-1 hidden">
@@ -43,7 +43,7 @@
                                     @elseif($participant->character_name)
                                         {{ $participant->character_name }}
                                     @else
-                                        {{ $participant->user->username }}
+                                        {{ $participant->user ? $participant->user->username : 'Anonymous' }}
                                     @endif
                                 @else
                                     Empty Slot
@@ -86,7 +86,7 @@
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/>
                     </svg>
-                    {{ $isHost ? 'Start Session' : 'Join Quest' }}
+                    {{ $isHost ? 'Join Room' : 'Join Quest' }}
                 </span>
             </button>
         @else

@@ -80,59 +80,27 @@ class RoomRepository
      */
     public function getCreatedByUser(User $user): Collection
     {
-        $rooms = Room::with(['creator'])
+        return Room::with(['creator'])
             ->withCount(['activeParticipants'])
             ->where('creator_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
-
-        return $rooms->map(fn ($room) => RoomData::from([
-            'id' => $room->id,
-            'name' => $room->name,
-            'description' => $room->description,
-            'password' => $room->password,
-            'guest_count' => $room->guest_count,
-            'creator_id' => $room->creator_id,
-            'campaign_id' => $room->campaign_id,
-            'invite_code' => $room->invite_code,
-            'viewer_code' => $room->viewer_code,
-            'status' => $room->status,
-            'created_at' => $room->created_at?->toDateTimeString(),
-            'updated_at' => $room->updated_at?->toDateTimeString(),
-            'creator' => $room->creator,
-            'active_participant_count' => $room->active_participants_count,
-        ]));
     }
 
     /**
      * Get rooms joined by a user (currently active participations)
+     * Excludes rooms created by the user
      */
     public function getJoinedByUser(User $user): Collection
     {
-        $rooms = Room::with(['creator'])
+        return Room::with(['creator'])
             ->withCount(['activeParticipants'])
             ->whereHas('activeParticipants', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })
+            ->where('creator_id', '!=', $user->id) // Exclude rooms created by this user
             ->orderBy('created_at', 'desc')
             ->get();
-
-        return $rooms->map(fn ($room) => RoomData::from([
-            'id' => $room->id,
-            'name' => $room->name,
-            'description' => $room->description,
-            'password' => $room->password,
-            'guest_count' => $room->guest_count,
-            'creator_id' => $room->creator_id,
-            'campaign_id' => $room->campaign_id,
-            'invite_code' => $room->invite_code,
-            'viewer_code' => $room->viewer_code,
-            'status' => $room->status,
-            'created_at' => $room->created_at?->toDateTimeString(),
-            'updated_at' => $room->updated_at?->toDateTimeString(),
-            'creator' => $room->creator,
-            'active_participant_count' => $room->active_participants_count,
-        ]));
     }
 
     /**

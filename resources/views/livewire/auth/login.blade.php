@@ -72,6 +72,7 @@
 
                 <button 
                     type="submit"
+                    data-testid="login-submit-button"
                     class="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 transform hover:scale-105 font-roboto"
                     wire:loading.attr="disabled"
                 >

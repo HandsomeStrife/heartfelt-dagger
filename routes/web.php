@@ -65,23 +65,29 @@ Route::middleware('auth')->group(function () {
     // Campaign invite routes (separate from auth to allow invite sharing)
     Route::get('/join/{invite_code}', [App\Http\Controllers\CampaignController::class, 'showJoin'])->name('campaigns.invite');
     
-    // Room routes
+    // Authenticated room routes (creation, management)
     Route::prefix('rooms')->name('rooms.')->group(function () {
         Route::get('/', [App\Http\Controllers\RoomController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\RoomController::class, 'create'])->name('create');
         Route::post('/', [App\Http\Controllers\RoomController::class, 'store'])->name('store');
-        Route::get('/{room}', [App\Http\Controllers\RoomController::class, 'show'])->name('show');
-        Route::post('/{room}/join', [App\Http\Controllers\RoomController::class, 'join'])->name('join');
-        Route::delete('/{room}/leave', [App\Http\Controllers\RoomController::class, 'leave'])->name('leave');
-        Route::get('/{room}/session', [App\Http\Controllers\RoomController::class, 'session'])->name('session');
+        Route::delete('/{room:invite_code}/leave', [App\Http\Controllers\RoomController::class, 'leave'])->name('leave');
+        Route::delete('/{room:invite_code}/kick/{participant}', [App\Http\Controllers\RoomController::class, 'kickParticipant'])->name('kick');
+        Route::delete('/{room:invite_code}', [App\Http\Controllers\RoomController::class, 'destroy'])->name('destroy');
     });
-    
-            // Room invite routes (separate to allow invite sharing)
-        Route::get('/rooms/join/{invite_code}', [App\Http\Controllers\RoomController::class, 'showJoin'])->name('rooms.invite');
-        
-        // Room viewer routes (public access for viewing only)
-        Route::get('/rooms/watch/{viewer_code}', [App\Http\Controllers\RoomController::class, 'viewer'])->name('rooms.viewer');
-    
+});
+
+// Public room routes (accessible without auth for non-campaign rooms)
+Route::prefix('rooms')->name('rooms.')->group(function () {
+    Route::get('/{room:invite_code}', [App\Http\Controllers\RoomController::class, 'show'])->name('show');
+    Route::get('/{room:invite_code}/session', [App\Http\Controllers\RoomController::class, 'session'])->name('session');
+    Route::post('/{room:invite_code}/join', [App\Http\Controllers\RoomController::class, 'join'])->name('join');
+});
+
+// Room invite and viewer routes (consistent pattern)
+Route::get('/rooms/join/{invite_code}', [App\Http\Controllers\RoomController::class, 'showJoin'])->name('rooms.invite');
+Route::get('/rooms/watch/{viewer_code}', [App\Http\Controllers\RoomController::class, 'viewer'])->name('rooms.viewer');
+
+Route::middleware(['auth'])->group(function () {
     Route::get('/video-rooms', [VideoRoomController::class, 'index'])->name('video-rooms');
 });
 

@@ -108,7 +108,7 @@ it('validates guest count minimum', function () {
         'name' => 'Valid name',
         'description' => 'Valid description',
         'password' => 'password',
-        'guest_count' => 0, // Below minimum
+        'guest_count' => 1, // Below minimum
     ]);
 });
 it('validates guest count maximum', function () {
@@ -118,7 +118,7 @@ it('validates guest count maximum', function () {
         'name' => 'Valid name',
         'description' => 'Valid description',
         'password' => 'password',
-        'guest_count' => 6, // Exceeds maximum
+        'guest_count' => 7, // Exceeds maximum
     ]);
 });
 it('accepts name at max length', function () {
@@ -158,7 +158,7 @@ it('accepts password at max length', function () {
     expect($createData->password)->toEqual(str_repeat('P', 255));
 });
 it('accepts all valid guest counts', function () {
-    foreach ([1, 2, 3, 4, 5] as $guestCount) {
+    foreach ([2, 3, 4, 5, 6] as $guestCount) {
         $data = [
             'name' => 'Valid name',
             'description' => 'Valid description',
@@ -175,7 +175,7 @@ it('accepts minimal valid data', function () {
         'name' => 'A',
         'description' => 'B',
         'password' => 'p',
-        'guest_count' => 1,
+        'guest_count' => 2,
     ];
 
     $createData = CreateRoomData::from($data);
@@ -183,7 +183,7 @@ it('accepts minimal valid data', function () {
     expect($createData->name)->toEqual('A');
     expect($createData->description)->toEqual('B');
     expect($createData->password)->toEqual('p');
-    expect($createData->guest_count)->toEqual(1);
+    expect($createData->guest_count)->toEqual(2);
 });
 it('handles whitespace in fields', function () {
     $data = [

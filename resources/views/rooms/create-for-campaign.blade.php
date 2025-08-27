@@ -66,7 +66,7 @@
                                 class="w-full bg-slate-800 text-white px-4 py-3 rounded-lg border border-slate-600 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                             >
                                 <option value="">Select max participants</option>
-                                @for ($i = 1; $i <= 5; $i++)
+                                @for ($i = 2; $i <= 6; $i++)
                                     <option value="{{ $i }}" {{ old('guest_count') == $i ? 'selected' : '' }}>
                                         {{ $i }} participant{{ $i > 1 ? 's' : '' }}
                                     </option>

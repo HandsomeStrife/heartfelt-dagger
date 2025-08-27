@@ -104,31 +104,36 @@ class Room extends Model
     /**
      * Check if a user is the creator of this room
      */
-    public function isCreator(User $user): bool
+    public function isCreator(?User $user): bool
     {
-        return $this->creator_id === $user->id;
+        return $user && $this->creator_id === $user->id;
     }
 
     /**
      * Check if a user is currently participating in this room
      */
-    public function hasActiveParticipant(User $user): bool
+    public function hasActiveParticipant(?User $user): bool
     {
-        return $this->activeParticipants()->where('user_id', $user->id)->exists();
+        return $user && $this->activeParticipants()->where('user_id', $user->id)->exists();
     }
 
     /**
      * Check if a user can access this room (campaign member or creator)
      */
-    public function canUserAccess(User $user): bool
+    public function canUserAccess(?User $user): bool
     {
-        // Room creator can always access
-        if ($this->isCreator($user)) {
+        // If room is not linked to a campaign, anyone can access
+        if (!$this->campaign_id) {
             return true;
         }
 
-        // If room is not linked to a campaign, use original logic
-        if (!$this->campaign_id) {
+        // Campaign rooms require authentication
+        if (!$user) {
+            return false;
+        }
+
+        // Room creator can always access
+        if ($this->isCreator($user)) {
             return true;
         }
 

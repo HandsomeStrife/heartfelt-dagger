@@ -118,21 +118,21 @@ test('room creation validates field lengths', function () {
 test('room creation validates guest count range', function () {
     $user = User::factory()->create();
 
-    // Test minimum
+    // Test minimum (1 should be invalid)
     $response = $this->actingAs($user)->post(route('rooms.store'), [
         'name' => 'Test Room',
         'description' => 'Test Description',
         'password' => 'password',
-        'guest_count' => 0
+        'guest_count' => 1
     ]);
     $response->assertSessionHasErrors(['guest_count']);
 
-    // Test maximum
+    // Test maximum (7 should be invalid)
     $response = $this->actingAs($user)->post(route('rooms.store'), [
         'name' => 'Test Room',
         'description' => 'Test Description',
         'password' => 'password',
-        'guest_count' => 6
+        'guest_count' => 7
     ]);
     $response->assertSessionHasErrors(['guest_count']);
 });
@@ -261,7 +261,9 @@ test('user can join room without character', function () {
     $room = Room::factory()->create();
 
     $response = $this->actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'password'
+        'password' => 'password',
+        'character_name' => 'Test Character',
+        'character_class' => 'Warrior'
     ]);
 
     $response->assertRedirect(route('rooms.session', $room));
@@ -270,8 +272,8 @@ test('user can join room without character', function () {
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_id' => null,
-        'character_name' => null,
-        'character_class' => null
+        'character_name' => 'Test Character',
+        'character_class' => 'Warrior'
     ]);
 });
 test('joining room validates password', function () {
@@ -843,4 +845,62 @@ test('room sharing modal shows different messages for campaign vs regular rooms'
 
     $response = $this->actingAs($user)->get(route('rooms.show', $regularRoom));
     $response->assertSee('Anyone with this link can join');
+});
+
+test('room creator can delete their room', function () {
+    $creator = User::factory()->create();
+    $room = Room::factory()->create(['creator_id' => $creator->id]);
+    
+    // Add some participants
+    RoomParticipant::factory()->count(2)->create(['room_id' => $room->id]);
+    
+    $roomId = $room->id;
+    
+    $response = $this->actingAs($creator)->delete(route('rooms.destroy', $room));
+    
+    $response->assertRedirect(route('rooms.index'));
+    $response->assertSessionHas('success', 'Room deleted successfully.');
+    
+    // Room should be deleted
+    $this->assertDatabaseMissing('rooms', ['id' => $roomId]);
+    
+    // Participants should be deleted due to cascade
+    $this->assertDatabaseMissing('room_participants', ['room_id' => $roomId]);
+});
+
+test('non-creator cannot delete room', function () {
+    $creator = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $room = Room::factory()->create(['creator_id' => $creator->id]);
+    
+    $response = $this->actingAs($otherUser)->delete(route('rooms.destroy', $room));
+    
+    $response->assertSessionHasErrors(['error']);
+    
+    // Room should still exist
+    $this->assertDatabaseHas('rooms', ['id' => $room->id]);
+});
+
+test('room creator cannot leave their own room', function () {
+    $creator = User::factory()->create();
+    $room = Room::factory()->create(['creator_id' => $creator->id]);
+    
+    // Manually add creator as participant (normally done by CreateRoomAction)
+    RoomParticipant::factory()->create([
+        'room_id' => $room->id,
+        'user_id' => $creator->id,
+        'left_at' => null,
+    ]);
+    
+    $response = $this->actingAs($creator)->delete(route('rooms.leave', $room));
+    
+    $response->assertSessionHasErrors(['error']);
+    
+    // Room and participation should still exist
+    $this->assertDatabaseHas('rooms', ['id' => $room->id]);
+    $this->assertDatabaseHas('room_participants', [
+        'room_id' => $room->id,
+        'user_id' => $creator->id,
+        'left_at' => null
+    ]);
 });

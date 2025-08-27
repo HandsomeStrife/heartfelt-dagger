@@ -40,7 +40,7 @@
                                 </div>
                                 <div>
                                     <h4 class="text-slate-400 text-sm font-semibold mb-1">Capacity</h4>
-                                    <p class="text-white">{{ $room->getActiveParticipantCount() }}/{{ $room->guest_count }} participants</p>
+                                    <p class="text-white">{{ $room->getActiveParticipantCount() }}/{{ $room->getTotalCapacity() }} participants</p>
                                 </div>
                             </div>
                         </div>
@@ -50,8 +50,26 @@
                     <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
                         <h2 class="font-outfit text-2xl font-bold text-white mb-6">Join Room</h2>
                         
-                        <form action="{{ route('rooms.join', $room) }}" method="POST" class="space-y-6">
-                            @csrf
+                                        <form action="{{ route('rooms.join', $room) }}" method="POST" class="space-y-6">
+                    @csrf
+
+                    @if ($errors->any())
+                        <div class="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                            <div class="flex items-start space-x-3">
+                                <svg class="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                </svg>
+                                <div>
+                                    <h3 class="text-red-300 font-semibold">Please fix the following errors:</h3>
+                                    <ul class="text-red-200/90 text-sm mt-1 space-y-1">
+                                        @foreach ($errors->all() as $error)
+                                            <li>• {{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                             @if($room->password)
                                 <!-- Room Password -->
@@ -94,96 +112,82 @@
                                 </div>
                             @endif
 
-                            <!-- Character Selection -->
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-200 mb-3">
-                                    Character Selection
-                                </label>
-                                
-                                <div class="space-y-3">
-                                    <!-- Existing Characters -->
-                                    @if($characters->isNotEmpty())
+                            @if($characters->isNotEmpty())
+                                <!-- Character Selection -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-200 mb-3">
+                                        Character Selection
+                                    </label>
+                                    
+                                    <div class="space-y-3">
+                                        <!-- Existing Characters -->
                                         <div>
                                             <h4 class="text-slate-300 font-medium mb-2">Use Existing Character</h4>
-                                            @foreach($characters as $character)
-                                                <label class="flex items-center p-3 bg-slate-800/30 border border-slate-600/50 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer">
-                                                    <input 
-                                                        type="radio" 
-                                                        name="character_id" 
-                                                        value="{{ $character->id }}" 
-                                                        class="w-4 h-4 text-emerald-500 bg-slate-700 border-slate-600 focus:ring-emerald-500 focus:ring-2"
-                                                        onchange="clearTemporaryFields()"
-                                                    >
-                                                    <div class="ml-3 flex-1">
-                                                        <div class="flex items-center justify-between">
-                                                            <h5 class="text-white font-semibold">{{ $character->name }}</h5>
-                                                            <span class="text-emerald-400 text-sm">{{ $character->class }}</span>
-                                                        </div>
-                                                        <p class="text-slate-400 text-sm">
-                                                            {{ $character->ancestry }} {{ $character->community }}
-                                                            @if($character->subclass)
-                                                                • {{ $character->subclass }}
-                                                            @endif
-                                                        </p>
-                                                    </div>
-                                                </label>
-                                            @endforeach
-                                        </div>
-
-                                        <div class="text-center">
-                                            <span class="text-slate-500 text-sm">or</span>
-                                        </div>
-                                    @endif
-
-                                    <!-- Temporary Character -->
-                                    <div>
-                                        <h4 class="text-slate-300 font-medium mb-2">Create Temporary Character</h4>
-                                        <label class="flex items-center p-3 bg-slate-800/30 border border-slate-600/50 rounded-lg hover:bg-slate-800/50 transition-colors cursor-pointer mb-3">
-                                            <input 
-                                                type="radio" 
+                                            <select 
+                                                id="character_id" 
                                                 name="character_id" 
-                                                value="" 
-                                                class="w-4 h-4 text-emerald-500 bg-slate-700 border-slate-600 focus:ring-emerald-500 focus:ring-2"
-                                                onchange="clearExistingCharacters()"
-                                                {{ $characters->isEmpty() ? 'checked' : '' }}
+                                                class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                                onchange="handleCharacterSelection()"
                                             >
-                                            <span class="ml-3 text-white">Use temporary character</span>
-                                        </label>
-
-                                        <div id="temporary-character-fields" class="space-y-3 {{ $characters->isNotEmpty() ? 'opacity-50' : '' }}">
-                                            <div>
-                                                <input 
-                                                    type="text" 
-                                                    id="character_name" 
-                                                    name="character_name" 
-                                                    value="{{ old('character_name') }}"
-                                                    class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
-                                                    placeholder="Character name"
-                                                    {{ $characters->isEmpty() ? 'required' : '' }}
-                                                >
-                                            </div>
-                                            <div>
-                                                <select 
-                                                    id="character_class" 
-                                                    name="character_class" 
-                                                    class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                                                    {{ $characters->isEmpty() ? 'required' : '' }}
-                                                >
-                                                    <option value="">Select class</option>
-                                                    <option value="Bard" {{ old('character_class') == 'Bard' ? 'selected' : '' }}>Bard</option>
-                                                    <option value="Druid" {{ old('character_class') == 'Druid' ? 'selected' : '' }}>Druid</option>
-                                                    <option value="Guardian" {{ old('character_class') == 'Guardian' ? 'selected' : '' }}>Guardian</option>
-                                                    <option value="Ranger" {{ old('character_class') == 'Ranger' ? 'selected' : '' }}>Ranger</option>
-                                                    <option value="Rogue" {{ old('character_class') == 'Rogue' ? 'selected' : '' }}>Rogue</option>
-                                                    <option value="Seraph" {{ old('character_class') == 'Seraph' ? 'selected' : '' }}>Seraph</option>
-                                                    <option value="Sorcerer" {{ old('character_class') == 'Sorcerer' ? 'selected' : '' }}>Sorcerer</option>
-                                                    <option value="Warrior" {{ old('character_class') == 'Warrior' ? 'selected' : '' }}>Warrior</option>
-                                                    <option value="Wizard" {{ old('character_class') == 'Wizard' ? 'selected' : '' }}>Wizard</option>
-                                                </select>
-                                            </div>
+                                                <option value="">Select an existing character</option>
+                                                <option value="temporary">Create temporary character</option>
+                                                @foreach($characters as $character)
+                                                    <option value="{{ $character->id }}" {{ old('character_id') == $character->id ? 'selected' : '' }}>
+                                                        {{ $character->name }} ({{ $character->class }})@if($character->subclass) - {{ $character->subclass }}@endif
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
+                            @else
+                                <!-- No existing characters - direct temporary character creation -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-slate-200 mb-3">
+                                        Create Temporary Character
+                                    </label>
+                                    
+                                    <!-- Hidden radio button for temporary character (always selected when no characters exist) -->
+                                    <input type="radio" name="character_id" value="" checked style="display: none;">
+                            @endif
+
+                            <div id="temporary-character-fields" class="space-y-3 {{ $characters->isNotEmpty() ? 'opacity-50' : '' }}">
+                                <div>
+                                    <input 
+                                        type="text" 
+                                        id="character_name" 
+                                        name="character_name" 
+                                        value="{{ old('character_name') }}"
+                                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
+                                        placeholder="Character name (required for temporary character)"
+                                        {{ $characters->isNotEmpty() ? 'disabled' : 'required' }}
+                                    >
+                                </div>
+                                <div>
+                                    <select 
+                                        id="character_class" 
+                                        name="character_class" 
+                                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                        {{ $characters->isNotEmpty() ? 'disabled' : 'required' }}
+                                    >
+                                        <option value="">Select class</option>
+                                        <option value="Bard" {{ old('character_class') == 'Bard' ? 'selected' : '' }}>Bard</option>
+                                        <option value="Druid" {{ old('character_class') == 'Druid' ? 'selected' : '' }}>Druid</option>
+                                        <option value="Guardian" {{ old('character_class') == 'Guardian' ? 'selected' : '' }}>Guardian</option>
+                                        <option value="Ranger" {{ old('character_class') == 'Ranger' ? 'selected' : '' }}>Ranger</option>
+                                        <option value="Rogue" {{ old('character_class') == 'Rogue' ? 'selected' : '' }}>Rogue</option>
+                                        <option value="Seraph" {{ old('character_class') == 'Seraph' ? 'selected' : '' }}>Seraph</option>
+                                        <option value="Sorcerer" {{ old('character_class') == 'Sorcerer' ? 'selected' : '' }}>Sorcerer</option>
+                                        <option value="Warrior" {{ old('character_class') == 'Warrior' ? 'selected' : '' }}>Warrior</option>
+                                        <option value="Wizard" {{ old('character_class') == 'Wizard' ? 'selected' : '' }}>Wizard</option>
+                                    </select>
+                                </div>
+                            </div>
+                            @if($characters->isNotEmpty())
+                                    </div>
+                                </div>
+                            @endif
+                            </div>
 
                                 @error('character_id')
                                     <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
@@ -197,7 +201,7 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="flex items-center justify-between pt-6 border-t border-slate-700">
+                            <div class="flex items-center justify-end gap-4 pt-6 border-t border-slate-700">
                                 <a href="{{ route('rooms.index') }}" class="px-6 py-3 text-slate-300 hover:text-white transition-colors">
                                     Cancel
                                 </a>
@@ -213,28 +217,65 @@
     </div>
 
     <script>
-    function clearTemporaryFields() {
+    function handleCharacterSelection() {
+        const characterSelect = document.getElementById('character_id');
         const temporaryFields = document.getElementById('temporary-character-fields');
         const nameField = document.getElementById('character_name');
         const classField = document.getElementById('character_class');
         
-        temporaryFields.classList.add('opacity-50');
-        nameField.value = '';
-        classField.value = '';
-        nameField.required = false;
-        classField.required = false;
+        if (!characterSelect || !temporaryFields || !nameField || !classField) {
+            return; // Elements don't exist (user has no characters)
+        }
+
+        if (characterSelect.value === 'temporary') {
+            // Enable temporary character fields
+            temporaryFields.classList.remove('opacity-50');
+            nameField.required = true;
+            classField.required = true;
+            nameField.disabled = false;
+            classField.disabled = false;
+            
+            // Set the value to empty string for form submission
+            characterSelect.value = '';
+        } else if (characterSelect.value === '') {
+            // Default state - disable temporary fields
+            temporaryFields.classList.add('opacity-50');
+            nameField.value = '';
+            classField.value = '';
+            nameField.required = false;
+            classField.required = false;
+            nameField.disabled = true;
+            classField.disabled = true;
+        } else {
+            // Existing character selected - disable temporary character fields
+            temporaryFields.classList.add('opacity-50');
+            nameField.value = '';
+            classField.value = '';
+            nameField.required = false;
+            classField.required = false;
+            nameField.disabled = true;
+            classField.disabled = true;
+        }
     }
 
-    function clearExistingCharacters() {
-        const existingRadios = document.querySelectorAll('input[name="character_id"][value!=""]');
+    // Initialize form state on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const characterSelect = document.getElementById('character_id');
         const temporaryFields = document.getElementById('temporary-character-fields');
         const nameField = document.getElementById('character_name');
         const classField = document.getElementById('character_class');
         
-        existingRadios.forEach(radio => radio.checked = false);
-        temporaryFields.classList.remove('opacity-50');
-        nameField.required = true;
-        classField.required = true;
-    }
+        // If character dropdown exists (user has characters), initialize to disabled state
+        if (characterSelect && temporaryFields && nameField && classField) {
+            // Set initial state - temporary fields disabled when user has character dropdown
+            temporaryFields.classList.add('opacity-50');
+            nameField.disabled = true;
+            classField.disabled = true;
+            nameField.required = false;
+            classField.required = false;
+        }
+        // If no character dropdown exists (anonymous user or user with no characters), 
+        // fields should already be enabled via server-side rendering
+    });
     </script>
 </x-layout>

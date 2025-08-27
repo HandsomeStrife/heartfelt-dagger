@@ -86,11 +86,11 @@
                                 required
                             >
                                 <option value="">Select maximum participants</option>
-                                <option value="1" {{ old('guest_count') == '1' ? 'selected' : '' }}>1 Participant (Single slot)</option>
                                 <option value="2" {{ old('guest_count') == '2' ? 'selected' : '' }}>2 Participants (Side-by-side)</option>
                                 <option value="3" {{ old('guest_count') == '3' ? 'selected' : '' }}>3 Participants (Triangle layout)</option>
                                 <option value="4" {{ old('guest_count') == '4' ? 'selected' : '' }}>4 Participants (2x2 grid)</option>
                                 <option value="5" {{ old('guest_count') == '5' ? 'selected' : '' }}>5 Participants (2x3 grid)</option>
+                                <option value="6" {{ old('guest_count') == '6' ? 'selected' : '' }}>6 Participants (2x3 grid expanded)</option>
                             </select>
                             <p class="text-slate-400 text-sm mt-1">This determines the video layout for your room</p>
                             @error('guest_count')

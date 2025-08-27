@@ -1,6 +1,6 @@
 @props(['slotId'])
 
-<div class="video-slot h-full w-full bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-600/30 overflow-hidden" data-slot-id="{{ $slotId }}">
+<div class="video-slot h-full w-full bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-600/30 overflow-hidden" data-slot-id="{{ $slotId }}" data-testid="video-slot">
     <div class="h-full w-full bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 flex items-center justify-center relative">
         <div class='border-corners'>
             <!-- Decorative corner elements -->

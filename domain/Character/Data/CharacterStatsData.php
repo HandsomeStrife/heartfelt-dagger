@@ -21,8 +21,8 @@ class CharacterStatsData extends Data
 
     public static function fromModel(Character $character): self
     {
-        // Load class data from JSON file
-        $class_data = self::getClassData($character->class);
+        // Load class data from JSON file (use default if no class set)
+        $class_data = $character->class ? self::getClassData($character->class) : ['startingEvasion' => 10, 'startingHitPoints' => 5];
         $equipment_data = $character->equipment()->armor()->get();
 
         $base_evasion = $class_data['startingEvasion'] ?? 10;

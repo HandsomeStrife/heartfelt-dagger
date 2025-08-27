@@ -17,7 +17,7 @@ class RoomParticipantData extends Data implements Wireable
     public function __construct(
         public ?int $id,
         public int $room_id,
-        public int $user_id,
+        public ?int $user_id,
         public ?int $character_id,
         public ?string $character_name,
         public ?string $character_class,

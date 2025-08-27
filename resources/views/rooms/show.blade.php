@@ -44,8 +44,18 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197 2.132A1 1 0 0110 13.82V10.18a1 1 0 011.555-.832l3.197 2.132a1 1 0 010 1.664z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Start Session
+                                    Join Room
                                 </a>
+                                <form action="{{ route('rooms.destroy', $room) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this room? This action cannot be undone.')" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button data-testid="delete-room-button" type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-semibold py-3 px-6 rounded-xl transition-all duration-300">
+                                        <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Delete Room
+                                    </button>
+                                </form>
                             @elseif($user_is_participant)
                                 <a href="{{ route('rooms.session', $room) }}" class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/25">
                                     <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +144,7 @@
                                                 @elseif($participant->character_name)
                                                     {{ $participant->character_name }}
                                                 @else
-                                                    {{ $participant->user->username }}
+                                                    {{ $participant->user ? $participant->user->username : 'Anonymous' }}
                                                 @endif
                                             </h3>
                                             <div class="text-sm text-slate-400">
@@ -150,9 +160,18 @@
                                                 @else
                                                     <span class="text-slate-500">No character</span>
                                                 @endif
-                                                <div class="text-xs text-slate-500 mt-1">
-                                                    Player: {{ $participant->user->username }}
-                                                </div>
+                                                                                            <div class="text-xs text-slate-500 mt-1 flex items-center justify-between">
+                                                <span>Player: {{ $participant->user ? $participant->user->username : 'Anonymous' }}</span>
+                                                @if($user_is_creator && $participant->user_id !== $room->creator_id)
+                                                    <form action="{{ route('rooms.kick', [$room, $participant->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this participant?')" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="text-red-400 hover:text-red-300 text-xs font-medium transition-colors">
+                                                            Remove
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                             </div>
                                         </div>
                                     </div>

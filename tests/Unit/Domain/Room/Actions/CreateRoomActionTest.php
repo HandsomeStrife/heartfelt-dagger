@@ -122,7 +122,7 @@ it('creates rooms with unique codes', function () {
 it('handles different guest counts', function () {
     $user = User::factory()->create();
 
-    foreach ([1, 2, 3, 4, 5] as $guestCount) {
+    foreach ([2, 3, 4, 5, 6] as $guestCount) {
         $createData = new CreateRoomData(
             name: "Room for {$guestCount}",
             description: "Room with {$guestCount} guests",

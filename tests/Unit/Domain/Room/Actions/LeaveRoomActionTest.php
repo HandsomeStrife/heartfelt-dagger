@@ -261,3 +261,15 @@ it('preserves participation record', function () {
     expect($participant)->not->toBeNull();
     expect($participant->left_at)->not->toBeNull();
 });
+
+it('prevents room creator from leaving their own room', function () {
+    $creator = User::factory()->create();
+    $room = Room::factory()->create(['creator_id' => $creator->id]);
+    
+    // Creator is automatically added as participant during room creation
+    
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage('Room creators cannot leave their own rooms. You can delete the room instead.');
+
+    $this->action->execute($room, $creator);
+});
