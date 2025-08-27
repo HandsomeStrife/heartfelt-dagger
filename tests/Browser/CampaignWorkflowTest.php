@@ -1,12 +1,9 @@
 <?php
 
-uses(\Tests\DuskTestCase::class);
 declare(strict_types=1);
 use Domain\Campaign\Models\Campaign;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use Laravel\Dusk\Browser;
-use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\DatabaseMigrations::class);
 
 test('user can complete full campaign creation workflow', function () {
@@ -16,8 +13,9 @@ test('user can complete full campaign creation workflow', function () {
         'password' => bcrypt('password'),
     ]);
 
-    $this->browse(function (Browser $browser) use ($creator) {
-        $browser->loginAs($creator)
+    $page = visit('/');
+    
+    auth()->login($creator);\n    $page
             ->visit('/campaigns')
             ->assertSee('Campaigns')
             ->assertSee('No campaigns yet')
@@ -31,22 +29,23 @@ test('user can complete full campaign creation workflow', function () {
             ->assertSee('Campaign created successfully!')
             ->assertSee('The Dragon\'s Lair')
             ->assertSee('An epic adventure where heroes must face the ancient red dragon');
-    });
 });
+
 test('campaign creator can share invite link', function () {
     $creator = User::factory()->create(['password' => bcrypt('password')]);
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
-    $this->browse(function (Browser $browser) use ($creator, $campaign) {
-        $browser->loginAs($creator)
+    $page = visit('/');
+    
+    auth()->login($creator);\n    $page
             ->visit("/campaigns/{$campaign->campaign_code}")
             ->assertSee($campaign->name)
             ->assertSee('Share Invite')
             ->click('@share-invite-button')
-            ->pause(1000) // Wait for copy action
+            ->wait(1000) // Wait for copy action
             ->assertSee('Copied!'); // Button should show success state
-    });
 });
+
 test('user can join campaign via invite link', function () {
     $creator = User::factory()->create();
     $player = User::factory()->create([
@@ -66,8 +65,9 @@ test('user can join campaign via invite link', function () {
         'community' => 'Wildborne',
     ]);
 
-    $this->browse(function (Browser $browser) use ($player, $campaign, $character) {
-        $browser->loginAs($player)
+    $page = visit('/');
+    
+    auth()->login($player);\n    $page
             ->visit("/join/{$campaign->invite_code}")
             ->assertSee('Join Campaign')
             ->assertSee('Campaign to Join')
@@ -80,15 +80,16 @@ test('user can join campaign via invite link', function () {
             ->assertSee('Successfully joined the campaign!')
             ->assertSee('Legolas')
             ->assertSee('player1');
-    });
 });
+
 test('user can join campaign without character', function () {
     $creator = User::factory()->create();
     $player = User::factory()->create(['password' => bcrypt('password')]);
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
-    $this->browse(function (Browser $browser) use ($player, $campaign) {
-        $browser->loginAs($player)
+    $page = visit('/');
+    
+    auth()->login($player);\n    $page
             ->visit("/join/{$campaign->invite_code}")
             ->assertSee('Join Campaign')
             ->assertSee('Empty Character')
@@ -97,8 +98,8 @@ test('user can join campaign without character', function () {
             ->assertPathIs("/campaigns/{$campaign->campaign_code}")
             ->assertSee('Successfully joined the campaign!')
             ->assertSee('Empty Character');
-    });
 });
+
 test('campaign member can leave campaign', function () {
     $creator = User::factory()->create();
     $member = User::factory()->create(['password' => bcrypt('password')]);
@@ -110,16 +111,17 @@ test('campaign member can leave campaign', function () {
         'joined_at' => now(),
     ]);
 
-    $this->browse(function (Browser $browser) use ($member, $campaign) {
-        $browser->loginAs($member)
+    $page = visit('/');
+    
+    auth()->login($member);\n    $page
             ->visit("/campaigns/{$campaign->campaign_code}")
             ->assertSee('Leave Campaign')
             ->press('Leave Campaign')
             ->acceptDialog() // Confirm the leave action
             ->assertPathIs('/campaigns')
             ->assertSee('Successfully left the campaign.');
-    });
 });
+
 test('campaign dashboard shows created and joined campaigns', function () {
     $user = User::factory()->create(['password' => bcrypt('password')]);
 
@@ -136,8 +138,9 @@ test('campaign dashboard shows created and joined campaigns', function () {
         'joined_at' => now(),
     ]);
 
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaigns')
             ->assertSee('My Campaigns')
             ->assertSee('My Created Campaign')
@@ -145,8 +148,8 @@ test('campaign dashboard shows created and joined campaigns', function () {
             ->assertSee('Campaign I Joined')
             ->assertSee('1 members') // Should show member count
             ->assertSee('0 members'); // Created campaign has no members
-    });
 });
+
 test('multiple users can join same campaign', function () {
     $creator = User::factory()->create();
     $player1 = User::factory()->create([
@@ -175,19 +178,20 @@ test('multiple users can join same campaign', function () {
             ->assertSee('Successfully joined the campaign!')
             ->assertSee('player1') // Should see other member
             ->assertSee('player2'); // Should see themselves
-    });
 });
+
 test('campaign creation form validates required fields', function () {
     $user = User::factory()->create(['password' => bcrypt('password')]);
 
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaigns/create')
             ->press('Create Campaign') // Submit without filling fields
             ->assertPathIs('/campaigns/create') // Should stay on form
             ->assertPresent('.text-red-400'); // Should show validation errors
-    });
 });
+
 test('user cannot join campaign twice', function () {
     $creator = User::factory()->create();
     $player = User::factory()->create(['password' => bcrypt('password')]);
@@ -199,19 +203,21 @@ test('user cannot join campaign twice', function () {
         'joined_at' => now(),
     ]);
 
-    $this->browse(function (Browser $browser) use ($player, $campaign) {
-        $browser->loginAs($player)
+    $page = visit('/');
+    
+    auth()->login($player);\n    $page
             ->visit("/join/{$campaign->invite_code}")
             ->assertPathIs("/campaigns/{$campaign->campaign_code}")
             ->assertSee('You are already a member of this campaign.');
-    });
 });
+
 test('campaign navigation works correctly', function () {
     $user = User::factory()->create(['password' => bcrypt('password')]);
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
-    $this->browse(function (Browser $browser) use ($user, $campaign) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/dashboard')
             ->click('@campaigns-link') // Click campaigns in dashboard
             ->assertPathIs('/campaigns')
@@ -223,14 +229,15 @@ test('campaign navigation works correctly', function () {
             ->assertPathIs("/campaigns/{$campaign->campaign_code}")
             ->click('@back-to-campaigns')
             ->assertPathIs('/campaigns');
-    });
 });
+
 test('responsive design works on mobile', function () {
     $user = User::factory()->create(['password' => bcrypt('password')]);
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
-    $this->browse(function (Browser $browser) use ($user, $campaign) {
-        $browser->resize(375, 667) // iPhone 6/7/8 size
+    $page = visit('/');
+    
+    $page->resize(375, 667) // iPhone 6/7/8 size
             ->loginAs($user)
             ->visit('/campaigns')
             ->assertSee('Campaigns')
@@ -242,5 +249,3 @@ test('responsive design works on mobile', function () {
             ->assertSee('Campaign created successfully!')
             ->visit("/campaigns/{$campaign->campaign_code}")
             ->assertSee($campaign->name);
-    });
-});

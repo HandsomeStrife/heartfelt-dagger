@@ -294,5 +294,4 @@ test('wordsmith stress clearing mechanics verification', function () {
     
     // Verify it affects allies, not just self
     expect($rousingSpeechFeature['description'])->toContain('All allies');
-
 });

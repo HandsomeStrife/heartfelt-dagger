@@ -354,5 +354,4 @@ test('wayfinder stress management and damage optimization', function () {
     // Severe damage punishment creates a feedback loop: Better damage → enemy takes Stress
     
     // Perfect for high-damage, high-risk hunting tactics
-
 });

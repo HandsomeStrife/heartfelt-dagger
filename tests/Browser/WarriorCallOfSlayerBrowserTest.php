@@ -301,5 +301,4 @@ test('call of slayer resource economy verification', function () {
     // 6. Martial Preparation shares benefits with party
     
     // This creates a flexible resource system for both burst and sustained damage
-
 });

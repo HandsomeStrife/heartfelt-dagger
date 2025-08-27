@@ -303,5 +303,4 @@ test('beastbound battle bonded conditional evasion mechanics', function () {
     
     // This is a conditional bonus, not a permanent stat increase
     // It only applies when: adversary attacks + adversary in companion melee range
-
 });

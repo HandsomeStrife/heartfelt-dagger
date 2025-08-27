@@ -123,7 +123,6 @@ test('witch moon character builder integration works correctly', function () {
             ->assertSee('Ire of Pale Light')
             ->assertSee('Lunar Phases')
             ->assertSee('Void - Playtest v1.5');
-    });
 });
 
 test('witch moon character stats calculate correctly', function () {
@@ -234,4 +233,3 @@ test('witch moon glamour feature mechanics description', function () {
     expect($glamourFeature['description'])->toContain('Enhance your own appearance');
     expect($glamourFeature['description'])->toContain('advantage on Presence Rolls that leverage this change');
 });
-

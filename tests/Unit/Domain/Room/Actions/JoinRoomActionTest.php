@@ -131,18 +131,20 @@ it('prevents duplicate participation', function () {
     $this->action->execute($room, $user);
 });
 it('prevents joining full room', function () {
-    $room = Room::factory()->create(['guest_count' => 1]);
+    $room = Room::factory()->create(['guest_count' => 1]); // Total capacity = 2 (creator + 1 guest)
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
+    $user3 = User::factory()->create();
 
-    // Fill the room
-    $this->action->execute($room, $user1);
+    // Fill the room to capacity
+    $this->action->execute($room, $user1); // 1 participant
+    $this->action->execute($room, $user2); // 2 participants (at capacity)
 
     // Try to join full room
     $this->expectException(Exception::class);
     $this->expectExceptionMessage('This room is at capacity.');
 
-    $this->action->execute($room, $user2);
+    $this->action->execute($room, $user3);
 });
 it('validates character ownership', function () {
     $room = Room::factory()->create();

@@ -1,12 +1,12 @@
 <x-layout>
     <div class="h-screen w-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 p-1">
-        <!-- Dynamic Grid Layout Based on Guest Count -->
-        @if($room->guest_count == 1)
+        <!-- Dynamic Grid Layout Based on Total Capacity (Creator + Guests) -->
+        @if($room->getTotalCapacity() == 1)
             <!-- Single Participant Layout -->
             <div class="h-full w-full">
                 <x-room-video-slot :slot-id="1" :participant="$participants->first()" :is-host="true" />
             </div>
-        @elseif($room->guest_count == 2)
+        @elseif($room->getTotalCapacity() == 2)
             <!-- 2 Participants - Side by Side -->
             <div class="h-full w-full grid grid-cols-2 gap-1">
                 @foreach($participants->take(2) as $index => $participant)
@@ -16,7 +16,7 @@
                     <x-empty-room-slot :slot-id="$i + 1" />
                 @endfor
             </div>
-        @elseif($room->guest_count == 3)
+        @elseif($room->getTotalCapacity() == 3)
             <!-- 3 Participants - Triangle Layout -->
             <div class="h-full w-full">
                 <!-- Top Row - 1 centered -->
@@ -39,7 +39,7 @@
                     @endfor
                 </div>
             </div>
-        @elseif($room->guest_count == 4)
+        @elseif($room->getTotalCapacity() == 4)
             <!-- 4 Participants - 2x2 Grid -->
             <div class="h-full w-full grid grid-cols-2 grid-rows-2 gap-1">
                 @foreach($participants->take(4) as $index => $participant)
@@ -50,7 +50,7 @@
                 @endfor
             </div>
         @else
-            <!-- 5 Participants - 2x3 Grid -->
+            <!-- 5+ Participants - 2x3 Grid -->
             <div class="h-full w-full grid grid-cols-3 grid-rows-2 gap-1">
                 <!-- Top Row - 3 Video Slots -->
                 @foreach($participants->take(3) as $index => $participant)
@@ -92,7 +92,7 @@
         <!-- Room Info -->
         <div class="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-xl px-4 py-2">
             <h3 class="text-white font-semibold text-sm">{{ $room->name }}</h3>
-            <p class="text-slate-400 text-xs">{{ $participants->count() }}/{{ $room->guest_count }} participants</p>
+            <p class="text-slate-400 text-xs">{{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants</p>
         </div>
 
         <!-- Leave Button -->
@@ -115,6 +115,7 @@
             id: {{ $room->id }},
             name: "{{ $room->name }}",
             guest_count: {{ $room->guest_count }},
+            total_capacity: {{ $room->getTotalCapacity() }},
             participants: [
                 @foreach($participants as $p)
                 {

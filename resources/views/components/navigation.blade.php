@@ -1,4 +1,4 @@
-<nav class="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-amber-500/30">
+<nav class="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-amber-500/30 z-[9999]">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <!-- Logo/Brand -->
@@ -31,7 +31,7 @@
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="transform opacity-100 scale-100"
                              x-transition:leave-end="transform opacity-0 scale-95"
-                             class="absolute right-4 top-16 w-64 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50">
+                             class="absolute right-4 top-16 w-64 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[9999]">
                             <div class="py-2">
                                 <!-- Character Links -->
                                 <a href="{{ route('character-builder') }}" class="block px-4 py-3 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto border-b border-slate-600">
@@ -105,7 +105,7 @@
                             x-transition:leave="transition ease-in duration-75"
                             x-transition:leave-start="transform opacity-100 scale-100"
                             x-transition:leave-end="transform opacity-0 scale-95"
-                            class="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50"
+                            class="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[9999]"
                         >
                             <div class="py-1">
                                 <a href="{{ route('character-builder') }}" class="flex items-center px-4 py-2 text-sm text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">
@@ -194,7 +194,7 @@
                              x-transition:leave="transition ease-in duration-75"
                              x-transition:leave-start="transform opacity-100 scale-100"
                              x-transition:leave-end="transform opacity-0 scale-95"
-                             class="absolute right-4 top-16 w-64 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-50">
+                             class="absolute right-4 top-16 w-64 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[9999]">
                             <div class="py-2">
                                 <a href="{{ route('character-builder') }}" class="block px-4 py-3 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto border-b border-slate-600">
                                     Create

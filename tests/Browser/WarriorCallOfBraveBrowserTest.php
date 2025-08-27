@@ -305,5 +305,4 @@ test('warrior call of brave danger threshold synergy', function () {
     // The synergy: High survivability allows getting to low HP for d20 Hope Die
     // Fear failures generate Hope, Battle Ritual provides recovery
     // Rise to the Challenge makes low HP a power boost rather than just danger
-
 });

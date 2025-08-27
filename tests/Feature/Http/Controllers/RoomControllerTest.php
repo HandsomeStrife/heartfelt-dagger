@@ -200,9 +200,13 @@ test('invite page redirects if already participating', function () {
 });
 test('invite page redirects if room at capacity', function () {
     $user = User::factory()->create();
-    $room = Room::factory()->create(['guest_count' => 1]);
+    $room = Room::factory()->create(['guest_count' => 1]); // Total capacity = 2 (creator + 1 guest)
 
-    // Fill the room
+    // Fill the room to capacity (2 participants)
+    RoomParticipant::factory()->create([
+        'room_id' => $room->id,
+        'left_at' => null
+    ]);
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'left_at' => null
@@ -317,9 +321,13 @@ test('user cannot join room twice', function () {
 });
 test('user cannot join full room', function () {
     $user = User::factory()->create();
-    $room = Room::factory()->create(['guest_count' => 1]);
+    $room = Room::factory()->create(['guest_count' => 1]); // Total capacity = 2 (creator + 1 guest)
 
-    // Fill the room
+    // Fill the room to capacity (2 participants)
+    RoomParticipant::factory()->create([
+        'room_id' => $room->id,
+        'left_at' => null
+    ]);
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'left_at' => null

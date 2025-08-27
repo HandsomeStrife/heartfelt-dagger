@@ -8,6 +8,7 @@ use Domain\Room\Data\CreateRoomData;
 use Domain\Room\Data\RoomData;
 use Domain\Room\Enums\RoomStatus;
 use Domain\Room\Models\Room;
+use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
 
 class CreateRoomAction
@@ -22,6 +23,16 @@ class CreateRoomAction
             'creator_id' => $creator->id,
             'campaign_id' => $createData->campaign_id,
             'status' => RoomStatus::Active,
+        ]);
+
+        // Automatically add the creator as a participant
+        RoomParticipant::create([
+            'room_id' => $room->id,
+            'user_id' => $creator->id,
+            'character_id' => null, // Creator can join without a character initially
+            'character_name' => null,
+            'character_class' => null,
+            'joined_at' => now(),
         ]);
 
         $room->load('creator');
@@ -41,7 +52,7 @@ class CreateRoomAction
             'updated_at' => $room->updated_at?->toDateTimeString(),
             'creator' => $room->creator,
             'participants' => collect(),
-            'active_participant_count' => 0,
+            'active_participant_count' => 1, // Now there's 1 participant (the creator)
         ]);
     }
 }

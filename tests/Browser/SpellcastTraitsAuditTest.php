@@ -281,5 +281,4 @@ test('unique spellcasting traits reflect subclass specializations', function () 
         // This ensures consistent magical approach within each class
         expect(count($uniqueTraits))->toBeLessThanOrEqual(2);
     }
-
 });

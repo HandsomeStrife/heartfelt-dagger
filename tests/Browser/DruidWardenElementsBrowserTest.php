@@ -336,5 +336,4 @@ test('warden elements complete elemental system verification', function () {
     // Cost: 1 Stress per activation = sustainable resource usage
     
     // This creates the ultimate elemental druid with sustained magical effects
-
 });

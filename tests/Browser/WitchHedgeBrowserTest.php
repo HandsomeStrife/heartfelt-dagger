@@ -121,7 +121,6 @@ test('witch hedge character builder integration works correctly', function () {
             ->assertSee('Enhanced Hex')
             ->assertSee('Circle of Power')
             ->assertSee('Void - Playtest v1.5');
-    });
 });
 
 test('witch hedge character stats calculate correctly', function () {
@@ -210,4 +209,3 @@ test('witch hedge background and connection questions are loaded', function () {
     expect($connections[1])->toBe('I once appeared to you in a dream and shared a vision of the future. What did I tell you?');
     expect($connections[2])->toBe('Why do you come to me for advice?');
 });
-

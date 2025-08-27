@@ -285,5 +285,4 @@ test('equipment JSON files have reasonable size and content', function () {
         expect($fileSize)->toBeGreaterThan(50, "Equipment file '{$type}' should have meaningful content"); // At least 50 bytes
         expect($fileSize)->toBeLessThan(1024 * 1024, "Equipment file '{$type}' should not be larger than 1MB"); // Less than 1MB
     }
-
 });

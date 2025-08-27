@@ -269,5 +269,4 @@ test('elemental origin element selection mechanics', function () {
     expect($elementalistFeature['hopeCost'])->toBe(1);
     expect($elementalistFeature['description'])->toContain('+2 bonus to the roll');
     expect($elementalistFeature['description'])->toContain('+3 bonus to the roll\'s damage');
-
 });

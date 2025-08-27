@@ -17,9 +17,6 @@ test('witch class appears in class selection with proper playtest markings', fun
                         $browser->assertSee('Witch')
                             ->assertSee('Dread & Sage')
                             ->assertSee('Void - Playtest v1.5');
-                    });
-            });
-    });
 });
 
 test('witch class selection loads correct data and subclasses', function () {
@@ -38,8 +35,6 @@ test('witch class selection loads correct data and subclasses', function () {
                     ->assertSee('Moon')
                     ->assertPresent('[data-subclass="hedge"]')
                     ->assertPresent('[data-subclass="moon"]');
-            });
-    });
 });
 
 test('witch hedge subclass selection displays complete information', function () {
@@ -65,7 +60,6 @@ test('witch hedge subclass selection displays complete information', function ()
             // Mastery features
             ->assertSee('Circle of Power')
             ->assertSee('mark a circle on the ground');
-    });
 });
 
 test('witch moon subclass selection displays complete information', function () {
@@ -90,7 +84,6 @@ test('witch moon subclass selection displays complete information', function () 
             // Mastery features
             ->assertSee('Lunar Phases')
             ->assertSee('phases of the moon');
-    });
 });
 
 test('witch class domain card selection works with dread and sage domains', function () {
@@ -114,8 +107,6 @@ test('witch class domain card selection works with dread and sage domains', func
                     // Should show Sage domain cards
                     ->assertSee('Healing Hands')
                     ->assertSee('Nature\'s Call');
-            });
-    });
 });
 
 test('witch class hope feature and class features display correctly', function () {
@@ -134,8 +125,6 @@ test('witch class hope feature and class features display correctly', function (
                     ->assertSee('bonus equal to your tier')
                     ->assertSee('Commune')
                     ->assertSee('commune with an ancestor, deity, nature spirit');
-            });
-    });
 });
 
 test('witch class stats display correctly in character preview', function () {
@@ -162,8 +151,6 @@ test('witch class stats display correctly in character preview', function () {
                 $browser->assertSee('Instinct: +2') // Spellcast trait for Moon
                     ->assertSee('Presence: +1')
                     ->assertSee('Knowledge: +1');
-            });
-    });
 });
 
 test('witch playtest warning displays correctly throughout character builder', function () {
@@ -178,8 +165,6 @@ test('witch playtest warning displays correctly throughout character builder', f
             ->within('[data-playtest-warning]', function ($browser) {
                 $browser->assertSee('This subclass is part of DaggerHeart\'s Void - Playtest v1.5 content')
                     ->assertSee('may be subject to changes based on community feedback');
-            });
-    });
 });
 
 test('witch class inventory suggestions load correctly', function () {
@@ -207,8 +192,6 @@ test('witch class inventory suggestions load correctly', function () {
                     ->assertSee('d6+3 mag')
                     ->assertSee('Gambeson Armor')
                     ->assertSee('Flexible: +1 to Evasion');
-            });
-    });
 });
 
 test('witch background and connection questions load correctly', function () {
@@ -227,8 +210,6 @@ test('witch background and connection questions load correctly', function () {
                 $browser->assertSee('What about my magical practice makes you most ill at ease?')
                     ->assertSee('I once appeared to you in a dream and shared a vision')
                     ->assertSee('Why do you come to me for advice?');
-            });
-    });
 });
 
 test('completed witch character shows all correct information', function () {
@@ -271,6 +252,4 @@ test('completed witch character shows all correct information', function () {
             ->assertSee('Tethered Talisman')
             ->assertSee('Blighting Strike') // Domain cards
             ->assertSee('Healing Hands');
-    });
 });
-

@@ -327,5 +327,4 @@ test('warden renewal clarity of nature instinct scaling', function () {
     
     // At Instinct +2, clears 2 Stress total distributed among party
     // This synergizes well with the spellcasting focus on Instinct
-
 });

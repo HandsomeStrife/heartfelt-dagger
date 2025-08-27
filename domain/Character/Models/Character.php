@@ -228,25 +228,17 @@ class Character extends Model
     }
 
     /**
-     * Get the profile image URL
+     * Get the profile image URL using signed URL for security
      */
     public function getProfileImage(): string
     {
         if ($this->profile_image_path) {
-            // For S3, construct the URL manually or use Laravel's URL generation
             $s3Disk = Storage::disk('s3');
             if ($s3Disk->exists($this->profile_image_path)) {
-                // Use config values to construct the URL
-                $bucket = config('filesystems.disks.s3.bucket');
-                $region = config('filesystems.disks.s3.region');
-                $url = config('filesystems.disks.s3.url');
-
-                // If custom URL is set, use it, otherwise construct standard S3 URL
-                if ($url) {
-                    return rtrim($url, '/').'/'.ltrim($this->profile_image_path, '/');
-                } else {
-                    return "https://{$bucket}.s3.{$region}.amazonaws.com/{$this->profile_image_path}";
-                }
+                return $s3Disk->temporaryUrl(
+                    $this->profile_image_path,
+                    now()->addHours(24) // URLs valid for 24 hours
+                );
             }
         }
 

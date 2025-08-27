@@ -19,7 +19,6 @@
                 type="text" 
                 id="character-name"
                 wire:model.live.debounce.500ms="character.name"
-                wire:change="updateCharacterName($event.target.value)"
                 placeholder="Enter character name..."
                 maxlength="100"
                 class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"

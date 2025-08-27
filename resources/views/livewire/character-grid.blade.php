@@ -87,7 +87,7 @@
                                 </svg>
                             </div>
                         @else
-                            <img src="{{ $character->profile_image_path }}" 
+                            <img src="{{ $character->getProfileImage() }}" 
                                  alt="{{ $character->name ?? 'Unnamed Character' }} portrait"
                                  class="w-full h-full object-cover">
                         @endif

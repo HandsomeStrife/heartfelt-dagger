@@ -48,14 +48,19 @@ it('validates required description field', function () {
         'guest_count' => 2,
     ]);
 });
-it('validates required password field', function () {
-    $this->expectException(ValidationException::class);
-
-    CreateRoomData::validate([
+it('allows optional password field', function () {
+    // Password should be optional, so this should NOT throw an exception
+    $data = CreateRoomData::from([
         'name' => 'Test Room',
         'description' => 'Test Description',
         'guest_count' => 2,
+        'password' => null,
     ]);
+
+    expect($data->password)->toBeNull();
+    expect($data->name)->toEqual('Test Room');
+    expect($data->description)->toEqual('Test Description');
+    expect($data->guest_count)->toEqual(2);
 });
 it('validates required guest count field', function () {
     $this->expectException(ValidationException::class);

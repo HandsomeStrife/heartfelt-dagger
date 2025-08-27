@@ -7,8 +7,6 @@ declare(strict_types=1);
 use Domain\Campaign\Models\Campaign;
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
-use Laravel\Dusk\Browser;
-
 test('shows available campaign frames when creating a campaign', function () {
     $user = User::factory()->create();
     
@@ -29,13 +27,13 @@ test('shows available campaign frames when creating a campaign', function () {
         'is_public' => false,
     ]);
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaigns/create')
             ->assertSee('Public Adventure Frame') // Should see public frames
             ->assertSee('My Private Frame')      // Should see own private frames
             ->assertDontSee('Other Private Frame'); // Should not see others' private frames
-    });
 });
 
 test('can create a campaign with a selected campaign frame', function () {
@@ -47,8 +45,9 @@ test('can create a campaign with a selected campaign frame', function () {
         'is_public' => false,
     ]);
     
-    $this->browse(function (Browser $browser) use ($user, $frame) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaigns/create')
             ->type('name', 'Test Campaign with Frame')
             ->type('description', 'A campaign using a specific frame')
@@ -73,8 +72,9 @@ test('can create a campaign without selecting a frame', function () {
         'name' => 'Available Frame',
     ]);
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaigns/create')
             ->type('name', 'Frameless Campaign')
             ->type('description', 'A campaign without a specific frame')
@@ -105,13 +105,13 @@ test('shows frame information in campaign details when frame is selected', funct
         'campaign_frame_id' => $frame->id,
     ]);
     
-    $this->browse(function (Browser $browser) use ($user, $campaign) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit("/campaigns/{$campaign->campaign_code}")
             ->assertSee('Epic Fantasy Campaign')
             ->assertSee('Epic Fantasy Frame')
             ->assertSee('A frame for epic fantasy adventures');
-    });
 });
 
 test('displays complexity ratings correctly across the interface', function () {
@@ -144,8 +144,9 @@ test('displays complexity ratings correctly across the interface', function () {
         ]),
     ];
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaign-frames')
             ->assertSee('Simple')
             ->assertSee('Moderate')
@@ -157,11 +158,11 @@ test('displays complexity ratings correctly across the interface', function () {
     foreach ($frames as $frame) {
         $expected_complexity = ['', 'Simple', 'Moderate', 'Complex', 'Very Complex'][$frame->complexity_rating];
         
-        $this->browse(function (Browser $browser) use ($frame, $expected_complexity, $user) {
-            $browser->loginAs($user)
+        $page = visit('/');
+    
+    auth()->login($user);\n    $page
                 ->visit("/campaign-frames/{$frame->id}")
                 ->assertSee($frame->name)
                 ->assertSee($expected_complexity . ' Complexity');
         });
     }
-});

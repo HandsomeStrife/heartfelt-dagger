@@ -213,17 +213,17 @@
                 <!-- Profile Image Upload -->
                 <div class="flex flex-col items-center justify-center sm:flex-shrink-0">
                     <div class="relative">
-                        @if($profile_image)
+                        @if($profile_image || $character->profile_image_path)
                             <!-- Image Preview -->
                             <div class="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg">
                                 <img 
-                                    src="{{ $profile_image->temporaryUrl() }}" 
+                                    src="{{ $this->getImageUrl() }}" 
                                     alt="Profile preview" 
                                     class="w-full h-full object-cover"
                                 >
                                 <button 
                                     wire:click="clearProfileImage"
-                                    class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200"
+                                    class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -239,7 +239,7 @@
                                 @drop.prevent="dragOver = false; $refs.fileInput.files = $event.dataTransfer.files; $refs.fileInput.dispatchEvent(new Event('change'))"
                                 :class="{ 'border-amber-500 bg-amber-500/10': dragOver }"
                                 class="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
-                                onclick="this.querySelector('input[type=file]').click()"
+                                @click="$refs.fileInput.click()"
                             >
                                 <svg class="w-8 h-8 text-slate-400 group-hover:text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -253,6 +253,7 @@
                                     wire:model="profile_image"
                                     accept="image/*"
                                     class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    style="pointer-events: none;"
                                 >
                             </div>
                         @endif
@@ -269,7 +270,6 @@
                             type="text" 
                             id="character-name"
                             wire:model.live.debounce.500ms="character.name"
-                            wire:change="updateCharacterName($event.target.value)"
                             placeholder="Enter your character's name..."
                             class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                         >
@@ -281,7 +281,6 @@
                             type="text" 
                             id="character-pronouns"
                             wire:model.live.debounce.500ms="pronouns"
-                            wire:change="updatePronouns($event.target.value)"
                             placeholder="e.g., they/them, she/her, he/him..."
                             class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                         >

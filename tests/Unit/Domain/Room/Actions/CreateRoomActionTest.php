@@ -4,6 +4,7 @@ declare(strict_types=1);
 use Domain\Room\Actions\CreateRoomAction;
 use Domain\Room\Data\CreateRoomData;
 use Domain\Room\Models\Room;
+use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -158,19 +159,38 @@ it('associates creator correctly', function () {
     expect($roomData1->creator_id)->toEqual($creator1->id);
     expect($roomData2->creator_id)->toEqual($creator2->id);
 });
-it('initializes participant count as null', function () {
+it('automatically adds creator as participant', function () {
     $user = User::factory()->create();
     $createData = new CreateRoomData(
-        name: 'Empty Room',
-        description: 'No participants yet',
+        name: 'Room with Creator',
+        description: 'Creator is automatically added as participant',
         password: 'password',
         guest_count: 5
     );
 
     $roomData = $this->action->execute($createData, $user);
 
-    expect($roomData->active_participant_count)->toEqual(0);
+    expect($roomData->active_participant_count)->toEqual(1);
 });
+
+it('creates room participant record for creator', function () {
+    $user = User::factory()->create();
+    $createData = new CreateRoomData(
+        name: 'Test Room',
+        description: 'Test Description',
+        password: null,
+        guest_count: 3
+    );
+
+    $roomData = $this->action->execute($createData, $user);
+
+    // Check that a room participant record was created for the creator
+    expect(RoomParticipant::where('room_id', $roomData->id)
+        ->where('user_id', $user->id)
+        ->whereNull('left_at')
+        ->exists())->toBeTrue();
+});
+
 it('handles long names and descriptions', function () {
     $user = User::factory()->create();
     $createData = new CreateRoomData(

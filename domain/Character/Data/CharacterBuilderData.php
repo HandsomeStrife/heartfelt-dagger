@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Character\Data;
 
 use Domain\Character\Enums\CharacterBuilderStep;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Wireable;
 use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
@@ -753,6 +754,24 @@ class CharacterBuilderData extends Data implements Wireable
         }
         
         return $baseModifier;
+    }
+
+    /**
+     * Get the profile image URL using signed URL for security
+     */
+    public function getProfileImage(): string
+    {
+        if ($this->profile_image_path) {
+            $s3Disk = Storage::disk('s3');
+            if ($s3Disk->exists($this->profile_image_path)) {
+                return $s3Disk->temporaryUrl(
+                    $this->profile_image_path,
+                    now()->addHours(24) // URLs valid for 24 hours
+                );
+            }
+        }
+
+        return asset('img/default-avatar.png');
     }
 
 }

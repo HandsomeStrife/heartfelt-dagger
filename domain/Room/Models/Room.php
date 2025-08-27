@@ -146,10 +146,19 @@ class Room extends Model
 
     /**
      * Check if the room is at capacity
+     * Capacity = creator + guest_count
      */
     public function isAtCapacity(): bool
     {
-        return $this->getActiveParticipantCount() >= $this->guest_count;
+        return $this->getActiveParticipantCount() >= ($this->guest_count + 1);
+    }
+
+    /**
+     * Get the total capacity of the room (creator + guests)
+     */
+    public function getTotalCapacity(): int
+    {
+        return $this->guest_count + 1;
     }
 
     /**

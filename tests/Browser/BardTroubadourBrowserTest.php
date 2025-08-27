@@ -337,5 +337,4 @@ test('troubadour song strategic usage verification', function () {
     // Range: Close range affects most combat situations
     
     // Perfect synergy with Rally Dice and domain spells for complete support coverage
-
 });

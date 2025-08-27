@@ -17,7 +17,12 @@ require_once __DIR__ . '/Helpers.php';
 // Feature tests use the full Laravel TestCase with database
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Unit', 'Feature', 'Browser');
+    ->in('Unit', 'Feature');
+
+// Browser tests use Pest 4 browser testing functionality
+pest()->extend(Tests\TestCase::class)
+    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->in('Browser');
 
 /*
 |--------------------------------------------------------------------------

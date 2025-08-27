@@ -319,5 +319,4 @@ test('divine wielder combat synergy verification', function () {
     // Sacred Resonance doubles matching damage dice
     // Sparing Touch provides battlefield healing (2x per rest at specialization)
     // All powered by Strength trait for consistent scaling
-
 });

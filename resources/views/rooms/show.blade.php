@@ -103,7 +103,7 @@
                         </div>
                         <div>
                             <h2 class="font-outfit text-xl font-bold text-white">Participants</h2>
-                            <p class="text-slate-400 text-sm">{{ $participants->count() }} of {{ $room->guest_count }} slots filled</p>
+                            <p class="text-slate-400 text-sm">{{ $participants->count() }} of {{ $room->getTotalCapacity() }} slots filled</p>
                         </div>
                     </div>
 

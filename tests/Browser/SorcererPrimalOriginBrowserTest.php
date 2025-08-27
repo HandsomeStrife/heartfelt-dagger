@@ -325,5 +325,4 @@ test('primal origin resource synergy verification', function () {
     // 6. Channel Raw Power and Volatile Magic provide additional Hope/spell enhancement
     
     // This creates the ultimate spell manipulation and support caster
-
 });

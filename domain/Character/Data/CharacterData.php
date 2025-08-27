@@ -69,9 +69,17 @@ class CharacterData extends Data implements Wireable
 
     public function getProfileImage(): string
     {
-        return $this->profile_image_path
-            ? asset('storage/'.$this->profile_image_path)
-            : asset('img/defaults/character-avatar.webp');
+        if ($this->profile_image_path) {
+            $s3Disk = \Illuminate\Support\Facades\Storage::disk('s3');
+            if ($s3Disk->exists($this->profile_image_path)) {
+                return $s3Disk->temporaryUrl(
+                    $this->profile_image_path,
+                    now()->addHours(24) // URLs valid for 24 hours
+                );
+            }
+        }
+
+        return asset('img/default-avatar.png');
     }
 
     public function getShareUrl(): string

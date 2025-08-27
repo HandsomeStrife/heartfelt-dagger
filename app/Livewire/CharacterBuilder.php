@@ -54,6 +54,9 @@ class CharacterBuilder extends Component
     public array $editing_experience = [];
     public string $edit_experience_description = '';
 
+    // Character model for accessing methods like getProfileImage()
+    protected ?Character $character_model = null;
+
     // Computed Properties for Tests
     public function getComputedStatsProperty(): array
     {
@@ -63,6 +66,26 @@ class CharacterBuilder extends Component
     public function getAncestryBonusesProperty(): array
     {
         return $this->character->getAncestryBonuses();
+    }
+
+    public function getImageUrl(): ?string
+    {
+        // 1. If user just uploaded an image (temporary), show that
+        if ($this->profile_image) {
+            return $this->profile_image->temporaryUrl();
+        }
+
+        // 2. If character has a saved image, show that from S3
+        if ($this->character_model && $this->character_model->profile_image_path) {
+            // Use signed URL for secure access (valid for 1 hour)
+            return Storage::disk('s3')->temporaryUrl(
+                $this->character_model->profile_image_path,
+                now()->addHour()
+            );
+        }
+
+        // 3. No image exists
+        return null;
     }
 
 
@@ -97,9 +120,9 @@ class CharacterBuilder extends Component
         $this->storage_key = $characterKey;
         
         // Load the character model to get pronouns and last saved time from database
-        $character_model = Character::where('character_key', $characterKey)->first();
-        $this->pronouns = $character_model->pronouns ?? null;
-        $this->last_saved_timestamp = $character_model?->updated_at?->timestamp;
+        $this->character_model = Character::where('character_key', $characterKey)->first();
+        $this->pronouns = $this->character_model->pronouns ?? null;
+        $this->last_saved_timestamp = $this->character_model?->updated_at?->timestamp;
         
         $this->updateCompletedSteps();
         $this->loadGameData();
@@ -222,6 +245,40 @@ class CharacterBuilder extends Component
         $this->dispatch('character-updated', $this->character);
     }
 
+    /**
+     * Auto-save when character object properties change via live model binding
+     * This catches any updates to the $character object properties like character.name
+     */
+    public function updatedCharacter($value, $key): void
+    {
+        // Auto-save for specific properties that should save immediately
+        $autoSaveProperties = [
+            'name', 
+            'background_answers', 
+            'physical_description', 
+            'personality_traits', 
+            'personal_history', 
+            'motivations'
+        ];
+        
+        // Handle nested properties like background_answers.0
+        $topLevelKey = explode('.', $key)[0];
+        
+        if (in_array($key, $autoSaveProperties) || in_array($topLevelKey, $autoSaveProperties)) {
+            $this->saveToDatabase();
+            $this->dispatch('character-updated', $this->character);
+        }
+    }
+
+    /**
+     * Auto-save when pronouns change via live model binding
+     */
+    public function updatedPronouns(): void
+    {
+        $this->saveToDatabase();
+        $this->dispatch('character-updated', $this->character);
+    }
+
     public function updatedProfileImage(): void
     {
         $this->validate([
@@ -229,35 +286,58 @@ class CharacterBuilder extends Component
         ]);
 
         if ($this->profile_image) {
-            // Generate organized path: year/month/day/character-token/image_name.extension
-            $date = now();
-            $year = $date->format('Y');
-            $month = $date->format('m');
-            $day = $date->format('d');
+            try {
+                // Generate organized path: year/month/day/character-token/image_name.extension
+                $date = now();
+                $year = $date->format('Y');
+                $month = $date->format('m');
+                $day = $date->format('d');
 
-            // Get original filename and extension
-            $original_name = $this->profile_image->getClientOriginalName();
-            $extension = $this->profile_image->getClientOriginalExtension();
-            $filename = pathinfo($original_name, PATHINFO_FILENAME);
+                // Get original filename and extension
+                $original_name = $this->profile_image->getClientOriginalName();
+                $extension = $this->profile_image->getClientOriginalExtension();
+                $filename = pathinfo($original_name, PATHINFO_FILENAME);
 
-            // Sanitize filename and add timestamp to avoid conflicts
-            $sanitized_filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
-            $timestamp = $date->format('His');
-            $final_filename = "{$sanitized_filename}_{$timestamp}.{$extension}";
+                // Sanitize filename and add timestamp to avoid conflicts
+                $sanitized_filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
+                $timestamp = $date->format('His');
+                $final_filename = "{$sanitized_filename}_{$timestamp}.{$extension}";
 
-            // Construct the directory path
-            $directory = "character-portraits/{$year}/{$month}/{$day}/{$this->storage_key}";
+                // Construct the directory path
+                $directory = "character-portraits/{$year}/{$month}/{$day}/{$this->storage_key}";
 
-            // Store the file with custom path
-            $path = $this->profile_image->storeAs($directory, $final_filename, [
-                'disk' => 's3',
-                'visibility' => 'public',
-            ]);
+                // Store the file to S3 (no ACL visibility - rely on bucket policy)
+                $path = $this->profile_image->storeAs($directory, $final_filename, 's3');
 
-            $this->character->profile_image_path = $path;
-            $this->saveToDatabase();
-            $this->dispatch('character-updated', $this->character);
-            $this->dispatch('image-uploaded', ['path' => $path]);
+                // Verify the file was actually uploaded
+                if (!Storage::disk('s3')->exists($path)) {
+                    throw new \Exception('File upload to S3 failed - file does not exist after upload');
+                }
+
+                $this->character->profile_image_path = $path;
+                $this->saveToDatabase();
+                
+                // Refresh character model after uploading
+                $this->character_model = Character::where('character_key', $this->storage_key)->first();
+                
+                $this->dispatch('character-updated', $this->character);
+                $this->dispatch('image-uploaded', ['path' => $path]);
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'message' => 'Image uploaded successfully to S3!',
+                ]);
+
+            } catch (\Exception $e) {
+                $this->dispatch('notify', [
+                    'type' => 'error',
+                    'message' => 'Failed to upload image: ' . $e->getMessage(),
+                ]);
+                \Log::error('Image upload failed', [
+                    'error' => $e->getMessage(),
+                    'character_key' => $this->storage_key,
+                    'filename' => $original_name ?? 'unknown'
+                ]);
+            }
         }
     }
 
@@ -272,6 +352,10 @@ class CharacterBuilder extends Component
         $this->profile_image = null;
         $this->character->profile_image_path = null;
         $this->saveToDatabase();
+        
+        // Refresh character model after clearing
+        $this->character_model = Character::where('character_key', $this->storage_key)->first();
+        
         $this->dispatch('character-updated', $this->character);
     }
 
@@ -723,8 +807,8 @@ class CharacterBuilder extends Component
             $this->character = $load_action->execute($this->storage_key);
             
             // Reload pronouns and update last saved time from database
-            $character_model = Character::where('character_key', $this->storage_key)->first();
-            $this->pronouns = $character_model->pronouns ?? null;
+            $this->character_model = Character::where('character_key', $this->storage_key)->first();
+            $this->pronouns = $this->character_model->pronouns ?? null;
             
             // Update timestamp and dispatch JS event for real-time updates
             $this->last_saved_timestamp = time();

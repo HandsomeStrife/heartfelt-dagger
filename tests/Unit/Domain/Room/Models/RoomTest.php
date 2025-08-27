@@ -123,11 +123,11 @@ it('gets active participant count', function () {
     expect($room->getActiveParticipantCount())->toEqual(3);
 });
 it('checks if at capacity', function () {
-    $room = Room::factory()->create(['guest_count' => 2]);
+    $room = Room::factory()->create(['guest_count' => 2]); // Total capacity = 3 (creator + 2 guests)
 
     expect($room->isAtCapacity())->toBeFalse();
 
-    // Add one participant
+    // Add first participant
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'left_at' => null
@@ -135,7 +135,15 @@ it('checks if at capacity', function () {
 
     expect($room->isAtCapacity())->toBeFalse();
 
-    // Add second participant (at capacity)
+    // Add second participant
+    RoomParticipant::factory()->create([
+        'room_id' => $room->id,
+        'left_at' => null
+    ]);
+
+    expect($room->isAtCapacity())->toBeFalse();
+
+    // Add third participant (at capacity)
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'left_at' => null

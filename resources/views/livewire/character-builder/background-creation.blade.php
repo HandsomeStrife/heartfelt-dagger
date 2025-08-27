@@ -147,7 +147,6 @@
                             <textarea
                                 dusk="background-answer-{{ $index }}"
                                 wire:model.live.debounce.500ms="character.background_answers.{{ $index }}"
-                                wire:change="updateBackgroundAnswer({{ $index }}, $event.target.value)"
                                 class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                                 rows="3"
                                 placeholder="Describe your character's experience..."
@@ -184,7 +183,7 @@
                 <label class="block text-sm font-semibold text-white mb-2">Physical Description</label>
                 <textarea
                     dusk="physical-description"
-                    wire:model.live.debounce.500ms="character.physicalDescription"
+                    wire:model.live.debounce.500ms="character.physical_description"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                     rows="3"
                     placeholder="Describe appearance and features..."
@@ -197,7 +196,7 @@
                 <label class="block text-sm font-semibold text-white mb-2">Personality & Mannerisms</label>
                 <textarea
                     dusk="personality-traits"
-                    wire:model.live.debounce.500ms="character.personalityTraits"
+                    wire:model.live.debounce.500ms="character.personality_traits"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                     rows="3"
                     placeholder="Describe personality quirks and habits..."
@@ -210,7 +209,7 @@
                 <label class="block text-sm font-semibold text-white mb-2">Personal History</label>
                 <textarea
                     dusk="personal-history"
-                    wire:model.live.debounce.500ms="character.personalHistory"
+                    wire:model.live.debounce.500ms="character.personal_history"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                     rows="3"
                     placeholder="Key events that shaped your character..."

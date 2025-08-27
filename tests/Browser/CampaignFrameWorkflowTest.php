@@ -6,37 +6,36 @@ declare(strict_types=1);
 
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
-use Laravel\Dusk\Browser;
-
 test('authenticated user can access campaign frames index', function () {
     $user = User::factory()->create();
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaign-frames')
             ->assertSee('Campaign Frames')
             ->assertSee('Craft and discover inspiring campaign foundations');
-    });
 });
 
 test('shows create frame button when no frames exist', function () {
     $user = User::factory()->create();
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaign-frames')
             ->assertSee('No Campaign Frames Yet')
             ->assertSee('Create Your First Frame')
             ->click('a:contains("Create Your First Frame")')
             ->assertPathIs('/campaign-frames/create');
-    });
 });
 
 test('can create a basic campaign frame', function () {
     $user = User::factory()->create();
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaign-frames/create')
             ->assertSee('Create Campaign Frame')
             ->type('create_form.name', 'Test Fantasy Campaign')
@@ -61,8 +60,9 @@ test('can create a basic campaign frame', function () {
 test('can create and make a campaign frame public', function () {
     $user = User::factory()->create();
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaign-frames/create')
             ->type('create_form.name', 'Public Fantasy Campaign')
             ->type('create_form.description', 'A publicly shared fantasy campaign')
@@ -86,8 +86,9 @@ test('can edit an existing campaign frame', function () {
         'description' => 'Original description',
     ]);
     
-    $this->browse(function (Browser $browser) use ($user, $frame) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit("/campaign-frames/{$frame->id}")
             ->assertSee('Original Frame Name')
             ->click('a:contains("Edit")')
@@ -134,15 +135,15 @@ test('can browse public campaign frames', function () {
         'is_public' => true,
     ]);
     
-    $this->browse(function (Browser $browser) use ($user2) {
-        $browser->loginAs($user2)
+    $page = visit('/');
+    
+    auth()->login($user2);\n    $page
             ->visit('/campaign-frames/browse')
             ->assertSee('Browse Public Campaign Frames')
             ->assertSee('Public Frame 1')
             ->assertSee('Public Frame 2')
             ->assertDontSee('Private Frame')
             ->assertSee('by creator1'); // Should show creator names
-    });
 });
 
 test('can search public campaign frames', function () {
@@ -163,8 +164,9 @@ test('can search public campaign frames', function () {
         'is_public' => true,
     ]);
     
-    $this->browse(function (Browser $browser) use ($user2) {
-        $browser->loginAs($user2)
+    $page = visit('/');
+    
+    auth()->login($user2);\n    $page
             ->visit('/campaign-frames/browse')
             ->type('search', 'Fantasy')
             ->press('Search')
@@ -173,18 +175,17 @@ test('can search public campaign frames', function () {
             ->click('a:contains("Clear")')
             ->assertSee('Fantasy Adventure')
             ->assertSee('Sci-Fi Campaign');
-    });
 });
 
 test('shows validation errors for empty required fields', function () {
     $user = User::factory()->create();
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/campaign-frames/create')
             ->press('Create Frame')
-            ->waitForText('required', 10);
-    });
+            ->assertSee('required');
 });
 
 test('prevents non-creators from editing frames', function () {
@@ -196,25 +197,25 @@ test('prevents non-creators from editing frames', function () {
         'name' => 'Test Frame',
     ]);
     
-    $this->browse(function (Browser $browser) use ($other_user, $frame) {
-        $browser->loginAs($other_user)
+    $page = visit('/');
+    
+    auth()->login($other_user);\n    $page
             ->visit("/campaign-frames/{$frame->id}")
             ->assertSee('Test Frame')
             ->assertMissing('a:contains("Edit")'); // Should not see edit button
-    });
 });
 
 test('shows campaign frames on dashboard', function () {
     $user = User::factory()->create();
     
-    $this->browse(function (Browser $browser) use ($user) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit('/dashboard')
             ->assertSee('Frames') // Should be in the quick actions  
             ->assertSee('Campaign templates')
             ->click('a[href*="/campaign-frames"]')
             ->assertPathIs('/campaign-frames');
-    });
 });
 
 test('can view detailed campaign frame information', function () {
@@ -234,8 +235,9 @@ test('can view detailed campaign frame information', function () {
         'setting_distinctions' => ['Magic is rare', 'Gods are distant'],
     ]);
     
-    $this->browse(function (Browser $browser) use ($user, $frame) {
-        $browser->loginAs($user)
+    $page = visit('/');
+    
+    auth()->login($user);\n    $page
             ->visit("/campaign-frames/{$frame->id}")
             ->assertSee('Detailed Test Frame')
             ->assertSee('A comprehensive test frame')
@@ -253,5 +255,4 @@ test('can view detailed campaign frame information', function () {
             ->assertSee('Story over combat')
             ->assertSee('Magic is rare')
             ->assertSee('Gods are distant');
-    });
 });

@@ -358,5 +358,4 @@ test('syndicate contact benefit versatility testing', function () {
     // Social Boost: d20 Hope Die on Presence rolls ensures social success
     
     // 5 benefits × 3 uses = 15 different ways contacts can assist per session
-
 });
