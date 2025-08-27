@@ -58,3 +58,4 @@ test('school of knowledge character can navigate to domain card step', function 
         
         // Just verify we can get to the domain card selection page
         $page->assertSee('domain', 10); // Wait up to 10 seconds for domain-related content
+});

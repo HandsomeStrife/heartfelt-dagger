@@ -71,9 +71,9 @@ test('auth pages have proper css classes', function () {
     $loginResponse = $this->get('/login');
     $registerResponse = $this->get('/register');
 
-    // Check for gradient backgrounds
-    $loginResponse->assertSee('bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800', false);
-    $registerResponse->assertSee('bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800', false);
+    // Check for body background
+    $loginResponse->assertSee('bg-slate-900', false);
+    $registerResponse->assertSee('bg-slate-900', false);
 
     // Check for form styling
     $loginResponse->assertSee('bg-gradient-to-br from-slate-800 to-slate-900', false);

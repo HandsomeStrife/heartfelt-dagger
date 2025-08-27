@@ -12,3 +12,4 @@ test('livewire basic functionality', function () {
             ->wait(2000)  // Wait for Livewire to update
             ->screenshot('after-click')
             ->assertSee('Test Livewire (TRUE)');  // After clicking
+});

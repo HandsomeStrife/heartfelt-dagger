@@ -12,3 +12,4 @@ test('can visit character builder', function () {
     $page
         ->assertSee('Character Builder')
         ->assertPresent('[dusk="progress-bar"]');
+});

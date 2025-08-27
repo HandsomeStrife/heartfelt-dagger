@@ -130,3 +130,4 @@ test('room navigation works correctly', function () {
                 ->click('Create Room')
                 ->assertPathIs('/rooms/create')
                 ->assertSee('Create New Room');
+});

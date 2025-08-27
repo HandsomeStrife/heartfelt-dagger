@@ -64,7 +64,7 @@ test('show displays character for viewing', function () {
         'class' => 'warrior',
     ]);
 
-    $response = $this->get("/character/{$character->character_key}");
+    $response = $this->get("/character/{$character->public_key}");
 
     $response->assertStatus(200);
     $response->assertViewIs('characters.show');
@@ -93,7 +93,7 @@ test('routes are properly configured', function () {
 
     $showRoute = \Route::getRoutes()->getByName('character.show');
     expect($showRoute->methods()[0])->toEqual('GET');
-    expect($showRoute->uri())->toEqual('character/{character_key}');
+    expect($showRoute->uri())->toEqual('character/{public_key}');
 });
 test('character key generation produces unique keys', function () {
     // Ensure clean database state
@@ -153,7 +153,7 @@ test('show loads character data correctly', function () {
         'class' => 'ranger',
     ]);
 
-    $response = $this->get("/character/{$character->character_key}");
+    $response = $this->get("/character/{$character->public_key}");
 
     $response->assertStatus(200);
     $loadedCharacter = $response->viewData('character');

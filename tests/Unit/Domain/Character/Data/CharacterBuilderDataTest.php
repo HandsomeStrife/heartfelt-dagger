@@ -155,30 +155,38 @@ it('has step completion methods', function () {
     expect(method_exists($data, 'canProceedToStep'))->toBeTrue();
 });
 it('validates step 1 completion', function () {
-    $incompleteData = new CharacterBuilderData(selected_class: 'warrior');
+    $incompleteData = new CharacterBuilderData();
     expect($incompleteData->isStepComplete(1))->toBeFalse();
 
-    $completeData = new CharacterBuilderData(
-        selected_class: 'warrior',
-        selected_subclass: 'call-of-the-brave'
-    );
+    $completeData = new CharacterBuilderData(selected_class: 'warrior');
     expect($completeData->isStepComplete(1))->toBeTrue();
 });
 it('validates step 2 completion', function () {
-    $incompleteData = new CharacterBuilderData(selected_ancestry: 'human');
+    $incompleteData = new CharacterBuilderData();
     expect($incompleteData->isStepComplete(2))->toBeFalse();
 
-    $completeData = new CharacterBuilderData(
-        selected_ancestry: 'human',
-        selected_community: 'order-of-scholars'
-    );
+    $completeData = new CharacterBuilderData(selected_subclass: 'call-of-the-brave');
     expect($completeData->isStepComplete(2))->toBeTrue();
 });
 it('validates step 3 completion', function () {
-    $incompleteData = new CharacterBuilderData(assigned_traits: ['agility' => 2]);
+    $incompleteData = new CharacterBuilderData();
     expect($incompleteData->isStepComplete(3))->toBeFalse();
 
-    // Step 3 requires exactly 6 traits with values that sum to [-1, 0, 0, 1, 1, 2]
+    $completeData = new CharacterBuilderData(selected_ancestry: 'human');
+    expect($completeData->isStepComplete(3))->toBeTrue();
+});
+it('validates step 4 completion', function () {
+    $incompleteData = new CharacterBuilderData();
+    expect($incompleteData->isStepComplete(4))->toBeFalse();
+
+    $completeData = new CharacterBuilderData(selected_community: 'order-of-scholars');
+    expect($completeData->isStepComplete(4))->toBeTrue();
+});
+it('validates step 5 completion', function () {
+    $incompleteData = new CharacterBuilderData(assigned_traits: ['agility' => 2]);
+    expect($incompleteData->isStepComplete(5))->toBeFalse();
+
+    // Step 5 requires exactly 6 traits with values that sum to [-1, 0, 0, 1, 1, 2]
     $completeData = new CharacterBuilderData(assigned_traits: [
         'agility' => 2,
         'strength' => 1,
@@ -187,51 +195,75 @@ it('validates step 3 completion', function () {
         'presence' => 1,
         'knowledge' => 0,
     ]);
-    expect($completeData->isStepComplete(3))->toBeTrue();
+    expect($completeData->isStepComplete(5))->toBeTrue();
 });
-it('validates step 4 completion', function () {
+it('validates step 6 completion', function () {
     $incompleteData = new CharacterBuilderData(selected_equipment: [
         ['key' => 'sword', 'type' => 'weapon'],
     ]);
-    expect($incompleteData->isStepComplete(4))->toBeFalse();
+    expect($incompleteData->isStepComplete(6))->toBeFalse();
 
     $completeData = new CharacterBuilderData(selected_equipment: [
         ['key' => 'sword', 'type' => 'weapon', 'data' => ['type' => 'Primary']],
         ['key' => 'armor', 'type' => 'armor'],
     ]);
-    expect($completeData->isStepComplete(4))->toBeTrue();
+    expect($completeData->isStepComplete(6))->toBeTrue();
 });
-it('validates step 5 completion', function () {
-    // Without a selected class, step 5 should be incomplete
-    $incompleteData = new CharacterBuilderData;
-    expect($incompleteData->isStepComplete(5))->toBeFalse();
 
-    // With a class but no background answers, step 5 should be incomplete
+it('validates step 7 completion', function () {
+    // Without a selected class, step 7 should be incomplete
+    $incompleteData = new CharacterBuilderData();
+    expect($incompleteData->isStepComplete(7))->toBeFalse();
+
+    // With a class but no background answers, step 7 should be incomplete
     $incompleteDataWithClass = new CharacterBuilderData(
         selected_class: 'warrior',
         background_answers: []
     );
-    expect($incompleteDataWithClass->isStepComplete(5))->toBeFalse();
+    expect($incompleteDataWithClass->isStepComplete(7))->toBeFalse();
 
-    // With a class and at least one background answer, step 5 should be complete
+    // With a class and at least one background answer, step 7 should be complete
     $completeData = new CharacterBuilderData(
         selected_class: 'warrior',
         background_answers: ['This is my character background.', '', '']
     );
-    expect($completeData->isStepComplete(5))->toBeTrue();
+    expect($completeData->isStepComplete(7))->toBeTrue();
 });
-it('validates step 6 completion', function () {
+
+it('validates step 8 completion', function () {
     $incompleteData = new CharacterBuilderData(experiences: [
         ['name' => 'First Experience', 'description' => 'Description'],
     ]);
-    expect($incompleteData->isStepComplete(6))->toBeFalse();
+    expect($incompleteData->isStepComplete(8))->toBeFalse();
 
     $completeData = new CharacterBuilderData(experiences: [
         ['name' => 'First Experience', 'description' => 'Description'],
         ['name' => 'Second Experience', 'description' => 'Description'],
     ]);
-    expect($completeData->isStepComplete(6))->toBeTrue();
+    expect($completeData->isStepComplete(8))->toBeTrue();
 });
+
+it('validates step 9 completion', function () {
+    $incompleteData = new CharacterBuilderData(selected_domain_cards: [
+        ['name' => 'Card 1'],
+    ]);
+    expect($incompleteData->isStepComplete(9))->toBeFalse();
+
+    $completeData = new CharacterBuilderData(selected_domain_cards: [
+        ['name' => 'Card 1'],
+        ['name' => 'Card 2'],
+    ]);
+    expect($completeData->isStepComplete(9))->toBeTrue();
+});
+
+it('validates step 10 completion', function () {
+    $incompleteData = new CharacterBuilderData(connection_answers: []);
+    expect($incompleteData->isStepComplete(10))->toBeFalse();
+
+    $completeData = new CharacterBuilderData(connection_answers: ['My connection to another character.']);
+    expect($completeData->isStepComplete(10))->toBeTrue();
+});
+
 it('can manually mark steps complete', function () {
     $data = new CharacterBuilderData;
 

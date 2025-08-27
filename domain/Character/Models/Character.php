@@ -250,7 +250,7 @@ class Character extends Model
      */
     public function getShareUrl(): string
     {
-        return route('character.show', ['character_key' => $this->character_key]);
+        return route('character.show', ['public_key' => $this->character_key]);
     }
 
     /**
@@ -258,7 +258,7 @@ class Character extends Model
      */
     public function getPublicShareUrl(): string
     {
-        return route('character.show', ['character_key' => $this->public_key]);
+        return route('character.show', ['public_key' => $this->public_key]);
     }
 
     /**

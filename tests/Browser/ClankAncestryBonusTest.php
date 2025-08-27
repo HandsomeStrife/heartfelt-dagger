@@ -76,3 +76,4 @@ test('non clank ancestry does not show bonus ui', function () {
                 ->click('[dusk="step-experience-creation"]')
                 ->assertDontSee('Clank Ancestry: Purposeful Design')
                 ->assertDontSee('Select experience for +1 bonus');
+});

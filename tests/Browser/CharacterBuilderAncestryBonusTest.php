@@ -226,3 +226,4 @@ test('character builder shows clear visual hierarchy for bonuses', function () {
             ->assertHasClass('@evasion-bonus-indicator', 'text-amber-400') // Amber text for bonuses
             ->assertHasClass('@evasion-bonus-indicator', 'font-bold') // Bold for emphasis
             ->assertPresent('@evasion-bonus-sparkle'); // Sparkle effect for bonuses
+});

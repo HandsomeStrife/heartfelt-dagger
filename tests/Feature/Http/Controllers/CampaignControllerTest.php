@@ -183,7 +183,7 @@ test('user can join campaign with character', function () {
     $campaign = Campaign::factory()->create();
     $character = Character::factory()->create(['user_id' => $user->id]);
 
-    $response = $this->actingAs($user)->post(route('campaigns.join', $campaign->campaign_code), [
+    $response = $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
         'character_id' => $character->id,
     ]);
 
@@ -200,7 +200,7 @@ test('user can join campaign without character', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('campaigns.join', $campaign->campaign_code), [
+    $response = $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
         'character_id' => null,
     ]);
 
@@ -215,7 +215,7 @@ test('user can join campaign without character', function () {
 test('join campaign requires authentication', function () {
     $campaign = Campaign::factory()->create();
 
-    $response = $this->post(route('campaigns.join', $campaign->campaign_code), []);
+    $response = $this->post(route('campaigns.join_campaign', $campaign), []);
 
     $response->assertRedirect(route('login'));
 });
@@ -225,7 +225,7 @@ test('join campaign validates character ownership', function () {
     $campaign = Campaign::factory()->create();
     $otherCharacter = Character::factory()->create(['user_id' => $otherUser->id]);
 
-    $response = $this->actingAs($user)->post(route('campaigns.join', $campaign->campaign_code), [
+    $response = $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
         'character_id' => $otherCharacter->id,
     ]);
 
@@ -241,10 +241,10 @@ test('user cannot join campaign twice', function () {
     $campaign = Campaign::factory()->create();
 
     // Join once
-    $this->actingAs($user)->post(route('campaigns.join', $campaign->campaign_code), []);
+    $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), []);
 
     // Try to join again
-    $response = $this->actingAs($user)->post(route('campaigns.join', $campaign->campaign_code), []);
+    $response = $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), []);
 
     $response->assertSessionHasErrors(['error']);
     $this->assertDatabaseCount('campaign_members', 1);

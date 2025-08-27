@@ -17,3 +17,4 @@ test('javascript console errors', function () {
 
         // Just assert that we can load the page
         $page->assertSee('Character Builder');
+});

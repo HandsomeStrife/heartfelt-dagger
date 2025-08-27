@@ -253,3 +253,4 @@ test('completed witch character shows all correct information', function () {
             ->assertSee('Blighting Strike') // Domain cards
             ->assertSee('Healing Hands');
 });
+});

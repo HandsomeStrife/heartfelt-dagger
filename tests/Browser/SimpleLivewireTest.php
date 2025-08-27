@@ -13,3 +13,4 @@ test('simple livewire component', function () {
         ->click('button')
         ->wait(2)
         ->assertSee('Count: 2');
+});

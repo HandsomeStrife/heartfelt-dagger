@@ -249,3 +249,4 @@ test('responsive design works on mobile', function () {
             ->assertSee('Campaign created successfully!')
             ->visit("/campaigns/{$campaign->campaign_code}")
             ->assertSee($campaign->name);
+});
