@@ -14,7 +14,7 @@ class CampaignRepository
 {
     public function findById(int $id): ?CampaignData
     {
-        $campaign = Campaign::with(['creator'])
+        $campaign = Campaign::with(['creator', 'campaignFrame'])
             ->withCount('members')
             ->find($id);
 
@@ -26,7 +26,7 @@ class CampaignRepository
 
     public function findByInviteCode(string $invite_code): ?CampaignData
     {
-        $campaign = Campaign::with(['creator'])
+        $campaign = Campaign::with(['creator', 'campaignFrame'])
             ->withCount('members')
             ->byInviteCode($invite_code)
             ->first();
@@ -42,7 +42,7 @@ class CampaignRepository
      */
     public function getCreatedByUser(User $user): Collection
     {
-        return Campaign::with(['creator'])
+        return Campaign::with(['creator', 'campaignFrame'])
             ->withCount('members')
             ->byCreator($user)
             ->orderBy('created_at', 'desc')
@@ -58,7 +58,7 @@ class CampaignRepository
      */
     public function getJoinedByUser(User $user): Collection
     {
-        return Campaign::with(['creator'])
+        return Campaign::with(['creator', 'campaignFrame'])
             ->withCount('members')
             ->whereHas('members', function ($query) use ($user) {
                 $query->where('user_id', $user->id);

@@ -2,20 +2,25 @@
 
 declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
-use Livewire\Livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Livewire\livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-    $this->character = Character::factory()->for($this->user)->create([
+    user = User::factory()->create();
+    character = Character::factory()->for(user)->create([
         'character_key' => 'INTEG12345',
     ]);
 });
 it('preserves all character fields when setting individual properties', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'INTEG12345']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'INTEG12345']);
 
     // Set multiple properties including pronouns
     $component->set('character.name', 'Test Hero');
@@ -43,7 +48,7 @@ it('preserves all character fields when setting individual properties', function
     expect($component->get('character.selected_class'))->toEqual('warrior');
 });
 it('preserves pronouns during class reset operations', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'INTEG12345']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'INTEG12345']);
 
     // Set up character with pronouns and other data
     $component->set('character.name', 'Test Hero');

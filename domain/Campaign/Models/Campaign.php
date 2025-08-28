@@ -6,6 +6,7 @@ namespace Domain\Campaign\Models;
 
 use Domain\Campaign\Enums\CampaignStatus;
 use Domain\CampaignFrame\Models\CampaignFrame;
+use Domain\CampaignFrame\Models\CampaignFrameVisibility;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -112,6 +113,14 @@ class Campaign extends Model
     }
 
     /**
+     * Get campaign frame visibility settings for this campaign
+     */
+    public function campaignFrameVisibilities(): HasMany
+    {
+        return $this->hasMany(CampaignFrameVisibility::class);
+    }
+
+    /**
      * Get the campaign's invite URL
      */
     public function getInviteUrl(): string
@@ -181,6 +190,54 @@ class Campaign extends Model
     public function scopeByCampaignCode($query, string $campaignCode)
     {
         return $query->where('campaign_code', $campaignCode);
+    }
+
+    /**
+     * Check if a campaign frame section is visible to players
+     */
+    public function isCampaignFrameSectionVisible(string $section): bool
+    {
+        if (!$this->campaign_frame_id) {
+            return false;
+        }
+
+        $visibility = $this->campaignFrameVisibilities()
+            ->where('section_name', $section)
+            ->first();
+
+        if (!$visibility) {
+            // Use default visibility if not set
+            $defaults = CampaignFrameVisibility::getDefaultVisibilitySettings();
+            return $defaults[$section] ?? false;
+        }
+
+        return $visibility->is_visible_to_players;
+    }
+
+    /**
+     * Get all visible campaign frame sections for this campaign
+     */
+    public function getVisibleCampaignFrameSections(?User $user = null): array
+    {
+        if (!$this->campaign_frame_id) {
+            return [];
+        }
+
+        // If user is the creator, they can see all sections
+        if ($user && $this->isCreator($user)) {
+            return array_keys(CampaignFrameVisibility::getAvailableSections());
+        }
+
+        $visibleSections = [];
+        $allSections = array_keys(CampaignFrameVisibility::getAvailableSections());
+
+        foreach ($allSections as $section) {
+            if ($this->isCampaignFrameSectionVisible($section)) {
+                $visibleSections[] = $section;
+            }
+        }
+
+        return $visibleSections;
     }
 
     /**

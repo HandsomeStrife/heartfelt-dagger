@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('room join URL works with characters that have null fields', function () {
     $user = User::factory()->create();
@@ -29,7 +32,7 @@ test('room join URL works with characters that have null fields', function () {
     ]);
 
     // The join URL should load without errors
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Join Room');
@@ -45,7 +48,7 @@ test('unauthenticated user can access join URL without character loading errors'
     $room = Room::factory()->passwordless()->create();
     
     // Unauthenticated user should be able to access join page
-    $response = $this->get("/rooms/join/{$room->invite_code}");
+    $response = get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Join Room');
@@ -68,7 +71,7 @@ test('password-protected room join URL works with character errors fixed', funct
     ]);
 
     // Should work with password parameter
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}?password={$password}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}?password={$password}");
     
     $response->assertOk();
     $response->assertSee('Join Room');

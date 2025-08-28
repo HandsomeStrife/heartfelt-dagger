@@ -2,11 +2,17 @@
 
 declare(strict_types=1);
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Actions\RegisterUserAction;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Data\RegisterUserData;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Illuminate\Support\Facades\Hash;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('complete character save flow from anonymous to user owned', function () {
@@ -30,12 +36,12 @@ test('complete character save flow from anonymous to user owned', function () {
     // Verify characters are initially anonymous
     expect($character1->user_id)->toBeNull();
     expect($character2->user_id)->toBeNull();
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'id' => $character1->id,
         'user_id' => null,
         'name' => 'Elara the Brave',
     ]);
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'id' => $character2->id,
         'user_id' => null,
         'name' => 'Thorin Ironforge',
@@ -55,7 +61,7 @@ test('complete character save flow from anonymous to user owned', function () {
     $userData = $registerAction->execute($registerData, $characterKeys);
 
     // Verify user was created successfully
-    $this->assertDatabaseHas('users', [
+    assertDatabaseHas('users', [
         'id' => $userData->id,
         'username' => 'heroic_player',
         'email' => 'hero@daggerheart.com',
@@ -68,12 +74,12 @@ test('complete character save flow from anonymous to user owned', function () {
     expect($character1Fresh->user_id)->toEqual($userData->id);
     expect($character2Fresh->user_id)->toEqual($userData->id);
 
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'id' => $character1->id,
         'user_id' => $userData->id,
         'name' => 'Elara the Brave',
     ]);
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'id' => $character2->id,
         'user_id' => $userData->id,
         'name' => 'Thorin Ironforge',
@@ -122,7 +128,7 @@ test('complete flow works with login instead of registration', function () {
     ]);
 
     // Step 2: Login with character keys
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'existing@user.com',
         'password' => 'password123',
         'character_keys' => [$character1->character_key, $character2->character_key],
@@ -130,7 +136,7 @@ test('complete flow works with login instead of registration', function () {
 
     // Step 3: Verify login was successful
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 
     // Step 4: Verify characters are now owned by the user
     expect($character1->fresh()->user_id)->toEqual($user->id);
@@ -158,7 +164,7 @@ test('flow handles mixed scenarios with existing owned characters', function () 
     $existingUser1Char = Character::factory()->create(['user_id' => $user1->id, 'name' => 'Existing User1 Char']);
 
     // Step 2: User1 logs in with a mix of character keys
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'user1@example.com',
         'password' => 'password',
         'character_keys' => [
@@ -170,7 +176,7 @@ test('flow handles mixed scenarios with existing owned characters', function () 
 
     // Step 3: Verify login success
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticatedAs($user1);
+    assertAuthenticatedAs($user1);
 
     // Step 4: Verify only anonymous characters were transferred
     expect($anonymousChar1->fresh()->user_id)->toEqual($user1->id);
@@ -200,7 +206,7 @@ test('flow handles empty and invalid character keys gracefully', function () {
     ]);
 
     // Step 2: Login with mix of valid, invalid, and empty keys
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => [
@@ -213,7 +219,7 @@ test('flow handles empty and invalid character keys gracefully', function () {
 
     // Step 3: Verify login still works
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 
     // Step 4: Verify only valid character was associated
     expect($validChar->fresh()->user_id)->toEqual($user->id);

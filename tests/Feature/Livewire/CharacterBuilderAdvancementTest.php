@@ -2,16 +2,21 @@
 
 declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Data\CharacterBuilderData;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
-use Livewire\Livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Livewire\livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 test('character builder displays ancestry bonuses in stats', function () {
     // Create a character first
     $character = Character::factory()->create();
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'simiah')
         ->call('selectCommunity', 'wildborne');
@@ -26,7 +31,7 @@ test('character builder displays ancestry bonuses in stats', function () {
 });
 test('character builder shows giant hit point bonus', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'giant')
         ->call('selectCommunity', 'ridgeborne');
@@ -40,7 +45,7 @@ test('character builder shows giant hit point bonus', function () {
 });
 test('character builder shows human stress bonus', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'human')
         ->call('selectCommunity', 'highborne');
@@ -54,7 +59,7 @@ test('character builder shows human stress bonus', function () {
 });
 test('character builder shows galapa damage threshold info', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'galapa')
         ->call('selectCommunity', 'seaborne');
@@ -73,7 +78,7 @@ test('character builder shows galapa damage threshold info', function () {
 });
 test('character builder updates stats when traits assigned', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'simiah')
         ->call('selectCommunity', 'wildborne')
@@ -88,7 +93,7 @@ test('character builder updates stats when traits assigned', function () {
 });
 test('character builder validates trait assignment with bonuses', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'simiah')
         ->call('selectCommunity', 'wildborne');
@@ -111,7 +116,7 @@ test('character builder validates trait assignment with bonuses', function () {
 });
 test('character builder experience functionality works', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'human')
         ->call('selectCommunity', 'wildborne');
@@ -134,7 +139,7 @@ test('character builder experience functionality works', function () {
 });
 test('character builder prevents more than two experiences', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'human')
         ->call('selectCommunity', 'wildborne');
@@ -158,7 +163,7 @@ test('character builder prevents more than two experiences', function () {
 });
 test('character builder can remove experiences', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'human')
         ->call('selectCommunity', 'wildborne');
@@ -178,7 +183,7 @@ test('character builder can remove experiences', function () {
 });
 test('character builder displays bonuses in ui', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'simiah')
         ->call('selectCommunity', 'wildborne');
@@ -190,13 +195,13 @@ test('character builder displays bonuses in ui', function () {
     expect($ancestry_bonuses['evasion'])->toEqual(1);
 
     // Other bonuses should not be present (getAncestryBonuses only returns non-zero bonuses)
-    $this->assertArrayNotHasKey('hit_points', $ancestry_bonuses);
-    $this->assertArrayNotHasKey('stress', $ancestry_bonuses);
-    $this->assertArrayNotHasKey('damage_thresholds', $ancestry_bonuses);
+    assertArrayNotHasKey('hit_points', $ancestry_bonuses);
+    assertArrayNotHasKey('stress', $ancestry_bonuses);
+    assertArrayNotHasKey('damage_thresholds', $ancestry_bonuses);
 });
 test('character builder updates progress with all bonuses', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'giant')
         ->call('selectCommunity', 'ridgeborne');
@@ -219,7 +224,7 @@ test('character builder updates progress with all bonuses', function () {
 });
 test('character builder computed stats property includes all bonuses', function () {
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'bard') // Different class for variety
         ->call('selectAncestry', 'human')
         ->call('selectCommunity', 'highborne');
@@ -241,7 +246,7 @@ test('character builder computed stats property includes all bonuses', function 
 test('character builder saves and loads with ancestry bonuses', function () {
     // Create and save a character
     $character = createTestCharacter();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'simiah')
         ->call('selectCommunity', 'wildborne')
@@ -250,7 +255,7 @@ test('character builder saves and loads with ancestry bonuses', function () {
     $character_key = $component->get('character')->character_key;
 
     // Load the character in a new component
-    $newComponent = Livewire::test(CharacterBuilder::class, ['characterKey' => $character_key]);
+    $newComponent = livewire(CharacterBuilder::class, ['characterKey' => $character_key]);
 
     $computed_stats = $newComponent->get('computed_stats');
     $ancestry_bonuses = $newComponent->get('ancestry_bonuses');

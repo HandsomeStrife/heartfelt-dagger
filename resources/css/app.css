@@ -72,3 +72,11 @@
 .class-banner-lg-bg-width {
     width: 121px;
 }
+
+/* TipTap Editor Content Styling */
+/* Remove margins from paragraphs inside list items to prevent line breaks */
+.tiptap li p {
+    margin: 0;
+}
+
+

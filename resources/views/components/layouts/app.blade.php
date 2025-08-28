@@ -22,13 +22,13 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-slate-900 text-white min-h-screen">
-        <div class="fixed w-full h-full bg-repeat opacity-10 pointer-events-none z-0" style="background-image: url('{{ asset('img/textures/black-marble.jpg') }}');"></div>
-        <div class="relative z-[9999]">
+        <div class="fixed w-full h-full bg-repeat opacity-10 pointer-events-none -z-1" style="background-image: url('{{ asset('img/textures/black-marble.jpg') }}');"></div>
+        <div>
             @if(!request()->is('login') && !request()->is('register'))
                 <x-navigation />
             @endif
             
-            <main class="relative z-10">
+            <main>
                 {{ $slot }}
             </main>
             

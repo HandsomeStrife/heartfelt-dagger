@@ -10,13 +10,13 @@ test('anonymous user can join non-campaign room successfully', function () {
         'campaign_id' => null, // Ensure it's not a campaign room
     ]);
 
-    $this->get("/rooms/join/{$room->invite_code}")
+    get("/rooms/join/{$room->invite_code}")
          ->assertOk()
          ->assertSee('Join Room')
          ->assertSee('Create Temporary Character');
          
     // Submit the form as anonymous user
-    $response = $this->post(route('rooms.join', $room), [
+    $response = post(route('rooms.join', $room), [
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior'
     ]);
@@ -24,7 +24,7 @@ test('anonymous user can join non-campaign room successfully', function () {
     $response->assertRedirect("/rooms/{$room->invite_code}/session");
     
     // Verify participant was created
-    $this->assertDatabaseHas('room_participants', [
+    assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => null, // Anonymous user
         'character_name' => 'Anonymous Hero',
@@ -32,7 +32,7 @@ test('anonymous user can join non-campaign room successfully', function () {
     ]);
     
     // Check session page loads correctly
-    $this->get("/rooms/{$room->invite_code}/session")
+    get("/rooms/{$room->invite_code}/session")
          ->assertOk()
          ->assertSee('Anonymous Hero');
 });
@@ -44,7 +44,7 @@ test('anonymous user cannot join campaign room', function () {
     ]);
 
     // Anonymous users should be redirected to login when trying to access campaign room join page
-    $response = $this->get("/rooms/join/{$room->invite_code}");
+    $response = get("/rooms/join/{$room->invite_code}");
     $response->assertRedirect(route('login'));
     $response->assertSessionHas('error', 'Please log in to access this campaign room.');
 });
@@ -56,13 +56,13 @@ test('anonymous user can join password-protected room with URL parameter', funct
         'campaign_id' => null,
     ]);
 
-    $this->get("/rooms/join/{$room->invite_code}?password={$password}")
+    get("/rooms/join/{$room->invite_code}?password={$password}")
          ->assertOk()
          ->assertSee('Join Room')
          ->assertSee('Create Temporary Character');
          
     // Submit form with password in URL
-    $response = $this->post(route('rooms.join', $room) . "?password={$password}", [
+    $response = post(route('rooms.join', $room) . "?password={$password}", [
         'character_name' => 'Secret Character',
         'character_class' => 'Wizard',
         'password' => $password
@@ -71,7 +71,7 @@ test('anonymous user can join password-protected room with URL parameter', funct
     $response->assertRedirect("/rooms/{$room->invite_code}/session?password={$password}");
     
     // Verify session page loads
-    $this->get("/rooms/{$room->invite_code}/session?password={$password}")
+    get("/rooms/{$room->invite_code}/session?password={$password}")
          ->assertOk()
          ->assertSee('Secret Character');
 });
@@ -83,13 +83,13 @@ test('anonymous user cannot join password-protected room without correct passwor
         'campaign_id' => null,
     ]);
 
-    $this->get("/rooms/join/{$room->invite_code}")
+    get("/rooms/join/{$room->invite_code}")
          ->assertOk()
          ->assertSee('Join Room')
          ->assertSee('Room Password');
          
     // Submit form with wrong password
-    $response = $this->post(route('rooms.join', $room), [
+    $response = post(route('rooms.join', $room), [
         'password' => 'wrongpassword',
         'character_name' => 'Wrong Password Character',
         'character_class' => 'Bard'
@@ -104,7 +104,7 @@ test('anonymous user sees session page without header and footer', function () {
     ]);
 
     // First join the room
-    $response = $this->post(route('rooms.join', $room), [
+    $response = post(route('rooms.join', $room), [
         'character_name' => 'Session Tester',
         'character_class' => 'Guardian'
     ]);
@@ -112,7 +112,7 @@ test('anonymous user sees session page without header and footer', function () {
     $response->assertRedirect("/rooms/{$room->invite_code}/session");
     
     // Check session page layout
-    $sessionResponse = $this->get("/rooms/{$room->invite_code}/session");
+    $sessionResponse = get("/rooms/{$room->invite_code}/session");
     $sessionResponse->assertOk();
     $sessionResponse->assertSee('Session Tester');
     
@@ -130,12 +130,12 @@ test('anonymous user form validation works correctly', function () {
         'campaign_id' => null,
     ]);
 
-    $this->get("/rooms/join/{$room->invite_code}")
+    get("/rooms/join/{$room->invite_code}")
          ->assertOk()
          ->assertSee('Join Room');
          
     // Try to submit without filling required fields
-    $response = $this->post(route('rooms.join', $room), []);
+    $response = post(route('rooms.join', $room), []);
     
     $response->assertSessionHasErrors(['character_name', 'character_class']);
 });
@@ -152,7 +152,7 @@ test('anonymous user cannot use existing character option', function () {
         'campaign_id' => null,
     ]);
 
-    $response = $this->get("/rooms/join/{$room->invite_code}");
+    $response = get("/rooms/join/{$room->invite_code}");
     $response->assertOk();
     $response->assertSee('Join Room');
     $response->assertSee('Create Temporary Character');

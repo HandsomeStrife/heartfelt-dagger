@@ -2,22 +2,28 @@
 
 declare(strict_types=1);
 use Domain\Campaign\Models\Campaign;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Campaign\Models\CampaignMember;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('campaigns index requires authentication', function () {
-    $response = $this->get(route('campaigns.index'));
+    $response = get(route('campaigns.index'));
 
     $response->assertRedirect(route('login'));
 });
 test('authenticated user can view campaigns index', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get(route('campaigns.index'));
+    $response = actingAs($user)->get(route('campaigns.index'));
 
     $response->assertOk();
     $response->assertViewIs('campaigns.index');
@@ -28,7 +34,7 @@ test('campaigns index displays created campaigns', function () {
     Campaign::factory()->create();
 
     // Other user's campaign
-    $response = $this->actingAs($user)->get(route('campaigns.index'));
+    $response = actingAs($user)->get(route('campaigns.index'));
 
     $response->assertOk();
     $response->assertViewHas('created_campaigns');
@@ -43,7 +49,7 @@ test('campaigns index displays joined campaigns', function () {
         'user_id' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->get(route('campaigns.index'));
+    $response = actingAs($user)->get(route('campaigns.index'));
 
     $response->assertOk();
     $response->assertViewHas('joined_campaigns');
@@ -51,14 +57,14 @@ test('campaigns index displays joined campaigns', function () {
     expect($viewData)->toHaveCount(1);
 });
 test('create campaign form requires authentication', function () {
-    $response = $this->get(route('campaigns.create'));
+    $response = get(route('campaigns.create'));
 
     $response->assertRedirect(route('login'));
 });
 test('authenticated user can view create form', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get(route('campaigns.create'));
+    $response = actingAs($user)->get(route('campaigns.create'));
 
     $response->assertOk();
     $response->assertViewIs('campaigns.create');
@@ -70,9 +76,9 @@ test('user can create campaign with valid data', function () {
         'description' => 'A classic adventure for new heroes.',
     ];
 
-    $response = $this->actingAs($user)->post(route('campaigns.store'), $campaignData);
+    $response = actingAs($user)->post(route('campaigns.store'), $campaignData);
 
-    $this->assertDatabaseHas('campaigns', [
+    assertDatabaseHas('campaigns', [
         'name' => 'The Lost Mines of Phandelver',
         'description' => 'A classic adventure for new heroes.',
         'creator_id' => $user->id,
@@ -88,23 +94,23 @@ test('campaign creation requires authentication', function () {
         'description' => 'This should not be created.',
     ];
 
-    $response = $this->post(route('campaigns.store'), $campaignData);
+    $response = post(route('campaigns.store'), $campaignData);
 
     $response->assertRedirect(route('login'));
-    $this->assertDatabaseMissing('campaigns', ['name' => 'Unauthorized Campaign']);
+    assertDatabaseMissing('campaigns', ['name' => 'Unauthorized Campaign']);
 });
 test('campaign creation validates required fields', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('campaigns.store'), []);
+    $response = actingAs($user)->post(route('campaigns.store'), []);
 
     $response->assertSessionHasErrors(['name', 'description']);
-    $this->assertDatabaseCount('campaigns', 0);
+    assertDatabaseCount('campaigns', 0);
 });
 test('campaign creation validates field lengths', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('campaigns.store'), [
+    $response = actingAs($user)->post(route('campaigns.store'), [
         'name' => str_repeat('A', 101), // Too long
         'description' => str_repeat('B', 1001), // Too long
     ]);
@@ -115,7 +121,7 @@ test('user can view their own campaign', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
-    $response = $this->actingAs($user)->get(route('campaigns.show', $campaign->campaign_code));
+    $response = actingAs($user)->get(route('campaigns.show', $campaign->campaign_code));
 
     $response->assertOk();
     $response->assertViewIs('campaigns.show');
@@ -127,7 +133,7 @@ test('user can view other users campaign', function () {
     $viewer = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
-    $response = $this->actingAs($viewer)->get(route('campaigns.show', $campaign->campaign_code));
+    $response = actingAs($viewer)->get(route('campaigns.show', $campaign->campaign_code));
 
     $response->assertOk();
     $response->assertViewHas('user_is_creator', false);
@@ -136,14 +142,14 @@ test('user can view other users campaign', function () {
 test('campaign show requires authentication', function () {
     $campaign = Campaign::factory()->create();
 
-    $response = $this->get(route('campaigns.show', $campaign->campaign_code));
+    $response = get(route('campaigns.show', $campaign->campaign_code));
 
     $response->assertRedirect(route('login'));
 });
 test('campaign show returns 404 for invalid code', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get(route('campaigns.show', 'INVALID1'));
+    $response = actingAs($user)->get(route('campaigns.show', 'INVALID1'));
 
     $response->assertNotFound();
 });
@@ -151,7 +157,7 @@ test('user can view join form via invite code', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create();
 
-    $response = $this->actingAs($user)->get(route('campaigns.invite', $campaign->invite_code));
+    $response = actingAs($user)->get(route('campaigns.invite', $campaign->invite_code));
 
     $response->assertOk();
     $response->assertViewIs('campaigns.join');
@@ -161,7 +167,7 @@ test('user can view join form via invite code', function () {
 test('join form requires authentication', function () {
     $campaign = Campaign::factory()->create();
 
-    $response = $this->get(route('campaigns.invite', $campaign->invite_code));
+    $response = get(route('campaigns.invite', $campaign->invite_code));
 
     $response->assertRedirect(route('login'));
 });
@@ -173,7 +179,7 @@ test('existing member redirected from join form', function () {
         'user_id' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->get(route('campaigns.invite', $campaign->invite_code));
+    $response = actingAs($user)->get(route('campaigns.invite', $campaign->invite_code));
 
     $response->assertRedirect(route('campaigns.show', $campaign->campaign_code));
     $response->assertSessionHas('info', 'You are already a member of this campaign.');
@@ -183,11 +189,11 @@ test('user can join campaign with character', function () {
     $campaign = Campaign::factory()->create();
     $character = Character::factory()->create(['user_id' => $user->id]);
 
-    $response = $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
+    $response = actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
         'character_id' => $character->id,
     ]);
 
-    $this->assertDatabaseHas('campaign_members', [
+    assertDatabaseHas('campaign_members', [
         'campaign_id' => $campaign->id,
         'user_id' => $user->id,
         'character_id' => $character->id,
@@ -200,11 +206,11 @@ test('user can join campaign without character', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
+    $response = actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
         'character_id' => null,
     ]);
 
-    $this->assertDatabaseHas('campaign_members', [
+    assertDatabaseHas('campaign_members', [
         'campaign_id' => $campaign->id,
         'user_id' => $user->id,
         'character_id' => null,
@@ -215,7 +221,7 @@ test('user can join campaign without character', function () {
 test('join campaign requires authentication', function () {
     $campaign = Campaign::factory()->create();
 
-    $response = $this->post(route('campaigns.join_campaign', $campaign), []);
+    $response = post(route('campaigns.join_campaign', $campaign), []);
 
     $response->assertRedirect(route('login'));
 });
@@ -225,13 +231,13 @@ test('join campaign validates character ownership', function () {
     $campaign = Campaign::factory()->create();
     $otherCharacter = Character::factory()->create(['user_id' => $otherUser->id]);
 
-    $response = $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
+    $response = actingAs($user)->post(route('campaigns.join_campaign', $campaign), [
         'character_id' => $otherCharacter->id,
     ]);
 
     $response->assertNotFound();
     // Character not found for this user
-    $this->assertDatabaseMissing('campaign_members', [
+    assertDatabaseMissing('campaign_members', [
         'campaign_id' => $campaign->id,
         'user_id' => $user->id,
     ]);
@@ -241,13 +247,13 @@ test('user cannot join campaign twice', function () {
     $campaign = Campaign::factory()->create();
 
     // Join once
-    $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), []);
+    actingAs($user)->post(route('campaigns.join_campaign', $campaign), []);
 
     // Try to join again
-    $response = $this->actingAs($user)->post(route('campaigns.join_campaign', $campaign), []);
+    $response = actingAs($user)->post(route('campaigns.join_campaign', $campaign), []);
 
     $response->assertSessionHasErrors(['error']);
-    $this->assertDatabaseCount('campaign_members', 1);
+    assertDatabaseCount('campaign_members', 1);
 });
 test('member can leave campaign', function () {
     $user = User::factory()->create();
@@ -257,9 +263,9 @@ test('member can leave campaign', function () {
         'user_id' => $user->id,
     ]);
 
-    $response = $this->actingAs($user)->delete(route('campaigns.leave', $campaign->campaign_code));
+    $response = actingAs($user)->delete(route('campaigns.leave', $campaign->campaign_code));
 
-    $this->assertDatabaseMissing('campaign_members', [
+    assertDatabaseMissing('campaign_members', [
         'campaign_id' => $campaign->id,
         'user_id' => $user->id,
     ]);
@@ -270,7 +276,7 @@ test('member can leave campaign', function () {
 test('leave campaign requires authentication', function () {
     $campaign = Campaign::factory()->create();
 
-    $response = $this->delete(route('campaigns.leave', $campaign->campaign_code));
+    $response = delete(route('campaigns.leave', $campaign->campaign_code));
 
     $response->assertRedirect(route('login'));
 });
@@ -278,7 +284,7 @@ test('creator cannot leave own campaign', function () {
     $creator = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
-    $response = $this->actingAs($creator)->delete(route('campaigns.leave', $campaign->campaign_code));
+    $response = actingAs($creator)->delete(route('campaigns.leave', $campaign->campaign_code));
 
     $response->assertSessionHasErrors(['error']);
 });
@@ -286,7 +292,7 @@ test('non member cannot leave campaign', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create();
 
-    $response = $this->actingAs($user)->delete(route('campaigns.leave', $campaign->campaign_code));
+    $response = actingAs($user)->delete(route('campaigns.leave', $campaign->campaign_code));
 
     $response->assertSessionHasErrors(['error']);
 });
@@ -305,7 +311,7 @@ test('campaign show displays members', function () {
         'character_id' => $character->id,
     ]);
 
-    $response = $this->actingAs($creator)->get(route('campaigns.show', $campaign->campaign_code));
+    $response = actingAs($creator)->get(route('campaigns.show', $campaign->campaign_code));
 
     $response->assertOk();
     $response->assertViewHas('members');
@@ -317,7 +323,7 @@ test('join form displays user characters', function () {
     $campaign = Campaign::factory()->create();
     $characters = Character::factory()->count(3)->create(['user_id' => $user->id]);
 
-    $response = $this->actingAs($user)->get(route('campaigns.invite', $campaign->invite_code));
+    $response = actingAs($user)->get(route('campaigns.invite', $campaign->invite_code));
 
     $response->assertOk();
     $response->assertViewHas('characters');
@@ -329,11 +335,11 @@ test('routes use correct parameter binding', function () {
     $campaign = Campaign::factory()->create();
 
     // Show route uses campaign_code
-    $response = $this->actingAs($user)->get("/campaigns/{$campaign->campaign_code}");
+    $response = actingAs($user)->get("/campaigns/{$campaign->campaign_code}");
     $response->assertOk();
 
     // Join form uses invite_code  
-    $response = $this->actingAs($user)->get("/join/{$campaign->invite_code}");
+    $response = actingAs($user)->get("/join/{$campaign->invite_code}");
     $response->assertOk();
 });
 test('user can join campaign by invite code', function () {
@@ -341,7 +347,7 @@ test('user can join campaign by invite code', function () {
     $joiner = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
-    $response = $this->actingAs($joiner)->post(route('campaigns.join'), [
+    $response = actingAs($joiner)->post(route('campaigns.join'), [
         'invite_code' => $campaign->invite_code,
     ]);
 
@@ -353,7 +359,7 @@ test('user can join campaign by invite code', function () {
 test('joining with invalid invite code shows error', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('campaigns.join'), [
+    $response = actingAs($user)->post(route('campaigns.join'), [
         'invite_code' => 'INVALID1',
     ]);
 
@@ -366,12 +372,12 @@ test('user cannot join campaign twice via invite code', function () {
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
     // Join first time
-    $this->actingAs($joiner)->post(route('campaigns.join'), [
+    actingAs($joiner)->post(route('campaigns.join'), [
         'invite_code' => $campaign->invite_code,
     ]);
 
     // Try to join again
-    $response = $this->actingAs($joiner)->post(route('campaigns.join'), [
+    $response = actingAs($joiner)->post(route('campaigns.join'), [
         'invite_code' => $campaign->invite_code,
     ]);
 
@@ -408,7 +414,7 @@ test('campaign show displays campaign rooms', function () {
         'name' => 'Regular Room',
     ]);
 
-    $response = $this->actingAs($user)->get(route('campaigns.show', $campaign->campaign_code));
+    $response = actingAs($user)->get(route('campaigns.show', $campaign->campaign_code));
 
     $response->assertOk();
     $response->assertSee('Campaign Room 1');

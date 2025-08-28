@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
-use Livewire\Livewire;
+use function Pest\Livewire\livewire;
 
 test('character name auto-saves when updated via live model binding', function () {
     // Create a character in the database
@@ -15,7 +15,7 @@ test('character name auto-saves when updated via live model binding', function (
     ]);
 
     // Test the Livewire component
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->assertSet('character.name', 'Original Name')
         ->set('character.name', 'Updated Name via Live Model')
         ->assertDispatched('notify')
@@ -35,7 +35,7 @@ test('pronouns auto-save when updated via live model binding', function () {
     ]);
 
     // Test the Livewire component
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->assertSet('pronouns', 'he/him')
         ->set('pronouns', 'she/her')
         ->assertDispatched('notify')
@@ -54,7 +54,7 @@ test('character name and pronouns can be updated independently', function () {
         'class' => 'wizard',
     ]);
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->assertSet('character.name', 'Independent Test')
         ->assertSet('pronouns', 'xe/xir');
 
@@ -83,7 +83,7 @@ test('empty character name is handled gracefully', function () {
     ]);
 
     // Test setting name to empty string
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->assertSet('character.name', 'Test Character')
         ->set('character.name', '')
         ->assertSet('character.name', '');
@@ -104,7 +104,7 @@ test('long character name is handled correctly within database limits', function
     $longName = str_pad('Very Long Character Name With Extra Text To Test Maximum Length Handling', 100, 'X');
 
     // Test setting a long name
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->assertSet('character.name', 'Short Name')
         ->set('character.name', $longName)
         ->assertSet('character.name', $longName);
@@ -127,7 +127,7 @@ test('special characters in name and pronouns are preserved', function () {
     $specialPronouns = "ze/zir/zirs";
 
     // Test special characters
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->set('character.name', $specialName)
         ->set('pronouns', $specialPronouns)
         ->assertSet('character.name', $specialName)

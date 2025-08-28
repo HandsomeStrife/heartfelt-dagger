@@ -2,10 +2,15 @@
 
 declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
-use Livewire\Livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Livewire\livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('character builder allows correct number of domain cards for school of knowledge', function () {
@@ -16,7 +21,7 @@ test('character builder allows correct number of domain cards for school of know
         'subclass' => 'school of knowledge',
     ]);
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'TEST123']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'TEST123']);
 
     // Set class and subclass
     $component->set('character.selected_class', 'wizard');
@@ -43,7 +48,7 @@ test('character builder allows correct number of domain cards for regular subcla
         'subclass' => 'stalwart',
     ]);
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'TEST456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'TEST456']);
 
     // Set class and subclass
     $component->set('character.selected_class', 'warrior');
@@ -72,7 +77,7 @@ test('character builder domain card deselection works correctly', function () {
         'subclass' => 'school of knowledge',
     ]);
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'TEST789']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'TEST789']);
 
     // Set class and subclass
     $component->set('character.selected_class', 'wizard');
@@ -98,7 +103,7 @@ test('character builder handles null subclass domain cards', function () {
         'subclass' => null,
     ]);
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'TEST000']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'TEST000']);
 
     // Set class and no subclass
     $component->set('character.selected_class', 'warrior');

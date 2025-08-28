@@ -22,7 +22,7 @@ class CampaignFramesPage extends Page
      */
     public function assert(Browser $browser): void
     {
-        $browser->assertPathIs($this->url())
+        $browser->assertPathIs(url())
             ->assertSee('Campaign Frames')
             ->assertSee('Craft and discover inspiring campaign foundations');
     }
@@ -82,4 +82,4 @@ class CampaignFramesPage extends Page
     {
         $browser->clickLink($frameName);
     }
-}
+});

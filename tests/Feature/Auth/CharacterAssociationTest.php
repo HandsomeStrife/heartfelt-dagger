@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Illuminate\Support\Facades\Hash;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 it('associates characters with user on login', function () {
@@ -19,7 +23,7 @@ it('associates characters with user on login', function () {
     $character2 = Character::factory()->create(['user_id' => null]);
 
     // Simulate login with character keys
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => [$character1->character_key, $character2->character_key],
@@ -27,7 +31,7 @@ it('associates characters with user on login', function () {
 
     // Assert successful login
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 
     // Assert characters are now associated with the user
     expect($character1->fresh()->user_id)->toEqual($user->id);
@@ -39,7 +43,7 @@ it('associates characters with user on registration', function () {
     $character2 = Character::factory()->create(['user_id' => null]);
 
     // Simulate registration with character keys
-    $response = $this->post(route('register.post'), [
+    $response = post(route('register.post'), [
         'username' => 'testuser',
         'email' => 'newuser@example.com',
         'password' => 'password',
@@ -49,7 +53,7 @@ it('associates characters with user on registration', function () {
 
     // Assert successful registration and login
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticated();
+    assertAuthenticated();
 
     // Get the newly created user
     $user = User::where('email', 'newuser@example.com')->first();
@@ -72,7 +76,7 @@ it('only associates characters with null user id on login', function () {
     $owned_character = Character::factory()->create(['user_id' => $another_user->id]);
 
     // Simulate login with both character keys
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => [$anonymous_character->character_key, $owned_character->character_key],
@@ -91,16 +95,16 @@ it('handles login without character keys', function () {
         'password' => Hash::make('password'),
     ]);
 
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
     ]);
 
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 });
 it('handles registration without character keys', function () {
-    $response = $this->post(route('register.post'), [
+    $response = post(route('register.post'), [
         'username' => 'testuser',
         'email' => 'newuser@example.com',
         'password' => 'password',
@@ -108,7 +112,7 @@ it('handles registration without character keys', function () {
     ]);
 
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticated();
+    assertAuthenticated();
 
     $user = User::where('email', 'newuser@example.com')->first();
     expect($user)->not->toBeNull();
@@ -119,14 +123,14 @@ it('handles empty character keys array', function () {
         'password' => Hash::make('password'),
     ]);
 
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => [],
     ]);
 
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 });
 it('handles invalid character keys', function () {
     $user = User::factory()->create([
@@ -134,12 +138,12 @@ it('handles invalid character keys', function () {
         'password' => Hash::make('password'),
     ]);
 
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => ['invalid-key-1', 'invalid-key-2'],
     ]);
 
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 });

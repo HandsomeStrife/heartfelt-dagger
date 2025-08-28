@@ -5,19 +5,19 @@ use App\Livewire\CharacterBuilder;
 use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use Livewire\Livewire;
+use function Pest\Livewire\livewire;
 use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-    $this->character = Character::factory()->for($this->user)->create([
+    user = User::factory()->create();
+    character = Character::factory()->for(user)->create([
         'character_key' => 'test123456',
     ]);
 });
 it('resets all data except heritage when class changes', function () {
     // Setup initial character data with all fields populated
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
     // Set initial data
     $component->set('character.name', 'Test Hero');
@@ -60,7 +60,7 @@ it('resets all data except heritage when class changes', function () {
 });
 it('resets all data except heritage and class when subclass changes', function () {
     // Setup initial character data with all fields populated
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
     // Set initial data
     $component->set('character.name', 'Test Hero');
@@ -103,7 +103,7 @@ it('resets all data except heritage and class when subclass changes', function (
     $component->assertSet('character.connection_answers', []);
 });
 it('preserves empty values correctly', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
     // Set only some initial data (leaving others empty)
     $component->set('character.name', '');

@@ -17,6 +17,17 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
+        "@tailwindcss/typography": "^0.5.16",
+        "@tiptap/core": "^3.3.0",
+        "@tiptap/extension-color": "^3.3.0",
+        "@tiptap/extension-highlight": "^3.3.0",
+        "@tiptap/extension-image": "^3.3.0",
+        "@tiptap/extension-link": "^3.3.0",
+        "@tiptap/extension-text-align": "^3.3.0",
+        "@tiptap/extension-text-style": "^3.3.0",
+        "@tiptap/extension-underline": "^3.3.0",
+        "@tiptap/pm": "^3.3.0",
+        "@tiptap/starter-kit": "^3.3.0",
         "ably": "^2.11.0",
         "playwright": "^1.55.0"
     }

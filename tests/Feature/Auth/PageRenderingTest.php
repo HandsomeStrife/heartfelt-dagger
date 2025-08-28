@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('login page renders successfully', function () {
-    $response = $this->get('/login');
+    $response = get('/login');
 
     $response->assertStatus(200)
             ->assertSee('HeartfeltDagger')
@@ -16,7 +17,7 @@ test('login page renders successfully', function () {
             ->assertSee('Create your legend');
 });
 test('register page renders successfully', function () {
-    $response = $this->get('/register');
+    $response = get('/register');
 
     $response->assertStatus(200)
             ->assertSee('HeartfeltDagger')
@@ -29,7 +30,7 @@ test('register page renders successfully', function () {
             ->assertSee('Enter the realm');
 });
 test('login page contains proper form elements', function () {
-    $response = $this->get('/login');
+    $response = get('/login');
 
     $response->assertStatus(200)
             ->assertSee('wire:submit="login"', false)
@@ -41,7 +42,7 @@ test('login page contains proper form elements', function () {
             ->assertSee('type="checkbox"', false);
 });
 test('register page contains proper form elements', function () {
-    $response = $this->get('/register');
+    $response = get('/register');
 
     $response->assertStatus(200)
             ->assertSee('wire:submit="register"', false)
@@ -54,22 +55,22 @@ test('register page contains proper form elements', function () {
             ->assertSee('type="password"', false);
 });
 test('login page has proper navigation links', function () {
-    $response = $this->get('/login');
+    $response = get('/login');
 
     $response->assertStatus(200)
             ->assertSee('href="/register"', false)
             ->assertSee('Create your legend');
 });
 test('register page has proper navigation links', function () {
-    $response = $this->get('/register');
+    $response = get('/register');
 
     $response->assertStatus(200)
             ->assertSee('href="/login"', false)
             ->assertSee('Enter the realm');
 });
 test('auth pages have proper css classes', function () {
-    $loginResponse = $this->get('/login');
-    $registerResponse = $this->get('/register');
+    $loginResponse = get('/login');
+    $registerResponse = get('/register');
 
     // Check for body background
     $loginResponse->assertSee('bg-slate-900', false);
@@ -84,8 +85,8 @@ test('auth pages have proper css classes', function () {
     $registerResponse->assertSee('bg-gradient-to-r from-amber-500 to-yellow-500', false);
 });
 test('auth pages include decorative elements', function () {
-    $loginResponse = $this->get('/login');
-    $registerResponse = $this->get('/register');
+    $loginResponse = get('/login');
+    $registerResponse = get('/register');
 
     // Check for SVG stars
     $starPath = 'M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z';
@@ -94,8 +95,8 @@ test('auth pages include decorative elements', function () {
     $registerResponse->assertSee($starPath, false);
 });
 test('auth pages use correct fonts', function () {
-    $loginResponse = $this->get('/login');
-    $registerResponse = $this->get('/register');
+    $loginResponse = get('/login');
+    $registerResponse = get('/register');
 
     // Check for fantasy font usage
     $loginResponse->assertSee('font-federant', false);
@@ -106,8 +107,8 @@ test('auth pages use correct fonts', function () {
     $registerResponse->assertSee('font-roboto', false);
 });
 test('auth pages have loading states', function () {
-    $loginResponse = $this->get('/login');
-    $registerResponse = $this->get('/register');
+    $loginResponse = get('/login');
+    $registerResponse = get('/register');
 
     // Check for wire:loading directives
     $loginResponse->assertSee('wire:loading.remove', false)

@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->repository = new CampaignRepository();
+    repository = new CampaignRepository();
 });
 it('finds campaign by id with member count', function () {
     $creator = User::factory()->create(['username' => 'gamemaster']);
@@ -24,7 +24,7 @@ it('finds campaign by id with member count', function () {
 
     CampaignMember::factory()->count(3)->create(['campaign_id' => $campaign->id]);
 
-    $result = $this->repository->findById($campaign->id);
+    $result = repository->findById($campaign->id);
 
     expect($result)->toBeInstanceOf(CampaignData::class);
     expect($result->id)->toEqual($campaign->id);
@@ -34,7 +34,7 @@ it('finds campaign by id with member count', function () {
     expect($result->creator->username)->toEqual('gamemaster');
 });
 it('returns null for non existent campaign', function () {
-    $result = $this->repository->findById(999);
+    $result = repository->findById(999);
 
     expect($result)->toBeNull();
 });
@@ -42,7 +42,7 @@ it('finds campaign by invite code', function () {
     $campaign = Campaign::factory()->create(['name' => 'Invite Test']);
     CampaignMember::factory()->count(2)->create(['campaign_id' => $campaign->id]);
 
-    $result = $this->repository->findByInviteCode($campaign->invite_code);
+    $result = repository->findByInviteCode($campaign->invite_code);
 
     expect($result)->toBeInstanceOf(CampaignData::class);
     expect($result->id)->toEqual($campaign->id);
@@ -50,7 +50,7 @@ it('finds campaign by invite code', function () {
     expect($result->member_count)->toEqual(2);
 });
 it('returns null for invalid invite code', function () {
-    $result = $this->repository->findByInviteCode('INVALID1');
+    $result = repository->findByInviteCode('INVALID1');
 
     expect($result)->toBeNull();
 });
@@ -61,7 +61,7 @@ it('gets campaigns created by user', function () {
     $createdCampaigns = Campaign::factory()->count(3)->create(['creator_id' => $creator->id]);
     Campaign::factory()->count(2)->create(['creator_id' => $otherUser->id]);
 
-    $result = $this->repository->getCreatedByUser($creator);
+    $result = repository->getCreatedByUser($creator);
 
     expect($result)->toHaveCount(3);
     expect($result->every(fn($campaign) => $campaign->creator_id === $creator->id))->toBeTrue();
@@ -83,7 +83,7 @@ it('orders created campaigns by newest first', function () {
         'created_at' => now()->subDays(2),
     ]);
 
-    $result = $this->repository->getCreatedByUser($creator);
+    $result = repository->getCreatedByUser($creator);
 
     expect($result->first()->id)->toEqual($newest->id);
     expect($result->last()->id)->toEqual($oldest->id);
@@ -107,7 +107,7 @@ it('gets campaigns joined by user', function () {
         'user_id' => $otherUser->id,
     ]);
 
-    $result = $this->repository->getJoinedByUser($user);
+    $result = repository->getJoinedByUser($user);
 
     expect($result)->toHaveCount(2);
     expect($result->every(fn($campaign) => $campaign instanceof CampaignData))->toBeTrue();
@@ -133,7 +133,7 @@ it('gets campaign members with relationships', function () {
         'joined_at' => now()->subDay(),
     ]);
 
-    $result = $this->repository->getCampaignMembers($campaign);
+    $result = repository->getCampaignMembers($campaign);
 
     expect($result)->toHaveCount(2);
     expect($result->every(fn($member) => $member instanceof CampaignMemberData))->toBeTrue();
@@ -165,7 +165,7 @@ it('orders members by joined at ascending', function () {
         'joined_at' => now()->subDays(2),
     ]);
 
-    $result = $this->repository->getCampaignMembers($campaign);
+    $result = repository->getCampaignMembers($campaign);
 
     expect($result->first()->id)->toEqual($earliestMember->id);
     expect($result->last()->id)->toEqual($latestMember->id);
@@ -176,7 +176,7 @@ it('gets active campaigns', function () {
     Campaign::factory()->completed()->create();
     Campaign::factory()->paused()->create();
 
-    $result = $this->repository->getActiveCampaigns();
+    $result = repository->getActiveCampaigns();
 
     expect($result)->toHaveCount(2);
     expect($result->every(fn($campaign) => $campaign->status === CampaignStatus::ACTIVE))->toBeTrue();
@@ -200,7 +200,7 @@ it('gets all user campaigns combined', function () {
     // Campaign not related to user
     Campaign::factory()->create();
 
-    $result = $this->repository->getAllUserCampaigns($user);
+    $result = repository->getAllUserCampaigns($user);
 
     expect($result)->toHaveCount(3);
 
@@ -218,10 +218,10 @@ it('includes member count in all queries', function () {
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     CampaignMember::factory()->count(5)->create(['campaign_id' => $campaign->id]);
 
-    $resultById = $this->repository->findById($campaign->id);
-    $resultByInvite = $this->repository->findByInviteCode($campaign->invite_code);
-    $resultCreated = $this->repository->getCreatedByUser($user);
-    $resultActive = $this->repository->getActiveCampaigns();
+    $resultById = repository->findById($campaign->id);
+    $resultByInvite = repository->findByInviteCode($campaign->invite_code);
+    $resultCreated = repository->getCreatedByUser($user);
+    $resultActive = repository->getActiveCampaigns();
 
     expect($resultById->member_count)->toEqual(5);
     expect($resultByInvite->member_count)->toEqual(5);
@@ -231,16 +231,16 @@ it('includes member count in all queries', function () {
 it('handles campaigns with zero members', function () {
     $campaign = Campaign::factory()->create();
 
-    $result = $this->repository->findById($campaign->id);
+    $result = repository->findById($campaign->id);
 
     expect($result->member_count)->toEqual(0);
 });
 it('returns empty collection for user with no campaigns', function () {
     $user = User::factory()->create();
 
-    $created = $this->repository->getCreatedByUser($user);
-    $joined = $this->repository->getJoinedByUser($user);
-    $all = $this->repository->getAllUserCampaigns($user);
+    $created = repository->getCreatedByUser($user);
+    $joined = repository->getJoinedByUser($user);
+    $all = repository->getAllUserCampaigns($user);
 
     expect($created)->toHaveCount(0);
     expect($joined)->toHaveCount(0);

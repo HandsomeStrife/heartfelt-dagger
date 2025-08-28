@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Illuminate\Support\Facades\Hash;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('room creator can access password-protected room overview without password', function () {
     $user = User::factory()->create();
@@ -16,7 +19,7 @@ test('room creator can access password-protected room overview without password'
     ]);
 
     // Creator should be able to access room overview without providing password
-    $response = $this->actingAs($user)->get("/rooms/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertViewIs('rooms.show');
@@ -35,7 +38,7 @@ test('non-creator cannot access password-protected room overview without passwor
     ]);
 
     // Non-creator should be redirected to join page
-    $response = $this->actingAs($otherUser)->get("/rooms/{$room->invite_code}");
+    $response = actingAs($otherUser)->get("/rooms/{$room->invite_code}");
     
     $response->assertRedirect("/rooms/join/{$room->invite_code}");
 });
@@ -51,7 +54,7 @@ test('non-creator can access password-protected room overview with correct passw
     ]);
 
     // Non-creator should be able to access with password in URL
-    $response = $this->actingAs($otherUser)->get("/rooms/{$room->invite_code}?password={$password}");
+    $response = actingAs($otherUser)->get("/rooms/{$room->invite_code}?password={$password}");
     
     $response->assertOk();
     $response->assertViewIs('rooms.show');
@@ -66,7 +69,7 @@ test('room creator can access room overview for non-password-protected room', fu
         'campaign_id' => null,
     ]);
 
-    $response = $this->actingAs($user)->get("/rooms/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertViewIs('rooms.show');

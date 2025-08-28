@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new CreateRoomAction();
+    action = new CreateRoomAction();
 });
 it('creates room successfully', function () {
     $user = User::factory()->create();
@@ -21,7 +21,7 @@ it('creates room successfully', function () {
         guest_count: 4
     );
 
-    $roomData = $this->action->execute($createData, $user);
+    $roomData = action->execute($createData, $user);
 
     expect($roomData->id)->not->toBeNull();
     expect($roomData->name)->toEqual('Epic Adventure Room');
@@ -39,7 +39,7 @@ it('auto generates invite code', function () {
         guest_count: 2
     );
 
-    $roomData = $this->action->execute($createData, $user);
+    $roomData = action->execute($createData, $user);
 
     expect($roomData->invite_code)->not->toBeNull();
     expect(strlen($roomData->invite_code))->toEqual(8);
@@ -54,10 +54,10 @@ it('hashes password', function () {
         guest_count: 2
     );
 
-    $roomData = $this->action->execute($createData, $user);
+    $roomData = action->execute($createData, $user);
 
     // Password should be hashed, not plain text
-    $this->assertNotEquals('plaintext', $roomData->password);
+    assertNotEquals('plaintext', $roomData->password);
 
     // Verify the password can be verified
     $room = Room::find($roomData->id);
@@ -72,9 +72,9 @@ it('persists room to database', function () {
         guest_count: 3
     );
 
-    $roomData = $this->action->execute($createData, $user);
+    $roomData = action->execute($createData, $user);
 
-    $this->assertDatabaseHas('rooms', [
+    assertDatabaseHas('rooms', [
         'id' => $roomData->id,
         'name' => 'Persistent Room',
         'description' => 'This should be saved',
@@ -93,7 +93,7 @@ it('loads creator relationship', function () {
         guest_count: 1
     );
 
-    $roomData = $this->action->execute($createData, $user);
+    $roomData = action->execute($createData, $user);
 
     expect($roomData->creator)->not->toBeNull();
     expect($roomData->creator->id)->toEqual($user->id);
@@ -114,10 +114,10 @@ it('creates rooms with unique codes', function () {
         guest_count: 3
     );
 
-    $roomData1 = $this->action->execute($createData1, $user);
-    $roomData2 = $this->action->execute($createData2, $user);
+    $roomData1 = action->execute($createData1, $user);
+    $roomData2 = action->execute($createData2, $user);
 
-    $this->assertNotEquals($roomData1->invite_code, $roomData2->invite_code);
+    assertNotEquals($roomData1->invite_code, $roomData2->invite_code);
 });
 it('handles different guest counts', function () {
     $user = User::factory()->create();
@@ -130,7 +130,7 @@ it('handles different guest counts', function () {
             guest_count: $guestCount
         );
 
-        $roomData = $this->action->execute($createData, $user);
+        $roomData = action->execute($createData, $user);
 
         expect($roomData->guest_count)->toEqual($guestCount);
     }
@@ -153,8 +153,8 @@ it('associates creator correctly', function () {
         guest_count: 3
     );
 
-    $roomData1 = $this->action->execute($createData1, $creator1);
-    $roomData2 = $this->action->execute($createData2, $creator2);
+    $roomData1 = action->execute($createData1, $creator1);
+    $roomData2 = action->execute($createData2, $creator2);
 
     expect($roomData1->creator_id)->toEqual($creator1->id);
     expect($roomData2->creator_id)->toEqual($creator2->id);
@@ -168,7 +168,7 @@ it('automatically adds creator as participant', function () {
         guest_count: 5
     );
 
-    $roomData = $this->action->execute($createData, $user);
+    $roomData = action->execute($createData, $user);
 
     expect($roomData->active_participant_count)->toEqual(1);
 });
@@ -182,7 +182,7 @@ it('creates room participant record for creator', function () {
         guest_count: 3
     );
 
-    $roomData = $this->action->execute($createData, $user);
+    $roomData = action->execute($createData, $user);
 
     // Check that a room participant record was created for the creator
     expect(RoomParticipant::where('room_id', $roomData->id)
@@ -200,7 +200,7 @@ it('handles long names and descriptions', function () {
         guest_count: 2
     );
 
-    $roomData = $this->action->execute($createData, $user);
+    $roomData = action->execute($createData, $user);
 
     expect($roomData->name)->toEqual(str_repeat('A', 100));
     expect($roomData->description)->toEqual(str_repeat('B', 500));

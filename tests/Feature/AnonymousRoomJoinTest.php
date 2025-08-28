@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('anonymous user can access join page with enabled temporary character fields', function () {
     $room = Room::factory()->passwordless()->create();
     
     // Anonymous user (not authenticated)
-    $response = $this->get("/rooms/join/{$room->invite_code}");
+    $response = get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Create Temporary Character');
@@ -34,7 +35,7 @@ test('anonymous user can submit form with temporary character for non-campaign r
     ]);
     
     // Anonymous user trying to join with temporary character
-    $response = $this->post(route('rooms.join', $room), [
+    $response = post(route('rooms.join', $room), [
         'character_name' => 'Anonymous Character',
         'character_class' => 'Warrior'
     ]);
@@ -44,7 +45,7 @@ test('anonymous user can submit form with temporary character for non-campaign r
     $response->assertSessionHas('success', 'Successfully joined the room!');
     
     // Verify participant was created
-    $this->assertDatabaseHas('room_participants', [
+    assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => null, // Anonymous user
         'character_name' => 'Anonymous Character',
@@ -59,7 +60,7 @@ test('anonymous user cannot join campaign room', function () {
     ]);
     
     // Anonymous user trying to join campaign room
-    $response = $this->post(route('rooms.join', $room), [
+    $response = post(route('rooms.join', $room), [
         'character_name' => 'Campaign Character',
         'character_class' => 'Rogue'
     ]);
@@ -72,7 +73,7 @@ test('anonymous user cannot join campaign room', function () {
 test('anonymous user sees clean interface without character selection dropdown', function () {
     $room = Room::factory()->passwordless()->create();
     
-    $response = $this->get("/rooms/join/{$room->invite_code}");
+    $response = get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     
@@ -95,7 +96,7 @@ test('password protected room shows form for anonymous users', function () {
     ]);
     
     // Anonymous user can access join page with password in URL
-    $response = $this->get("/rooms/join/{$room->invite_code}?password={$password}");
+    $response = get("/rooms/join/{$room->invite_code}?password={$password}");
     
     $response->assertOk();
     $response->assertSee('Create Temporary Character');
@@ -109,7 +110,7 @@ test('user with no characters gets enabled temporary fields', function () {
     $room = Room::factory()->passwordless()->create();
     
     // User with no characters
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Create Temporary Character');

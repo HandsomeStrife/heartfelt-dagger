@@ -37,7 +37,7 @@ test('password is automatically hashed', function () {
         'password' => 'password123',
     ]);
 
-    $this->assertNotEquals('password123', $user->password);
+    assertNotEquals('password123', $user->password);
     expect(Hash::check('password123', $user->password))->toBeTrue();
 });
 

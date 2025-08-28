@@ -61,7 +61,7 @@ class CampaignController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100',
-            'description' => 'required|string|max:1000',
+            'description' => 'nullable|string|max:1000',
             'campaign_frame_id' => 'nullable|exists:campaign_frames,id',
         ]);
 
@@ -86,6 +86,7 @@ class CampaignController extends Controller
 
         return view('campaigns.show', [
             'campaign' => $campaign_data,
+            'campaign_model' => $campaign,
             'members' => $members,
             'campaign_rooms' => $campaign_rooms,
             'user_is_member' => $user_is_member,

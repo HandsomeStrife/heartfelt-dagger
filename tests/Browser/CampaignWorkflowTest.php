@@ -162,7 +162,7 @@ test('multiple users can join same campaign', function () {
     ]);
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
-    $this->browse(function (Browser $browser1, Browser $browser2) use ($player1, $player2, $campaign) {
+    browse(function (Browser $browser1, Browser $browser2) use ($player1, $player2, $campaign) {
         // Player 1 joins
         $browser1->loginAs($player1)
             ->visit("/join/{$campaign->invite_code}")

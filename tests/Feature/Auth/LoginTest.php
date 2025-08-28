@@ -1,12 +1,14 @@
 <?php
 
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Illuminate\Support\Facades\Hash;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('login screen can be rendered', function () {
-    $response = $this->get('/login');
+    $response = get('/login');
 
     $response->assertStatus(200);
 });
@@ -17,12 +19,12 @@ test('users can authenticate using the login screen', function () {
         'password' => Hash::make('password123'),
     ]);
 
-    $response = $this->post('/login', [
+    $response = post('/login', [
         'email' => 'test@example.com',
         'password' => 'password123',
     ]);
 
-    $this->assertAuthenticated();
+    assertAuthenticated();
     $response->assertRedirect('/dashboard');
 });
 
@@ -32,53 +34,53 @@ test('users can not authenticate with invalid password', function () {
         'password' => Hash::make('password123'),
     ]);
 
-    $response = $this->post('/login', [
+    $response = post('/login', [
         'email' => 'test@example.com',
         'password' => 'wrong-password',
     ]);
 
-    $this->assertGuest();
+    assertGuest();
     $response->assertSessionHasErrors('email');
 });
 
 test('users can not authenticate with invalid email', function () {
-    $response = $this->post('/login', [
+    $response = post('/login', [
         'email' => 'nonexistent@example.com',
         'password' => 'password123',
     ]);
 
-    $this->assertGuest();
+    assertGuest();
     $response->assertSessionHasErrors('email');
 });
 
 test('login requires email', function () {
-    $response = $this->post('/login', [
+    $response = post('/login', [
         'email' => '',
         'password' => 'password123',
     ]);
 
     $response->assertSessionHasErrors('email');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('login requires password', function () {
-    $response = $this->post('/login', [
+    $response = post('/login', [
         'email' => 'test@example.com',
         'password' => '',
     ]);
 
     $response->assertSessionHasErrors('password');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('login requires valid email format', function () {
-    $response = $this->post('/login', [
+    $response = post('/login', [
         'email' => 'invalid-email',
         'password' => 'password123',
     ]);
 
     $response->assertSessionHasErrors('email');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('remember me functionality', function () {
@@ -87,13 +89,13 @@ test('remember me functionality', function () {
         'password' => Hash::make('password123'),
     ]);
 
-    $response = $this->post('/login', [
+    $response = post('/login', [
         'email' => 'test@example.com',
         'password' => 'password123',
         'remember' => true,
     ]);
 
-    $this->assertAuthenticated();
+    assertAuthenticated();
     $response->assertRedirect('/dashboard');
 
     // Check that remember token is set
@@ -103,7 +105,7 @@ test('remember me functionality', function () {
 test('authenticated users cannot access login', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/login');
+    $response = actingAs($user)->get('/login');
 
     $response->assertRedirect('/dashboard');
 });
@@ -111,8 +113,8 @@ test('authenticated users cannot access login', function () {
 test('users can logout', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post('/logout');
+    $response = actingAs($user)->post('/logout');
 
-    $this->assertGuest();
+    assertGuest();
     $response->assertRedirect('/');
 });

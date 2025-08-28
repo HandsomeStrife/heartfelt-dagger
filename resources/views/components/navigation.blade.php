@@ -1,4 +1,4 @@
-<nav data-testid="main-navigation" class="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-amber-500/30 z-[9999]">
+<nav data-testid="main-navigation" class="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-amber-500/30 z-20">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <!-- Logo/Brand -->

@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->repository = new RoomRepository();
+    repository = new RoomRepository();
 });
 it('finds room by id with participant count', function () {
     $room = Room::factory()->create();
@@ -18,7 +18,7 @@ it('finds room by id with participant count', function () {
     RoomParticipant::factory()->create(['room_id' => $room->id, 'left_at' => now()]);
 
     // Inactive
-    $foundRoom = $this->repository->findById($room->id);
+    $foundRoom = repository->findById($room->id);
 
     expect($foundRoom)->toBeInstanceOf(RoomData::class);
     expect($foundRoom->id)->toEqual($room->id);
@@ -26,7 +26,7 @@ it('finds room by id with participant count', function () {
     expect($foundRoom->creator)->not->toBeNull();
 });
 it('returns null for non existent room', function () {
-    $foundRoom = $this->repository->findById(999);
+    $foundRoom = repository->findById(999);
 
     expect($foundRoom)->toBeNull();
 });
@@ -34,7 +34,7 @@ it('finds room by invite code', function () {
     $room = Room::factory()->create();
     RoomParticipant::factory()->count(2)->create(['room_id' => $room->id, 'left_at' => null]);
 
-    $foundRoom = $this->repository->findByInviteCode($room->invite_code);
+    $foundRoom = repository->findByInviteCode($room->invite_code);
 
     expect($foundRoom)->toBeInstanceOf(RoomData::class);
     expect($foundRoom->id)->toEqual($room->id);
@@ -44,7 +44,7 @@ it('finds room by invite code', function () {
 it('returns null for invalid invite code', function () {
     Room::factory()->create();
 
-    $foundRoom = $this->repository->findByInviteCode('INVALID1');
+    $foundRoom = repository->findByInviteCode('INVALID1');
 
     expect($foundRoom)->toBeNull();
 });
@@ -61,7 +61,7 @@ it('gets rooms created by user', function () {
         'left_at' => null
     ]);
 
-    $foundRooms = $this->repository->getCreatedByUser($creator);
+    $foundRooms = repository->getCreatedByUser($creator);
 
     expect($foundRooms)->toHaveCount(3);
     expect($foundRooms->every(fn($room) => $room->creator_id === $creator->id))->toBeTrue();
@@ -79,7 +79,7 @@ it('orders created rooms by newest first', function () {
         'created_at' => now()
     ]);
 
-    $foundRooms = $this->repository->getCreatedByUser($user);
+    $foundRooms = repository->getCreatedByUser($user);
 
     expect($foundRooms->first()->id)->toEqual($newRoom->id);
     expect($foundRooms->last()->id)->toEqual($oldRoom->id);
@@ -105,7 +105,7 @@ it('gets rooms joined by user', function () {
         'left_at' => null
     ]);
 
-    $foundRooms = $this->repository->getJoinedByUser($user);
+    $foundRooms = repository->getJoinedByUser($user);
 
     expect($foundRooms)->toHaveCount(1);
     expect($foundRooms->first()->id)->toEqual($joinedRoom->id);
@@ -121,7 +121,7 @@ it('excludes left rooms from joined by user', function () {
         'left_at' => now()
     ]);
 
-    $foundRooms = $this->repository->getJoinedByUser($user);
+    $foundRooms = repository->getJoinedByUser($user);
 
     expect($foundRooms)->toHaveCount(0);
 });
@@ -139,7 +139,7 @@ it('gets room participants with relationships', function () {
         'left_at' => now()
     ]);
 
-    $foundParticipants = $this->repository->getRoomParticipants($room);
+    $foundParticipants = repository->getRoomParticipants($room);
 
     expect($foundParticipants)->toHaveCount(3);
     expect($foundParticipants->every(fn($p) => $p->user !== null))->toBeTrue();
@@ -160,7 +160,7 @@ it('orders participants by joined at ascending', function () {
         'left_at' => null
     ]);
 
-    $foundParticipants = $this->repository->getRoomParticipants($room);
+    $foundParticipants = repository->getRoomParticipants($room);
 
     expect($foundParticipants->first()->id)->toEqual($earlierParticipant->id);
     expect($foundParticipants->last()->id)->toEqual($laterParticipant->id);
@@ -175,22 +175,22 @@ it('includes participant count in all queries', function () {
     ]);
 
     // Test findById
-    $foundById = $this->repository->findById($room->id);
+    $foundById = repository->findById($room->id);
     expect($foundById->active_participant_count)->toEqual(4);
 
     // Test findByInviteCode
-    $foundByCode = $this->repository->findByInviteCode($room->invite_code);
+    $foundByCode = repository->findByInviteCode($room->invite_code);
     expect($foundByCode->active_participant_count)->toEqual(4);
 
     // Test getCreatedByUser
-    $createdRooms = $this->repository->getCreatedByUser($user);
+    $createdRooms = repository->getCreatedByUser($user);
     expect($createdRooms->first()->active_participant_count)->toEqual(4);
 });
 it('handles rooms with zero participants', function () {
     $room = Room::factory()->create();
 
     // No participants added
-    $foundRoom = $this->repository->findById($room->id);
+    $foundRoom = repository->findById($room->id);
 
     expect($foundRoom->active_participant_count)->toEqual(0);
 });
@@ -199,8 +199,8 @@ it('returns empty collection for user with no rooms', function () {
     Room::factory()->count(3)->create();
 
     // Other users' rooms
-    $createdRooms = $this->repository->getCreatedByUser($user);
-    $joinedRooms = $this->repository->getJoinedByUser($user);
+    $createdRooms = repository->getCreatedByUser($user);
+    $joinedRooms = repository->getJoinedByUser($user);
 
     expect($createdRooms)->toHaveCount(0);
     expect($joinedRooms)->toHaveCount(0);
@@ -220,7 +220,7 @@ it('correctly counts mixed participant states', function () {
         'left_at' => now()
     ]);
 
-    $foundRoom = $this->repository->findById($room->id);
+    $foundRoom = repository->findById($room->id);
 
     expect($foundRoom->active_participant_count)->toEqual(3);
 });
@@ -229,14 +229,14 @@ it('loads creator relationship in all methods', function () {
     $room = Room::factory()->create(['creator_id' => $creator->id]);
 
     // Test findById
-    $foundById = $this->repository->findById($room->id);
+    $foundById = repository->findById($room->id);
     expect($foundById->creator->username)->toEqual('unique_room_creator_789');
 
     // Test findByInviteCode
-    $foundByCode = $this->repository->findByInviteCode($room->invite_code);
+    $foundByCode = repository->findByInviteCode($room->invite_code);
     expect($foundByCode->creator->username)->toEqual('unique_room_creator_789');
 
     // Test getCreatedByUser
-    $createdRooms = $this->repository->getCreatedByUser($creator);
+    $createdRooms = repository->getCreatedByUser($creator);
     expect($createdRooms->first()->creator->username)->toEqual('unique_room_creator_789');
 });

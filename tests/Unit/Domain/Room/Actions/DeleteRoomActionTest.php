@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new DeleteRoomAction();
+    action = new DeleteRoomAction();
 });
 
 it('allows room creator to delete their room', function () {
@@ -27,7 +27,7 @@ it('allows room creator to delete their room', function () {
     expect($participantCount)->toBeGreaterThan(0);
     expect(Room::find($roomId))->not->toBeNull();
     
-    $this->action->execute($room, $creator);
+    action->execute($room, $creator);
     
     // Room should be deleted
     expect(Room::find($roomId))->toBeNull();
@@ -41,10 +41,10 @@ it('prevents non-creator from deleting room', function () {
     $otherUser = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $creator->id]);
     
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage('Only room creators can delete their rooms.');
+    expectException(Exception::class);
+    expectExceptionMessage('Only room creators can delete their rooms.');
 
-    $this->action->execute($room, $otherUser);
+    action->execute($room, $otherUser);
 });
 
 it('deletes room with multiple participants', function () {
@@ -63,7 +63,7 @@ it('deletes room with multiple participants', function () {
     $roomId = $room->id;
     expect(RoomParticipant::where('room_id', $roomId)->count())->toEqual(3);
     
-    $this->action->execute($room, $creator);
+    action->execute($room, $creator);
     
     // All participants should be deleted
     expect(RoomParticipant::where('room_id', $roomId)->count())->toEqual(0);
@@ -88,7 +88,7 @@ it('deletes room with mixed participant states', function () {
     $roomId = $room->id;
     expect(RoomParticipant::where('room_id', $roomId)->count())->toEqual(2);
     
-    $this->action->execute($room, $creator);
+    action->execute($room, $creator);
     
     // All participants should be deleted regardless of status
     expect(RoomParticipant::where('room_id', $roomId)->count())->toEqual(0);
@@ -106,7 +106,7 @@ it('does not affect other rooms when deleting one', function () {
     $room1Id = $room1->id;
     $room2Id = $room2->id;
     
-    $this->action->execute($room1, $creator);
+    action->execute($room1, $creator);
     
     // Room 1 should be deleted
     expect(Room::find($room1Id))->toBeNull();

@@ -1,23 +1,24 @@
 <?php
 
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('home page is accessible to guests', function () {
-    $response = $this->get('/');
+    $response = get('/');
 
     $response->assertStatus(200);
 });
 
 test('rooms requires authentication', function () {
-    $response = $this->get('/dashboard');
+    $response = get('/dashboard');
 
     $response->assertRedirect('/login');
 });
 
 test('character builder is publicly accessible', function () {
-    $response = $this->get('/character-builder');
+    $response = get('/character-builder');
 
     $response->assertStatus(302);
     $response->assertRedirect();
@@ -29,13 +30,13 @@ test('character builder is publicly accessible', function () {
 test('authenticated users can access rooms', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/dashboard');
+    $response = actingAs($user)->get('/dashboard');
 
     $response->assertStatus(200);
 });
 
 test('character builder creates new character', function () {
-    $response = $this->get('/character-builder');
+    $response = get('/character-builder');
 
     $response->assertStatus(302);
     $response->assertRedirect();
@@ -47,7 +48,7 @@ test('character builder creates new character', function () {
 test('authenticated users are redirected from login', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/login');
+    $response = actingAs($user)->get('/login');
 
     $response->assertRedirect('/dashboard');
 });
@@ -55,7 +56,7 @@ test('authenticated users are redirected from login', function () {
 test('authenticated users are redirected from register', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/register');
+    $response = actingAs($user)->get('/register');
 
     $response->assertRedirect('/dashboard');
 });
@@ -63,7 +64,7 @@ test('authenticated users are redirected from register', function () {
 test('logout requires post method', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/logout');
+    $response = actingAs($user)->get('/logout');
 
     $response->assertStatus(405);
     // Method not allowed
@@ -72,28 +73,28 @@ test('logout requires post method', function () {
 test('logout redirects to home', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post('/logout');
+    $response = actingAs($user)->post('/logout');
 
     $response->assertRedirect('/');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('legacy video rooms route still works', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/video-rooms');
+    $response = actingAs($user)->get('/video-rooms');
 
     $response->assertStatus(200);
 });
 
 test('guests cannot access legacy video rooms without auth', function () {
-    $response = $this->get('/video-rooms');
+    $response = get('/video-rooms');
 
     $response->assertRedirect('/login');
 });
 
 test('nonexistent routes return 404', function () {
-    $response = $this->get('/nonexistent-route');
+    $response = get('/nonexistent-route');
 
     $response->assertStatus(404);
 });
@@ -102,11 +103,11 @@ test('authenticated user session persists across requests', function () {
     $user = User::factory()->create();
 
     // First request with authentication
-    $this->actingAs($user)->get('/dashboard')->assertStatus(200);
+    actingAs($user)->get('/dashboard')->assertStatus(200);
 
     // Second request should still be authenticated
-    $this->get('/dashboard')->assertStatus(200);
-    $this->assertAuthenticated();
+    get('/dashboard')->assertStatus(200);
+    assertAuthenticated();
 });
 
 test('middleware prevents unauthorized access to protected routes', function () {
@@ -116,7 +117,7 @@ test('middleware prevents unauthorized access to protected routes', function () 
     ];
 
     foreach ($protectedRoutes as $route) {
-        $response = $this->get($route);
+        $response = get($route);
         $response->assertRedirect('/login');
     }
 });
@@ -125,7 +126,7 @@ test('csrf protection on logout', function () {
     $user = User::factory()->create();
 
     // Attempt logout without CSRF token should fail
-    $response = $this->actingAs($user)
+    $response = actingAs($user)
         ->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class)
         ->post('/logout');
 

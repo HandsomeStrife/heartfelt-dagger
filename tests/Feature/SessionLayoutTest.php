@@ -3,11 +3,14 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\RoomParticipant;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 beforeEach(function () {
-    $this->roomCreator = User::factory()->create([
+    roomCreator = User::factory()->create([
         'username' => 'RoomCreator',
         'email' => 'creator@example.com',
     ]);
@@ -17,21 +20,21 @@ test('session page shows correct number of slots for 5-capacity room', function 
     // Create a room with 5 total capacity (4 guests + 1 creator)
     $room = Room::factory()->create([
         'name' => 'Test Room',
-        'creator_id' => $this->roomCreator->id,
+        'creator_id' => roomCreator->id,
         'guest_count' => 4, // Total capacity = 5
     ]);
     
     // Add creator as participant
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'user_id' => $this->roomCreator->id,
+        'user_id' => roomCreator->id,
         'joined_at' => now(),
         'left_at' => null,
     ]);
     
-    $this->actingAs($this->roomCreator);
+    actingAs(roomCreator);
     
-    $response = $this->get(route('rooms.session', $room));
+    $response = get(route('rooms.session', $room));
     
     $response->assertOk();
     
@@ -55,21 +58,21 @@ test('session page shows correct number of slots for 4-capacity room', function 
     // Create a room with 4 total capacity (3 guests + 1 creator)
     $room = Room::factory()->create([
         'name' => 'Test Room',
-        'creator_id' => $this->roomCreator->id,
+        'creator_id' => roomCreator->id,
         'guest_count' => 3, // Total capacity = 4
     ]);
     
     // Add creator as participant
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'user_id' => $this->roomCreator->id,
+        'user_id' => roomCreator->id,
         'joined_at' => now(),
         'left_at' => null,
     ]);
     
-    $this->actingAs($this->roomCreator);
+    actingAs(roomCreator);
     
-    $response = $this->get(route('rooms.session', $room));
+    $response = get(route('rooms.session', $room));
     
     $response->assertOk();
     
@@ -89,14 +92,14 @@ test('session page shows correct slots with multiple participants in 5-capacity 
     // Create a room with 5 total capacity
     $room = Room::factory()->create([
         'name' => 'Test Room',
-        'creator_id' => $this->roomCreator->id,
+        'creator_id' => roomCreator->id,
         'guest_count' => 4,
     ]);
     
     // Add creator as participant
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'user_id' => $this->roomCreator->id,
+        'user_id' => roomCreator->id,
         'joined_at' => now(),
         'left_at' => null,
     ]);
@@ -114,9 +117,9 @@ test('session page shows correct slots with multiple participants in 5-capacity 
         ]);
     }
     
-    $this->actingAs($this->roomCreator);
+    actingAs(roomCreator);
     
-    $response = $this->get(route('rooms.session', $room));
+    $response = get(route('rooms.session', $room));
     
     $response->assertOk();
     
@@ -134,21 +137,21 @@ test('session page shows correct slots with multiple participants in 5-capacity 
 test('session page participant count matches total capacity', function () {
     $room = Room::factory()->create([
         'name' => 'Test Room',
-        'creator_id' => $this->roomCreator->id,
+        'creator_id' => roomCreator->id,
         'guest_count' => 4, // Total capacity = 5
     ]);
     
     // Add creator as participant
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'user_id' => $this->roomCreator->id,
+        'user_id' => roomCreator->id,
         'joined_at' => now(),
         'left_at' => null,
     ]);
     
-    $this->actingAs($this->roomCreator);
+    actingAs(roomCreator);
     
-    $response = $this->get(route('rooms.session', $room));
+    $response = get(route('rooms.session', $room));
     
     $response->assertOk();
     $response->assertSee('1/5 participants'); // 1 current participant out of 5 total capacity

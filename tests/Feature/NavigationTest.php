@@ -1,11 +1,12 @@
 <?php
 
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('navigation shows character links for unauthenticated users', function () {
-    $response = $this->get('/');
+    $response = get('/');
 
     // Guest users should see branding and guest navigation links
     $response->assertSee('HeartfeltDagger');
@@ -25,7 +26,7 @@ test('navigation shows user menu for authenticated users', function () {
         'username' => 'testuser',
     ]);
 
-    $response = $this->actingAs($user)->get('/dashboard');
+    $response = actingAs($user)->get('/dashboard');
 
     $response->assertSee('testuser');
     $response->assertSee('Dashboard');
@@ -42,21 +43,21 @@ test('navigation displays user avatar initial', function () {
         'username' => 'TestUser',
     ]);
 
-    $response = $this->actingAs($user)->get('/');
+    $response = actingAs($user)->get('/');
 
     // Should show first letter of username
     $response->assertSee('T');
 });
 
 test('navigation brand links to home', function () {
-    $response = $this->get('/');
+    $response = get('/');
 
     $response->assertSee('HeartfeltDagger');
     $response->assertSee('href="/"', false);
 });
 
 test('character builder link works', function () {
-    $response = $this->get('/character-builder');
+    $response = get('/character-builder');
 
     $response->assertStatus(302);
     $response->assertRedirect();
@@ -68,13 +69,13 @@ test('character builder link works', function () {
 test('campaigns link works', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/campaigns');
+    $response = actingAs($user)->get('/campaigns');
 
     $response->assertStatus(200);
 });
 
 test('navigation is not shown on login page', function () {
-    $response = $this->get('/login');
+    $response = get('/login');
 
     // Navigation should not be visible on login page
     $response->assertDontSee('Create Character');
@@ -83,7 +84,7 @@ test('navigation is not shown on login page', function () {
 });
 
 test('navigation is not shown on register page', function () {
-    $response = $this->get('/register');
+    $response = get('/register');
 
     // Navigation should not be visible on register page
     $response->assertDontSee('Create Character');
@@ -94,7 +95,7 @@ test('navigation is not shown on register page', function () {
 test('navigation is shown on protected pages', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/dashboard');
+    $response = actingAs($user)->get('/dashboard');
 
     $response->assertSee('HeartfeltDagger');
     $response->assertSee($user->username);
@@ -103,25 +104,25 @@ test('navigation is shown on protected pages', function () {
 test('logout form submission', function () {
     $user = User::factory()->create();
 
-    $this->actingAs($user);
-    $this->assertAuthenticated();
+    actingAs($user);
+    assertAuthenticated();
 
-    $response = $this->post('/logout');
+    $response = post('/logout');
 
     $response->assertRedirect('/');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('register page works directly', function () {
     // Register page should work when accessed directly
-    $registerResponse = $this->get('/register');
+    $registerResponse = get('/register');
     $registerResponse->assertStatus(200);
     $registerResponse->assertSee('Join the Adventure');
 });
 
 test('login page works directly', function () {
     // Login page should work when accessed directly
-    $loginResponse = $this->get('/login');
+    $loginResponse = get('/login');
     $loginResponse->assertStatus(200);
     $loginResponse->assertSee('Enter the Realm');
 });
@@ -129,7 +130,7 @@ test('login page works directly', function () {
 test('dropdown menu structure', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/dashboard');
+    $response = actingAs($user)->get('/dashboard');
 
     // Check for dropdown elements
     $response->assertSee('Dashboard');
@@ -139,7 +140,7 @@ test('dropdown menu structure', function () {
 });
 
 test('navigation styling includes heartfeltdagger branding', function () {
-    $response = $this->get('/');
+    $response = get('/');
 
     // Check for HeartfeltDagger branding and styling
     $response->assertSee('HeartfeltDagger');

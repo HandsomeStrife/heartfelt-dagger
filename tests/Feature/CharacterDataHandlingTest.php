@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use Domain\Character\Data\CharacterData;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('character data handles null name gracefully', function () {
     $user = User::factory()->create();
@@ -61,7 +64,7 @@ test('room join page loads with characters that have null fields', function () {
     ]);
 
     // Should not error when loading the join page
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Join Room');

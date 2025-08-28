@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('debug campaign room access for anonymous user', function () {
     $campaign = \Domain\Campaign\Models\Campaign::factory()->create();
@@ -10,7 +11,7 @@ test('debug campaign room access for anonymous user', function () {
         'campaign_id' => $campaign->id,
     ]);
 
-    $response = $this->get("/rooms/join/{$room->invite_code}");
+    $response = get("/rooms/join/{$room->invite_code}");
     
     // Let's see what happens
     if ($response->status() === 302) {

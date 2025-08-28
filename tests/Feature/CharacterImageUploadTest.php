@@ -3,10 +3,15 @@
 declare(strict_types=1);
 
 use App\Livewire\CharacterBuilder;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Illuminate\Http\UploadedFile;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Illuminate\Support\Facades\Storage;
-use Livewire\Livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Livewire\livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('character image displays properly when uploaded', function () {
     // Fake S3 storage for testing
@@ -22,7 +27,7 @@ test('character image displays properly when uploaded', function () {
     $fakeImage = UploadedFile::fake()->image('test-avatar.jpg', 300, 300);
 
     // Test the Livewire component
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key]);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
     
     // Initially no image
     $initialImageUrl = $component->instance()->getImageUrl();
@@ -60,7 +65,7 @@ test('character image displays from S3 after refresh', function () {
     ]);
 
     // Test the Livewire component displays the S3 image
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key]);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
     $imageUrl = $component->instance()->getImageUrl();
     expect($imageUrl)->not()->toBeNull();
     expect($imageUrl)->toContain($imagePath);
@@ -81,7 +86,7 @@ test('character image clears properly', function () {
     ]);
 
     // Test clearing the image
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key]);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
     
     // Initially should have image
     $initialImageUrl = $component->instance()->getImageUrl();
@@ -142,7 +147,7 @@ test('character image handles all three scenarios correctly', function () {
         'profile_image_path' => null,
     ]);
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key]);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
 
     // Scenario 1: No image exists - should show upload area
     expect($component->instance()->getImageUrl())->toBeNull();
@@ -160,7 +165,7 @@ test('character image handles all three scenarios correctly', function () {
     
     // Reload to get saved image
     $character->refresh();
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key]);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
     
     if ($character->profile_image_path) {
         $savedImageUrl = $component->instance()->getImageUrl();

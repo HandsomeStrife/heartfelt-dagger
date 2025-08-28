@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new CreateCampaignAction();
+    action = new CreateCampaignAction();
 });
 it('creates campaign successfully', function () {
     $creator = User::factory()->create();
@@ -20,7 +20,7 @@ it('creates campaign successfully', function () {
         'description' => 'A classic D&D adventure adapted for DaggerHeart',
     ]);
 
-    $result = $this->action->execute($createData, $creator);
+    $result = action->execute($createData, $creator);
 
     expect($result)->toBeInstanceOf(CampaignData::class);
     expect($result->name)->toEqual('The Lost Mines of Phandelver');
@@ -35,7 +35,7 @@ it('auto generates invite code', function () {
         'description' => 'Test Description',
     ]);
 
-    $result = $this->action->execute($createData, $creator);
+    $result = action->execute($createData, $creator);
 
     expect($result->invite_code)->not->toBeNull();
     expect(strlen($result->invite_code))->toEqual(8);
@@ -48,7 +48,7 @@ it('auto generates campaign code', function () {
         'description' => 'Test Description',
     ]);
 
-    $result = $this->action->execute($createData, $creator);
+    $result = action->execute($createData, $creator);
 
     expect($result->campaign_code)->not->toBeNull();
     expect(strlen($result->campaign_code))->toEqual(8);
@@ -61,9 +61,9 @@ it('ensures codes are different', function () {
         'description' => 'Test Description',
     ]);
 
-    $result = $this->action->execute($createData, $creator);
+    $result = action->execute($createData, $creator);
 
-    $this->assertNotEquals($result->invite_code, $result->campaign_code);
+    assertNotEquals($result->invite_code, $result->campaign_code);
 });
 it('persists campaign to database', function () {
     $creator = User::factory()->create();
@@ -72,9 +72,9 @@ it('persists campaign to database', function () {
         'description' => 'This should be saved to the database',
     ]);
 
-    $result = $this->action->execute($createData, $creator);
+    $result = action->execute($createData, $creator);
 
-    $this->assertDatabaseHas('campaigns', [
+    assertDatabaseHas('campaigns', [
         'id' => $result->id,
         'name' => 'Persistent Campaign',
         'description' => 'This should be saved to the database',
@@ -91,7 +91,7 @@ it('loads creator relationship', function () {
         'description' => 'Test Description',
     ]);
 
-    $result = $this->action->execute($createData, $creator);
+    $result = action->execute($createData, $creator);
 
     expect($result->creator)->not->toBeNull();
     expect($result->creator->username)->toEqual('dungeon_master');
@@ -108,11 +108,11 @@ it('creates campaigns with unique codes', function () {
         'description' => 'Second campaign',
     ]);
 
-    $result1 = $this->action->execute($createData1, $creator);
-    $result2 = $this->action->execute($createData2, $creator);
+    $result1 = action->execute($createData1, $creator);
+    $result2 = action->execute($createData2, $creator);
 
-    $this->assertNotEquals($result1->invite_code, $result2->invite_code);
-    $this->assertNotEquals($result1->campaign_code, $result2->campaign_code);
+    assertNotEquals($result1->invite_code, $result2->invite_code);
+    assertNotEquals($result1->campaign_code, $result2->campaign_code);
 });
 it('handles long names and descriptions', function () {
     $creator = User::factory()->create();
@@ -121,7 +121,7 @@ it('handles long names and descriptions', function () {
         'description' => str_repeat('B', 1000), // Max length
     ]);
 
-    $result = $this->action->execute($createData, $creator);
+    $result = action->execute($createData, $creator);
 
     expect($result->name)->toEqual(str_repeat('A', 100));
     expect($result->description)->toEqual(str_repeat('B', 1000));
@@ -139,12 +139,12 @@ it('associates creator correctly', function () {
         'description' => 'Campaign by creator 2',
     ]);
 
-    $result1 = $this->action->execute($createData1, $creator1);
-    $result2 = $this->action->execute($createData2, $creator2);
+    $result1 = action->execute($createData1, $creator1);
+    $result2 = action->execute($createData2, $creator2);
 
     expect($result1->creator_id)->toEqual($creator1->id);
     expect($result2->creator_id)->toEqual($creator2->id);
-    $this->assertNotEquals($result1->creator_id, $result2->creator_id);
+    assertNotEquals($result1->creator_id, $result2->creator_id);
 });
 it('initializes member count as null', function () {
     $creator = User::factory()->create();
@@ -153,7 +153,7 @@ it('initializes member count as null', function () {
         'description' => 'Test Description',
     ]);
 
-    $result = $this->action->execute($createData, $creator);
+    $result = action->execute($createData, $creator);
 
     // Member count should be null in the result since it's loaded separately
     expect($result->member_count)->toBeNull();

@@ -9,7 +9,7 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new LeaveRoomAction();
+    action = new LeaveRoomAction();
 });
 it('allows participant to leave room', function () {
     $room = Room::factory()->create();
@@ -22,7 +22,7 @@ it('allows participant to leave room', function () {
 
     expect($participant->left_at)->toBeNull();
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 
     $participant->refresh();
     expect($participant->left_at)->not->toBeNull();
@@ -38,7 +38,7 @@ it('sets left at timestamp', function () {
 
     $beforeLeave = now()->subSecond();
     // Add buffer for timing
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
     $afterLeave = now()->addSecond();
 
     // Add buffer for timing
@@ -54,10 +54,10 @@ it('prevents non participant from leaving', function () {
     $user = User::factory()->create();
 
     // User is not a participant
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage('You are not an active participant in this room.');
+    expectException(Exception::class);
+    expectExceptionMessage('You are not an active participant in this room.');
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 });
 it('prevents already left participant from leaving again', function () {
     $room = Room::factory()->create();
@@ -68,10 +68,10 @@ it('prevents already left participant from leaving again', function () {
         'left_at' => now()->subHour() // Already left
     ]);
 
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage('You are not an active participant in this room.');
+    expectException(Exception::class);
+    expectExceptionMessage('You are not an active participant in this room.');
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 });
 it('allows multiple participants to leave independently', function () {
     $room = Room::factory()->create();
@@ -91,7 +91,7 @@ it('allows multiple participants to leave independently', function () {
     ]);
 
     // User1 leaves
-    $this->action->execute($room, $user1);
+    action->execute($room, $user1);
 
     $participant1->refresh();
     $participant2->refresh();
@@ -100,7 +100,7 @@ it('allows multiple participants to leave independently', function () {
     expect($participant2->left_at)->toBeNull();
 
     // User2 can still leave
-    $this->action->execute($room, $user2);
+    action->execute($room, $user2);
 
     $participant2->refresh();
     expect($participant2->left_at)->not->toBeNull();
@@ -123,7 +123,7 @@ it('handles participant in multiple rooms', function () {
     ]);
 
     // Leave room1 only
-    $this->action->execute($room1, $user);
+    action->execute($room1, $user);
 
     $participant1->refresh();
     $participant2->refresh();
@@ -156,7 +156,7 @@ it('does not affect other participants when one leaves', function () {
     ]);
 
     // User2 leaves
-    $this->action->execute($room, $user2);
+    action->execute($room, $user2);
 
     $participant1->refresh();
     $participant2->refresh();
@@ -177,7 +177,7 @@ it('handles leaving with character attached', function () {
 
     expect($participant->character_id)->not->toBeNull();
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 
     $participant->refresh();
     expect($participant->left_at)->not->toBeNull();
@@ -194,7 +194,7 @@ it('handles leaving without character', function () {
         'left_at' => null
     ]);
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 
     $participant->refresh();
     expect($participant->left_at)->not->toBeNull();
@@ -211,7 +211,7 @@ it('handles leaving with temporary character', function () {
         'character_class' => 'Warrior'
     ]);
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 
     $participant->refresh();
     expect($participant->left_at)->not->toBeNull();
@@ -231,7 +231,7 @@ it('maintains room integrity after leave', function () {
 
     $originalRoomCount = Room::count();
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 
     // Room should still exist
     expect(Room::count())->toEqual($originalRoomCount);
@@ -249,7 +249,7 @@ it('preserves participation record', function () {
 
     $originalParticipantCount = RoomParticipant::count();
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 
     // Participant record should still exist, just marked as left
     expect(RoomParticipant::count())->toEqual($originalParticipantCount);
@@ -268,8 +268,8 @@ it('prevents room creator from leaving their own room', function () {
     
     // Creator is automatically added as participant during room creation
     
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage('Room creators cannot leave their own rooms. You can delete the room instead.');
+    expectException(Exception::class);
+    expectExceptionMessage('Room creators cannot leave their own rooms. You can delete the room instead.');
 
-    $this->action->execute($room, $creator);
+    action->execute($room, $creator);
 });

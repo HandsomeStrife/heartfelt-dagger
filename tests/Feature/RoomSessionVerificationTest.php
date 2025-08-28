@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\RoomParticipant;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('room session page uses minimal layout without header and footer', function () {
     $creator = User::factory()->create();
@@ -17,7 +20,7 @@ test('room session page uses minimal layout without header and footer', function
         'left_at' => null,
     ]);
 
-    $response = $this->actingAs($creator)->get("/rooms/{$room->invite_code}/session");
+    $response = actingAs($creator)->get("/rooms/{$room->invite_code}/session");
 
     $response->assertOk();
     
@@ -56,7 +59,7 @@ test('room session creates video slots that scale with capacity', function () {
             'left_at' => null,
         ]);
 
-        $response = $this->actingAs($creator)->get("/rooms/{$room->invite_code}/session");
+        $response = actingAs($creator)->get("/rooms/{$room->invite_code}/session");
         
         // Verify video slots are present and scale appropriately
         $content = $response->getContent();
@@ -90,12 +93,12 @@ test('room session shows appropriate buttons for creator vs participant', functi
     ]);
 
     // Creator should see delete button
-    $creatorResponse = $this->actingAs($creator)->get("/rooms/{$room->invite_code}/session");
+    $creatorResponse = actingAs($creator)->get("/rooms/{$room->invite_code}/session");
     $creatorResponse->assertSee('data-testid="delete-room-button"', false);
     $creatorResponse->assertDontSee('data-testid="leave-room-button"', false);
 
     // Participant should see leave button
-    $participantResponse = $this->actingAs($participant)->get("/rooms/{$room->invite_code}/session");
+    $participantResponse = actingAs($participant)->get("/rooms/{$room->invite_code}/session");
     $participantResponse->assertSee('data-testid="leave-room-button"', false);
     $participantResponse->assertDontSee('data-testid="delete-room-button"', false);
 });
@@ -113,7 +116,7 @@ test('room session includes required webrtc javascript context', function () {
         'left_at' => null,
     ]);
 
-    $response = $this->actingAs($creator)->get("/rooms/{$room->invite_code}/session");
+    $response = actingAs($creator)->get("/rooms/{$room->invite_code}/session");
 
     // Verify WebRTC JavaScript context is present
     $response->assertSee('window.roomData');
@@ -137,7 +140,7 @@ test('room session layout elements are correct for different capacities', functi
         'left_at' => null,
     ]);
 
-    $response2 = $this->actingAs($creator)->get("/rooms/{$room2->invite_code}/session");
+    $response2 = actingAs($creator)->get("/rooms/{$room2->invite_code}/session");
     $response2->assertSee('grid-cols-2'); // Side by side layout
 
     // Test 5+ participant layout (2x3 grid with void slot)
@@ -152,7 +155,7 @@ test('room session layout elements are correct for different capacities', functi
         'left_at' => null,
     ]);
 
-    $response5 = $this->actingAs($creator)->get("/rooms/{$room5->invite_code}/session");
+    $response5 = actingAs($creator)->get("/rooms/{$room5->invite_code}/session");
     $response5->assertSee('grid-cols-3 grid-rows-2'); // 2x3 grid
     $response5->assertSee('Reserved'); // Special void slot
     $response5->assertSee('For the Void');
@@ -178,14 +181,14 @@ test('room overview page shows delete button for creator', function () {
     ]);
 
     // Creator should see delete button on overview page
-    $creatorResponse = $this->actingAs($creator)->get("/rooms/{$room->invite_code}");
+    $creatorResponse = actingAs($creator)->get("/rooms/{$room->invite_code}");
     $creatorResponse->assertOk();
     $creatorResponse->assertSee('data-testid="delete-room-button"', false);
     $creatorResponse->assertSee('Delete Room');
     $creatorResponse->assertSee('Start Session');
 
     // Participant should NOT see delete button, only leave button
-    $participantResponse = $this->actingAs($participant)->get("/rooms/{$room->invite_code}");
+    $participantResponse = actingAs($participant)->get("/rooms/{$room->invite_code}");
     $participantResponse->assertOk();
     $participantResponse->assertDontSee('data-testid="delete-room-button"', false);
     $participantResponse->assertSee('Leave Room');

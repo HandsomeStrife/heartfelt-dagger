@@ -74,7 +74,7 @@ test('stats combine ancestry and subclass bonuses', function () {
     // Warrior base evasion (11) + agility modifier (1) + ancestry bonus (1) + subclass bonus (1) = 14
     expect($stats->evasion)->toEqual(14);
 });
-function createCharacterWithSubclass(string $subclass): Character
+it('createCharacterWithSubclass', function (string $subclass): Character
 {
     return Character::factory()->create([
         'class' => 'warrior',
@@ -82,8 +82,8 @@ function createCharacterWithSubclass(string $subclass): Character
         'ancestry' => 'elf', // Use elf to avoid random ancestry bonuses
         'level' => 1,
     ]);
-}
-function createCharacterWithAncestryAndSubclass(string $ancestry, string $subclass): Character
+});
+it('createCharacterWithAncestryAndSubclass', function (string $ancestry, string $subclass): Character
 {
     return Character::factory()->create([
         'class' => 'warrior',
@@ -91,4 +91,4 @@ function createCharacterWithAncestryAndSubclass(string $ancestry, string $subcla
         'subclass' => $subclass,
         'level' => 1,
     ]);
-}
+});

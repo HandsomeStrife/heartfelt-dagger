@@ -10,16 +10,16 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new JoinRoomAction();
+    action = new JoinRoomAction();
 });
 it('joins room with character successfully', function () {
     $room = Room::factory()->create(['guest_count' => 5]);
     $user = User::factory()->create();
     $character = Character::factory()->create(['user_id' => $user->id]);
 
-    $result = $this->action->execute($room, $user, $character);
+    $result = action->execute($room, $user, $character);
 
-    $this->assertDatabaseHas('room_participants', [
+    assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_id' => $character->id,
@@ -35,7 +35,7 @@ it('joins room with temporary character successfully', function () {
     $room = Room::factory()->create(['guest_count' => 5]);
     $user = User::factory()->create();
 
-    $result = $this->action->execute(
+    $result = action->execute(
         $room,
         $user,
         null,
@@ -43,7 +43,7 @@ it('joins room with temporary character successfully', function () {
         'Wizard'
     );
 
-    $this->assertDatabaseHas('room_participants', [
+    assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_id' => null,
@@ -61,9 +61,9 @@ it('joins room without character', function () {
     $room = Room::factory()->create(['guest_count' => 5]);
     $user = User::factory()->create();
 
-    $result = $this->action->execute($room, $user);
+    $result = action->execute($room, $user);
 
-    $this->assertDatabaseHas('room_participants', [
+    assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_id' => null,
@@ -80,9 +80,9 @@ it('persists participation to database', function () {
     $user = User::factory()->create();
     $character = Character::factory()->create(['user_id' => $user->id]);
 
-    $this->action->execute($room, $user, $character);
+    action->execute($room, $user, $character);
 
-    $this->assertDatabaseCount('room_participants', 1);
+    assertDatabaseCount('room_participants', 1);
     $participant = RoomParticipant::first();
 
     expect($participant->room_id)->toEqual($room->id);
@@ -97,7 +97,7 @@ it('sets joined at timestamp', function () {
 
     $beforeJoin = now()->subSecond();
     // Add buffer for timing
-    $result = $this->action->execute($room, $user);
+    $result = action->execute($room, $user);
     $afterJoin = now()->addSecond();
 
     // Add buffer for timing
@@ -110,7 +110,7 @@ it('loads all relationships', function () {
     $user = User::factory()->create();
     $character = Character::factory()->create(['user_id' => $user->id]);
 
-    $result = $this->action->execute($room, $user, $character);
+    $result = action->execute($room, $user, $character);
 
     expect($result->user)->not->toBeNull();
     expect($result->character)->not->toBeNull();
@@ -122,13 +122,13 @@ it('prevents duplicate participation', function () {
     $user = User::factory()->create();
 
     // Join once
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 
     // Try to join again
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage('You are already an active participant in this room.');
+    expectException(Exception::class);
+    expectExceptionMessage('You are already an active participant in this room.');
 
-    $this->action->execute($room, $user);
+    action->execute($room, $user);
 });
 it('prevents joining full room', function () {
     $room = Room::factory()->create(['guest_count' => 1]); // Total capacity = 2 (creator + 1 guest)
@@ -137,14 +137,14 @@ it('prevents joining full room', function () {
     $user3 = User::factory()->create();
 
     // Fill the room to capacity
-    $this->action->execute($room, $user1); // 1 participant
-    $this->action->execute($room, $user2); // 2 participants (at capacity)
+    action->execute($room, $user1); // 1 participant
+    action->execute($room, $user2); // 2 participants (at capacity)
 
     // Try to join full room
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage('This room is at capacity.');
+    expectException(Exception::class);
+    expectExceptionMessage('This room is at capacity.');
 
-    $this->action->execute($room, $user3);
+    action->execute($room, $user3);
 });
 it('validates character ownership', function () {
     $room = Room::factory()->create();
@@ -152,38 +152,38 @@ it('validates character ownership', function () {
     $otherUser = User::factory()->create();
     $otherCharacter = Character::factory()->create(['user_id' => $otherUser->id]);
 
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage('Character does not belong to the user.');
+    expectException(Exception::class);
+    expectExceptionMessage('Character does not belong to the user.');
 
-    $this->action->execute($room, $user, $otherCharacter);
+    action->execute($room, $user, $otherCharacter);
 });
 it('allows multiple users to join same room', function () {
     $room = Room::factory()->create(['guest_count' => 3]);
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
 
-    $result1 = $this->action->execute($room, $user1);
-    $result2 = $this->action->execute($room, $user2);
+    $result1 = action->execute($room, $user1);
+    $result2 = action->execute($room, $user2);
 
-    $this->assertDatabaseCount('room_participants', 2);
-    $this->assertNotEquals($result1->user_id, $result2->user_id);
+    assertDatabaseCount('room_participants', 2);
+    assertNotEquals($result1->user_id, $result2->user_id);
 });
 it('allows user to join different rooms', function () {
     $room1 = Room::factory()->create();
     $room2 = Room::factory()->create();
     $user = User::factory()->create();
 
-    $result1 = $this->action->execute($room1, $user);
-    $result2 = $this->action->execute($room2, $user);
+    $result1 = action->execute($room1, $user);
+    $result2 = action->execute($room2, $user);
 
-    $this->assertDatabaseCount('room_participants', 2);
-    $this->assertNotEquals($result1->room_id, $result2->room_id);
+    assertDatabaseCount('room_participants', 2);
+    assertNotEquals($result1->room_id, $result2->room_id);
 });
 it('handles null character gracefully', function () {
     $room = Room::factory()->create();
     $user = User::factory()->create();
 
-    $result = $this->action->execute($room, $user, null);
+    $result = action->execute($room, $user, null);
 
     expect($result->character_id)->toBeNull();
     expect($result->character)->toBeNull();
@@ -195,12 +195,12 @@ it('maintains separate participations per room', function () {
     $character1 = Character::factory()->create(['user_id' => $user->id]);
     $character2 = Character::factory()->create(['user_id' => $user->id]);
 
-    $result1 = $this->action->execute($room1, $user, $character1);
-    $result2 = $this->action->execute($room2, $user, $character2);
+    $result1 = action->execute($room1, $user, $character1);
+    $result2 = action->execute($room2, $user, $character2);
 
     expect($result1->character_id)->toEqual($character1->id);
     expect($result2->character_id)->toEqual($character2->id);
-    $this->assertDatabaseCount('room_participants', 2);
+    assertDatabaseCount('room_participants', 2);
 });
 it('handles mixed character types', function () {
     $room = Room::factory()->create(['guest_count' => 3]);
@@ -210,13 +210,13 @@ it('handles mixed character types', function () {
     $character = Character::factory()->create(['user_id' => $user1->id]);
 
     // Join with full character
-    $result1 = $this->action->execute($room, $user1, $character);
+    $result1 = action->execute($room, $user1, $character);
 
     // Join with temporary character
-    $result2 = $this->action->execute($room, $user2, null, 'Temp Hero', 'Ranger');
+    $result2 = action->execute($room, $user2, null, 'Temp Hero', 'Ranger');
 
     // Join without character
-    $result3 = $this->action->execute($room, $user3);
+    $result3 = action->execute($room, $user3);
 
     expect($result1->character_id)->toEqual($character->id);
     expect($result2->character_id)->toBeNull();

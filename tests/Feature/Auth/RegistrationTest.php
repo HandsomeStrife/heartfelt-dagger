@@ -1,29 +1,30 @@
 <?php
 
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('registration screen can be rendered', function () {
-    $response = $this->get('/register');
+    $response = get('/register');
 
     $response->assertStatus(200);
 });
 
 test('new users can register', function () {
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => 'testuser',
         'email' => 'test@example.com',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
 
-    $this->assertAuthenticated();
+    assertAuthenticated();
     $response->assertRedirect('/dashboard');
 });
 
 test('registration requires username', function () {
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => '',
         'email' => 'test@example.com',
         'password' => 'password123',
@@ -31,11 +32,11 @@ test('registration requires username', function () {
     ]);
 
     $response->assertSessionHasErrors('username');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('registration requires email', function () {
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => 'testuser',
         'email' => '',
         'password' => 'password123',
@@ -43,11 +44,11 @@ test('registration requires email', function () {
     ]);
 
     $response->assertSessionHasErrors('email');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('registration requires valid email', function () {
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => 'testuser',
         'email' => 'invalid-email',
         'password' => 'password123',
@@ -55,11 +56,11 @@ test('registration requires valid email', function () {
     ]);
 
     $response->assertSessionHasErrors('email');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('registration requires password', function () {
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => 'testuser',
         'email' => 'test@example.com',
         'password' => '',
@@ -67,11 +68,11 @@ test('registration requires password', function () {
     ]);
 
     $response->assertSessionHasErrors('password');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('registration requires password confirmation', function () {
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => 'testuser',
         'email' => 'test@example.com',
         'password' => 'password123',
@@ -79,11 +80,11 @@ test('registration requires password confirmation', function () {
     ]);
 
     $response->assertSessionHasErrors('password');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('registration requires minimum password length', function () {
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => 'testuser',
         'email' => 'test@example.com',
         'password' => '123',
@@ -91,7 +92,7 @@ test('registration requires minimum password length', function () {
     ]);
 
     $response->assertSessionHasErrors('password');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('registration requires unique username', function () {
@@ -100,7 +101,7 @@ test('registration requires unique username', function () {
         'email' => 'existing@example.com',
     ]);
 
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => 'existinguser',
         'email' => 'test@example.com',
         'password' => 'password123',
@@ -108,7 +109,7 @@ test('registration requires unique username', function () {
     ]);
 
     $response->assertSessionHasErrors('username');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('registration requires unique email', function () {
@@ -117,7 +118,7 @@ test('registration requires unique email', function () {
         'email' => 'existing@example.com',
     ]);
 
-    $response = $this->post('/register', [
+    $response = post('/register', [
         'username' => 'testuser',
         'email' => 'existing@example.com',
         'password' => 'password123',
@@ -125,13 +126,13 @@ test('registration requires unique email', function () {
     ]);
 
     $response->assertSessionHasErrors('email');
-    $this->assertGuest();
+    assertGuest();
 });
 
 test('authenticated users cannot access registration', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/register');
+    $response = actingAs($user)->get('/register');
 
     $response->assertRedirect('/dashboard');
 });

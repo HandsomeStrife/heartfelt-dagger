@@ -21,7 +21,7 @@ it('ensures character keys are unique', function () {
     $character1 = Character::factory()->create();
     $character2 = Character::factory()->create();
 
-    $this->assertNotEquals($character1->character_key, $character2->character_key);
+    assertNotEquals($character1->character_key, $character2->character_key);
 });
 it('belongs to a user', function () {
     $user = User::factory()->create();
@@ -128,14 +128,14 @@ it('generates share url', function () {
 
     $shareUrl = $character->getShareUrl();
 
-    $this->assertStringContainsString('/character/ABC12345', $shareUrl);
+    assertStringContainsString('/character/ABC12345', $shareUrl);
 });
 it('generates banner url', function () {
     $character = Character::factory()->create(['class' => 'warrior']);
 
     $banner = $character->getBanner();
 
-    $this->assertStringContainsString('img/banners/warrior.webp', $banner);
+    assertStringContainsString('img/banners/warrior.webp', $banner);
 });
 it('returns default profile image when s3 file not found', function () {
     $character = Character::factory()->create([
@@ -145,17 +145,17 @@ it('returns default profile image when s3 file not found', function () {
     $profileImage = $character->getProfileImage();
 
     // Since S3 storage doesn't exist in test environment, should return default avatar
-    $this->assertStringContainsString('img/default-avatar.png', $profileImage);
+    assertStringContainsString('img/default-avatar.png', $profileImage);
 });
 it('returns default profile image when none set', function () {
     $character = Character::factory()->create(['profile_image_path' => null]);
 
     $profileImage = $character->getProfileImage();
 
-    $this->assertStringContainsString('img/default-avatar.png', $profileImage);
+    assertStringContainsString('img/default-avatar.png', $profileImage);
 });
 it('validates required fields', function () {
-    $this->expectException(\Illuminate\Database\QueryException::class);
+    expectException(\Illuminate\Database\QueryException::class);
 
     Character::create([
         // Missing required fields like character_key, name, class, etc.

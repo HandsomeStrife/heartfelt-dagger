@@ -150,7 +150,7 @@ test('domain combinations are unique across all classes', function () {
         $combinationKey = implode(',', array_map(fn($d) => $d->value, $domains));
         
         if (in_array($combinationKey, $domainCombinations)) {
-            $this->fail("Duplicate domain combination found: {$combinationKey} for class {$class->value}");
+            fail("Duplicate domain combination found: {$combinationKey} for class {$class->value}");
         }
         
         $domainCombinations[] = $combinationKey;

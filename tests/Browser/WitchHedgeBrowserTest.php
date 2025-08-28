@@ -101,7 +101,7 @@ test('witch hedge subclass features are correctly loaded', function () {
 });
 
 test('witch hedge character builder integration works correctly', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->assertSee('Character Builder')
             ->click('[dusk="class-card-witch"]')

@@ -25,7 +25,7 @@ test('wizard school of war character builder integration works correctly', funct
     ]);
 
     // Test that the character builder page loads 
-    $response = $this->get("/character-builder/{$character->character_key}");
+    $response = get("/character-builder/{$character->character_key}");
     $response->assertStatus(200);
     
     // Test the core functionality: character creation with School of War

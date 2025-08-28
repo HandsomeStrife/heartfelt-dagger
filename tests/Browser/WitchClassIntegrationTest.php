@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Domain\Character\Models\Character;
 
 test('witch class appears in class selection with proper playtest markings', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->assertSee('DaggerHeart Character Builder')
             ->within('[data-step="class-selection"]', function ($browser) {
@@ -20,7 +20,7 @@ test('witch class appears in class selection with proper playtest markings', fun
 });
 
 test('witch class selection loads correct data and subclasses', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->click('[data-class="witch"]')
             ->waitForText('Select a Subclass')
@@ -38,7 +38,7 @@ test('witch class selection loads correct data and subclasses', function () {
 });
 
 test('witch hedge subclass selection displays complete information', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->click('[data-class="witch"]')
             ->waitForText('Select a Subclass')
@@ -63,7 +63,7 @@ test('witch hedge subclass selection displays complete information', function ()
 });
 
 test('witch moon subclass selection displays complete information', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->click('[data-class="witch"]')
             ->waitForText('Select a Subclass')
@@ -92,7 +92,7 @@ test('witch class domain card selection works with dread and sage domains', func
         'selected_subclass' => 'hedge',
     ]);
 
-    $this->browse(function ($browser) use ($character) {
+    browse(function ($browser) use ($character) {
         $browser->visitRoute('character.builder', ['character' => $character])
             ->clickAndWaitForStep('domain-card-selection')
             ->within('[data-step="domain-card-selection"]', function ($browser) {
@@ -110,7 +110,7 @@ test('witch class domain card selection works with dread and sage domains', func
 });
 
 test('witch class hope feature and class features display correctly', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->click('[data-class="witch"]')
             ->click('[data-subclass="hedge"]')
@@ -139,7 +139,7 @@ test('witch class stats display correctly in character preview', function () {
         'knowledge' => 1,
     ]);
 
-    $this->browse(function ($browser) use ($character) {
+    browse(function ($browser) use ($character) {
         $browser->visitRoute('character.builder', ['character' => $character])
             ->within('[data-section="character-stats"]', function ($browser) {
                 $browser->assertSee('Evasion: 10')
@@ -154,7 +154,7 @@ test('witch class stats display correctly in character preview', function () {
 });
 
 test('witch playtest warning displays correctly throughout character builder', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->click('[data-class="witch"]')
             ->within('[data-playtest-warning]', function ($browser) {
@@ -168,7 +168,7 @@ test('witch playtest warning displays correctly throughout character builder', f
 });
 
 test('witch class inventory suggestions load correctly', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->click('[data-class="witch"]')
             ->click('[data-subclass="hedge"]')
@@ -195,7 +195,7 @@ test('witch class inventory suggestions load correctly', function () {
 });
 
 test('witch background and connection questions load correctly', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->click('[data-class="witch"]')
             ->click('[data-subclass="moon"]')
@@ -237,7 +237,7 @@ test('completed witch character shows all correct information', function () {
         'ability_level' => 1,
     ]);
 
-    $this->browse(function ($browser) use ($character) {
+    browse(function ($browser) use ($character) {
         $browser->visitRoute('character.summary', ['character' => $character])
             ->assertSee('Witch (Hedge)')
             ->assertSee('Void - Playtest v1.5')

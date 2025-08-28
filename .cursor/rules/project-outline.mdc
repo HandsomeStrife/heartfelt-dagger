@@ -3,8 +3,6 @@ description:
 globs: 
 alwaysApply: true
 ---
-# **Enhanced Code Generation Rules**
-
 ALWAYS check that components exist before making assumptions.
 
 The project uses Laravel 12, TailwindCSS, Livewire and AlpineJS.
@@ -126,8 +124,7 @@ Tests should be run with `sail pest`
    - **No `@php`** in templates.
    - Use standard Blade components for forms, buttons, badges, modals, tooltips, etc.
 6. **Testing**:
-   - Tests are written with PHPUnit in mind
-   - Use `#[Test]` attributes (not `@test`).  
+   - Tests are written with Pest in mind
    - **No mocks** except external APIs.  
    - Factories for test data.  
    - Avoid skipped tests.
@@ -281,13 +278,13 @@ Tests should be run with `sail pest`
 
 ## **Laravel Testing**
 
+We use Pest4 in this project.
+
 1. **Factories**  
    - For test data setup, stored in `database/factories/`.
 2. **No Mocks**  
    - Unless mocking external APIs, prefer real application code in tests.
-3. **`#[Test]` Attributes**  
-   - Mark test methods with `#[Test]`.
-4. **No Skipped Tests**  
+3. **No Skipped Tests**  
    - Must either test or remove.
 
 ---

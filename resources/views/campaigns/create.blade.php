@@ -37,17 +37,43 @@
                             @enderror
                         </div>
 
-                        <!-- Campaign Description -->
+                        <!-- Campaign Frame (Optional) -->
+                        @if($available_frames->isNotEmpty())
+                        <div>
+                            <label for="campaign_frame_id" class="block text-sm font-outfit font-medium text-slate-300 mb-2">
+                                Campaign Frame <span class="text-slate-500">(Optional)</span>
+                            </label>
+                            <select 
+                                id="campaign_frame_id" 
+                                name="campaign_frame_id"
+                                class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 focus:outline-none transition-all duration-300"
+                            >
+                                <option value="">Choose a campaign frame...</option>
+                                @foreach($available_frames as $frame)
+                                    <option value="{{ $frame->id }}" {{ old('campaign_frame_id') == $frame->id ? 'selected' : '' }}>
+                                        {{ $frame->name }} - {{ $frame->description }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('campaign_frame_id')
+                                <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                            <p class="mt-2 text-xs text-slate-400">
+                                Campaign frames provide pre-built settings and guidance for your campaign
+                            </p>
+                        </div>
+                        @endif
+
+                        <!-- Campaign Description (Optional) -->
                         <div>
                             <label for="description" class="block text-sm font-outfit font-medium text-slate-300 mb-2">
-                                Description
+                                Description <span class="text-slate-500">(Optional)</span>
                             </label>
                             <textarea 
                                 id="description" 
                                 name="description" 
                                 rows="4"
                                 maxlength="1000"
-                                required
                                 class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-xl text-white placeholder-slate-400 focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 focus:outline-none transition-all duration-300 resize-none"
                                 placeholder="Describe your campaign setting, tone, and what players can expect..."
                             >{{ old('description') }}</textarea>

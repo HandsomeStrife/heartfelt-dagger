@@ -104,7 +104,7 @@ test('witch moon subclass features are correctly loaded', function () {
 });
 
 test('witch moon character builder integration works correctly', function () {
-    $this->browse(function ($browser) {
+    browse(function ($browser) {
         $browser->visit('/')
             ->assertSee('DaggerHeart Character Builder')
             ->click('[data-class="witch"]')

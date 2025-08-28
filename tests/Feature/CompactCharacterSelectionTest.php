@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('character dropdown shows compact character list with class info', function () {
     $user = User::factory()->create();
@@ -25,7 +28,7 @@ test('character dropdown shows compact character list with class info', function
         'subclass' => 'beastbound',
     ]);
 
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     
@@ -45,7 +48,7 @@ test('character dropdown includes temporary character option', function () {
         'class' => 'Wizard',
     ]);
 
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     
@@ -67,13 +70,13 @@ test('dropdown form submission works with existing character selection', functio
     ]);
 
     // Submit form with character selected from dropdown
-    $response = $this->actingAs($user)->post(route('rooms.join', $room), [
+    $response = actingAs($user)->post(route('rooms.join', $room), [
         'character_id' => $character->id
     ]);
 
     $response->assertRedirect(route('rooms.session', $room));
     
-    $this->assertDatabaseHas('room_participants', [
+    assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_id' => $character->id
@@ -92,7 +95,7 @@ test('dropdown form submission works with temporary character option', function 
     ]);
 
     // Submit form with temporary character (empty character_id)
-    $response = $this->actingAs($user)->post(route('rooms.join', $room), [
+    $response = actingAs($user)->post(route('rooms.join', $room), [
         'character_id' => '', // Empty for temporary
         'character_name' => 'Temp Character',
         'character_class' => 'Guardian'
@@ -100,7 +103,7 @@ test('dropdown form submission works with temporary character option', function 
 
     $response->assertRedirect(route('rooms.session', $room));
     
-    $this->assertDatabaseHas('room_participants', [
+    assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_name' => 'Temp Character',

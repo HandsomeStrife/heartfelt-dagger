@@ -3,42 +3,45 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\RoomParticipant;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 beforeEach(function () {
     // Create users
-    $this->roomCreator = User::factory()->create([
+    roomCreator = User::factory()->create([
         'username' => 'RoomCreator',
         'email' => 'creator@example.com',
     ]);
     
-    $this->participant = User::factory()->create([
+    participant = User::factory()->create([
         'username' => 'Participant',
         'email' => 'participant@example.com',
     ]);
     
     // Create a room (creator is automatically added as participant)
-    $this->room = Room::factory()->create([
+    room = Room::factory()->create([
         'name' => 'Test Room',
         'description' => 'A test room',
-        'creator_id' => $this->roomCreator->id,
+        'creator_id' => roomCreator->id,
         'guest_count' => 4, // Total capacity should be 5 (4 guests + 1 creator)
     ]);
     
     // The creator is automatically added as a participant by CreateRoomAction
     // Let's manually add to simulate this for testing
     RoomParticipant::factory()->create([
-        'room_id' => $this->room->id,
-        'user_id' => $this->roomCreator->id,
+        'room_id' => room->id,
+        'user_id' => roomCreator->id,
         'joined_at' => now(),
         'left_at' => null,
     ]);
     
     // Add another participant who joined the room
     RoomParticipant::factory()->create([
-        'room_id' => $this->room->id,
-        'user_id' => $this->participant->id,
+        'room_id' => room->id,
+        'user_id' => participant->id,
         'character_name' => 'Test Character',
         'character_class' => 'Warrior',
         'joined_at' => now(),
@@ -47,9 +50,9 @@ beforeEach(function () {
 });
 
 test('room creator does not see their own room in joined rooms', function () {
-    $this->actingAs($this->roomCreator);
+    actingAs(roomCreator);
     
-    $response = $this->get(route('rooms.index'));
+    $response = get(route('rooms.index'));
     
     $response->assertOk();
     
@@ -63,9 +66,9 @@ test('room creator does not see their own room in joined rooms', function () {
 });
 
 test('participant sees room in joined rooms but not created rooms', function () {
-    $this->actingAs($this->participant);
+    actingAs(participant);
     
-    $response = $this->get(route('rooms.index'));
+    $response = get(route('rooms.index'));
     
     $response->assertOk();
     
@@ -80,48 +83,48 @@ test('participant sees room in joined rooms but not created rooms', function () 
 });
 
 test('participant counts are consistent across pages', function () {
-    $this->actingAs($this->roomCreator);
+    actingAs(roomCreator);
     
     // Check rooms index page
-    $indexResponse = $this->get(route('rooms.index'));
+    $indexResponse = get(route('rooms.index'));
     $indexResponse->assertOk();
     $indexResponse->assertSee('2/5'); // 2 active participants out of 5 total capacity
     
     // Check room show page
-    $showResponse = $this->get(route('rooms.show', $this->room));
+    $showResponse = get(route('rooms.show', room));
     $showResponse->assertOk();
     $showResponse->assertSee('2 of 5 slots filled'); // Should match index page
     
     // Check room session page
-    $sessionResponse = $this->get(route('rooms.session', $this->room));
+    $sessionResponse = get(route('rooms.session', room));
     $sessionResponse->assertOk();
     $sessionResponse->assertSee('2/5 participants'); // Should match other pages
 });
 
 test('join page shows correct capacity', function () {
-    $this->actingAs($this->participant);
+    actingAs(participant);
     
-    $response = $this->get(route('rooms.invite', $this->room->invite_code));
+    $response = get(route('rooms.invite', room->invite_code));
     
     $response->assertOk();
     $response->assertSee('2/5 participants'); // Current participants / total capacity
 });
 
 test('room total capacity calculation is correct', function () {
-    expect($this->room->guest_count)->toBe(4);
-    expect($this->room->getTotalCapacity())->toBe(5); // guest_count + 1 (creator)
-    expect($this->room->getActiveParticipantCount())->toBe(2); // creator + participant
+    expect(room->guest_count)->toBe(4);
+    expect(room->getTotalCapacity())->toBe(5); // guest_count + 1 (creator)
+    expect(room->getActiveParticipantCount())->toBe(2); // creator + participant
 });
 
 test('room at capacity check works correctly', function () {
     // Room should not be at capacity (2/5)
-    expect($this->room->isAtCapacity())->toBeFalse();
+    expect(room->isAtCapacity())->toBeFalse();
     
     // Add 3 more participants to reach capacity
     for ($i = 0; $i < 3; $i++) {
         $newUser = User::factory()->create();
         RoomParticipant::factory()->create([
-            'room_id' => $this->room->id,
+            'room_id' => room->id,
             'user_id' => $newUser->id,
             'character_name' => "Character $i",
             'character_class' => 'Ranger',
@@ -131,13 +134,13 @@ test('room at capacity check works correctly', function () {
     }
     
     // Now should be at capacity (5/5)
-    expect($this->room->fresh()->isAtCapacity())->toBeTrue();
-    expect($this->room->fresh()->getActiveParticipantCount())->toBe(5);
+    expect(room->fresh()->isAtCapacity())->toBeTrue();
+    expect(room->fresh()->getActiveParticipantCount())->toBe(5);
 });
 
 test('room methods return consistent results', function () {
     // Refresh room to get latest data
-    $room = $this->room->fresh();
+    $room = room->fresh();
     
     // Test all the counting methods return consistent results
     expect($room->getActiveParticipantCount())->toBe(2);
@@ -147,9 +150,9 @@ test('room methods return consistent results', function () {
 });
 
 test('rooms index displays use model methods not count attributes', function () {
-    $this->actingAs($this->roomCreator);
+    actingAs(roomCreator);
     
-    $response = $this->get(route('rooms.index'));
+    $response = get(route('rooms.index'));
     
     // Verify the response contains the method calls, not just count attributes
     $response->assertOk();
@@ -161,13 +164,13 @@ test('rooms index displays use model methods not count attributes', function () 
 
 test('left participants are not counted in active participant count', function () {
     // Participant leaves the room
-    $this->room->activeParticipants()
-        ->where('user_id', $this->participant->id)
+    room->activeParticipants()
+        ->where('user_id', participant->id)
         ->first()
         ->update(['left_at' => now()]);
     
     // Refresh and check counts
-    $room = $this->room->fresh();
+    $room = room->fresh();
     
     expect($room->getActiveParticipantCount())->toBe(1); // Only creator remains
     expect($room->activeParticipants()->count())->toBe(1);
@@ -177,7 +180,7 @@ test('left participants are not counted in active participant count', function (
 test('anonymous participants are counted correctly', function () {
     // Add an anonymous participant
     RoomParticipant::factory()->create([
-        'room_id' => $this->room->id,
+        'room_id' => room->id,
         'user_id' => null, // Anonymous
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior',
@@ -186,7 +189,7 @@ test('anonymous participants are counted correctly', function () {
     ]);
     
     // Refresh and check counts
-    $room = $this->room->fresh();
+    $room = room->fresh();
     
     expect($room->getActiveParticipantCount())->toBe(3); // creator + participant + anonymous
     expect($room->activeParticipants()->count())->toBe(3);

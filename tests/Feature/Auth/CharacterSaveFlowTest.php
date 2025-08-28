@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Illuminate\Support\Facades\Hash;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('characters are saved against user on login with character keys', function () {
@@ -25,7 +29,7 @@ test('characters are saved against user on login with character keys', function 
     expect($character3->fresh()->user_id)->toBeNull();
 
     // Simulate login with character keys (this is what would happen when localStorage is read)
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => [$character1->character_key, $character2->character_key],
@@ -42,7 +46,7 @@ test('characters are saved against user on login with character keys', function 
     expect($character3->fresh()->user_id)->toBeNull();
 
     // Verify user is authenticated
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 });
 test('characters are saved against user on registration with character keys', function () {
     // Create some anonymous characters (simulating localStorage characters)
@@ -54,7 +58,7 @@ test('characters are saved against user on registration with character keys', fu
     expect($character2->fresh()->user_id)->toBeNull();
 
     // Simulate registration with character keys
-    $response = $this->post(route('register.post'), [
+    $response = post(route('register.post'), [
         'username' => 'newuser',
         'email' => 'newuser@example.com',
         'password' => 'password123',
@@ -74,7 +78,7 @@ test('characters are saved against user on registration with character keys', fu
     expect($character2->fresh()->user_id)->toEqual($user->id);
 
     // Verify user is authenticated
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 });
 test('only anonymous characters are associated on login', function () {
     // Create users
@@ -90,7 +94,7 @@ test('only anonymous characters are associated on login', function () {
     $ownedChar = Character::factory()->create(['user_id' => $user2->id]);
 
     // Try to login with a mix of anonymous and owned character keys
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => [
@@ -121,7 +125,7 @@ test('user can access associated characters after login', function () {
     $character2 = Character::factory()->create(['user_id' => null]);
 
     // Login with character keys
-    $this->post(route('login.post'), [
+    post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => [$character1->character_key, $character2->character_key],
@@ -145,7 +149,7 @@ test('system handles invalid character keys gracefully', function () {
     $validChar = Character::factory()->create(['user_id' => null]);
 
     // Login with mix of valid and invalid character keys
-    $response = $this->post(route('login.post'), [
+    $response = post(route('login.post'), [
         'email' => 'test@example.com',
         'password' => 'password',
         'character_keys' => [
@@ -157,7 +161,7 @@ test('system handles invalid character keys gracefully', function () {
 
     // Should still login successfully
     $response->assertRedirect('/dashboard');
-    $this->assertAuthenticatedAs($user);
+    assertAuthenticatedAs($user);
 
     // Valid character should be associated
     expect($validChar->fresh()->user_id)->toEqual($user->id);

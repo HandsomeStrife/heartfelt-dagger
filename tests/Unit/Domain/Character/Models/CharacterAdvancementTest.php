@@ -114,7 +114,7 @@ test('unique constraint prevents duplicate tier advancement number', function ()
         'advancement_number' => 1,
     ]);
 
-    $this->expectException(\Illuminate\Database\QueryException::class);
+    expectException(\Illuminate\Database\QueryException::class);
 
     // Second advancement with same tier and advancement_number should fail
     CharacterAdvancement::factory()->create([
@@ -138,7 +138,7 @@ test('different tier same advancement number is allowed', function () {
         'advancement_number' => 1,
     ]);
 
-    $this->assertNotEquals($advancement1->id, $advancement2->id);
+    assertNotEquals($advancement1->id, $advancement2->id);
     expect($advancement1->tier)->toEqual(1);
     expect($advancement2->tier)->toEqual(2);
 });
@@ -157,7 +157,7 @@ test('same tier different advancement number is allowed', function () {
         'advancement_number' => 2,
     ]);
 
-    $this->assertNotEquals($advancement1->id, $advancement2->id);
+    assertNotEquals($advancement1->id, $advancement2->id);
     expect($advancement1->advancement_number)->toEqual(1);
     expect($advancement2->advancement_number)->toEqual(2);
 });

@@ -11,34 +11,34 @@ class CharacterBuilderMacros
     public static function register(): void
     {
         Browser::macro('completeClassSelection', function () {
-            return $this->waitFor('[dusk="class-card-warrior"]', 10)
+            return waitFor('[dusk="class-card-warrior"]', 10)
                 ->click('[dusk="class-card-warrior"]')
                 ->waitForText('Class Selection Complete!', 5);
         });
 
         Browser::macro('completeSubclassSelection', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="subclass-card-call of the brave"]', 10)
                 ->click('[dusk="subclass-card-call of the brave"]')
                 ->waitForText('Subclass Selection Complete!', 5);
         });
 
         Browser::macro('completeAncestrySelection', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="ancestry-card-human"]', 10)
                 ->click('[dusk="ancestry-card-human"]')
                 ->waitForText('Ancestry Selection Complete!', 5);
         });
 
         Browser::macro('completeCommunitySelection', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="community-card-wanderborne"]', 10)
                 ->click('[dusk="community-card-wanderborne"]')
                 ->waitForText('Community Selection Complete!', 5);
         });
 
         Browser::macro('assignTraits', function () {
-            return $this->click('[dusk="trait-value-agility-2"]')
+            return click('[dusk="trait-value-agility-2"]')
                 ->pause(500)
                 ->click('[dusk="trait-value-strength-1"]')
                 ->pause(500)
@@ -53,20 +53,20 @@ class CharacterBuilderMacros
         });
 
         Browser::macro('completeTraitAssignment', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="trait-card-agility"]', 10)
                 ->assignTraits();
         });
 
         Browser::macro('completeCharacterInfo', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="character-name-input"]', 10)
                 ->type('[dusk="character-name-input"]', 'Test Hero')
                 ->waitForText('Character name set!', 5);
         });
 
         Browser::macro('selectEquipment', function () {
-            return $this->waitFor('[dusk="weapon-card-shortsword"]', 10)
+            return waitFor('[dusk="weapon-card-shortsword"]', 10)
                 ->click('[dusk="weapon-card-shortsword"]')
                 ->pause(500)
                 ->scrollIntoView('[dusk="armor-card-advanced leather armor"]')
@@ -78,13 +78,13 @@ class CharacterBuilderMacros
         });
 
         Browser::macro('completeEquipmentSelection', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="weapon-card-shortsword"]', 10)
                 ->selectEquipment();
         });
 
         Browser::macro('completeBackgroundQuestions', function () {
-            return $this->waitFor('[dusk="background-answer-0"]', 10)
+            return waitFor('[dusk="background-answer-0"]', 10)
                 ->type('[dusk="background-answer-0"]', 'My mentor taught me confidence through rigorous training and belief in my abilities.')
                 ->pause(500)
                 ->type('[dusk="background-answer-1"]', 'I once loved a fellow bard who betrayed my trust by stealing my original compositions.')
@@ -94,13 +94,13 @@ class CharacterBuilderMacros
         });
 
         Browser::macro('completeBackgroundCreation', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="background-answer-0"]', 10)
                 ->completeBackgroundQuestions();
         });
 
         Browser::macro('createExperiences', function () {
-            return $this->waitFor('[dusk="new-experience-name"]', 10)
+            return waitFor('[dusk="new-experience-name"]', 10)
                 ->type('[dusk="new-experience-name"]', 'Combat Training')
                 ->type('[dusk="new-experience-description"]', 'Extensive military training and battlefield experience')
                 ->click('[dusk="add-experience-button"]')
@@ -112,28 +112,28 @@ class CharacterBuilderMacros
         });
 
         Browser::macro('completeExperienceCreation', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk="new-experience-name"]', 10)
                 ->createExperiences();
         });
 
         Browser::macro('selectDomainCards', function () {
             // Select first available domain card
-            return $this->waitFor('[dusk^="domain-card-"]', 10)
-                ->click($this->elements('[dusk^="domain-card-"]')[0])
+            return waitFor('[dusk^="domain-card-"]', 10)
+                ->click(elements('[dusk^="domain-card-"]')[0])
                 ->pause(1000)
-                ->click($this->elements('[dusk^="domain-card-"]')[1])
+                ->click(elements('[dusk^="domain-card-"]')[1])
                 ->waitForText('Domain card selection complete!', 5);
         });
 
         Browser::macro('completeDomainCardSelection', function () {
-            return $this->click('[dusk="next-step-button"]')
+            return click('[dusk="next-step-button"]')
                 ->waitFor('[dusk^="domain-card-"]', 10)
                 ->selectDomainCards();
         });
 
         Browser::macro('completeConnections', function () {
-            return $this->waitFor('[dusk="connection-answer-0"]', 10)
+            return waitFor('[dusk="connection-answer-0"]', 10)
                 ->type('[dusk="connection-answer-0"]', 'You saved my life in our first battle together, and I trust you completely.')
                 ->pause(500)
                 ->type('[dusk="connection-answer-1"]', 'Your constant humming during quiet moments both soothes and occasionally irritates me.')
@@ -143,7 +143,7 @@ class CharacterBuilderMacros
         });
 
         Browser::macro('completeFullCharacterCreation', function () {
-            return $this->completeClassSelection()
+            return completeClassSelection()
                 ->completeSubclassSelection()
                 ->completeAncestrySelection()
                 ->completeCommunitySelection()
@@ -158,35 +158,35 @@ class CharacterBuilderMacros
         });
 
         Browser::macro('assertStepComplete', function (int $step) {
-            return $this->waitFor("[dusk=\"sidebar-tab-{$step}\"] [dusk=\"sidebar-completion-checkmark\"]", 5)
+            return waitFor("[dusk=\"sidebar-tab-{$step}\"] [dusk=\"sidebar-completion-checkmark\"]", 5)
                 ->assertPresent("[dusk=\"sidebar-tab-{$step}\"] [dusk=\"sidebar-completion-checkmark\"]");
         });
 
         Browser::macro('goToStep', function (int $step) {
-            return $this->click("[dusk=\"sidebar-tab-{$step}\"]")
+            return click("[dusk=\"sidebar-tab-{$step}\"]")
                 ->waitFor('.step-content', 3);
         });
 
         Browser::macro('assertCurrentStep', function (int $step) {
-            return $this->assertPresent("[dusk=\"sidebar-tab-{$step}\"].bg-gradient-to-r");
+            return assertPresent("[dusk=\"sidebar-tab-{$step}\"].bg-gradient-to-r");
         });
 
         Browser::macro('waitForCharacterBuilderToLoad', function () {
-            return $this->waitFor('[dusk="progress-bar"]', 10)
+            return waitFor('[dusk="progress-bar"]', 10)
                 ->waitFor('[dusk="sidebar-tab-1"]', 5)
                 ->waitFor('[dusk="character-summary"]', 5);
         });
 
         Browser::macro('assertProgressPercentage', function (int $expectedPercentage) {
-            return $this->waitForText("{$expectedPercentage}% Complete", 5)
+            return waitForText("{$expectedPercentage}% Complete", 5)
                 ->assertSee("{$expectedPercentage}% Complete");
         });
 
         Browser::macro('resetCharacter', function () {
-            return $this->scrollIntoView('[dusk="character-summary"]')
+            return scrollIntoView('[dusk="character-summary"]')
                 ->click('button:contains("Reset Character")')
                 ->acceptDialog()
                 ->waitFor('[dusk="progress-bar"]', 3);
         });
     }
-}
+});

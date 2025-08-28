@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('join page shows character selection dropdown when user has characters', function () {
     $user = User::factory()->create();
@@ -17,7 +20,7 @@ test('join page shows character selection dropdown when user has characters', fu
         'class' => 'Warrior',
     ]);
 
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Character Selection');
@@ -33,7 +36,7 @@ test('join page shows simplified form when user has no characters', function () 
     
     // User has no characters
     
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Create Temporary Character');
@@ -45,7 +48,7 @@ test('join page shows simplified form when user has no characters', function () 
 test('join page shows temporary character form for unauthenticated users', function () {
     $room = Room::factory()->passwordless()->create();
     
-    $response = $this->get("/rooms/join/{$room->invite_code}");
+    $response = get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Create Temporary Character');
@@ -60,7 +63,7 @@ test('join page temporary character fields are enabled when user has no characte
     
     // User has no characters
     
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     
@@ -85,7 +88,7 @@ test('join page temporary character fields are disabled when user has characters
         'class' => 'Warrior',
     ]);
 
-    $response = $this->actingAs($user)->get("/rooms/join/{$room->invite_code}");
+    $response = actingAs($user)->get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     

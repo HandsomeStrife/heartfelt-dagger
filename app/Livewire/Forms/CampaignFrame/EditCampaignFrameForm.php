@@ -28,19 +28,26 @@ class EditCampaignFrameForm extends Form
     public bool $is_public = false;
 
     public array $pitch = [];
-    public array $tone_and_themes = [];
+    public array $touchstones = [];
+    public array $tone = [];
+    public array $themes = [];
+    public array $player_principles = [];
+    public array $gm_principles = [];
+    public array $community_guidance = [];
+    public array $ancestry_guidance = [];
+    public array $class_guidance = [];
 
     #[Validate('string|max:2000')]
     public string $background_overview = '';
 
     public array $setting_guidance = [];
-    public array $principles = [];
     public array $setting_distinctions = [];
 
     #[Validate('string|max:1000')]
     public string $inciting_incident = '';
 
     public array $special_mechanics = [];
+    public array $campaign_mechanics = [];
     public array $session_zero_questions = [];
 
     public function setFrame(CampaignFrameData $frame_data): void
@@ -52,13 +59,20 @@ class EditCampaignFrameForm extends Form
         $this->complexity_rating = $frame_data->complexity_rating->value;
         $this->is_public = $frame_data->is_public;
         $this->pitch = $frame_data->pitch;
-        $this->tone_and_themes = $frame_data->tone_and_themes;
+        $this->touchstones = $frame_data->touchstones;
+        $this->tone = $frame_data->tone;
+        $this->themes = $frame_data->themes;
+        $this->player_principles = $frame_data->player_principles;
+        $this->gm_principles = $frame_data->gm_principles;
+        $this->community_guidance = $frame_data->community_guidance;
+        $this->ancestry_guidance = $frame_data->ancestry_guidance;
+        $this->class_guidance = $frame_data->class_guidance;
         $this->background_overview = $frame_data->background_overview;
         $this->setting_guidance = $frame_data->setting_guidance;
-        $this->principles = $frame_data->principles;
         $this->setting_distinctions = $frame_data->setting_distinctions;
         $this->inciting_incident = $frame_data->inciting_incident;
         $this->special_mechanics = $frame_data->special_mechanics;
+        $this->campaign_mechanics = $frame_data->campaign_mechanics;
         $this->session_zero_questions = $frame_data->session_zero_questions;
     }
 
@@ -76,13 +90,20 @@ class EditCampaignFrameForm extends Form
             'complexity_rating' => ComplexityRating::from($this->complexity_rating),
             'is_public' => $this->is_public,
             'pitch' => $this->pitch,
-            'tone_and_themes' => $this->tone_and_themes,
+            'touchstones' => $this->touchstones,
+            'tone' => $this->tone,
+            'themes' => $this->themes,
+            'player_principles' => $this->player_principles,
+            'gm_principles' => $this->gm_principles,
+            'community_guidance' => $this->community_guidance,
+            'ancestry_guidance' => $this->ancestry_guidance,
+            'class_guidance' => $this->class_guidance,
             'background_overview' => $this->background_overview,
             'setting_guidance' => $this->setting_guidance,
-            'principles' => $this->principles,
             'setting_distinctions' => $this->setting_distinctions,
             'inciting_incident' => $this->inciting_incident,
             'special_mechanics' => $this->special_mechanics,
+            'campaign_mechanics' => $this->campaign_mechanics,
             'session_zero_questions' => $this->session_zero_questions,
         ]);
 
@@ -102,15 +123,37 @@ class EditCampaignFrameForm extends Form
         $this->pitch = array_values($this->pitch);
     }
 
-    public function addToneAndThemeItem(): void
+    public function addTouchstoneItem(): void
     {
-        $this->tone_and_themes[] = '';
+        $this->touchstones[] = '';
     }
 
-    public function removeToneAndThemeItem(int $index): void
+    public function removeTouchstoneItem(int $index): void
     {
-        unset($this->tone_and_themes[$index]);
-        $this->tone_and_themes = array_values($this->tone_and_themes);
+        unset($this->touchstones[$index]);
+        $this->touchstones = array_values($this->touchstones);
+    }
+
+    public function addToneItem(): void
+    {
+        $this->tone[] = '';
+    }
+
+    public function removeToneItem(int $index): void
+    {
+        unset($this->tone[$index]);
+        $this->tone = array_values($this->tone);
+    }
+
+    public function addThemeItem(): void
+    {
+        $this->themes[] = '';
+    }
+
+    public function removeThemeItem(int $index): void
+    {
+        unset($this->themes[$index]);
+        $this->themes = array_values($this->themes);
     }
 
     public function addSettingGuidanceItem(): void
@@ -124,15 +167,37 @@ class EditCampaignFrameForm extends Form
         $this->setting_guidance = array_values($this->setting_guidance);
     }
 
-    public function addPrincipleItem(): void
+    public function addPlayerPrincipleItem(): void
     {
-        $this->principles[] = '';
+        $this->player_principles[] = '';
     }
 
-    public function removePrincipleItem(int $index): void
+    public function removePlayerPrincipleItem(int $index): void
     {
-        unset($this->principles[$index]);
-        $this->principles = array_values($this->principles);
+        unset($this->player_principles[$index]);
+        $this->player_principles = array_values($this->player_principles);
+    }
+
+    public function addGmPrincipleItem(): void
+    {
+        $this->gm_principles[] = '';
+    }
+
+    public function removeGmPrincipleItem(int $index): void
+    {
+        unset($this->gm_principles[$index]);
+        $this->gm_principles = array_values($this->gm_principles);
+    }
+
+    public function addCampaignMechanicItem(): void
+    {
+        $this->campaign_mechanics[] = '';
+    }
+
+    public function removeCampaignMechanicItem(int $index): void
+    {
+        unset($this->campaign_mechanics[$index]);
+        $this->campaign_mechanics = array_values($this->campaign_mechanics);
     }
 
     public function addSettingDistinctionItem(): void

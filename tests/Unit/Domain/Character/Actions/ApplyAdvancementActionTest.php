@@ -10,13 +10,13 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new ApplyAdvancementAction();
+    action = new ApplyAdvancementAction();
 });
 test('execute creates new advancement record', function () {
     $character = Character::factory()->create();
     $advancement_data = CharacterAdvancementData::traitBonus(1, 1, ['agility'], 1);
 
-    $result = $this->action->execute($character, $advancement_data);
+    $result = action->execute($character, $advancement_data);
 
     expect($result)->toBeInstanceOf(CharacterAdvancement::class);
     expect($result->character_id)->toEqual($character->id);
@@ -37,10 +37,10 @@ test('execute throws exception for duplicate advancement slot', function () {
 
     $advancement_data = CharacterAdvancementData::traitBonus(1, 1, ['agility'], 1);
 
-    $this->expectException(\InvalidArgumentException::class);
-    $this->expectExceptionMessage('Advancement slot already taken');
+    expectException(\InvalidArgumentException::class);
+    expectExceptionMessage('Advancement slot already taken');
 
-    $this->action->execute($character, $advancement_data);
+    action->execute($character, $advancement_data);
 });
 test('execute allows different advancement numbers same tier', function () {
     $character = Character::factory()->create();
@@ -54,7 +54,7 @@ test('execute allows different advancement numbers same tier', function () {
 
     $advancement_data = CharacterAdvancementData::hitPoint(1, 2);
 
-    $result = $this->action->execute($character, $advancement_data);
+    $result = action->execute($character, $advancement_data);
 
     expect($result)->toBeInstanceOf(CharacterAdvancement::class);
     expect($result->tier)->toEqual(1);
@@ -72,7 +72,7 @@ test('execute allows same advancement number different tier', function () {
 
     $advancement_data = CharacterAdvancementData::stress(2, 1);
 
-    $result = $this->action->execute($character, $advancement_data);
+    $result = action->execute($character, $advancement_data);
 
     expect($result)->toBeInstanceOf(CharacterAdvancement::class);
     expect($result->tier)->toEqual(2);
@@ -83,56 +83,56 @@ test('execute validates tier range', function () {
     $advancement_data = CharacterAdvancementData::traitBonus(0, 1, ['agility'], 1);
 
     // Invalid tier
-    $this->expectException(\InvalidArgumentException::class);
-    $this->expectExceptionMessage('Tier must be between 1 and 4');
+    expectException(\InvalidArgumentException::class);
+    expectExceptionMessage('Tier must be between 1 and 4');
 
-    $this->action->execute($character, $advancement_data);
+    action->execute($character, $advancement_data);
 });
 test('execute validates tier upper bound', function () {
     $character = Character::factory()->create();
     $advancement_data = CharacterAdvancementData::traitBonus(5, 1, ['agility'], 1);
 
     // Invalid tier
-    $this->expectException(\InvalidArgumentException::class);
-    $this->expectExceptionMessage('Tier must be between 1 and 4');
+    expectException(\InvalidArgumentException::class);
+    expectExceptionMessage('Tier must be between 1 and 4');
 
-    $this->action->execute($character, $advancement_data);
+    action->execute($character, $advancement_data);
 });
 test('execute validates advancement number range', function () {
     $character = Character::factory()->create();
     $advancement_data = CharacterAdvancementData::traitBonus(1, 0, ['agility'], 1);
 
     // Invalid advancement number
-    $this->expectException(\InvalidArgumentException::class);
-    $this->expectExceptionMessage('Advancement number must be 1 or 2');
+    expectException(\InvalidArgumentException::class);
+    expectExceptionMessage('Advancement number must be 1 or 2');
 
-    $this->action->execute($character, $advancement_data);
+    action->execute($character, $advancement_data);
 });
 test('execute validates advancement number upper bound', function () {
     $character = Character::factory()->create();
     $advancement_data = CharacterAdvancementData::traitBonus(1, 3, ['agility'], 1);
 
     // Invalid advancement number
-    $this->expectException(\InvalidArgumentException::class);
-    $this->expectExceptionMessage('Advancement number must be 1 or 2');
+    expectException(\InvalidArgumentException::class);
+    expectExceptionMessage('Advancement number must be 1 or 2');
 
-    $this->action->execute($character, $advancement_data);
+    action->execute($character, $advancement_data);
 });
 test('execute validates character level for tier', function () {
     $character = Character::factory()->create(['level' => 1]);
     $advancement_data = CharacterAdvancementData::traitBonus(3, 1, ['agility'], 1);
 
     // Tier 3 requires level 5+
-    $this->expectException(\InvalidArgumentException::class);
-    $this->expectExceptionMessage('Character level insufficient for tier 3');
+    expectException(\InvalidArgumentException::class);
+    expectExceptionMessage('Character level insufficient for tier 3');
 
-    $this->action->execute($character, $advancement_data);
+    action->execute($character, $advancement_data);
 });
 test('execute allows tier progression with sufficient level', function () {
     $character = Character::factory()->create(['level' => 5]);
     $advancement_data = CharacterAdvancementData::traitBonus(3, 1, ['agility'], 1);
 
-    $result = $this->action->execute($character, $advancement_data);
+    $result = action->execute($character, $advancement_data);
 
     expect($result)->toBeInstanceOf(CharacterAdvancement::class);
     expect($result->tier)->toEqual(3);
@@ -143,20 +143,20 @@ test('execute validates multiclass advancement data', function () {
     $advancement_data = CharacterAdvancementData::multiclass(4, 1, '');
 
     // Empty class
-    $this->expectException(\InvalidArgumentException::class);
-    $this->expectExceptionMessage('Multiclass advancement requires a class selection');
+    expectException(\InvalidArgumentException::class);
+    expectExceptionMessage('Multiclass advancement requires a class selection');
 
-    $this->action->execute($character, $advancement_data);
+    action->execute($character, $advancement_data);
 });
 test('execute validates trait bonus advancement data', function () {
     $character = Character::factory()->create();
     $advancement_data = CharacterAdvancementData::traitBonus(1, 1, [], 1);
 
     // Empty traits array
-    $this->expectException(\InvalidArgumentException::class);
-    $this->expectExceptionMessage('Trait bonus advancement requires at least one trait');
+    expectException(\InvalidArgumentException::class);
+    expectExceptionMessage('Trait bonus advancement requires at least one trait');
 
-    $this->action->execute($character, $advancement_data);
+    action->execute($character, $advancement_data);
 });
 test('execute creates advancement in transaction', function () {
     $character = Character::factory()->create();
@@ -170,7 +170,7 @@ test('execute creates advancement in transaction', function () {
             return $callback();
         });
 
-    $result = $this->action->execute($character, $advancement_data);
+    $result = action->execute($character, $advancement_data);
 
     expect($result)->toBeInstanceOf(CharacterAdvancement::class);
 });
@@ -189,7 +189,7 @@ test('execute creates different advancement types', function () {
     ];
 
     foreach ($advancement_types as $advancement_data) {
-        $result = $this->action->execute($character, $advancement_data);
+        $result = action->execute($character, $advancement_data);
         
         expect($result)->toBeInstanceOf(CharacterAdvancement::class);
         expect($result->advancement_type)->toEqual($advancement_data->advancement_type);
@@ -203,10 +203,10 @@ test('execute persists advancement to database', function () {
     $character = Character::factory()->create();
     $advancement_data = CharacterAdvancementData::evasion(2, 1);
 
-    $result = $this->action->execute($character, $advancement_data);
+    $result = action->execute($character, $advancement_data);
 
     // Verify it's actually in the database
-    $this->assertDatabaseHas('character_advancements', [
+    assertDatabaseHas('character_advancements', [
         'id' => $result->id,
         'character_id' => $character->id,
         'tier' => 2,

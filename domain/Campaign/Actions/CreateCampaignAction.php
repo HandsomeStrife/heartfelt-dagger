@@ -23,19 +23,21 @@ class CreateCampaignAction
             'status' => CampaignStatus::ACTIVE,
         ]);
 
-        $campaign->load('creator');
+        $campaign->load(['creator', 'campaignFrame']);
 
         return CampaignData::from([
             'id' => $campaign->id,
             'name' => $campaign->name,
             'description' => $campaign->description,
             'creator_id' => $campaign->creator_id,
+            'campaign_frame_id' => $campaign->campaign_frame_id,
             'invite_code' => $campaign->invite_code,
             'campaign_code' => $campaign->campaign_code,
             'status' => $campaign->status,
             'created_at' => $campaign->created_at?->toDateTimeString(),
             'updated_at' => $campaign->updated_at?->toDateTimeString(),
             'creator' => $campaign->creator ? UserData::from($campaign->creator) : null,
+            'campaign_frame' => $campaign->campaignFrame ? \Domain\CampaignFrame\Data\CampaignFrameData::from($campaign->campaignFrame) : null,
             'member_count' => null,
         ]);
     }

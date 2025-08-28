@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('room URLs use invite_code tokens instead of database IDs', function () {
     $user = User::factory()->create();
@@ -24,7 +26,7 @@ test('room URLs use invite_code tokens instead of database IDs', function () {
     expect($sessionUrl)->not->toContain((string) $room->id);
 
     // Verify the URLs are accessible
-    $response = $this->actingAs($user)->get($showUrl);
+    $response = actingAs($user)->get($showUrl);
     $response->assertOk();
 
     // Verify room can be accessed by invite_code
@@ -35,7 +37,7 @@ test('room URLs use invite_code tokens instead of database IDs', function () {
 test('room creation redirects to token-based URLs', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('rooms.store'), [
+    $response = actingAs($user)->post(route('rooms.store'), [
         'name' => 'Token Test Room',
         'description' => 'Testing token-based URLs',
         'guest_count' => 4,
@@ -59,7 +61,7 @@ test('old ID-based URLs do not work', function () {
     // Try to access room using old ID-based URL pattern
     $oldStyleUrl = "/rooms/{$room->id}";
     
-    $response = $this->actingAs($user)->get($oldStyleUrl);
+    $response = actingAs($user)->get($oldStyleUrl);
     
     // Should return 404 because route expects invite_code, not ID
     $response->assertNotFound();

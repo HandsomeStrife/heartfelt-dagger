@@ -3,12 +3,13 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('debug anonymous user join page content', function () {
     $room = Room::factory()->passwordless()->create();
     
     // Anonymous user (not authenticated)
-    $response = $this->get("/rooms/join/{$room->invite_code}");
+    $response = get("/rooms/join/{$room->invite_code}");
     
     $response->assertOk();
     

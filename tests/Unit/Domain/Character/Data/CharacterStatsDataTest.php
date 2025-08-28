@@ -184,7 +184,7 @@ test('no ancestry bonus returns base stats', function () {
     expect($stats->stress)->toEqual(6);
     // Base stress
 });
-function createCharacterWithClass(string $class, string $ancestry, int $level = 1): Character
+it('createCharacterWithClass', function (string $class, string $ancestry, int $level = 1): Character
 {
     return Character::factory()->create([
         'class' => $class,
@@ -197,16 +197,16 @@ function createCharacterWithClass(string $class, string $ancestry, int $level = 
             ],
         ],
     ]);
-}
-function createCharacterTrait(Character $character, string $trait, int $value): void
+});
+it('createCharacterTrait', function (Character $character, string $trait, int $value): void
 {
     CharacterTrait::factory()->create([
         'character_id' => $character->id,
         'trait_name' => $trait,
         'trait_value' => $value,
     ]);
-}
-function createBuilderData(string $class, string $ancestry): CharacterBuilderData
+});
+it('createBuilderData', function (string $class, string $ancestry): CharacterBuilderData
 {
     return CharacterBuilderData::from([
         'selected_class' => $class,
@@ -225,4 +225,4 @@ function createBuilderData(string $class, string $ancestry): CharacterBuilderDat
         'connections' => [],
         'selected_domain_cards' => [],
     ]);
-}
+});

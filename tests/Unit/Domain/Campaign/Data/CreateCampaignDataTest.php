@@ -25,21 +25,21 @@ it('creates from valid array', function () {
     expect($createData->description)->toEqual('This campaign was created from an array');
 });
 it('validates required name field', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateCampaignData::validate([
         'description' => 'Missing name field',
     ]);
 });
 it('validates required description field', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateCampaignData::validate([
         'name' => 'Campaign Name',
     ]);
 });
 it('validates name max length', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateCampaignData::validate([
         'name' => str_repeat('A', 101), // Exceeds 100 character limit
@@ -47,7 +47,7 @@ it('validates name max length', function () {
     ]);
 });
 it('validates description max length', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateCampaignData::validate([
         'name' => 'Valid Name',
@@ -106,7 +106,7 @@ it('handles special characters', function () {
     expect($createData->description)->toEqual('Description with àccénts, émojis 🎲, and other symbols: @#$%^&*()');
 });
 it('validates empty string as invalid', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateCampaignData::validate([
         'name' => '',
@@ -114,7 +114,7 @@ it('validates empty string as invalid', function () {
     ]);
 });
 it('validates null values as invalid', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateCampaignData::validate([
         'name' => null,
@@ -156,7 +156,7 @@ it('handles multiline descriptions', function () {
     ]);
 
     expect($createData->description)->toEqual($multilineDescription);
-    $this->assertStringContainsString("\n", $createData->description);
+    assertStringContainsString("\n", $createData->description);
 });
 it('preserves unicode characters', function () {
     $createData = CreateCampaignData::from([
@@ -177,7 +177,7 @@ it('handles numeric strings', function () {
     expect($createData->description)->toEqual('Campaign number 456');
 });
 it('rejects non string types', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateCampaignData::validate([
         'name' => 123, // Integer instead of string

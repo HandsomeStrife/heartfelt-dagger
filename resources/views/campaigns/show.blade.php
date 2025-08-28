@@ -59,6 +59,59 @@
                     </div>
                 </div>
 
+                <!-- Campaign Frame Visibility Manager (GM Only) -->
+                @if($user_is_creator)
+                    <livewire:campaign-frame.campaign-frame-visibility-manager :campaign="$campaign_model" />
+                @endif
+
+                <!-- Campaign Frame Content Display -->
+                <livewire:campaign-frame.campaign-frame-display :campaign="$campaign_model" />
+
+                <!-- Campaign Pages Section -->
+                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-amber-500/30 mr-3">
+                                <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="font-outfit text-xl font-bold text-white">Campaign Pages</h2>
+                                <p class="text-slate-400 text-sm">Manage your campaign lore, NPCs, and world-building content</p>
+                            </div>
+                        </div>
+                        @if($user_is_creator || $user_is_member)
+                            <a href="{{ route('campaigns.pages', $campaign->campaign_code) }}" 
+                               class="inline-flex items-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-amber-500/25 text-sm">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Manage Pages
+                            </a>
+                        @endif
+                    </div>
+
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-600 mb-4 mx-auto">
+                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-white font-semibold mb-2">Organize Your Campaign</h3>
+                        <p class="text-slate-400 text-sm mb-4">Create hierarchical pages to organize lore, NPCs, locations, and plot information. Use rich text editing and category tags for easy organization.</p>
+                        @if($user_is_creator || $user_is_member)
+                            <a href="{{ route('campaigns.pages', $campaign->campaign_code) }}" 
+                               class="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white text-sm font-semibold rounded-lg transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                Start Building
+                            </a>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Campaign Rooms -->
                 <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 mb-8">
                     <div class="flex items-center justify-between mb-6">

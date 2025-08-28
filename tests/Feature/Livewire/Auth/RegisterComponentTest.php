@@ -3,15 +3,15 @@
 declare(strict_types=1);
 use App\Livewire\Auth\Register;
 use Domain\User\Models\User;
-use Livewire\Livewire;
+use function Pest\Livewire\livewire;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('register component can be rendered', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->assertStatus(200);
 });
 test('can register with valid data', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', 'test@example.com')
         ->set('form.password', 'password123')
@@ -19,14 +19,14 @@ test('can register with valid data', function () {
         ->call('register')
         ->assertRedirect('/dashboard');
 
-    $this->assertAuthenticated();
-    $this->assertDatabaseHas('users', [
+    assertAuthenticated();
+    assertDatabaseHas('users', [
         'username' => 'testuser',
         'email' => 'test@example.com',
     ]);
 });
 test('username is required', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', '')
         ->set('form.email', 'test@example.com')
         ->set('form.password', 'password123')
@@ -37,7 +37,7 @@ test('username is required', function () {
 test('username must be unique', function () {
     User::factory()->create(['username' => 'existinguser']);
 
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'existinguser')
         ->set('form.email', 'test@example.com')
         ->set('form.password', 'password123')
@@ -46,7 +46,7 @@ test('username must be unique', function () {
         ->assertHasErrors(['form.username' => 'unique']);
 });
 test('email is required', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', '')
         ->set('form.password', 'password123')
@@ -55,7 +55,7 @@ test('email is required', function () {
         ->assertHasErrors(['form.email' => 'required']);
 });
 test('email must be valid email', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', 'invalid-email')
         ->set('form.password', 'password123')
@@ -66,7 +66,7 @@ test('email must be valid email', function () {
 test('email must be unique', function () {
     User::factory()->create(['email' => 'existing@example.com']);
 
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', 'existing@example.com')
         ->set('form.password', 'password123')
@@ -75,7 +75,7 @@ test('email must be unique', function () {
         ->assertHasErrors(['form.email' => 'unique']);
 });
 test('password is required', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', 'test@example.com')
         ->set('form.password', '')
@@ -84,7 +84,7 @@ test('password is required', function () {
         ->assertHasErrors(['form.password' => 'required']);
 });
 test('password must be minimum length', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', 'test@example.com')
         ->set('form.password', '123')
@@ -93,7 +93,7 @@ test('password must be minimum length', function () {
         ->assertHasErrors(['form.password' => 'min']);
 });
 test('password must be confirmed', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', 'test@example.com')
         ->set('form.password', 'password123')
@@ -102,7 +102,7 @@ test('password must be confirmed', function () {
         ->assertHasErrors(['form.password' => 'confirmed']);
 });
 test('password confirmation is required', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', 'test@example.com')
         ->set('form.password', 'password123')
@@ -111,27 +111,27 @@ test('password confirmation is required', function () {
         ->assertHasErrors(['form.password_confirmation' => 'required']);
 });
 test('can set and view username property', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->assertSet('form.username', 'testuser');
 });
 test('can set and view email property', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.email', 'test@example.com')
         ->assertSet('form.email', 'test@example.com');
 });
 test('can set and view password property', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.password', 'password123')
         ->assertSet('form.password', 'password123');
 });
 test('can set and view password confirmation property', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.password_confirmation', 'password123')
         ->assertSet('form.password_confirmation', 'password123');
 });
 test('register view contains required elements', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->assertSee('HeartfeltDagger')
         ->assertSee('Join the Adventure')
         ->assertSee('Username')
@@ -141,7 +141,7 @@ test('register view contains required elements', function () {
         ->assertSee('Begin Adventure');
 });
 test('user is automatically logged in after registration', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', 'testuser')
         ->set('form.email', 'test@example.com')
         ->set('form.password', 'password123')
@@ -149,10 +149,10 @@ test('user is automatically logged in after registration', function () {
         ->call('register')
         ->assertRedirect('/dashboard');
 
-    $this->assertAuthenticated();
+    assertAuthenticated();
 });
 test('validation errors are displayed', function () {
-    Livewire::test(Register::class)
+    livewire(Register::class)
         ->set('form.username', '')
         ->call('register')
         ->assertHasErrors(['form.username' => 'required']);

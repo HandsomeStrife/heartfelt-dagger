@@ -2,19 +2,22 @@
 
 declare(strict_types=1);
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('create creates new character and redirects', function () {
     // Ensure clean database state
     Character::query()->delete();
 
-    $response = $this->get('/character-builder');
+    $response = get('/character-builder');
 
     $response->assertStatus(302);
 
-    $this->assertDatabaseCount('characters', 1);
+    assertDatabaseCount('characters', 1);
 
     $character = Character::latest()->first();
     expect($character)->not->toBeNull();
@@ -31,7 +34,7 @@ test('create creates new character and redirects', function () {
 test('create associates character with authenticated user', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get('/character-builder');
+    $response = actingAs($user)->get('/character-builder');
 
     $response->assertStatus(302);
 
@@ -45,7 +48,7 @@ test('edit shows character builder for existing character', function () {
         'class' => 'warrior',
     ]);
 
-    $response = $this->get("/character-builder/{$character->character_key}");
+    $response = get("/character-builder/{$character->character_key}");
 
     $response->assertStatus(200);
     $response->assertViewIs('characters.edit');
@@ -53,7 +56,7 @@ test('edit shows character builder for existing character', function () {
     $response->assertViewHas('character');
 });
 test('edit returns 404 for non existent character', function () {
-    $response = $this->get('/character-builder/NOTEXIST');
+    $response = get('/character-builder/NOTEXIST');
 
     $response->assertStatus(404);
 });
@@ -64,7 +67,7 @@ test('show displays character for viewing', function () {
         'class' => 'warrior',
     ]);
 
-    $response = $this->get("/character/{$character->public_key}");
+    $response = get("/character/{$character->public_key}");
 
     $response->assertStatus(200);
     $response->assertViewIs('characters.show');
@@ -72,7 +75,7 @@ test('show displays character for viewing', function () {
     $response->assertViewHas('character');
 });
 test('show returns 404 for non existent character', function () {
-    $response = $this->get('/character/NOTEXIST');
+    $response = get('/character/NOTEXIST');
 
     $response->assertStatus(404);
 });
@@ -100,9 +103,9 @@ test('character key generation produces unique keys', function () {
     Character::query()->delete();
 
     // Create multiple characters to ensure uniqueness
-    $response1 = $this->get('/character-builder');
-    $response2 = $this->get('/character-builder');
-    $response3 = $this->get('/character-builder');
+    $response1 = get('/character-builder');
+    $response2 = get('/character-builder');
+    $response3 = get('/character-builder');
 
     $characters = Character::all();
     expect($characters)->toHaveCount(3);
@@ -111,7 +114,7 @@ test('character key generation produces unique keys', function () {
     expect(count(array_unique($keys)))->toEqual(3);
 });
 test('character creation uses database defaults', function () {
-    $response = $this->get('/character-builder');
+    $response = get('/character-builder');
 
     $character = Character::latest()->first();
     expect($character->level)->toEqual(1);
@@ -133,7 +136,7 @@ test('edit loads character data correctly', function () {
         ],
     ]);
 
-    $response = $this->get("/character-builder/{$character->character_key}");
+    $response = get("/character-builder/{$character->character_key}");
 
     $response->assertStatus(200);
     $loadedCharacter = $response->viewData('character');
@@ -153,7 +156,7 @@ test('show loads character data correctly', function () {
         'class' => 'ranger',
     ]);
 
-    $response = $this->get("/character/{$character->public_key}");
+    $response = get("/character/{$character->public_key}");
 
     $response->assertStatus(200);
     $loadedCharacter = $response->viewData('character');
@@ -163,13 +166,13 @@ test('show loads character data correctly', function () {
 });
 test('character key validation works', function () {
     // Test with various invalid character keys
-    $this->get('/character-builder/short')->assertStatus(404);
-    $this->get('/character-builder/toolongkey123456')->assertStatus(404);
-    $this->get('/character-builder/invalid@chr')->assertStatus(404);
+    get('/character-builder/short')->assertStatus(404);
+    get('/character-builder/toolongkey123456')->assertStatus(404);
+    get('/character-builder/invalid@chr')->assertStatus(404);
 
-    $this->get('/character/short')->assertStatus(404);
-    $this->get('/character/toolongkey123456')->assertStatus(404);
-    $this->get('/character/invalid@chr')->assertStatus(404);
+    get('/character/short')->assertStatus(404);
+    get('/character/toolongkey123456')->assertStatus(404);
+    get('/character/invalid@chr')->assertStatus(404);
 });
 test('controller handles load character action errors', function () {
     // This tests the error handling when LoadCharacterAction fails
@@ -181,7 +184,7 @@ test('controller handles load character action errors', function () {
     ]);
 
     // The action should handle this gracefully and not crash
-    $response = $this->get("/character-builder/{$character->character_key}");
+    $response = get("/character-builder/{$character->character_key}");
 
     // Should either work (if action handles it) or return proper error
     expect(in_array($response->status(), [200, 404, 500]))->toBeTrue();
@@ -194,8 +197,8 @@ test('multiple character creation sessions work independently', function () {
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
 
-    $response1 = $this->actingAs($user1)->get('/character-builder');
-    $response2 = $this->actingAs($user2)->get('/character-builder');
+    $response1 = actingAs($user1)->get('/character-builder');
+    $response2 = actingAs($user2)->get('/character-builder');
 
     $characters = Character::all();
     expect($characters)->toHaveCount(2);
@@ -203,7 +206,7 @@ test('multiple character creation sessions work independently', function () {
     $character1 = Character::where('user_id', $user1->id)->first();
     $character2 = Character::where('user_id', $user2->id)->first();
 
-    $this->assertNotEquals($character1->character_key, $character2->character_key);
+    assertNotEquals($character1->character_key, $character2->character_key);
     expect($character1->user_id)->toEqual($user1->id);
     expect($character2->user_id)->toEqual($user2->id);
 });

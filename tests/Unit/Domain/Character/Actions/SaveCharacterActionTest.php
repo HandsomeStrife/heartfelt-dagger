@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new SaveCharacterAction;
+    action = new SaveCharacterAction;
 });
 it('creates new character with basic data', function () {
     $user = User::factory()->create();
@@ -25,7 +25,7 @@ it('creates new character with basic data', function () {
         selected_community: 'order-of-scholars'
     );
 
-    $character = $this->action->execute($builderData, $user);
+    $character = action->execute($builderData, $user);
 
     expect($character)->toBeInstanceOf(Character::class);
     expect($character->name)->toEqual('Test Hero');
@@ -43,7 +43,7 @@ it('creates character without user', function () {
         selected_class: 'ranger'
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     expect($character)->toBeInstanceOf(Character::class);
     expect($character->name)->toEqual('Anonymous Hero');
@@ -59,7 +59,7 @@ it('creates character with null values', function () {
         selected_community: null
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     expect($character)->toBeInstanceOf(Character::class);
     expect($character->name)->toBeNull();
@@ -78,7 +78,7 @@ it('saves character traits', function () {
         ]
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     expect($character->traits)->toHaveCount(3);
 
@@ -104,7 +104,7 @@ it('saves character equipment', function () {
         ]
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     expect($character->equipment)->toHaveCount(2);
 
@@ -137,7 +137,7 @@ it('saves character experiences', function () {
         ]
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     expect($character->experiences)->toHaveCount(2);
 
@@ -167,7 +167,7 @@ it('saves character domain cards', function () {
         ]
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     expect($character->domainCards)->toHaveCount(2);
 
@@ -191,7 +191,7 @@ it('saves background and connection data', function () {
         motivations: 'To protect the innocent'
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     $characterData = $character->character_data;
     expect($characterData['background']['answers'])->toEqual(['Answer 1', 'Answer 2', 'Answer 3']);
@@ -223,7 +223,7 @@ it('updates existing character', function () {
         ]
     );
 
-    $updatedCharacter = $this->action->updateCharacter($existingCharacter, $builderData);
+    $updatedCharacter = action->updateCharacter($existingCharacter, $builderData);
 
     expect($updatedCharacter->name)->toEqual('Updated Name');
     expect($updatedCharacter->class)->toEqual('ranger');
@@ -231,7 +231,7 @@ it('updates existing character', function () {
     // Old traits should be replaced with new ones
     expect($updatedCharacter->traits)->toHaveCount(2);
     $traits = $updatedCharacter->traits->keyBy('trait_name');
-    $this->assertArrayNotHasKey('agility', $traits->toArray());
+    assertArrayNotHasKey('agility', $traits->toArray());
     expect($traits['strength']->trait_value)->toEqual(2);
     expect($traits['finesse']->trait_value)->toEqual(-1);
 });
@@ -246,7 +246,7 @@ it('clears related data when updating', function () {
 
     $builderData = new CharacterBuilderData(name: 'Test Hero');
 
-    $updatedCharacter = $this->action->updateCharacter($existingCharacter, $builderData);
+    $updatedCharacter = action->updateCharacter($existingCharacter, $builderData);
 
     // All related data should be cleared since builderData has empty arrays
     expect($updatedCharacter->traits)->toHaveCount(0);
@@ -260,7 +260,7 @@ it('handles profile image path', function () {
         profile_image_path: 'portraits/hero.jpg'
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     expect($character->profile_image_path)->toEqual('portraits/hero.jpg');
 });
@@ -273,11 +273,11 @@ it('wraps operation in transaction', function () {
         ]
     );
 
-    $character = $this->action->execute($builderData, null);
+    $character = action->execute($builderData, null);
 
     // Verify both character and traits were created
-    $this->assertDatabaseHas('characters', ['name' => 'Test Hero']);
-    $this->assertDatabaseHas('character_traits', [
+    assertDatabaseHas('characters', ['name' => 'Test Hero']);
+    assertDatabaseHas('character_traits', [
         'character_id' => $character->id,
         'trait_name' => 'agility',
         'trait_value' => 2,

@@ -17,4 +17,4 @@ abstract class Page extends BasePage
             '@element' => '#selector',
         ];
     }
-}
+});

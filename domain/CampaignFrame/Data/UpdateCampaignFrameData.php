@@ -28,19 +28,26 @@ class UpdateCampaignFrameData extends Data implements Wireable
         public bool $is_public = false,
         
         public array $pitch = [],
-        public array $tone_and_themes = [],
+        public array $touchstones = [],
+        public array $tone = [],
+        public array $themes = [],
+        public array $player_principles = [],
+        public array $gm_principles = [],
+        public array $community_guidance = [],
+        public array $ancestry_guidance = [],
+        public array $class_guidance = [],
         
         #[Max(2000)]
         public string $background_overview = '',
         
         public array $setting_guidance = [],
-        public array $principles = [],
         public array $setting_distinctions = [],
         
         #[Max(1000)]
         public string $inciting_incident = '',
         
         public array $special_mechanics = [],
+        public array $campaign_mechanics = [],
         public array $session_zero_questions = [],
     ) {}
 }

@@ -4,18 +4,18 @@ declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use Livewire\Livewire;
+use function Pest\Livewire\livewire;
 use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-    $this->character = Character::factory()->for($this->user)->create([
+    user = User::factory()->create();
+    character = Character::factory()->for(user)->create([
         'character_key' => 'test123456',
     ]);
 });
 it('persists class selection to database', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
     // Select a class
     $component->call('selectClass', 'warrior');
@@ -24,19 +24,19 @@ it('persists class selection to database', function () {
     $component->assertSet('character.selected_class', 'warrior');
 
     // Verify the class is persisted to the database
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'character_key' => 'test123456',
         'class' => 'warrior',
         'subclass' => null, // Should be reset when class changes
     ]);
 
     // Double-check by refreshing from database
-    $this->character->refresh();
-    expect($this->character->class)->toEqual('warrior');
-    expect($this->character->subclass)->toBeNull();
+    character->refresh();
+    expect(character->class)->toEqual('warrior');
+    expect(character->subclass)->toBeNull();
 });
 it('persists subclass selection to database', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
     // First select a class
     $component->call('selectClass', 'warrior');
@@ -49,26 +49,26 @@ it('persists subclass selection to database', function () {
     $component->assertSet('character.selected_subclass', 'stalwart');
 
     // Verify both are persisted to the database
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'character_key' => 'test123456',
         'class' => 'warrior',
         'subclass' => 'stalwart',
     ]);
 
     // Double-check by refreshing from database
-    $this->character->refresh();
-    expect($this->character->class)->toEqual('warrior');
-    expect($this->character->subclass)->toEqual('stalwart');
+    character->refresh();
+    expect(character->class)->toEqual('warrior');
+    expect(character->subclass)->toEqual('stalwart');
 });
 it('resets subclass in database when class changes', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
     // Set initial class and subclass
     $component->call('selectClass', 'warrior');
     $component->call('selectSubclass', 'stalwart');
 
     // Verify initial state
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'character_key' => 'test123456',
         'class' => 'warrior',
         'subclass' => 'stalwart',
@@ -78,23 +78,23 @@ it('resets subclass in database when class changes', function () {
     $component->call('selectClass', 'wizard');
 
     // Verify class changed and subclass was reset in database
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'character_key' => 'test123456',
         'class' => 'wizard',
         'subclass' => null,
     ]);
 
     // Double-check by refreshing from database
-    $this->character->refresh();
-    expect($this->character->class)->toEqual('wizard');
-    expect($this->character->subclass)->toBeNull();
+    character->refresh();
+    expect(character->class)->toEqual('wizard');
+    expect(character->subclass)->toBeNull();
 });
 it('handles null class selection', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'test123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
     // First set a class
     $component->call('selectClass', 'warrior');
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'character_key' => 'test123456',
         'class' => 'warrior',
     ]);
@@ -103,14 +103,14 @@ it('handles null class selection', function () {
     $component->call('selectClass', null);
 
     // Verify class is cleared in database
-    $this->assertDatabaseHas('characters', [
+    assertDatabaseHas('characters', [
         'character_key' => 'test123456',
         'class' => null,
         'subclass' => null,
     ]);
 
     // Double-check by refreshing from database
-    $this->character->refresh();
-    expect($this->character->class)->toBeNull();
-    expect($this->character->subclass)->toBeNull();
+    character->refresh();
+    expect(character->class)->toBeNull();
+    expect(character->subclass)->toBeNull();
 });

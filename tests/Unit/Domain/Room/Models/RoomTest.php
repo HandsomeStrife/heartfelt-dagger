@@ -200,7 +200,7 @@ it('generates unique invite codes when duplicates exist', function () {
     // Create another room - should get different code even if random generates same initially
     $newRoom = Room::factory()->create();
 
-    $this->assertNotEquals($existingCode, $newRoom->invite_code);
+    assertNotEquals($existingCode, $newRoom->invite_code);
 });
 it('validates guest count range', function () {
     // Valid guest counts
@@ -213,6 +213,6 @@ it('handles password storage', function () {
     $room = Room::factory()->create();
 
     // Password should be hashed
-    $this->assertNotEquals('password', $room->password);
+    assertNotEquals('password', $room->password);
     expect(password_verify('password', $room->password))->toBeTrue();
 });

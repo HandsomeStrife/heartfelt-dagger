@@ -2,14 +2,18 @@
 
 declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
-use Livewire\Livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Livewire\livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 test('character builder shows clank bonus functionality for clank ancestry', function () {
     $character = createTestCharacter();
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'clank')
         ->call('selectCommunity', 'wildborne')
@@ -20,7 +24,7 @@ test('character builder shows clank bonus functionality for clank ancestry', fun
 test('character builder does not show clank bonus for other ancestries', function () {
     $character = createTestCharacter();
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'human')
         ->call('selectCommunity', 'highborne');
@@ -30,7 +34,7 @@ test('character builder does not show clank bonus for other ancestries', functio
 test('character builder can select clank bonus experience', function () {
     $character = createTestCharacter();
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'clank')
         ->call('selectCommunity', 'wildborne')
@@ -43,7 +47,7 @@ test('character builder can select clank bonus experience', function () {
 test('character builder shows enhanced modifier for clank bonus experience', function () {
     $character = createTestCharacter();
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'clank')
         ->call('selectCommunity', 'wildborne')
@@ -58,7 +62,7 @@ test('character builder shows enhanced modifier for clank bonus experience', fun
 test('character builder non clank cannot select bonus experience', function () {
     $character = createTestCharacter();
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'human')
         ->call('selectCommunity', 'highborne')
@@ -72,7 +76,7 @@ test('character builder clank bonus persists through save and load', function ()
     $character = createTestCharacter();
 
     // Set up character with Clank bonus
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'clank')
         ->call('selectCommunity', 'wildborne')
@@ -82,7 +86,7 @@ test('character builder clank bonus persists through save and load', function ()
     $character_key = $component->get('character.character_key');
 
     // Load in a new component instance
-    $newComponent = Livewire::test(CharacterBuilder::class, ['characterKey' => $character_key]);
+    $newComponent = livewire(CharacterBuilder::class, ['characterKey' => $character_key]);
 
     // Verify the bonus experience is preserved
     expect($newComponent->get('character.clank_bonus_experience'))->toEqual('Blacksmith');
@@ -91,7 +95,7 @@ test('character builder clank bonus persists through save and load', function ()
 test('character builder clank experience modifier calculation', function () {
     $character = createTestCharacter();
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->call('selectClass', 'warrior')
         ->call('selectAncestry', 'clank')
         ->call('selectCommunity', 'wildborne')

@@ -2,20 +2,25 @@
 
 declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
-use Livewire\Livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Livewire\livewire;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->user = User::factory()->create();
-    $this->character = Character::factory()->for($this->user)->create([
+    user = User::factory()->create();
+    character = Character::factory()->for(user)->create([
         'character_key' => 'PRON123456',
     ]);
 });
 it('can set and retrieve pronouns via direct property', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'PRON123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'PRON123456']);
 
     // Test different pronoun values using the direct pronouns property
     $pronouns = ['he/him', 'she/her', 'they/them', 'xe/xem', 'custom pronouns'];
@@ -35,7 +40,7 @@ it('can set and retrieve pronouns via direct property', function () {
     }
 });
 it('preserves pronouns during operations', function () {
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => 'PRON123456']);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => 'PRON123456']);
 
     // Set pronouns using the direct property
     $component->set('pronouns', 'they/them');

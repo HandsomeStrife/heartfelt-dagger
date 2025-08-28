@@ -16,7 +16,7 @@ test('trait bonus creates correct advancement data', function () {
     expect($advancement->advancement_type)->toEqual('trait_bonus');
     expect($advancement->advancement_data['traits'])->toEqual(['agility', 'strength']);
     expect($advancement->advancement_data['bonus'])->toEqual(1);
-    $this->assertStringContainsString('Gain a +1 bonus to agility and strength', $advancement->description);
+    assertStringContainsString('Gain a +1 bonus to agility and strength', $advancement->description);
 });
 test('hit point creates correct advancement data', function () {
     $advancement = CharacterAdvancementData::hitPoint(2, 1);
@@ -88,7 +88,7 @@ test('multiclass creates correct advancement data', function () {
     expect($advancement->advancement_number)->toEqual(1);
     expect($advancement->advancement_type)->toEqual('multiclass');
     expect($advancement->advancement_data['class'])->toEqual('wizard');
-    $this->assertStringContainsString('Multiclass: Choose wizard as an additional class', $advancement->description);
+    assertStringContainsString('Multiclass: Choose wizard as an additional class', $advancement->description);
 });
 test('can create advancement with custom data', function () {
     $advancement = new CharacterAdvancementData(
@@ -113,7 +113,7 @@ test('trait bonus with multiple traits creates proper description', function () 
         bonus: 1
     );
 
-    $this->assertStringContainsString('agility and finesse and instinct', $advancement->description);
+    assertStringContainsString('agility and finesse and instinct', $advancement->description);
 });
 test('trait bonus with single trait creates proper description', function () {
     $advancement = CharacterAdvancementData::traitBonus(
@@ -123,6 +123,6 @@ test('trait bonus with single trait creates proper description', function () {
         bonus: 1
     );
 
-    $this->assertStringContainsString('Gain a +1 bonus to strength', $advancement->description);
-    $this->assertStringNotContainsString(' and ', $advancement->description);
+    assertStringContainsString('Gain a +1 bonus to strength', $advancement->description);
+    assertStringNotContainsString(' and ', $advancement->description);
 });

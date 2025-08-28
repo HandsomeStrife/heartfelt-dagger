@@ -3,29 +3,31 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 beforeEach(function () {
     // Seed the test database with a user
-    $this->testUser = User::factory()->create([
+    testUser = User::factory()->create([
         'username' => 'TestRoomCreator',
         'email' => 'creator@example.com',
     ]);
     
     // Create a password-protected room as that user
-    $this->testPassword = 'secret123';
-    $this->testRoom = Room::factory()->create([
+    testPassword = 'secret123';
+    testRoom = Room::factory()->create([
         'name' => 'Password Protected Test Room',
         'description' => 'A room that requires a password to join',
-        'password' => bcrypt($this->testPassword),
-        'creator_id' => $this->testUser->id,
+        'password' => bcrypt(testPassword),
+        'creator_id' => testUser->id,
         'campaign_id' => null, // Non-campaign room so anonymous users can join
         'guest_count' => 3,
     ]);
 });
 
 test('anonymous user can access password-protected room join page', function () {
-    $response = $this->get("/rooms/join/{$this->testRoom->invite_code}");
+    $response = get("/rooms/join/{testRoom->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Join Room');
@@ -35,7 +37,7 @@ test('anonymous user can access password-protected room join page', function () 
 });
 
 test('anonymous user cannot join password-protected room without password', function () {
-    $response = $this->post(route('rooms.join', $this->testRoom), [
+    $response = post(route('rooms.join', testRoom), [
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior'
         // No password provided
@@ -46,7 +48,7 @@ test('anonymous user cannot join password-protected room without password', func
 });
 
 test('anonymous user cannot join password-protected room with wrong password', function () {
-    $response = $this->post(route('rooms.join', $this->testRoom), [
+    $response = post(route('rooms.join', testRoom), [
         'password' => 'wrongpassword',
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior'
@@ -57,8 +59,8 @@ test('anonymous user cannot join password-protected room with wrong password', f
 });
 
 test('anonymous user can successfully join password-protected room with correct password', function () {
-    $response = $this->post(route('rooms.join', $this->testRoom), [
-        'password' => $this->testPassword,
+    $response = post(route('rooms.join', testRoom), [
+        'password' => testPassword,
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior'
     ]);
@@ -73,8 +75,8 @@ test('anonymous user can successfully join password-protected room with correct 
     expect($redirectUrl)->toContain('password=');
     
     // Verify participant was created in database
-    $this->assertDatabaseHas('room_participants', [
-        'room_id' => $this->testRoom->id,
+    assertDatabaseHas('room_participants', [
+        'room_id' => testRoom->id,
         'user_id' => null, // Anonymous user
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior'
@@ -83,8 +85,8 @@ test('anonymous user can successfully join password-protected room with correct 
 
 test('anonymous user can access session page after joining password-protected room', function () {
     // First join the room
-    $joinResponse = $this->post(route('rooms.join', $this->testRoom), [
-        'password' => $this->testPassword,
+    $joinResponse = post(route('rooms.join', testRoom), [
+        'password' => testPassword,
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior'
     ]);
@@ -92,39 +94,39 @@ test('anonymous user can access session page after joining password-protected ro
     // Extract the redirect URL and follow it
     $redirectUrl = $joinResponse->headers->get('Location');
     
-    $response = $this->get($redirectUrl);
+    $response = get($redirectUrl);
     
     $response->assertOk();
     $response->assertSee('Anonymous Hero');
     $response->assertSee('Warrior');
-    $response->assertSee($this->testRoom->name);
+    $response->assertSee(testRoom->name);
 });
 
 test('anonymous user cannot access session page without password in URL for password-protected room', function () {
     // First join the room
-    $this->post(route('rooms.join', $this->testRoom), [
-        'password' => $this->testPassword,
+    post(route('rooms.join', testRoom), [
+        'password' => testPassword,
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior'
     ]);
     
     // Try to access session without password in URL
-    $response = $this->get(route('rooms.session', $this->testRoom));
+    $response = get(route('rooms.session', testRoom));
     
     // Should redirect back to join page
-    $response->assertRedirect("/rooms/join/{$this->testRoom->invite_code}");
+    $response->assertRedirect("/rooms/join/{testRoom->invite_code}");
 });
 
 test('anonymous user can rejoin password-protected room if already participating', function () {
     // First join the room
-    $this->post(route('rooms.join', $this->testRoom), [
-        'password' => $this->testPassword,
+    post(route('rooms.join', testRoom), [
+        'password' => testPassword,
         'character_name' => 'Anonymous Hero',
         'character_class' => 'Warrior'
     ]);
     
     // Try to access join page again - should redirect to session with password
-    $response = $this->get("/rooms/join/{$this->testRoom->invite_code}?password=" . urlencode($this->testPassword));
+    $response = get("/rooms/join/{testRoom->invite_code}?password=" . urlencode(testPassword));
     
     $response->assertRedirect();
     $redirectUrl = $response->headers->get('Location');
@@ -134,8 +136,8 @@ test('anonymous user can rejoin password-protected room if already participating
 
 test('multiple anonymous users can join same password-protected room', function () {
     // First anonymous user joins
-    $response1 = $this->post(route('rooms.join', $this->testRoom), [
-        'password' => $this->testPassword,
+    $response1 = post(route('rooms.join', testRoom), [
+        'password' => testPassword,
         'character_name' => 'Anonymous Hero 1',
         'character_class' => 'Warrior'
     ]);
@@ -144,11 +146,11 @@ test('multiple anonymous users can join same password-protected room', function 
     $response1->assertSessionHas('success');
     
     // Start a new session for second anonymous user
-    $this->withSession([]);
+    withSession([]);
     
     // Second anonymous user joins
-    $response2 = $this->post(route('rooms.join', $this->testRoom), [
-        'password' => $this->testPassword,
+    $response2 = post(route('rooms.join', testRoom), [
+        'password' => testPassword,
         'character_name' => 'Anonymous Hero 2',
         'character_class' => 'Ranger'
     ]);
@@ -157,15 +159,15 @@ test('multiple anonymous users can join same password-protected room', function 
     $response2->assertSessionHas('success');
     
     // Verify both participants exist in database
-    $this->assertDatabaseHas('room_participants', [
-        'room_id' => $this->testRoom->id,
+    assertDatabaseHas('room_participants', [
+        'room_id' => testRoom->id,
         'user_id' => null,
         'character_name' => 'Anonymous Hero 1',
         'character_class' => 'Warrior'
     ]);
     
-    $this->assertDatabaseHas('room_participants', [
-        'room_id' => $this->testRoom->id,
+    assertDatabaseHas('room_participants', [
+        'room_id' => testRoom->id,
         'user_id' => null,
         'character_name' => 'Anonymous Hero 2',
         'character_class' => 'Ranger'
@@ -173,7 +175,7 @@ test('multiple anonymous users can join same password-protected room', function 
 });
 
 test('password is required field when room has password set', function () {
-    $response = $this->get("/rooms/join/{$this->testRoom->invite_code}");
+    $response = get("/rooms/join/{testRoom->invite_code}");
     
     $response->assertOk();
     $response->assertSee('Room Password');

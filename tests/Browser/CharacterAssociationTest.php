@@ -79,7 +79,7 @@ it('creates character as anonymous then associates on login', function () {
         'password' => Hash::make('password'),
     ]);
 
-    $this->browse(function (Browser $browser) use ($user) {
+    browse(function (Browser $browser) use ($user) {
         // Create a character as anonymous user
         $page->visit('/character-builder')
                 ->assertPresent('[data-step="1"]') // Wait for character builder to load

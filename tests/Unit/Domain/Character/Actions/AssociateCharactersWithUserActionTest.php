@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new AssociateCharactersWithUserAction();
+    action = new AssociateCharactersWithUserAction();
 });
 it('associates anonymous characters with user', function () {
     // Create a user
@@ -31,7 +31,7 @@ it('associates anonymous characters with user', function () {
     ];
 
     // Execute the action
-    $updated_count = $this->action->execute($user, $character_keys);
+    $updated_count = action->execute($user, $character_keys);
 
     // Assert that only 3 characters were updated (not the one that already had a user)
     expect($updated_count)->toEqual(3);
@@ -47,14 +47,14 @@ it('associates anonymous characters with user', function () {
 it('returns zero when no character keys provided', function () {
     $user = User::factory()->create();
 
-    $updated_count = $this->action->execute($user, []);
+    $updated_count = action->execute($user, []);
 
     expect($updated_count)->toEqual(0);
 });
 it('returns zero when no matching characters found', function () {
     $user = User::factory()->create();
 
-    $updated_count = $this->action->execute($user, ['non-existent-key-1', 'non-existent-key-2']);
+    $updated_count = action->execute($user, ['non-existent-key-1', 'non-existent-key-2']);
 
     expect($updated_count)->toEqual(0);
 });
@@ -65,7 +65,7 @@ it('only associates characters with null user id', function () {
     // Create a character that already belongs to another user
     $existing_character = Character::factory()->create(['user_id' => $another_user->id]);
 
-    $updated_count = $this->action->execute($user, [$existing_character->character_key]);
+    $updated_count = action->execute($user, [$existing_character->character_key]);
 
     // Should not update any characters since it already has a user
     expect($updated_count)->toEqual(0);
@@ -86,7 +86,7 @@ it('handles mixed valid and invalid character keys', function () {
         $owned_character->character_key,
     ];
 
-    $updated_count = $this->action->execute($user, $character_keys);
+    $updated_count = action->execute($user, $character_keys);
 
     // Only the anonymous character should be updated
     expect($updated_count)->toEqual(1);

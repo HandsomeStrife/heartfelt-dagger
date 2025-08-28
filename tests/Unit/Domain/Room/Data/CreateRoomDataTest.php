@@ -31,7 +31,7 @@ it('creates from valid array', function () {
     expect($createData->guest_count)->toEqual(4);
 });
 it('validates required name field', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'description' => 'Missing name field',
@@ -40,7 +40,7 @@ it('validates required name field', function () {
     ]);
 });
 it('validates required description field', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => 'Test Room',
@@ -63,7 +63,7 @@ it('allows optional password field', function () {
     expect($data->guest_count)->toEqual(2);
 });
 it('validates required guest count field', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => 'Test Room',
@@ -72,7 +72,7 @@ it('validates required guest count field', function () {
     ]);
 });
 it('validates name max length', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => str_repeat('A', 101), // Exceeds max length
@@ -82,7 +82,7 @@ it('validates name max length', function () {
     ]);
 });
 it('validates description max length', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => 'Valid name',
@@ -92,7 +92,7 @@ it('validates description max length', function () {
     ]);
 });
 it('validates password max length', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => 'Valid name',
@@ -102,7 +102,7 @@ it('validates password max length', function () {
     ]);
 });
 it('validates guest count minimum', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => 'Valid name',
@@ -112,7 +112,7 @@ it('validates guest count minimum', function () {
     ]);
 });
 it('validates guest count maximum', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => 'Valid name',
@@ -215,7 +215,7 @@ it('handles special characters', function () {
     expect($createData->password)->toEqual('p@$$w0rd!');
 });
 it('validates empty string as invalid', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => '',
@@ -225,7 +225,7 @@ it('validates empty string as invalid', function () {
     ]);
 });
 it('validates null values as invalid', function () {
-    $this->expectException(ValidationException::class);
+    expectException(ValidationException::class);
 
     CreateRoomData::validate([
         'name' => null,

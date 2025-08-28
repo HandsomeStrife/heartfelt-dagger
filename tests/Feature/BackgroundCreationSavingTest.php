@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
-use Livewire\Livewire;
+use function Pest\Livewire\livewire;
 
 test('background answers auto-save when updated via live model binding', function () {
     // Create a character in the database
@@ -14,7 +14,7 @@ test('background answers auto-save when updated via live model binding', functio
     ]);
 
     // Test the Livewire component with background answers
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->set('character.background_answers.0', 'I learned courage from my mentor who taught me to face my fears.')
         ->set('character.background_answers.1', 'My greatest loss was when my village was destroyed by raiders.')
         ->set('character.background_answers.2', 'I admire the legendary warrior who saved my people.')
@@ -38,7 +38,7 @@ test('character details auto-save when updated via live model binding', function
     ]);
 
     // Test the character detail fields
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->set('character.physical_description', 'Tall and lean with piercing blue eyes.')
         ->set('character.personality_traits', 'Witty and charming but secretly insecure.')
         ->set('character.personal_history', 'Grew up in a traveling troupe of performers.')
@@ -64,7 +64,7 @@ test('background answers update independently', function () {
         'class' => 'wizard',
     ]);
 
-    $component = Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key]);
+    $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
 
     // Set first background answer
     $component->set('character.background_answers.0', 'First answer about my magical training.')
@@ -95,7 +95,7 @@ test('empty background answers are handled gracefully', function () {
     ]);
 
     // Test setting answers to empty strings
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->set('character.background_answers.0', 'Some initial answer.')
         ->set('character.background_answers.0', '')
         ->assertSet('character.background_answers.0', '');
@@ -114,7 +114,7 @@ test('mark background complete functionality works', function () {
     ]);
 
     // Add at least one background answer to enable completion
-    Livewire::test(CharacterBuilder::class, ['characterKey' => $character->character_key])
+    livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])
         ->set('character.background_answers.0', 'I was trained by the city guard.')
         ->call('markBackgroundComplete')
         ->assertDispatched('notify');

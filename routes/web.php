@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
         return view('dashboard');
     })->name('dashboard');
     
+    // TipTap editor test route
+    Route::get('/tiptap-test', App\Livewire\TiptapTest::class)->name('tiptap-test');
+    
     // Campaign routes
     Route::prefix('campaigns')->name('campaigns.')->group(function () {
         Route::get('/', [App\Http\Controllers\CampaignController::class, 'index'])->name('index');
@@ -48,6 +51,11 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{campaign}/leave', [App\Http\Controllers\CampaignController::class, 'leave'])->name('leave');
         Route::get('/{campaign}/rooms/create', [App\Http\Controllers\RoomController::class, 'createForCampaign'])->name('rooms.create');
         Route::post('/{campaign}/rooms', [App\Http\Controllers\RoomController::class, 'storeForCampaign'])->name('rooms.store');
+        
+        // Campaign Pages routes
+        Route::get('/{campaign}/pages', function (Domain\Campaign\Models\Campaign $campaign) {
+            return view('campaigns.pages', compact('campaign'));
+        })->name('pages');
     });
     
     // Campaign Frame routes
