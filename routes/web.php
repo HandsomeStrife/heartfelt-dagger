@@ -56,6 +56,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/{campaign}/pages', function (Domain\Campaign\Models\Campaign $campaign) {
             return view('campaigns.pages', compact('campaign'));
         })->name('pages');
+        
+        Route::get('/{campaign}/pages/{page}', function (Domain\Campaign\Models\Campaign $campaign, Domain\CampaignPage\Models\CampaignPage $page) {
+            // Verify the page belongs to the campaign
+            if ($page->campaign_id !== $campaign->id) {
+                abort(404);
+            }
+            return view('campaigns.page-show', compact('campaign', 'page'));
+        })->name('page.show');
     });
     
     // Campaign Frame routes

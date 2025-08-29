@@ -10,6 +10,7 @@ use Domain\CampaignPage\Models\CampaignPage;
 use Domain\User\Data\UserData;
 use Illuminate\Support\Collection;
 use Livewire\Wireable;
+use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
 
@@ -33,11 +34,15 @@ class CampaignPageData extends Data implements Wireable
         public ?CampaignData $campaign = null,
         public ?UserData $creator = null,
         public ?CampaignPageData $parent = null,
+        /** @var \Illuminate\Support\Collection<int, self>|null */
+        #[DataCollectionOf(CampaignPageData::class)]
         public ?Collection $children = null,
         public ?array $authorized_users = null,
         public ?int $depth_level = null,
         public ?array $breadcrumbs = null,
     ) {}
+
+
 
     public static function fromModel(CampaignPage $page): self
     {

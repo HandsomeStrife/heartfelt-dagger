@@ -138,16 +138,22 @@ class CharacterBuilderController extends Controller
             return response()->json(['error' => 'Character not found'], 404);
         }
 
-        // Find and delete the character from the database
+        // Find the character model for permission checking
         $characterModel = \Domain\Character\Models\Character::where('character_key', $character_key)->first();
 
-        if ($characterModel) {
-            $characterModel->delete();
-
-            return response()->json(['message' => 'Character deleted successfully']);
+        if (! $characterModel) {
+            return response()->json(['error' => 'Character not found'], 404);
         }
 
-        return response()->json(['error' => 'Character not found'], 404);
+        // Check if user has permission to delete this character
+        if (! $this->userCanEditCharacter($characterModel)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Delete the character
+        $characterModel->delete();
+
+        return response()->json(['message' => 'Character deleted successfully']);
     }
 
     /**

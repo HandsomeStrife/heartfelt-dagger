@@ -156,7 +156,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-slate-400">Total Pages</span>
-                            <span class="font-medium text-white">{{ $pages->count() }}</span>
+                            <span class="font-medium text-white">{{ $this->getTotalPagesCount() }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-slate-400">Categories</span>
@@ -195,6 +195,14 @@
         max-width="2xl"
         on-close="$wire.closeForm()"
     >
+        <x-slot name="title">
+            {{ $editing_page ? 'Edit Campaign Page' : 'Create Campaign Page' }}
+        </x-slot>
+        
+        <x-slot name="subtitle">
+            {{ $editing_page ? 'Update page details and content' : 'Add new content to your campaign' }}
+        </x-slot>
+        
         <x-slot name="content">
             @if($editing_page)
                 <livewire:campaign-page.campaign-page-form 

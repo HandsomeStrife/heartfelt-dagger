@@ -92,6 +92,7 @@
                         @click="close()"
                         class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
                         type="button"
+                        data-close
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>

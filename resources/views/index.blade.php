@@ -8,11 +8,6 @@
                         Heartfelt Dagger
                     </h1>
                 </div>
-                <div class="mb-4">
-                    <span class="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 text-sm font-medium rounded-full border border-amber-500/30">
-                        BETA - Feature in Development
-                    </span>
-                </div>
                 <p class="text-lg sm:text-xl text-slate-300 mb-8 max-w-2xl mx-auto px-4">
                     Create your TTRPG character with our interactive character builder. 
                     Choose your class, heritage, and forge your legend in the world of Daggerheart.
@@ -41,21 +36,41 @@
                     </a>
                 </div>
 
-                <!-- Bug Report Link -->
+                <!-- Community & Contributions -->
                 <div class="mt-8 pt-6">
-                    <p class="text-sm text-slate-400 mb-3">
-                        Found a bug or have feedback?
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <a 
+                            href="https://github.com/HandsomeStrife/heartfelt-dagger" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium"
+                            x-tooltip="Contribute code, report bugs, or suggest features"
+                        >
+                            <x-icons.github class="w-4 h-4" />
+                            Contribute on GitHub
+                        </a>
+                        <span class="text-slate-500 hidden sm:inline">•</span>
+                        <a 
+                            href="{{ route('discord') }}" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium"
+                            x-tooltip="Join our Discord community for support and discussion"
+                        >
+                            <x-icons.discord class="w-4 h-4" />
+                            Join our Discord
+                        </a>
+                        <span class="text-slate-500 hidden sm:inline">•</span>
+                        <a href="https://www.daggerheart.com/buy/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium"
+                            x-tooltip="Buy the game"
+                        >
+                            <x-icons.daggerheart class="w-4 h-4" />
+                            Buy the game
+                        </a>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">
+                        Help us improve by contributing code, reporting bugs, or sharing feedback
                     </p>
-                    <a 
-                        href="{{ route('discord') }}" 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors text-sm font-medium"
-                        x-tooltip="Join our Discord to report bugs and give feedback"
-                    >
-                        <x-icons.discord class="w-4 h-4" />
-                        Join our Discord to report issues
-                    </a>
                 </div>
 
             </div>

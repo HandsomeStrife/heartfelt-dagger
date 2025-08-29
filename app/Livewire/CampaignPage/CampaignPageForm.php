@@ -142,7 +142,7 @@ class CampaignPageForm extends Component
     public function render()
     {
         if (!$this->canEdit()) {
-            abort(403, 'You do not have permission to edit this campaign page.');
+            return '<div><!-- No permission to edit --></div>';
         }
 
         return view('livewire.campaign-page.campaign-page-form');

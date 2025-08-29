@@ -50,11 +50,15 @@
              x-data="{ 
                  deleteCharacter: function(character_key) {
                      if (confirm('Are you sure you want to delete this character? This action cannot be undone.')) {
-                         fetch(`/api/character/${character_key}`, { 
+                         // Get CSRF token from meta tag
+                         const token = document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+                         
+                         fetch('/api/character/' + character_key, { 
                              method: 'DELETE',
                              headers: {
                                  'Content-Type': 'application/json',
-                                 'X-Requested-With': 'XMLHttpRequest'
+                                 'X-Requested-With': 'XMLHttpRequest',
+                                 'X-CSRF-TOKEN': token
                              }
                          }).then(response => {
                              if (response.ok) {
@@ -66,7 +70,12 @@
                                  // Reload the character grid
                                  $wire.loadCharacters(keys);
                              } else {
-                                 alert('Failed to delete character. Please try again.');
+                                 response.json().then(data => {
+                                     console.error('Delete failed:', data);
+                                     alert(data.error || 'Failed to delete character. Please try again.');
+                                 }).catch(() => {
+                                     alert('Failed to delete character. Please try again.');
+                                 });
                              }
                          }).catch(error => {
                              console.error('Error deleting character:', error);

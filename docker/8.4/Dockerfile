@@ -56,8 +56,7 @@ RUN apt-get update && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install Playwright for Pest browser testing
-RUN npm install -g playwright@latest \
-    && npx playwright install --with-deps
+# We'll install browsers after npm install in the container startup
 
 RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.4
 

@@ -28,12 +28,6 @@ class CampaignPageManager extends Component
     public Collection $available_categories;
     public array $campaign_members = [];
 
-    protected $listeners = [
-        'page-saved' => 'refreshPages',
-        'form-cancelled' => 'closeForm',
-        'page-deleted' => 'refreshPages',
-    ];
-
     public function mount(Campaign $campaign)
     {
         $this->campaign = $campaign;
@@ -89,6 +83,31 @@ class CampaignPageManager extends Component
     {
         $this->view_mode = 'search';
         $this->loadData();
+    }
+
+    protected $listeners = [
+        'page-saved' => 'handlePageSaved',
+        'form-cancelled' => 'closeForm',
+        'page-deleted' => 'refreshPages',
+    ];
+
+    /**
+     * Called automatically when search_query is updated via wire:model.live
+     */
+    public function updatedSearchQuery()
+    {
+        // Skip if we're currently editing or showing a form
+        if ($this->show_form || $this->editing_page) {
+            return;
+        }
+
+        if (!empty($this->search_query)) {
+            $this->view_mode = 'search';
+            $this->loadData();
+        } elseif ($this->view_mode === 'search') {
+            $this->view_mode = 'hierarchy';
+            $this->loadData();
+        }
     }
 
     public function clearSearch()
@@ -157,6 +176,12 @@ class CampaignPageManager extends Component
         $this->closeForm();
     }
 
+    public function handlePageSaved()
+    {
+        $this->refreshPages();
+        $this->closeForm();
+    }
+
     public function closeForm()
     {
         $this->show_form = false;
@@ -181,6 +206,43 @@ class CampaignPageManager extends Component
     public function canManagePages(): bool
     {
         return $this->campaign->isCreator(Auth::user());
+    }
+
+    /**
+     * Get total count of all pages including children (for hierarchy view)
+     */
+    public function getTotalPagesCount(): int
+    {
+        if ($this->view_mode === 'hierarchy') {
+            return $this->countPagesRecursively($this->pages);
+        }
+        
+        return $this->pages->count();
+    }
+
+    /**
+     * Recursively count pages including their children
+     */
+    private function countPagesRecursively(Collection $pages): int
+    {
+        $count = $pages->count();
+        
+        foreach ($pages as $page) {
+            if ($page->children && $page->children->isNotEmpty()) {
+                $count += $this->countPagesRecursively($page->children);
+            }
+        }
+        
+        return $count;
+    }
+
+    public function viewPage(int $page_id)
+    {
+        // Navigate to the page view
+        return redirect()->route('campaigns.page.show', [
+            'campaign' => $this->campaign->campaign_code,
+            'page' => $page_id
+        ]);
     }
 
     public function render()

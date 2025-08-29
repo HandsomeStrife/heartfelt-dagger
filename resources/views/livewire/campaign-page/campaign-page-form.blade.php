@@ -1,24 +1,4 @@
 <div class="h-full flex flex-col">
-    <!-- Header -->
-    <div class="flex items-center justify-between p-6 border-b border-slate-700">
-        <div>
-            <h2 class="text-xl font-outfit font-bold text-white">
-                {{ $this->mode === 'create' ? 'Create Campaign Page' : 'Edit Campaign Page' }}
-            </h2>
-            <p class="text-slate-300 mt-1 text-sm">
-                {{ $this->mode === 'create' ? 'Add new content to your campaign' : 'Update page details and content' }}
-            </p>
-        </div>
-        <button 
-            wire:click="cancel" 
-            class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-        >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div>
-
     <!-- Form Content - Scrollable -->
     <div class="flex-1 overflow-y-auto p-6">
 

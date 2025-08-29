@@ -33,6 +33,8 @@ cp .env.example .env
 
 # Build assets
 npm run dev
+
+# Playwright browsers are automatically set up on first container start
 ```
 
 ## Contributing
@@ -67,9 +69,10 @@ We welcome contributions! Please follow these guidelines:
 - **All new code must include tests**
 - Use `#[Test]` attributes (not `@test`)
 - **No mocks** except for external APIs
-- Use **Laravel Dusk** for JavaScript-based tests
+- Use **Playwright via Pest** for browser testing
 - Use factories for test data setup
 - No skipped tests allowed
+- Run tests with `./vendor/bin/sail pest`
 
 ### Before Contributing
 

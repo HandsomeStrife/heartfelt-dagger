@@ -1,23 +1,29 @@
-@foreach($pages as $page)
-    <div class="group bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-lg hover:border-slate-600 transition-all duration-200 hover:bg-slate-800/90">
+@php
+    $borderClass = $depth > 0 ? 'border-l-2 border-slate-600 pl-4 ml-2' : '';
+@endphp
+
+<div class="group {{ $borderClass }}">
+    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-lg hover:border-slate-600 transition-all duration-200 hover:bg-slate-800/90">
         <div class="px-4 py-3">
             <div class="flex items-center justify-between">
                 <!-- Page Info - Single Line -->
                 <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <!-- Depth Indicator -->
+                    @if($depth > 0)
+                        <div class="flex items-center text-slate-500 flex-shrink-0">
+                            @for($i = 1; $i < $depth; $i++)
+                                <div class="w-1 h-1 bg-slate-500 rounded-full mx-0.5"></div>
+                            @endfor
+                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                    @endif
+
                     <!-- Page Title -->
                     <h3 class="text-sm font-medium text-white truncate flex-shrink">
                         {{ $page->title }}
                     </h3>
-
-                    <!-- Breadcrumb for non-root pages (compact) -->
-                    @if($page->breadcrumbs && count($page->breadcrumbs) > 0)
-                        <div class="flex items-center text-xs text-slate-400 flex-shrink-0">
-                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
-                            </svg>
-                            {{ end($page->breadcrumbs)->title }}
-                        </div>
-                    @endif
 
                     <!-- Access Level Badge -->
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0
@@ -34,7 +40,7 @@
                     @endif
 
                     <!-- Categories (compact) -->
-                    @if(!empty($page->category_tags))
+                    @if(!empty($page->category_tags) && is_array($page->category_tags))
                         <span class="text-xs text-slate-400 truncate">
                             {{ implode(' • ', array_slice($page->category_tags, 0, 2)) }}{{ count($page->category_tags) > 2 ? '...' : '' }}
                         </span>
@@ -45,10 +51,6 @@
                         <span>{{ \Carbon\Carbon::parse($page->updated_at !== $page->created_at ? $page->updated_at : $page->created_at)->diffForHumans() }}</span>
                         @if($page->creator)
                             <span>{{ $page->creator->username }}</span>
-                        @endif
-                        <!-- Children Count -->
-                        @if($page->children && $page->children->count() > 0)
-                            <span>{{ $page->children->count() }} sub-page{{ $page->children->count() !== 1 ? 's' : '' }}</span>
                         @endif
                     </div>
                 </div>
@@ -106,4 +108,13 @@
             </div>
         </div>
     </div>
-@endforeach
+
+    <!-- Children -->
+    @if($page->children && $page->children->isNotEmpty())
+        <div class="mt-3 space-y-3">
+            @foreach($page->children as $child)
+                @include('livewire.campaign-page.partials.hierarchy-page-item', ['page' => $child, 'depth' => $depth + 1])
+            @endforeach
+        </div>
+    @endif
+</div>

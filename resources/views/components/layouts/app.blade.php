@@ -22,7 +22,16 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-slate-900 text-white min-h-screen">
-        <div class="fixed w-full h-full bg-repeat opacity-10 pointer-events-none -z-1" style="background-image: url('{{ asset('img/textures/black-marble.jpg') }}');"></div>
+        <!-- Static texture background -->
+        <div class="fixed w-full h-full bg-repeat opacity-5 pointer-events-none -z-1" style="background-image: url('{{ asset('img/textures/black-marble.jpg') }}');"></div>
+        
+        <!-- Animated beam background - like PestPHP -->
+        <div class="pointer-events-none fixed inset-0 min-h-screen h-full -z-20 [mask-image:radial-gradient(ellipse_at_100%_100%,black_20%,transparent_80%)] opacity-90">
+            <div class="pointer-events-none absolute inset-0 overflow-hidden">
+                <div class="beam-background absolute -inset-[20px] z-20 blur-[80px] filter"></div>
+            </div>
+        </div>
+        
         <div>
             @if(!request()->is('login') && !request()->is('register'))
                 <x-navigation />
@@ -36,15 +45,30 @@
             <footer data-testid="main-footer" class="bg-slate-800 border-t border-slate-700">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
                     <div class="text-center">
-                        <!-- Discord Link -->
-                        <div class="mb-4 md:mb-6">
+                        <!-- Community Links -->
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-6">
                             <a href="{{ route('discord') }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors font-roboto text-sm md:text-base" x-tooltip="Join our Discord community">
                                 <x-icons.discord class="w-5 h-5" />
                                 Join our Discord Community
                             </a>
+                            <a href="https://github.com/HandsomeStrife/heartfelt-dagger" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-white/80 hover:text-white transition-colors font-roboto text-sm md:text-base" x-tooltip="Contribute to our open source project">
+                                <x-icons.github class="w-5 h-5" />
+                                Open Source Project
+                            </a>
                         </div>
                         
-                        <div class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-4xl mx-auto">
+                        <!-- Open Source Notice -->
+                        <div class="mb-6">
+                            <p class="text-sm text-slate-300 mb-2">
+                                This is an <strong>open source project</strong> - contributions welcome!
+                            </p>
+                            <p class="text-xs text-slate-400">
+                                Help us improve by contributing code, reporting bugs, or suggesting features.
+                            </p>
+                        </div>
+                        
+                        <!-- Legal Information -->
+                        <div class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-4xl mx-auto border-t border-slate-700 pt-6">
                             <p class="mb-2 md:mb-3">
                                 This repository includes materials from the Daggerheart System Reference Document © Critical Role, LLC. under the terms of the Darrington Press Community Gaming (DPCGL) License. More information can be found at 
                                 <a href="https://www.daggerheart.com/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline break-words">https://www.daggerheart.com/</a>. 

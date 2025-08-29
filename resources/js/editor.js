@@ -39,17 +39,17 @@ if (!window.setupEditor) {
               },
               bulletList: {
                 HTMLAttributes: {
-                  class: 'list-disc list-inside mb-4 text-slate-200',
+                  class: 'mb-4 text-slate-200',
                 },
               },
               orderedList: {
                 HTMLAttributes: {
-                  class: 'list-decimal list-inside mb-4 text-slate-200',
+                  class: 'mb-4 text-slate-200',
                 },
               },
               listItem: {
                 HTMLAttributes: {
-                  class: 'text-slate-200 *:inline',
+                  class: 'text-slate-200',
                 },
               },
               blockquote: {
