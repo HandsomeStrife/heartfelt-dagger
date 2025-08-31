@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use function Pest\Livewire\livewire;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
 use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+
 test('character builder shows clank bonus functionality for clank ancestry', function () {
     $character = createTestCharacter();
 

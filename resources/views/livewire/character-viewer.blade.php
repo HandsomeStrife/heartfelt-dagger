@@ -14,6 +14,14 @@
             const storedKeys = JSON.parse(localStorage.getItem('daggerheart_characters') || '[]');
             this.canEdit = storedKeys.includes(this.characterKey);
         }
+
+        // Anonymous lock marker for tests (and hard-disable controls when locked)
+        if (!this.canEdit) {
+            document.body.dataset.anonLocked = '1';
+        } else {
+            delete document.body.dataset.anonLocked;
+        }
+
         this.loadCharacterState();
     },
 
@@ -59,7 +67,13 @@
         this.saveCharacterState();
     },
 
-    saveCharacterState() {
+    isValidState(state) {
+        if (!state || typeof state !== 'object') return false;
+        const keys = ['hitPoints', 'stress', 'hope', 'goldHandfuls', 'goldBags', 'goldChest', 'armorSlots'];
+        return keys.some(k => Object.prototype.hasOwnProperty.call(state, k));
+    },
+
+    async saveCharacterState() {
         const state = {
             hitPoints: this.hitPoints,
             stress: this.stress,
@@ -75,7 +89,14 @@
 
         // Save to database via Livewire (for authenticated users)
         if (@json(auth()->check())) {
-            $wire.saveCharacterState(state);
+            try {
+                await $wire.saveCharacterState(state);
+            } finally {
+                window.__saveSeq = (window.__saveSeq || 0) + 1;
+            }
+        } else {
+            // For tests, bump sequence even for local-only saves
+            window.__saveSeq = (window.__saveSeq || 0) + 1;
         }
     },
 
@@ -89,6 +110,10 @@
             } catch (error) {
                 console.warn('Failed to load character state from database:', error);
             }
+            // Treat empty/invalid DB payloads as missing so we can fall back to localStorage
+            if (!this.isValidState(state)) {
+                state = null;
+            }
         }
 
         // Fall back to localStorage if no database state
@@ -99,7 +124,7 @@
             }
         }
 
-        if (state) {
+        if (this.isValidState(state)) {
             // Ensure goldBags has the correct length (9)
             if (state.goldBags && state.goldBags.length !== 9) {
                 const currentBags = state.goldBags.slice(); // Copy existing state
@@ -122,6 +147,8 @@
 
             Object.assign(this, state);
         }
+        // Mark hydration complete for deterministic tests
+        document.body.dataset.hydrated = '1';
     }
 }" class="bg-slate-950 text-slate-100/95 antialiased min-h-screen"
     style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';">
@@ -164,7 +191,9 @@
                         <div class="flex items-center justify-center sm:justify-start gap-2">
                             <h1
                                 class="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-center sm:text-left">
-                                {{ $character->name ?: 'Unnamed Character' }}</h1>
+                                {{ $character->name ?: 'Unnamed Character' }}
+                                <span class="text-xs text-slate-400 font-light ml-1">{{ $pronouns }}</span>
+                            </h1>
                             @if ($can_edit)
                                 <a x-show="canEdit" :href="`/character-builder/${characterKey}`"
                                     aria-label="Edit character"
@@ -365,21 +394,6 @@
                             Set active in the equipment section</div>
                     @endif
                 </div>
-
-                @if (!empty($character->experiences))
-                    <div class="mt-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg">
-                        <h2 class="text-lg font-bold">Experience</h2>
-                        <ul class="mt-2 divide-y divide-slate-800/80">
-                            @foreach ($character->experiences as $experience)
-                                <li class="flex items-center justify-between py-2">
-                                    <span>{{ $experience['name'] }}</span>
-                                    <span
-                                        class="px-2 py-1 text-xs rounded-md bg-slate-800/80 ring-1 ring-slate-700/60">+{{ $experience['modifier'] ?? 2 }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
     
                 <!-- Active Armor under weapons -->
                 <div class="mt-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
@@ -581,38 +595,24 @@
                     </div>
                 </div>
 
-                <!-- Equipment under weapons -->
-                <div class="mt-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
-                    <h2 class="text-lg font-bold">Equipment</h2>
-                    <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="rounded-2xl ring-1 ring-slate-700/60 p-4">
-                            <div class="text-xs text-slate-400">Inventory</div>
-                            <ul class="mt-2 space-y-1.5 text-sm">
-                                @if (!empty($organized_equipment['items']))
-                                    @foreach ($organized_equipment['items'] as $item)
-                                        <li>{{ $item['data']['name'] ?? ucwords(str_replace('-', ' ', $item['key'])) }}
-                                        </li>
-                                    @endforeach
-                                @endif
-                                @if (!empty($organized_equipment['consumables']))
-                                    @foreach ($organized_equipment['consumables'] as $consumable)
-                                        <li>{{ $consumable['data']['name'] ?? ucwords(str_replace('-', ' ', $consumable['key'])) }}
-                                        </li>
-                                    @endforeach
-                                @endif
-                                @if (empty($organized_equipment['items']) && empty($organized_equipment['consumables']))
-                                    <li class="text-slate-500 italic">No items in inventory</li>
-                                @endif
-                            </ul>
-                        </div>
-                        <div class="rounded-2xl ring-1 ring-slate-700/60 p-4">
-                            <div class="text-xs text-slate-400">Stash</div>
-                            <ul class="mt-2 space-y-1.5 text-sm">
-                                <li class="text-slate-500 italic">Empty</li>
-                            </ul>
-                        </div>
+                @if (!empty($character->experiences))
+                    <div class="mt-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-5 shadow-lg">
+                        <h2 class="text-lg font-bold">Experience</h2>
+                        <ul class="mt-2 divide-y divide-slate-800/80">
+                            @foreach ($character->experiences as $experience)
+                                <li class="flex items-center justify-between py-2">
+                                    <span>{{ $experience['name'] }}</span>
+                                    <div class="flex items-center gap-2">
+                                        @if($character->hasExperienceBonusSelection() && $character->getClankBonusExperience() === ($experience['name'] ?? null))
+                                            <span class="px-2 py-1 text-[10px] rounded-md bg-purple-500/20 ring-1 ring-purple-400/30 text-purple-200">Clank Bonus</span>
+                                        @endif
+                                        <span class="px-2 py-1 text-xs rounded-md bg-slate-800/80 ring-1 ring-slate-700/60">+{{ $character->getExperienceModifier($experience['name'] ?? '') }}</span>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
                     </div>
-                </div>
+                @endif
             </div>
         </section>
 
@@ -697,7 +697,38 @@
         </section>
 
         <!-- JOURNAL -->
-        <section>
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
+                <h2 class="text-lg font-bold">Equipment</h2>
+                <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="rounded-2xl ring-1 ring-slate-700/60 p-4">
+                        <div class="text-xs text-slate-400">Inventory</div>
+                        <ul class="mt-2 space-y-1.5 text-sm">
+                            @if (!empty($organized_equipment['items']))
+                                @foreach ($organized_equipment['items'] as $item)
+                                    <li>{{ $item['data']['name'] ?? ucwords(str_replace('-', ' ', $item['key'])) }}
+                                    </li>
+                                @endforeach
+                            @endif
+                            @if (!empty($organized_equipment['consumables']))
+                                @foreach ($organized_equipment['consumables'] as $consumable)
+                                    <li>{{ $consumable['data']['name'] ?? ucwords(str_replace('-', ' ', $consumable['key'])) }}
+                                    </li>
+                                @endforeach
+                            @endif
+                            @if (empty($organized_equipment['items']) && empty($organized_equipment['consumables']))
+                                <li class="text-slate-500 italic">No items in inventory</li>
+                            @endif
+                        </ul>
+                    </div>
+                    <div class="rounded-2xl ring-1 ring-slate-700/60 p-4">
+                        <div class="text-xs text-slate-400">Stash</div>
+                        <ul class="mt-2 space-y-1.5 text-sm">
+                            <li class="text-slate-500 italic">Empty</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
             <div
                 class="w-full rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
                 <h2 class="text-lg font-bold">Journal</h2>

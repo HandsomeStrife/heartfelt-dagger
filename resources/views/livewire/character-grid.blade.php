@@ -1,5 +1,7 @@
 <div x-data="{ 
+        isAuthed: @js(auth()->check()),
         loadCharactersFromStorage() {
+            if (this.isAuthed) { return; }
             try {
                 const keys = localStorage.getItem('daggerheart_characters');
                 const characterKeys = keys ? JSON.parse(keys) : [];
@@ -10,8 +12,8 @@
             }
         }
      }" 
-     @load-characters-from-storage.window="loadCharactersFromStorage()"
-     x-init="loadCharactersFromStorage()">
+     @load-characters-from-storage.window="if (!isAuthed) loadCharactersFromStorage()"
+     x-init="if (!isAuthed) loadCharactersFromStorage()">
     <!-- Loading State -->
     <div wire:loading class="text-center">
         <div class="inline-flex items-center text-slate-300">

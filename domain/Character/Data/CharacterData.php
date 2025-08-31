@@ -19,6 +19,7 @@ class CharacterData extends Data implements Wireable
         public ?int $user_id,
         public string $name,
         public string $class,
+        public ?string $pronouns,
         public ?string $subclass,
         public string $ancestry,
         public string $community,

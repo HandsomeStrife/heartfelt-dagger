@@ -3,11 +3,9 @@
 declare(strict_types=1);
 
 use Domain\Character\Models\Character;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete, assertDatabaseHas};
 use Domain\Room\Models\Room;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('character dropdown shows compact character list with class info', function () {
     $user = User::factory()->create();

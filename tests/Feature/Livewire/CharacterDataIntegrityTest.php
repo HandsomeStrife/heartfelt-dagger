@@ -2,20 +2,15 @@
 
 declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use function Pest\Livewire\livewire;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    user = User::factory()->create();
-    character = Character::factory()->for(user)->create([
+    $this->user = User::factory()->create();
+    $this->character = Character::factory()->for($this->user)->create([
         'character_key' => 'INTEG12345',
     ]);
 });

@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-use Domain\Character\Models\Character;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\Room;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
+use Domain\Character\Models\Character;
 use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('join page shows character selection dropdown when user has characters', function () {

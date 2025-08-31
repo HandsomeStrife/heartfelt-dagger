@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 use Domain\Character\Models\Character;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\Room;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
 use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 

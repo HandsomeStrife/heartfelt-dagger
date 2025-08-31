@@ -4,19 +4,13 @@ declare(strict_types=1);
 use Domain\Campaign\Models\Campaign;
 use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Campaign\Models\CampaignMember;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Character\Models\Character;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\Room;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Room\Models\RoomParticipant;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Illuminate\Support\Facades\Hash;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Laravel\{assertDatabaseHas, assertDatabaseMissing, assertDatabaseCount};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('guest cannot access room routes', function () {

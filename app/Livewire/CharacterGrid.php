@@ -7,6 +7,7 @@ namespace App\Livewire;
 use Domain\Character\Actions\LoadCharacterAction;
 use Domain\Character\Models\Character;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class CharacterGrid extends Component
@@ -18,8 +19,17 @@ class CharacterGrid extends Component
     public function mount(): void
     {
         $this->characters = collect();
-        // Auto-load characters from localStorage on component mount
-        $this->dispatch('load-characters-from-storage');
+        // For authenticated users, load characters server-side by user
+        if (Auth::check()) {
+            $keys = Character::where('user_id', Auth::id())
+                ->orderBy('updated_at', 'desc')
+                ->pluck('character_key')
+                ->all();
+            $this->loadCharacters($keys);
+        } else {
+            // For guests, load from localStorage (handled on the client)
+            $this->dispatch('load-characters-from-storage');
+        }
     }
 
     public function loadCharacters(array $character_keys): void

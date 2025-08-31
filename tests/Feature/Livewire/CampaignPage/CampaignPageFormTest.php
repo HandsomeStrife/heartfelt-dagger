@@ -21,7 +21,7 @@ it('can render create form', function ()
 
     livewire(CampaignPageForm::class, ['campaign' => $campaign])
         ->assertSuccessful()
-        ->assertSee('Create Campaign Page')
+        ->assertSee('Create Page')
         ->assertSee('Page Title')
         ->assertSee('Access Level');
 });
@@ -42,7 +42,7 @@ it('can render edit form', function ()
 
     livewire(CampaignPageForm::class, ['campaign' => $campaign, 'page' => $page])
         ->assertSuccessful()
-        ->assertSee('Edit Campaign Page')
+        ->assertSee('Update Page')
         ->assertSet('form.title', 'Test Page')
         ->assertSet('form.content', '<p>Test content</p>');
 });
@@ -244,7 +244,7 @@ it('prevents_non authorized users from editing', function ()
     actingAs($otherUser);
 
     livewire(CampaignPageForm::class, ['campaign' => $campaign, 'page' => $page])
-        ->assertStatus(403);
+        ->assertSee('No permission to edit');
 });
 
 

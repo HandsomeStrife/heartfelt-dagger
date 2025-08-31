@@ -7,15 +7,18 @@ use Domain\Character\Models\Character;
 use Domain\User\Models\User;
 use function Pest\Livewire\livewire;
 use PHPUnit\Framework\Attributes\Test;
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    user = User::factory()->create();
-    character = Character::factory()->for(user)->create([
+    $this->user = User::factory()->create();
+    $character = Character::factory()->for($this->user)->create([
         'character_key' => 'test123456',
     ]);
 });
 it('resets all data except heritage when class changes', function () {
+
+    actingAs($this->user);
     // Setup initial character data with all fields populated
     $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
@@ -59,6 +62,7 @@ it('resets all data except heritage when class changes', function () {
     $component->assertSet('character.connection_answers', []);
 });
 it('resets all data except heritage and class when subclass changes', function () {
+    actingAs($this->user);
     // Setup initial character data with all fields populated
     $component = livewire(CharacterBuilder::class, ['characterKey' => 'test123456']);
 
