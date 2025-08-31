@@ -1,0 +1,784 @@
+{
+    "arcana": {
+        "key": "arcana",
+        "name": "Arcana",
+        "description": "Arcana is the domain of innate and instinctual magic. Those who choose this path tap into the raw, enigmatic forces of the realms to manipulate both their own energy and the elements. Arcana offers wielders a volatile power, but it is incredibly potent when correctly channeled. The Arcana domain can be accessed by the Druid and Sorcerer classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "rune ward",
+                    "unleash chaos",
+                    "wall walk"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "cinder grasp",
+                    "floating eye"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "counterspell",
+                    "flight"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "blink out",
+                    "preservation blast"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "chain lightning",
+                    "premonition"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "rift walker",
+                    "telekinesis"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "arcanatouched",
+                    "cloaking blast"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "arcane reflection",
+                    "confusing aura"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "earthquake",
+                    "sensory projection"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "adjust reality",
+                    "falling sky"
+                ]
+            }
+        }
+    },
+    "blade": {
+        "key": "blade",
+        "name": "Blade",
+        "description": "Blade is the domain of weapon mastery. Whether by steel, bow, or perhaps a more specialized arm, those who follow this path have the skill to cut short the lives of others. Wielders of Blade dedicate themselves to achieving inexorable power over death. The Blade domain can be accessed by the Guardian and Warrior classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "get back up",
+                    "not good enough",
+                    "whirlwind"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "a soldiers bond",
+                    "reckless"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "scramble",
+                    "versatile fighter"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "deadly focus",
+                    "fortified armor"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "champions edge",
+                    "vitality"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "battlehardened",
+                    "rage up"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "bladetouched",
+                    "glancing blow"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "battle cry",
+                    "frenzy"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "gore and glory",
+                    "reapers strike"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "battle monster",
+                    "onslaught"
+                ]
+            }
+        }
+    },
+    "bone": {
+        "key": "bone",
+        "name": "Bone",
+        "description": "Bone is the domain of tactics and the body. Practitioners of this domain have an uncanny control over their own physical abilities and an eye for predicting the behaviors of others in combat. Adherents to Bone gain an unparalleled understanding of bodies and their movements. The Bone domain can be accessed by the Ranger & Warrior classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "deft maneuvers",
+                    "i see it coming",
+                    "untouchable"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "ferocity",
+                    "strategic approach"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "brace",
+                    "tactician"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "boost",
+                    "redirect"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "know thy enemy",
+                    "signature move"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "rapid riposte",
+                    "recovery"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "bonetouched",
+                    "cruel precision"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "breaking blow",
+                    "wrangle"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "on the brink",
+                    "splintering strike"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "deathrun",
+                    "swift step"
+                ]
+            }
+        }
+    },
+    "codex": {
+        "key": "codex",
+        "name": "Codex",
+        "description": "Codex is the domain of intensive magical study. Those who seek magical knowledge turn to the equations of power recorded in books, written on scrolls, etched into walls, or tattooed on bodies. Codex offers a commanding and versatile understanding of magic to devotees who pursue knowledge beyond the boundaries of common wisdom. The Codex domain can be accessed by the Bard and Wizard classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "book of ava",
+                    "book of illiat",
+                    "book of tyfar"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "book of sitil",
+                    "book of vagras"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "book of korvax",
+                    "book of norai"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "book of exota",
+                    "book of grynn"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "manifest wall",
+                    "teleport"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "banish",
+                    "sigil of retribution"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "book of homet",
+                    "codextouched"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "book of vyola",
+                    "safe haven"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "book of ronin",
+                    "disintegration wave"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "book of yarrow",
+                    "transcendent union"
+                ]
+            }
+        }
+    },
+    "dread": {
+        "key": "dread",
+        "name": "Dread",
+        "description": "Dread is the domain of fear, shadow, and dark power. Those who wield this domain tap into the terrifying forces that lurk in the depths of nightmares and the spaces between worlds. Practitioners of Dread can instill terror in their enemies, manipulate dark energies, and transform themselves into instruments of malice. The Dread domain represents a powerful but dangerous path that offers great strength to those willing to embrace the darkness.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "blighting strike",
+                    "voice of dread",
+                    "umbral veil"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "hideous retribution",
+                    "siphon essence",
+                    "terrify"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "shared trauma",
+                    "chains of affliction",
+                    "summon horror"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "chains of affliction",
+                    "summon horror"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "spectral mist",
+                    "dire strike"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "darkfire",
+                    "jump scare"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "dreadtouched",
+                    "wall of hunger"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "dark army",
+                    "eldritch flesh"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "damnation",
+                    "savor the anguish"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "invoke torment",
+                    "avatar of terror"
+                ]
+            }
+        }
+    },
+    "grace": {
+        "key": "grace",
+        "name": "Grace",
+        "description": "Grace is the domain of charisma. Through rapturous storytelling, charming spells, or a shroud of lies, those who channel this power define the realities of their adversaries, bending perception to their will. Grace offers its wielders raw magnetism and mastery over language. The Grace domain can be accessed by the Bard and Rogue classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "deft deceiver",
+                    "enrapture",
+                    "inspirational words"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "tell no lies",
+                    "troublemaker"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "hypnotic shimmer",
+                    "invisibility"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "soothing speech",
+                    "through your eyes"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "thought delver",
+                    "words of discord"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "never upstaged",
+                    "share the burden"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "endless charisma",
+                    "gracetouched"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "astral projection",
+                    "mass enrapture"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "copycat",
+                    "master of the craft"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "encore",
+                    "notorious"
+                ]
+            }
+        }
+    },
+    "midnight": {
+        "key": "midnight",
+        "name": "Midnight",
+        "description": "Midnight is the domain of shadows and secrecy. Whether by clever tricks, deft magic, or the cloak of night, those who channel these forces practice the art of obscurity and can uncover sequestered treasures. Midnight offers practitioners the power to control and create enigmas. The Midnight domain can be accessed by the Rogue and Sorcerer classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "pick and pull",
+                    "rain of blades",
+                    "uncanny disguise"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "midnight spirit",
+                    "shadowbind"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "chokehold",
+                    "veil of night"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "stealth expertise",
+                    "glyph of nightfall"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "hush",
+                    "phantom retreat"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "dark whispers",
+                    "mass disguise"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "midnighttouched",
+                    "vanishing dodge"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "shadowhunter",
+                    "spellcharge"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "night terror",
+                    "twilight toll"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "eclipse",
+                    "specter of the dark"
+                ]
+            }
+        }
+    },
+    "sage": {
+        "key": "sage",
+        "name": "Sage",
+        "description": "Sage is the domain of the natural world. Those who walk this path tap into the unfettered power of the earth and its creatures to unleash raw magic. Sage grants its adherents the vitality of a blooming flower and the ferocity of a ravenous predator. The Sage domain can be accessed by the Druid and Ranger classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "gifted tracker",
+                    "natures tongue",
+                    "vicious entangle"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "conjure swarm",
+                    "natural familiar"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "corrosive projectile",
+                    "towering stalk"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "death grip",
+                    "healing field"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "thorn skin",
+                    "wild fortress"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "conjured steeds",
+                    "forager"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "sagetouched",
+                    "wild surge"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "forest sprites",
+                    "rejuvenation barrier"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "fane of the wilds",
+                    "plant dominion"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "force of nature",
+                    "tempest"
+                ]
+            }
+        }
+    },
+    "splendor": {
+        "key": "splendor",
+        "name": "Splendor",
+        "description": "Splendor is the domain of life. Through this magic, followers gain the ability to heal and, to an extent, control death. Splendor offers its disciples the magnificent ability to both give and end life. The Splendor domain can be accessed by the Seraph and Wizard classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "bolt beacon",
+                    "mending touch",
+                    "reassurance"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "final words",
+                    "healing hands"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "second wind",
+                    "voice of reason"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "divination",
+                    "life ward"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "shape material",
+                    "smite"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "restoration",
+                    "zone of protection"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "healing strike",
+                    "splendortouched"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "shield aura",
+                    "stunning sunlight"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "overwhelming aura",
+                    "salvation beam"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "invigoration",
+                    "resurrection"
+                ]
+            }
+        }
+    },
+    "valor": {
+        "key": "valor",
+        "name": "Valor",
+        "description": "Valor is the domain of protection. Whether through attack or defense, those who choose this discipline channel formidable strength to protect their allies in battle. Valor offers great power to those who raise their shields in defense of others. The Valor domain can be accessed by the Guardian and Seraph classes.",
+        "abilitiesByLevel": {
+            "1": {
+                "level": 1,
+                "abilities": [
+                    "bare bones",
+                    "forceful push",
+                    "i am your shield"
+                ]
+            },
+            "2": {
+                "level": 2,
+                "abilities": [
+                    "body basher",
+                    "bold presence"
+                ]
+            },
+            "3": {
+                "level": 3,
+                "abilities": [
+                    "critical inspiration",
+                    "lean on me"
+                ]
+            },
+            "4": {
+                "level": 4,
+                "abilities": [
+                    "goad them on",
+                    "support tank"
+                ]
+            },
+            "5": {
+                "level": 5,
+                "abilities": [
+                    "armorer",
+                    "rousing strike"
+                ]
+            },
+            "6": {
+                "level": 6,
+                "abilities": [
+                    "inevitable",
+                    "rise up"
+                ]
+            },
+            "7": {
+                "level": 7,
+                "abilities": [
+                    "shrug it off",
+                    "valortouched"
+                ]
+            },
+            "8": {
+                "level": 8,
+                "abilities": [
+                    "full surge",
+                    "ground pound"
+                ]
+            },
+            "9": {
+                "level": 9,
+                "abilities": [
+                    "hold the line",
+                    "lead by example"
+                ]
+            },
+            "10": {
+                "level": 10,
+                "abilities": [
+                    "unbreakable",
+                    "unyielding armor"
+                ]
+            }
+        }
+    }
+}

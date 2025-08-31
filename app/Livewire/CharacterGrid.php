@@ -1,0 +1,88 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Livewire;
+
+use Domain\Character\Actions\LoadCharacterAction;
+use Domain\Character\Models\Character;
+use Illuminate\Support\Collection;
+use Livewire\Component;
+
+class CharacterGrid extends Component
+{
+    public array $character_keys = [];
+    public Collection $characters;
+    public bool $loading = true;
+
+    public function mount(): void
+    {
+        $this->characters = collect();
+        // Auto-load characters from localStorage on component mount
+        $this->dispatch('load-characters-from-storage');
+    }
+
+    public function loadCharacters(array $character_keys): void
+    {
+        $this->character_keys = $character_keys;
+        $this->loading = true;
+        
+        if (empty($character_keys)) {
+            $this->characters = collect();
+            $this->loading = false;
+            return;
+        }
+
+        $action = new LoadCharacterAction();
+        $characters = collect();
+        
+        foreach ($character_keys as $key) {
+            try {
+                $character = $action->execute($key);
+                if ($character) {
+                    // Get the character model for additional data
+                    $character_model = Character::where('character_key', $key)->first();
+                    if ($character_model) {
+                        // Add model data to character data
+                        $character->character_key = $key;
+                        $character->public_key = $character_model->public_key;
+                        $characters->push($character);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Skip characters that can't be loaded
+                continue;
+            }
+        }
+        
+        $this->characters = $characters;
+        $this->loading = false;
+    }
+
+
+
+    public function viewCharacter(string $character_key): void
+    {
+        $character = $this->characters->firstWhere('character_key', $character_key);
+        if ($character && $character->public_key) {
+            $this->redirect("/character/{$character->public_key}");
+        }
+    }
+
+    public function editCharacter(string $character_key): void
+    {
+        $this->redirect("/character-builder/{$character_key}");
+    }
+
+    public function deleteCharacter(string $character_key): void
+    {
+        // This will be handled by Alpine.js on the frontend for confirmation
+        // The actual deletion happens via the existing API endpoint
+        $this->dispatch('delete-character', character_key: $character_key);
+    }
+
+    public function render()
+    {
+        return view('livewire.character-grid');
+    }
+}

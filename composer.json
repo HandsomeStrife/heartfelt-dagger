@@ -11,9 +11,15 @@
     "require": {
         "php": "^8.2",
         "ably/ably-php": "*",
+        "aws/aws-sdk-php": "^3.356",
+        "google/apiclient": "^2.18",
+        "graham-campbell/markdown": "^16.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
-        "livewire/livewire": "^3.6"
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "livewire/livewire": "^3.6",
+        "spatie/laravel-data": "^4.17",
+        "spatie/laravel-ray": "^1.40"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -22,11 +28,15 @@
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
-        "phpunit/phpunit": "^11.5.3"
+        "pestphp/pest-plugin-browser": "^4.0",
+        "pestphp/pest-plugin-drift": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "pestphp/pest-plugin-livewire": "^4.0"
     },
     "autoload": {
         "psr-4": {
             "App\\": "app/",
+            "Domain\\": "domain/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }
@@ -59,12 +69,18 @@
         ],
         "test": [
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php pest"
+        ],
+        "test:browser": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php pest --browser"
         ]
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "laravel/pail"
+            ]
         }
     },
     "config": {

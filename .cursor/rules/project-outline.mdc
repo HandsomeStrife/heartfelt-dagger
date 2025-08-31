@@ -1,0 +1,310 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+ALWAYS check that components exist before making assumptions.
+
+The project uses Laravel 12, TailwindCSS, Livewire and AlpineJS.
+
+All code changes should be accompanied with automated tests, and use Pest 4 for browser based tests.
+
+Tests should be run with `sail pest`
+
+## **KEY INFORMATION** 
+
+1. **No Creation of `app/Domain`**  
+   - **All domain-based work** must be placed in `/domain/` and **never** in `/app/Domain` or `/app/domain`.
+   - **Never** create or access an `app/Domain` or `app/domain` folder.
+
+2. **No `@php` Directives in Blade**  
+   - Blade templates **must not** contain `@php` directives.
+
+3. **Models in Domain Namespace**  
+   - **No** models in the `app` namespace. **All** Eloquent models reside in `domain/*/Models`.
+
+4. **Fail Fast on Unknown References**  
+   - If you are about to reference or generate any file/class/method not found or explicitly defined, **stop** and seek clarification rather than guessing or inventing.  
+
+5. snake_case for variables, camelCase for functions/methods.
+
+6. Action classes should be executed in the following pattern `(new Action())->execute(...)`
+
+---
+
+## **PSR-12 Coding Guidelines** 
+
+(Full details below are also part of standard PSR-12. This is just a summary of key items to maintain clarity.)
+
+1. **General**: 
+   - PSR-12 extends PSR-1 and PSR-2.  
+   - Use `UTF-8` (no BOM).
+
+2. **PHP Tags & Declarations**: 
+   - Only `<?php` (no short tags).  
+   - `declare(strict_types=1);` on its own line immediately after `<?php`.
+
+3. **Namespaces & Imports**:
+   - One `use` statement per line, grouped logically.  
+   - Namespace on its own line, directly below `declare(strict_types=1);`.
+
+4. **Classes, Traits, Interfaces**:
+   - Opening brace on a new line.  
+   - Blank line before class declaration.  
+   - `extends`/`implements` on same line as class name (multi-line splits if needed).  
+   - Always declare visibility (`public`, `protected`, `private`) on properties/methods.  
+   - Constants in uppercase with underscores.
+
+5. **Methods & Functions**:
+   - Opening brace on a new line.  
+   - Arguments inline if short, multiline with optional trailing comma if long.  
+   - Return types on the same line.  
+   - Order: `public|protected|private`, then `static`, then `function`.
+
+6. **Control Structures**:
+   - Space after keywords (`if`, `while`).  
+   - Braces on new lines.  
+   - Use `elseif` (not `else if`).  
+   - `case` indented, `break` aligned with case body.
+
+7. **Indentation & Line Length**:
+   - 4 spaces, no tabs.  
+   - Soft limit ~120 chars.  
+   - Unix line endings (`\n`).
+
+8. **Blank Lines & Spacing**:
+   - One blank line between methods or logical code groups.  
+   - No trailing whitespace.  
+   - One blank line before EOF.
+
+9. **Docblocks**:
+   - Use standard PHPDoc (`/** ... */`) for summaries, `@param`, `@return`, etc.  
+   - One line per tag.
+
+10. **Misc**:
+   - One statement per line, no closing `?>` in pure PHP-only files.  
+   - Keep code minimal, tested, and no-lint errors.
+
+---
+
+## **Codebase Analysis: Architecture, Strategies, and Components**
+
+### **1. Architecture**
+
+- **Laravel Foundation**: Routing, ORM (Eloquent), service container, etc.
+- **DDD Approach**:
+  - Core business logic in `domain/*`.  
+  - Organized into **Bounded Contexts** (e.g., `domain/User`, `domain/StreamLinks`, etc.).
+  - Each context typically has subfolders:  
+    - `Models` (Eloquent models)  
+    - `Data` (DTOs w/ `Spatie\LaravelData`)  
+    - `Actions` (single-operation logic)  
+    - `Repositories` (data retrieval, returns DTOs)  
+    - Possibly `Enums`, `Jobs`, `Exceptions`, `Mail`...
+- **Application Layer (`app/`)**:
+  - **Livewire** components  
+  - **Http** controllers, middleware, form requests  
+  - **Providers**, **Console**, etc.  
+  - Blade components for “application-level” concerns (but domain logic stays in `domain/`).
+- **Frontend**: Livewire for dynamic interfaces, Blade for templating, Alpine.js for simple interactions, Tailwind CSS for styling.
+
+### **2. Development Strategies & Guidelines**
+
+1. **PSR-12**: Strict adherence.
+2. **Spatie Laravel Data**:
+   - Define DTOs in `domain/*/Data`.
+   - Create via `::from()`.  
+   - Livewire + Data objects must implement `Wireable` + use `WireableData`.
+3. **Action-Repository**:
+   - **Actions**: single `execute()` for business logic & data modifications.  
+   - **Repositories**: read-only data retrieval, returning DTOs (no direct model returns).
+4. **Models**: 
+   - Inside `domain/*/Models` with `protected $guarded = [];`.
+5. **Blade**:
+   - **No `@php`** in templates.
+   - Use standard Blade components for forms, buttons, badges, modals, tooltips, etc.
+6. **Testing**:
+   - Tests are written with Pest in mind
+   - **No mocks** except external APIs.  
+   - Factories for test data.  
+   - Avoid skipped tests.
+   - Do NOT use any flags like -v or --versbose when running tests
+7. **Dev Environment**: 
+   - **Sail** for Artisan commands.  
+   - Keep a `development_log.md`.
+
+### **3. Component Usage**
+
+1. **Blade Components** (in `resources/views/components/`):
+   - **Layouts**: `<x-layout.default>` / `<x-layout.default.sidebar>`  
+   - **Forms**: `<x-form>`, `<x-form.label>`, `<x-form.input>`, `<x-form.select>`  
+   - **Buttons**: `<x-button>` (+ variants)  
+   - **Badges**: `<x-badge>` (+ variants)  
+   - **Modals**: `<x-modal.slideover>`, `<x-modal.popup>`  
+   - **Tooltips**: `x-tooltip` data attributes
+
+2. **Livewire Components** (`app/Livewire/`):
+   - Named for their feature (e.g., `StreamLinksLinkManager`).  
+   - Interact with domain **Actions** & **Repositories**.  
+   - Must handle state with Spatie DTOs if it’s complex and must remain consistent.
+
+3. **Data Objects** (`domain/*/Data/`):
+   - Transfer data across layers, ensuring type safety.  
+   - Created from arrays or models with `::from()`.  
+   - Provide validation, transformation, and can be used seamlessly in Livewire or controllers.
+
+---
+
+## **AI Interaction Guidelines**
+
+1. **Fail Fast on Uncertain References**  
+   - If the requested file/class/method/Blade component isn’t found in the codebase or isn’t explicitly described, **ask for clarification** before proceeding. Do **not** invent.
+
+2. **Agent Mode / Project Awareness**  
+   - In **Cursor** agent mode, always **check** for existing classes or files before creating new ones.  
+   - If a file already exists, either (a) use/extend it, or (b) ask if it should be modified.
+
+3. **Professional & Predictable Output**  
+   - No “made-up” methods or “magic” classes.  
+   - Strictly follow the domain structure, especially `domain/*` for domain logic.  
+   - Validate all references (methods, classes, components) to ensure correctness.
+
+4. **Clean Architecture & Boundaries**  
+   - Respect the **Action** (commands) vs **Repository** (queries) vs **Model** lines.  
+   - Keep controllers or Livewire components thin; delegate domain logic to Actions.
+
+5. **Naming & Organization**  
+   - Match existing patterns (e.g., `UserData`, `PaymentRepository`).  
+   - Keep domain logic within `domain/`.  
+   - Use `App\Http\Controllers` for standard controllers and `App\Livewire` for Livewire components.
+
+---
+
+## **Laravel Guidelines (Specific to the Project)**
+
+1. **Use Spatie Data for DTOs**  
+   - Never override default Spatie methods like `fromArray` or `fromModel`; use `DataClass::from(...)` instead.  
+   - Repositories must return Data or DataCollections (not raw models).
+
+2. **Actions vs. Repositories**  
+   - **Repositories**: data retrieval only, **never** modify data.  
+   - **Actions**: performing logic/persistence in the domain. Single `execute()` method is standard.
+
+3. **No Unnecessary Eloquent in Livewire**  
+   - If data is needed in a Livewire component, retrieve it via the appropriate **Repository** and store it in a **DTO**.  
+   - Any creation or update logic must be handled via an **Action**.
+
+4. **Use Sail**  
+   - For Artisan, Livewire, Tinker commands: `vendor/bin/sail [command]`.  
+   - Keep local dev environment consistent.
+
+5. **Logging in `development_log.md`**  
+   - Record major changes, issues, or discussion outcomes.
+
+6. **Dont use data collections**
+   - Always use Laravel collections, not data collections. An example:
+
+   ```
+   /**
+     * @return Collection<UserData>
+     */
+    public function getAll(): Collection
+    {
+        return User::all()->map(fn ($user) => UserData::from($user));
+    }
+    ```
+
+---
+
+## **Livewire Practices**
+
+1. **Creation**  
+   - **`vendor/bin/sail livewire`** to scaffold new components if needed.  
+   - **Confirm** they do not already exist in `app/Livewire/`.
+
+2. **AlpineJS**  
+   - Use for toggles or simple interactive elements.  
+   - Keep heavier JS in standalone scripts if needed.
+
+3. **Livewire Data Objects**  
+   - Extend `Livewire\Wireable`, use `Spatie\LaravelData\Concerns\WireableData`.  
+   - Represent complex state with Data objects rather than arrays.
+
+4. **Fail Fast**  
+   - If the AI is about to reference a non-existent Blade view, partial, or sub-component, **pause** and confirm.
+
+5. **Forms for data saving**
+   - Livewire components should use Livewire Forms for saving information (which in turn should use an action)
+   - Can be created with artisan livewire:form xyz
+
+---
+
+## **Blade Components**
+
+1. **Structure**  
+   - Use the existing form elements (`<x-form>`, `<x-form.label>`, etc.), button components (`<x-button>`), badge components (`<x-badge>`), and modals (`<x-modal.slideover>`, `<x-modal.popup>`).
+2. **No `@php`**  
+   - Strictly use Blade expressions `{{ }}` or directives like `@if`, `@foreach`.
+3. **Layout**  
+   - Use `<x-layout.default>` or `<x-layout.default.sidebar>`, never `<x-app-layout>`.
+4. **Tooltips**  
+   - Implement with `x-tooltip` data attributes.
+
+---
+
+## **Spatie Laravel Data Usage**
+
+1. **Defining**  
+   ```php
+   class SongData extends Data {
+       public function __construct(
+           public string $title,
+           public string $artist,
+       ) {}
+   }
+   ```
+
+2. **Creating**  
+   - `SongData::from([...])` or `SongData::from($model)`
+
+3. **Validation**  
+   - Inferred from property types or custom attributes (`#[Max(20)]`).  
+   - Can override `rules()` if needed.
+
+4. **Features**  
+   - Route model binding, transforms, lazy props, TypeScript generation, etc.
+
+---
+
+## **Laravel Testing**
+
+We use Pest4 in this project.
+
+1. **Factories**  
+   - For test data setup, stored in `database/factories/`.
+2. **No Mocks**  
+   - Unless mocking external APIs, prefer real application code in tests.
+3. **No Skipped Tests**  
+   - Must either test or remove.
+
+---
+
+## **Code Safety & Final Notes**
+
+1. **No Speculative Code**  
+   - Always confirm existence of classes/methods before referencing.  
+   - If uncertain, ask.
+
+2. **No Duplication**  
+   - If similar code exists, either reuse or refactor rather than duplicating.
+
+3. **Consistent & Predictable**  
+   - Respect naming conventions, domain boundaries, and coding style.  
+   - Ensure code compiles & references are accurate (fail fast otherwise).
+
+4. **Professional Output**  
+   - Keep code neat, minimal, documented where necessary.  
+   - Provide brief reasoning or clarifications when unsure, then ask user for final confirmation.
+
+5. **Project Awareness**  
+   - In Cursor’s agent mode, search the codebase for relevant references (models, data, actions, repositories) before creating new ones.

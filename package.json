@@ -4,7 +4,13 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "pw:install": "playwright install --with-deps",
+        "test:browser": "node ./vendor/bin/pest --browser",
+        "test:unit": "node ./vendor/bin/pest --testsuite=Unit",
+        "test:feature": "node ./vendor/bin/pest --testsuite=Feature",
+        "test:e2e": "node ./vendor/bin/pest --browser --stop-on-failure",
+        "pretest": "npm run pw:install"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.1.12",
@@ -17,6 +23,23 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
-        "ably": "^2.11.0"
+        "@tailwindcss/typography": "^0.5.16",
+        "@tiptap/core": "^3.3.0",
+        "@tiptap/extension-color": "^3.3.0",
+        "@tiptap/extension-highlight": "^3.3.0",
+        "@tiptap/extension-image": "^3.3.0",
+        "@tiptap/extension-link": "^3.3.0",
+        "@tiptap/extension-text-align": "^3.3.0",
+        "@tiptap/extension-text-style": "^3.3.0",
+        "@tiptap/extension-underline": "^3.3.0",
+        "@tiptap/pm": "^3.3.0",
+        "@tiptap/starter-kit": "^3.3.0",
+        "@uppy/aws-s3": "^5.0.0",
+        "@uppy/core": "^5.0.1",
+        "@uppy/dashboard": "^5.0.1",
+        "@uppy/golden-retriever": "^5.0.0",
+        "@uppy/xhr-upload": "^5.0.0",
+        "ably": "^2.11.0",
+        "playwright": "^1.55.0"
     }
 }

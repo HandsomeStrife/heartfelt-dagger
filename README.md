@@ -1,61 +1,108 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# HeartfeltDagger
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A DaggerHeart TTRPG companion website that allows for character creation and more features coming in the future.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Laravel 12** - PHP framework
+- **TailwindCSS** - Styling
+- **Livewire** - Dynamic frontend components
+- **AlpineJS** - Client-side JavaScript interactions
+- **Spatie Laravel Data** - DTOs and data objects
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Development Setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+This project uses Laravel Sail for local development:
 
-## Learning Laravel
+```bash
+# Install dependencies
+composer install
+npm install
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# Copy environment file
+cp .env.example .env
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+# Generate application key
+./vendor/bin/sail artisan key:generate
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# Start the development environment
+./vendor/bin/sail up -d
 
-## Laravel Sponsors
+# Run migrations
+./vendor/bin/sail artisan migrate
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# Build assets
+npm run dev
 
-### Premium Partners
+# Playwright browsers are automatically set up on first container start
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Browser Testing Setup
+
+sail root-shell
+  npx playwright install-deps
+sail npx playwright install
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+We welcome contributions! Please follow these guidelines:
 
-## Code of Conduct
+### Architecture & Code Standards
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Domain-Driven Design**: All business logic goes in `domain/` folder, never in `app/Domain`
+- **PSR-12 Compliance**: Strict adherence to PSR-12 coding standards
+- **snake_case** for variables, **camelCase** for functions/methods
+- **No `@php` directives** in Blade templates
 
-## Security Vulnerabilities
+### Code Organization
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **Models**: Located in `domain/*/Models` (never in `app` namespace)
+- **Actions**: Business logic in `domain/*/Actions` with single `execute()` method
+- **Repositories**: Data retrieval only, returning DTOs (no data modification)
+- **Data Objects**: DTOs in `domain/*/Data` using Spatie Laravel Data
+- **Livewire Components**: In `app/Livewire/` for UI components
 
-## License
+### Development Patterns
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Use `./vendor/bin/sail` for all Artisan commands
+- Actions executed as: `(new Action())->execute(...)`
+- Create DTOs with `DataClass::from(...)`
+- Use Laravel collections, not data collections
+- Prefer client-side JavaScript (AlpineJS) for simple interactions
+
+### Testing Requirements
+
+- **All new code must include tests**
+- Use `#[Test]` attributes (not `@test`)
+- **No mocks** except for external APIs
+- Use **Playwright via Pest** for browser testing
+- Use factories for test data setup
+- No skipped tests allowed
+- Run tests with `./vendor/bin/sail pest`
+
+### Before Contributing
+
+1. **Check existing code** before creating new files/classes
+2. **Search the codebase** for similar functionality
+3. **Ask for clarification** if unsure about implementation
+4. **Follow existing patterns** and naming conventions
+
+### Pull Request Guidelines
+
+- Ensure all tests pass
+- Follow PSR-12 coding standards
+- Include tests for new functionality
+- Keep commits focused and well-described
+- Reference any related issues
+
+## Credits
+
+Thanks to https://github.com/NandayDev/DaggerheartJsonSRD for the JSON files.
+
+## Legal Disclaimer
+
+This repository includes materials from the Daggerheart System Reference Document © Critical Role, LLC. under the terms of the Darrington Press Community Gaming (DPCGL) License. More information can be found at https://www.daggerheart.com/. There are minor modifications to format and structure.
+
+Daggerheart and all related marks are trademarks of Critical Role, LLC and used with permission. This project is not affiliated with, endorsed, or sponsored by Critical Role or Darrington Press.
+
+For full license terms, see: https://www.daggerheart.com/

@@ -9,7 +9,9 @@
 /.idea
 /.nova
 /.phpunit.cache
+/tests/Browser/Screenshots
 /.vscode
+/bootstrap/cache
 /.zed
 /auth.json
 /node_modules
@@ -22,3 +24,4 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+.env*

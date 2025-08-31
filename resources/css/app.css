@@ -8,4 +8,176 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-fantasy: 'MedievalSharp', 'cursive';
+    --font-federant: 'Outfit', 'cursive';
+    --font-outfit: 'Outfit', 'sans-serif';
+    --font-roboto: 'Roboto', 'sans-serif';
+    --color-daggerheart-blue: #22135F;
+    --color-daggerheart-gold: #E7C74B;
+
+    --color-valor: #e2680e;
+    --color-splendor: #b8a342;
+    --color-sage: #244e30;
+    --color-midnight: #1e201f;
+    --color-grace: #8d3965;
+    --color-codex: #24395d;
+    --color-bone: #a4a9a8;
+    --color-blade: #af231c;
+    --color-arcana: #4e345b;
 }
+
+/* Alpine.js x-cloak directive to prevent flash of unstyled content */
+[x-cloak] { 
+    display: none !important; 
+}
+
+.class-banner-sm {
+    width: 75px;
+    height: 120px;
+}
+.class-banner-sm-height {
+    height: 120px;
+}
+.class-banner-sm-width {
+    width: 75px;
+}
+.class-banner-sm-bg-width {
+    width: 71px;
+}
+
+.class-banner-md {
+    width: 100px;
+    height: 150px;
+}
+.class-banner-md-height {
+    height: 150px;
+}
+.class-banner-md-width {
+    width: 100px;
+}
+.class-banner-md-bg-width {
+    width: 96px;
+}
+
+.class-banner-lg {
+    width: 125px;
+    height: 180px;
+}
+.class-banner-lg-height {
+    height: 180px;
+}
+.class-banner-lg-width {
+    width: 125px;
+}
+.class-banner-lg-bg-width {
+    width: 121px;
+}
+
+
+/* Animated Beam Background - Similar to PestPHP */
+.beam-background {
+    background-image: repeating-linear-gradient(
+        120deg,
+        transparent 0%,
+        transparent 2%,
+        rgba(226, 104, 14, 0.03) 2%,
+        rgba(184, 163, 66, 0.05) 4%,
+        rgba(36, 78, 48, 0.03) 6%,
+        transparent 8%,
+        transparent 12%
+    );
+    background-size: 300% 200%;
+    animation: animate-beams 100s linear infinite;
+}
+
+@keyframes animate-beams {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 400% 200%;
+    }
+}
+
+/* TipTap Editor Content Styling */
+/* Always keep paragraph text inline with bullet points */
+.tiptap li > p {
+    margin: 0;
+    display: inline;
+}
+
+/* Nested lists should appear immediately after text with proper indentation */
+.tiptap li > ul,
+.tiptap li > ol {
+    margin: 0;
+    margin-left: 1.5rem;
+    display: block;
+}
+
+/* Bullet list styling with different icons for nesting levels */
+.tiptap ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.tiptap ul li {
+    position: relative;
+    padding-left: 1rem;
+}
+
+/* First level bullets - filled circle SVG */
+.tiptap > ul > li::before,
+.tiptap ul:not(ul ul) > li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6rem;
+    width: 8px;
+    height: 8px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Ccircle cx='4' cy='4' r='3' fill='%23cbd5e1'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+/* Second level bullets - unfilled circle SVG */
+.tiptap ul li ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6rem;
+    width: 8px;
+    height: 8px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Ccircle cx='4' cy='4' r='3' fill='none' stroke='%23cbd5e1' stroke-width='1'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+/* Third level bullets - small square SVG */
+.tiptap ul li ul li ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.6rem;
+    width: 6px;
+    height: 6px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6' viewBox='0 0 6 6'%3E%3Crect x='0' y='0' width='6' height='6' fill='%23cbd5e1'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+/* Ordered list styling */
+.tiptap ol {
+    list-style: decimal;
+    padding-left: 1rem;
+}
+
+.tiptap ol li {
+    padding-left: 0.5rem;
+}
+
+/* Uppy Styles - TODO: Import these manually or via CDN if build issues persist
+@import '@uppy/core/dist/style.min.css';
+@import '@uppy/dashboard/dist/style.min.css';
+*/
+
+

@@ -1,0 +1,302 @@
+{
+    "airblade charm": {
+        "key": "airblade charm",
+        "name": "Airblade Charm",
+        "description": "You can attach this charm to a weapon with a Melee range. Three times per rest, you can activate the charm and attack a target within Close range."
+    },
+    "alistairs torch": {
+        "key": "alistairs torch",
+        "name": "Alistair's Torch",
+        "description": "You can light this magic torch at will. The flame's light fills a much larger space than it should, enough to illuminate a cave bright as day."
+    },
+    "arcane cloak": {
+        "key": "arcane cloak",
+        "name": "Arcane Cloak",
+        "description": "A creature with a Spellcast trait wearing this cloak can adjust its color, texture, and size at will."
+    },
+    "arcane prism": {
+        "key": "arcane prism",
+        "name": "Arcane Prism",
+        "description": "Position this prism in a location of your choosing and activate it. All allies within Close range of it gain a +1 bonus to their Spellcast Rolls. While activated, the prism can't be moved. Once the prism is deactivated, it can't be activated again until your next long rest."
+    },
+    "attune relic": {
+        "key": "attune relic",
+        "name": "Attune Relic",
+        "description": "You gain a +1 bonus to your Instinct. You can only carry one relic."
+    },
+    "bag of ficklesand": {
+        "key": "bag of ficklesand",
+        "name": "Bag of Ficklesand",
+        "description": "You can convince this small bag of sand to be much heavier or lighter with a successful Presence Roll (10). Additionally, on a successful Finesse Roll (10), you can blow a bit of sand into a target's face to make them temporarily **Vulnerable**."
+    },
+    "belt of unity": {
+        "key": "belt of unity",
+        "name": "Belt of Unity",
+        "description": "Once per session, you can spend 5 Hope to lead a Tag Team Roll with three PCs instead of two."
+    },
+    "bloodstone": {
+        "key": "bloodstone",
+        "name": "Bloodstone",
+        "description": "You can attach this stone to a weapon that doesn't already have a feature. The weapon gains the following feature. ***Brutal:*** When you roll the maximum value on a damage die, roll an additional damage die."
+    },
+    "bolster relic": {
+        "key": "bolster relic",
+        "name": "Bolster Relic",
+        "description": "You gain a +1 bonus to your Strength. You can only carry one relic."
+    },
+    "box of many goods": {
+        "key": "box of many goods",
+        "name": "Box of Many Goods",
+        "description": "Once per long rest, you can open this small box and roll a d12. On a result of 1–6, it's empty. On a result of 7–10, it contains one random common consumable. On a result of 11–12, it contains two random common consumables."
+    },
+    "calming pendant": {
+        "key": "calming pendant",
+        "name": "Calming Pendant",
+        "description": "When you would mark your last Stress, roll a d6. On a result of 5 or higher, don't mark it."
+    },
+    "charging quiver": {
+        "key": "charging quiver",
+        "name": "Charging Quiver",
+        "description": "When you succeed on an attack with an arrow stored in this quiver, gain a bonus to the damage roll equal to your current tier."
+    },
+    "charm relic": {
+        "key": "charm relic",
+        "name": "Charm Relic",
+        "description": "You gain a +1 bonus to your Presence. You can only carry one relic."
+    },
+    "clay companion": {
+        "key": "clay companion",
+        "name": "Clay Companion",
+        "description": "When you sculpt this ball of clay into a clay animal companion, it behaves as that animal. For example, a clay spider can spin clay webs, while a clay bird can fly. The clay companion retains memory and identity across different shapes, but they can adopt new mannerisms with each form."
+    },
+    "companion case": {
+        "key": "companion case",
+        "name": "Companion Case",
+        "description": "This case can fit a small animal companion. While the companion is inside, the animal and case are immune to all damage and harmful effects."
+    },
+    "control relic": {
+        "key": "control relic",
+        "name": "Control Relic",
+        "description": "You gain a +1 bonus to your Finesse. You can only carry one relic."
+    },
+    "corrector sprite": {
+        "key": "corrector sprite",
+        "name": "Corrector Sprite",
+        "description": "This tiny sprite sits in the curve of your ear canal and whispers helpful advice during combat. Once per short rest, you can gain advantage on an attack roll."
+    },
+    "dual flask": {
+        "key": "dual flask",
+        "name": "Dual Flask",
+        "description": "This flask can hold two different liquids. You can swap between them by flipping a small switch on the flask's side."
+    },
+    "elusive amulet": {
+        "key": "elusive amulet",
+        "name": "Elusive Amulet",
+        "description": "Once per long rest, you can activate this amulet to become **Hidden** until you move. While **Hidden** in this way, you remain unseen even if an adversary moves to where they would normally see you."
+    },
+    "empty chest": {
+        "key": "empty chest",
+        "name": "Empty Chest",
+        "description": "This magical chest appears empty. When you speak a specific trigger word or action and open the chest, you can see the items stored within it."
+    },
+    "enlighten relic": {
+        "key": "enlighten relic",
+        "name": "Enlighten Relic",
+        "description": "You gain a +1 bonus to your Knowledge. You can only carry one relic."
+    },
+    "fire jar": {
+        "key": "fire jar",
+        "name": "Fire Jar",
+        "description": "You can pour out the strange liquid contents of this jar to instantly produce fire. The contents regenerate when you take a long rest."
+    },
+    "flickerfly pendant": {
+        "key": "flickerfly pendant",
+        "name": "Flickerfly Pendant",
+        "description": "While you carry this pendant, your weapons with a Melee range that deal physical damage have a gossamer sheen and can attack targets within Very Close range."
+    },
+    "gecko gloves": {
+        "key": "gecko gloves",
+        "name": "Gecko Gloves",
+        "description": "You can climb up vertical surfaces and across ceilings."
+    },
+    "gem of alacrity": {
+        "key": "gem of alacrity",
+        "name": "Gem of Alacrity",
+        "description": "You can attach this gem to a weapon, allowing you to use your Agility when making an attack with that weapon."
+    },
+    "gem of audacity": {
+        "key": "gem of audacity",
+        "name": "Gem of Audacity",
+        "description": "You can attach this gem to a weapon, allowing you to use your Presence when making an attack with that weapon."
+    },
+    "gem of insight": {
+        "key": "gem of insight",
+        "name": "Gem of Insight",
+        "description": "You can attach this gem to a weapon, allowing you to use your Instinct when making an attack with that weapon."
+    },
+    "gem of might": {
+        "key": "gem of might",
+        "name": "Gem of Might",
+        "description": "You can attach this gem to a weapon, allowing you to use your Strength when making an attack with that weapon."
+    },
+    "gem of precision": {
+        "key": "gem of precision",
+        "name": "Gem of Precision",
+        "description": "You can attach this gem to a weapon, allowing you to use your Finesse when making an attack with that weapon."
+    },
+    "gem of sagacity": {
+        "key": "gem of sagacity",
+        "name": "Gem of Sagacity",
+        "description": "You can attach this gem to a weapon, allowing you to use your Knowledge when making an attack with that weapon."
+    },
+    "glamour stone": {
+        "key": "glamour stone",
+        "name": "Glamour Stone",
+        "description": "Activate this pebble-sized stone to memorize the appearance of someone you can see. Spend a Hope to magically recreate this guise on yourself as an illusion."
+    },
+    "glider": {
+        "key": "glider",
+        "name": "Glider",
+        "description": "While falling, you can mark a Stress to deploy this small parachute and glide safely to the ground."
+    },
+    "greatstone": {
+        "key": "greatstone",
+        "name": "Greatstone",
+        "description": "You can attach this stone to a weapon that doesn't already have a feature. The weapon gains the following feature. ***Powerful:*** On a successful attack, roll an additional damage die and discard the lowest result."
+    },
+    "homing compasses": {
+        "key": "homing compasses",
+        "name": "Homing Compasses",
+        "description": "These two compasses point toward each other no matter how far apart they are."
+    },
+    "honing relic": {
+        "key": "honing relic",
+        "name": "Honing Relic",
+        "description": "You gain a +1 bonus to an Experience of your choice. You can only carry one relic."
+    },
+    "hopekeeper locket": {
+        "key": "hopekeeper locket",
+        "name": "Hopekeeper Locket",
+        "description": "During a long rest, if you have 6 Hope, you can spend a Hope to imbue this locket with your bountiful resolve. When you have 0 Hope, you can use the locket to immediately gain a Hope. The locket must be re-imbued before it can be used this way again."
+    },
+    "infinite bag": {
+        "key": "infinite bag",
+        "name": "Infinite Bag",
+        "description": "When you store items in this bag, they are kept in a pocket dimension that never runs out of space. You can retrieve an item at any time."
+    },
+    "lasketider boots": {
+        "key": "lasketider boots",
+        "name": "Lasketider Boots",
+        "description": "You can walk on the surface of water as if it were soft ground."
+    },
+    "lorekeeper": {
+        "key": "lorekeeper",
+        "name": "Lorekeeper",
+        "description": "You can store the name and details of up to three hostile creatures inside this book. You gain a +1 bonus to action rolls against those creatures."
+    },
+    "manacles": {
+        "key": "manacles",
+        "name": "Manacles",
+        "description": "This pair of locking cuffs comes with a key."
+    },
+    "minor health potion recipe": {
+        "key": "minor health potion recipe",
+        "name": "Minor Health Potion Recipe",
+        "description": "As a downtime move, you can use a vial of blood to craft a Minor Health Potion."
+    },
+    "minor stamina potion recipe": {
+        "key": "minor stamina potion recipe",
+        "name": "Minor Stamina Potion Recipe",
+        "description": "As a downtime move, you can use the bone of a creature to craft a Minor Stamina Potion."
+    },
+    "mythic dust recipe": {
+        "key": "mythic dust recipe",
+        "name": "Mythic Dust Recipe",
+        "description": "As a downtime move, you can use a handful of fine gold dust to craft Mythic Dust."
+    },
+    "paragons chain": {
+        "key": "paragons chain",
+        "name": "Paragon's Chain",
+        "description": "As a downtime move, you can meditate on an ideal or principle you hold dear and focus your will into this chain. Once per long rest, you can spend a Hope to roll a d20 as your Hope Die for rolls that directly align with that principle."
+    },
+    "phoenix feather": {
+        "key": "phoenix feather",
+        "name": "Phoenix Feather",
+        "description": "If you have at least one Phoenix Feather on you when you fall unconscious, you gain a +1 bonus to the roll you make to determine whether you gain a scar."
+    },
+    "piercing arrows": {
+        "key": "piercing arrows",
+        "name": "Piercing Arrows",
+        "description": "Three times per rest when you succeed on an attack with one of these arrows, you can add your Proficiency to the damage roll."
+    },
+    "piper whistle": {
+        "key": "piper whistle",
+        "name": "Piper Whistle",
+        "description": "This handcrafted whistle has a distinctive sound. When you blow this whistle, its piercing tone can be heard within a 1-mile radius."
+    },
+    "portal seed": {
+        "key": "portal seed",
+        "name": "Portal Seed",
+        "description": "You can plant this seed in the ground to grow a portal in that spot. The portal is ready to use in 24 hours. You can use this portal to travel to any other location where you planted a portal seed. A portal can be destroyed by dealing any amount of magic damage to it."
+    },
+    "premium bedroll": {
+        "key": "premium bedroll",
+        "name": "Premium Bedroll",
+        "description": "During downtime, you automatically clear a Stress."
+    },
+    "ring of resistance": {
+        "key": "ring of resistance",
+        "name": "Ring of Resistance",
+        "description": "Once per long rest, you can activate this ring after a successful attack against you to halve the damage."
+    },
+    "ring of silence": {
+        "key": "ring of silence",
+        "name": "Ring of Silence",
+        "description": "Spend a Hope to activate this ring. Your footsteps are silent until your next rest."
+    },
+    "ring of unbreakable resolve": {
+        "key": "ring of unbreakable resolve",
+        "name": "Ring of Unbreakable Resolve",
+        "description": "Once per session, when the GM spends a Fear, you can spend 4 Hope to cancel the effects of that spent Fear."
+    },
+    "shard of memory": {
+        "key": "shard of memory",
+        "name": "Shard of Memory",
+        "description": "Once per long rest, you can spend 2 Hope to recall a domain card from your vault instead of paying its Recall Cost."
+    },
+    "skeleton key": {
+        "key": "skeleton key",
+        "name": "Skeleton Key",
+        "description": "When you use this key to open a locked door, you gain advantage on the Finesse Roll."
+    },
+    "speaking orbs": {
+        "key": "speaking orbs",
+        "name": "Speaking Orbs",
+        "description": "This pair of orbs allows any creatures holding them to communicate with each other across any distance."
+    },
+    "stride relic": {
+        "key": "stride relic",
+        "name": "Stride Relic",
+        "description": "You gain a +1 bonus to your Agility. You can only carry one relic."
+    },
+    "suspended rod": {
+        "key": "suspended rod",
+        "name": "Suspended Rod",
+        "description": "This flat rod is inscribed with runes. When you activate the rod, it is immediately suspended in place. Until the rod is deactivated, it can't move, doesn't abide by the rules of gravity, and remains in place."
+    },
+    "valorstone": {
+        "key": "valorstone",
+        "name": "Valorstone",
+        "description": "You can attach this stone to armor that doesn't already have a feature. The armor gains the following feature. **Resilient:** Before you mark your last Armor Slot, roll a d6. On a result of 6, reduce the severity by one threshold without marking an Armor Slot."
+    },
+    "vial of darksmoke recipe": {
+        "key": "vial of darksmoke recipe",
+        "name": "Vial of Darksmoke Recipe",
+        "description": "As a downtime move, you can mark a Stress to craft a Vial of Darksmoke."
+    },
+    "woven net": {
+        "key": "woven net",
+        "name": "Woven Net",
+        "description": "You can make a Finesse Roll using this net to trap a small creature. A trapped target can break free with a successful Attack Roll (16)."
+    }
+}

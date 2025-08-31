@@ -1,0 +1,157 @@
+---
+description: browser testing
+alwaysApply: false
+---
+# Browser testing (Pest v4)
+
+**Install & setup**
+
+* `composer require pestphp/pest-plugin-browser --dev`
+* Playwright browsers are automatically installed on container startup
+* Add `tests/Browser/Screenshots` to `.gitignore`. ([pestphp.com][1])
+
+**Run**
+
+* Standard: `./vendor/bin/pest`
+* Faster: `./vendor/bin/pest --parallel`
+* Debug/headed: `./vendor/bin/pest --debug` (opens headed and pauses at failure end). ([pestphp.com][1])
+
+**Core API**
+
+* **Start a session / navigate:** `visit('/path')` → returns a `$page` object. Chain interactions and assertions on it. ([pestphp.com][1])
+* **Switch browser:** CLI `--browser=firefox|safari` or default in `tests/Pest.php`: `pest()->browser()->inFirefox();`. ([pestphp.com][1])
+* **Devices & color scheme:** `visit('/')->on()->mobile()`, `->on()->iPhone14Pro()`, `->onDarkMode()`. ([pestphp.com][1])
+* **Navigate within the same context:** `$page->navigate('/about')`. ([pestphp.com][1])
+* **Multiple pages at once:** `$pages = visit(['/', '/about']); [...] $pages->assertNoSmoke();` (also assert no console/JS errors). ([pestphp.com][1])
+* **Timeouts:** default 5s; configure in `tests/Pest.php`: `pest()->browser()->timeout(10);`. ([pestphp.com][1])
+
+**Finding & acting on elements**
+
+* Locate by **text** or **CSS** (also `@data-test`):
+  `$page->click('Login'); $page->click('.btn-primary'); $page->click('@login'); $page->click('#submit');`
+  Common actions: `click`, `type/keys/fill/append/clear`, `select`, `check/uncheck/radio`, `attach` (files), `press/pressAndWaitFor`, `drag`, `submit`, `wait/waitForKey`, `script`, etc. (see table “Element Interactions”). ([pestphp.com][1])
+
+**Assertions (high level)**
+
+* Content: `assertSee`, `assertDontSee`, `assertSeeIn`, `assertCount`, `assertVisible`, `assertPresent/NotPresent/Missing`.
+* Form state: `assertChecked/NotChecked/Indeterminate`, `assertRadioSelected/NotSelected`, `assertSelected/NotSelected`, `assertEnabled/Disabled`, `assertValue/ValueIsNot`, `assertAttribute*`, `assertAriaAttribute`, `assertDataAttribute`.
+* URL parts: `assertUrlIs`, `assertSchemeIs*`, `assertHostIs*`, `assertPortIs*`, `assertPath*`, `assertQueryStringHas/Missing`, `assertFragment*`.
+* JS/console/smoke: `assertNoConsoleLogs`, `assertNoJavaScriptErrors`, **`assertNoSmoke()`** (shorthand for both).
+* Visual: `assertScreenshotMatches` (screenshot comparison).
+  Full list is on the doc page’s table of contents. ([pestphp.com][1])
+
+**Laravel-native goodness inside browser tests**
+
+* You can still use `RefreshDatabase`, model factories, `Event::fake()`, `Notification::assertSent()`, `assertAuthenticated()`, etc., in the *same* browser tests. This is a core selling point of Pest v4's browser runner. ([pestphp.com][2])
+
+---
+
+# **CRITICAL: Browser vs HTTP Testing Patterns**
+
+**⚠️ DO NOT MIX THESE PATTERNS:**
+
+**Browser Testing (for UI interactions):**
+```php
+use function Pest\Laravel\actingAs;
+
+actingAs($user);                    // Set auth context
+$page = visit('/campaigns');        // Get browser page object
+$page->click('Button')->assertSee('Text');  // Interact with page
+```
+
+**HTTP Testing (for API/response testing):**
+```php
+use function Pest\Laravel\actingAs;
+
+$response = actingAs($user)->get('/api/campaigns');  // Get HTTP response
+$response->assertStatus(200)->assertJson([...]);     // Assert response
+```
+
+**❌ WRONG - Don't mix them:**
+```php
+// This returns HTTP Response, NOT a browser page object
+$page = actingAs($user)->get('/campaigns');
+$page->click('Button'); // ❌ FAILS - Response has no click() method
+```
+
+---
+
+# **Browser Testing Best Practices**
+
+**Authentication:**
+- Always use `actingAs($user);` followed by `visit()` for browser tests
+- Never chain `actingAs()->visit()` - they serve different purposes
+
+**Selectors:**
+- Prefer text content: `$page->click('Save')`, `$page->click('Create Page')`
+- Use CSS selectors: `$page->type('#title', 'value')`, `$page->click('.btn-primary')`
+
+**Form Submission:**
+- Try `$page->press('Enter')` to submit forms
+- Use `$page->click('Submit Button Text')` for button clicks
+- For Livewire forms with complex selectors: `$page->script('document.getElementById("form-id").dispatchEvent(new Event("submit", {bubbles: true}))')`
+- For simple forms: `$page->submit()` or button selectors
+
+**URL Assertions:**
+- Use `assertPathIs('/relative/path')` for relative URLs
+- Use `assertUrlIs('http://full.url')` only for absolute URLs
+
+**Timing:**
+- Use `$page->waitForText('Expected Text')` for waiting for content to appear
+- Use `$page->wait(2)` for fixed time delays (sparingly)
+- **Note:** There is NO `waitFor()` method - only `wait()` and `waitForText()`
+
+---
+
+# What to import for Laravel auth & Livewire
+
+**Laravel plugin (install once):**
+`composer require pestphp/pest-plugin-laravel --dev`
+
+**Use namespaced helper functions** instead of `$this->…` in tests:
+
+```php
+use function Pest\Laravel\{actingAs, get, post, delete /* …others as needed */};
+```
+
+Example (auth):
+
+```php
+use App\Models\User;
+use function Pest\Laravel\{actingAs, get};
+
+test('dashboard loads for authenticated user', function () {
+    $user = User::factory()->create();
+    actingAs($user)->get('/dashboard')->assertStatus(200);
+});
+```
+
+These are first-class Pest functions that map to Laravel’s testing helpers.
+
+**Livewire plugin (install once):**
+`composer require pestphp/pest-plugin-livewire --dev`
+
+**Import the Livewire helper:**
+
+```php
+use function Pest\Livewire\livewire;
+```
+
+Example:
+
+```php
+use App\Livewire\Counter;
+use function Pest\Livewire\livewire;
+
+it('increments', function () {
+    livewire(Counter::class)->call('increment')->assertSee(1);
+});
+```
+
+This mirrors the docs: same `visit()` flow, device/browser overrides, Laravel fakes/assertions integrated.
+
+---
+
+[1]: https://pestphp.com/docs/browser-testing "Browser Testing | Pest - The elegant PHP Testing Framework"
+[2]: https://pestphp.com/docs/pest-v4-is-here-now-with-browser-testing "Pest v4 Is Here — Now with Browser Testing"
+[3]: https://pestphp.com/docs/plugins "Plugins | Pest - The elegant PHP Testing Framework"

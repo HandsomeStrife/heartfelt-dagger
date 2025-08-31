@@ -1,0 +1,366 @@
+---
+alwaysApply: true
+---
+# DaggerHeart Character Builder - Companion Site Guide
+
+## Project Overview
+
+### What This Site Is
+
+The **DaggerHeart Character Builder** is a comprehensive digital companion tool for the DaggerHeart TTRPG (Tabletop Role-Playing Game) system. This web application provides an interactive, guided character creation experience that adheres strictly to the official DaggerHeart System Reference Document (SRD) while offering modern UX enhancements.
+
+**Key Functions:**
+- **Interactive Character Creation**: Step-by-step guided process following DaggerHeart's official 9-step character creation methodology
+- **Character Management**: Save, load, edit, and share characters with unique 8-character keys
+- **SRD Compliance**: Accurate implementation of all DaggerHeart mechanics, classes, ancestries, communities, domains, and equipment
+- **Public Access**: No authentication required for basic character creation, with enhanced features for registered users
+- **Cross-Platform Storage**: Browser localStorage for quick access, database persistence for logged-in users
+
+## DaggerHeart System Overview
+
+### Core Mechanics
+
+DaggerHeart uses a unique dual-dice system with the following characteristics:
+
+**Character Traits (6 core attributes):**
+- **Agility**: Quick movement, dexterity, speed
+- **Strength**: Physical power, carrying capacity, melee prowess  
+- **Finesse**: Precision, accuracy, careful manipulation
+- **Instinct**: Intuition, perception, animal handling
+- **Presence**: Charisma, leadership, social influence
+- **Knowledge**: Intelligence, memory, academic learning
+
+**Trait Values Distribution:**
+Characters assign exactly these values: `-1, 0, 0, +1, +1, +2` across the six traits.
+
+**Core Statistics:**
+- **Evasion**: Difficulty to hit in combat (class-based starting value)
+- **Hit Points**: Health/survivability (class-based starting value) 
+- **Hope**: Meta-currency for special abilities (starts at 2, max 6)
+- **Stress**: Accumulated fatigue and pressure (starts empty)
+
+### Domain System
+
+DaggerHeart's magic system revolves around **9 Domains**, each representing different magical/thematic approaches:
+
+**The Nine Domains:**
+1. **Arcana** (`#4e345b`) - Raw magical forces and elemental power
+2. **Blade** (`#af231c`) - Weapon mastery and combat prowess  
+3. **Bone** (`#a4a9a8`) - Death, decay, necromancy, and endings
+4. **Codex** (`#24395d`) - Knowledge, lore, research, and memory
+5. **Grace** (`#8d3965`) - Charm, performance, and social manipulation
+6. **Midnight** (`#1e201f`) - Stealth, shadows, illusion, and concealment
+7. **Sage** (`#244e30`) - Nature, healing, wisdom, and growth
+8. **Splendor** (`#b8a342`) - Light, protection, divine power, and radiance
+9. **Valor** (`#e2680e`) - Courage, leadership, tactics, and inspiration
+
+Each class has access to exactly **2 domains**, determining their available magical abilities.
+
+## Character Creation Process (9 Steps)
+
+The character builder follows DaggerHeart's official progression exactly:
+
+### Step 1: Choose a Class
+
+**Available Classes & Their Domains:**
+- **Bard**: Grace + Codex (social and knowledge-focused)
+- **Druid**: Sage + Arcana (nature and elemental magic)
+- **Guardian**: Valor + Blade (protection and combat)
+- **Ranger**: Sage + Bone (tracking and survival)
+- **Rogue**: Midnight + Grace (stealth and manipulation)
+- **Seraph**: Splendor + Valor (divine and leadership)
+- **Sorcerer**: Arcana + Midnight (raw magic and mystery)
+- **Warrior**: Blade + Bone (combat and intimidation)
+- **Wizard**: Codex + Midnight (knowledge and secrets)
+
+**Class Information Includes:**
+- Starting Evasion (typically 9-10)
+- Starting Hit Points (typically 4-7)
+- Class-specific starting items
+- Hope feature (unique 3-Hope ability)
+- Class features (passive/active abilities)
+- Available subclasses (2 per class)
+- Background questions (3 per class)
+- Connection questions (3 per class)
+
+### Step 2: Choose Heritage (Ancestry + Community)
+
+**Ancestries (13 total):**
+- **Clank**: Mechanical beings with metallic bodies
+- **Drakona**: Dragon-blooded humanoids with elemental breath
+- **Dwarf**: Hardy folk with stone-skin and fortitude
+- **Elf**: Graceful beings with keen senses
+- **Fairy**: Small magical creatures with flight
+- **Fungril**: Mushroom-people with network communication
+- **Galapa**: Turtle-like beings with protective shells
+- **Giant**: Large humanoids with massive strength
+- **Goblin**: Small, quick creatures with pack tactics
+- **Human**: Versatile and adaptable
+- **Katari**: Feline humanoids with heightened senses
+- **Orc**: Strong, tribal warriors
+- **Simiah**: Ape-like beings with climbing prowess
+
+**Communities (9 total):**
+- **Highborne**: Wealthy, privileged, court-trained
+- **Loreborne**: Academic, scholarly, knowledge-seeking
+- **Orderborne**: Disciplined, faith-based, structured
+- **Ridgeborne**: Mountain-dwelling, sturdy, practical
+- **Seaborne**: Ocean-dwelling, adaptable, trading
+- **Slyborne**: Urban, cunning, street-smart
+- **Underborne**: Underground-dwelling, secretive
+- **Wanderborne**: Nomadic, traveling, adaptable
+- **Wildborne**: Wilderness-dwelling, survival-focused
+
+### Step 3: Assign Character Traits
+
+Players distribute the exact values `-1, 0, 0, +1, +1, +2` across the six traits. The builder must validate this distribution precisely.
+
+### Step 4: Record Character Information
+
+Calculate and display:
+- Final Evasion (class base + modifiers)
+- Final Hit Points (class base + modifiers)
+- Starting Hope (always 2)
+- Starting Stress (always empty)
+
+### Step 5: Choose Starting Equipment
+
+**Equipment Categories:**
+- **Weapons**: Primary and secondary, with tier-based progression
+- **Armor**: Protection with damage thresholds and armor scores
+- **Items**: Utility equipment and tools
+- **Consumables**: Potions, scrolls, temporary-use items
+
+**Weapon Properties:**
+- **Trait**: Which character trait is used for attacks
+- **Range**: Melee, Very Close, Close, Far, Very Far
+- **Damage**: Dice + modifier + damage type (physical/magical)
+- **Burden**: One-Handed or Two-Handed
+- **Special Features**: Unique abilities or properties
+- **Tier**: Equipment level (1-4)
+
+### Step 6: Create Background
+
+Answer 3 class-specific background questions that flesh out character history and motivations.
+
+### Step 7: Create Experiences
+
+Define 2 starting **Experiences** - narrative descriptors that provide +2 modifiers to relevant rolls. Examples: "Street Fighting", "Noble Etiquette", "Wilderness Survival".
+
+### Step 8: Choose Domain Cards
+
+Select **2 domain cards** from level 1 abilities within the character's class domains. This is crucial for magical abilities.
+
+**Domain Card Properties:**
+- **Name**: Ability name
+- **Level**: Card level (affects power and prerequisites)
+- **Recall Cost**: Hope required to activate (0-3 typically)
+- **Type**: Ability, Attack, Reaction, etc.
+- **Description**: Full mechanical effect
+- **Domain**: Which of the 9 domains it belongs to
+
+### Step 9: Create Connections
+
+Answer connection questions to establish relationships with other player characters.
+
+## UI Design Philosophy
+
+### Visual Aesthetic
+
+**Color Palette:**
+- **Primary Background**: Dark gradient (`bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950`)
+- **Card Backgrounds**: Semi-transparent slate (`bg-slate-900/80 backdrop-blur-xl`)
+- **Primary Actions**: Amber/orange gradients (`from-amber-500 to-orange-500`)
+- **Success States**: Emerald colors (`emerald-400`, `emerald-500`)
+- **Domain Colors**: Each domain has a specific color (see domain list above)
+
+**Typography:**
+- **Headers**: `font-outfit` (Outfit font family)
+- **Fantasy Elements**: `font-fantasy` (MedievalSharp)
+- **Body Text**: `font-roboto` (Roboto)
+- **UI Elements**: Default sans-serif
+
+### Card-Based Selection System
+
+**Selection States:**
+- **Default**: Translucent slate background with subtle borders
+- **Hover**: Increased opacity, enhanced borders, gentle scaling
+- **Selected**: Amber/orange glow, enhanced borders, checkmark indicators
+
+**Layout Patterns:**
+- **Initial Selection**: Grid of cards (responsive: 1-3 columns)
+- **Detailed View**: Split-screen with selected item details and secondary choices
+- **Domain Cards**: Special card design mimicking physical game cards
+
+### Domain Card Visual Design
+
+Domain cards follow the physical card aesthetic:
+
+**Card Structure:**
+- **Banner**: Colored header with level indicator and domain icon
+- **Recall Cost**: Circular badge with Hope cost and bolt icon
+- **Title Area**: Card name and ability type
+- **Description**: Full ability text
+- **Domain Badge**: Footer identification
+
+**Banner Colors**: Each domain uses its specific color for the banner background with gradient effects and sparkle overlays.
+
+## SRD Compliance Requirements
+
+### Mandatory Accuracy Points
+
+1. **Exact Trait Distribution**: Must enforce `-1, 0, 0, +1, +1, +2` values
+2. **Class Domain Pairing**: Each class must have exactly their 2 designated domains
+3. **Starting Statistics**: Evasion and Hit Points must match SRD values exactly
+4. **Equipment Tiers**: Tier restrictions must be enforced for starting characters
+5. **Domain Card Limits**: Exactly 2 cards, only from class domains, only level 1 for starting characters
+6. **Hope Economy**: Starting Hope of 2, maximum of 6, specific costs for abilities
+7. **Experience Format**: Narrative descriptors with +2 modifiers
+
+### Critical Validation Rules
+
+**Character Trait Assignment:**
+```javascript
+// Must validate exact distribution
+const validTraitValues = [-1, 0, 0, 1, 1, 2];
+const assignedValues = Object.values(character.traits).sort();
+const isValid = JSON.stringify(assignedValues) === JSON.stringify(validTraitValues);
+```
+
+**Domain Card Selection:**
+```javascript
+// Must validate domain access and count
+const classData = classes[character.selectedClass];
+const availableDomains = classData.domains;
+const selectedCards = character.selectedDomainCards;
+
+const isValidSelection = 
+    selectedCards.length === 2 &&
+    selectedCards.every(card => 
+        availableDomains.includes(card.domain) && 
+        card.level === 1
+    );
+```
+
+**Hope Feature Costs:**
+All class Hope features cost exactly 3 Hope to activate, as per SRD specification.
+
+## Technical Implementation Notes
+
+### Data Structure Alignment
+
+**Classes Data:**
+```json
+{
+  "warrior": {
+    "name": "Warrior",
+    "domains": ["blade", "bone"],
+    "startingEvasion": 9,
+    "startingHitPoints": 7,
+    "classItems": "Weapons and armor maintenance kit",
+    "hopeFeature": {
+      "name": "Unstoppable",
+      "hopeCost": 3,
+      "description": "..."
+    },
+    "classFeatures": [...],
+    "subclasses": ["stalwart", "vengeance"],
+    "backgroundQuestions": [...],
+    "connections": [...]
+  }
+}
+```
+
+**Domain Cards Data:**
+```json
+{
+  "blade-strike": {
+    "name": "Blade Strike",
+    "domain": "blade",
+    "level": 1,
+    "type": "Attack",
+    "recallCost": 1,
+    "descriptions": [
+      "Make a weapon attack against a target within your weapon's range.",
+      "On a success, deal weapon damage and mark 2 Stress on the target."
+    ]
+  }
+}
+```
+
+### Form Validation Patterns
+
+**Progressive Validation:**
+- Step completion indicators
+- Real-time validation feedback
+- Prevention of invalid combinations
+- Clear error messaging
+
+**State Management:**
+- Persistent localStorage for anonymous users
+- Database synchronization for authenticated users
+- Conflict resolution for concurrent edits
+- Export/import functionality
+
+### Accessibility Compliance
+
+**Required Elements:**
+- Proper ARIA labels for all interactive elements
+- Keyboard navigation support
+- Screen reader compatibility
+- Focus management between steps
+- Color-blind friendly indicators (not relying solely on color)
+
+## Testing Requirements
+
+### SRD Accuracy Testing
+
+**Domain Card Tests:**
+- Verify all 9 domains are properly represented
+- Confirm domain-class associations are correct
+- Validate recall costs match SRD specifications
+- Test card level restrictions
+
+**Character Creation Flow:**
+- Complete character creation for each class
+- Verify final statistics match SRD calculations
+- Test trait assignment validation
+- Confirm equipment tier restrictions
+
+**Data Integrity:**
+- Cross-reference all JSON data with SRD
+- Validate Hope feature costs (all should be 3)
+- Test domain color consistency
+- Verify ancestry/community feature accuracy
+
+### Browser Testing
+
+**Cross-Platform:**
+- Character creation flow on mobile/tablet/desktop
+- localStorage persistence across sessions
+- Image loading and banner display
+- Card interaction responsiveness
+
+## Content Management
+
+### JSON Data Sources
+
+All game data is stored in `/resources/json/` files:
+- `classes.json` - All 9 classes with complete data
+- `subclasses.json` - All subclass options
+- `ancestries.json` - All 13 ancestries
+- `communities.json` - All 9 communities  
+- `domains.json` - All 9 domains with level organization
+- `abilities.json` - All domain cards/abilities
+- `weapons.json`, `armor.json`, `items.json`, `consumables.json` - Equipment
+
+### Update Procedures
+
+When updating game data:
+1. **Verify SRD Source**: Confirm changes match official DaggerHeart SRD
+2. **Update JSON Files**: Maintain consistent structure and naming
+3. **Test Character Creation**: Complete flow testing for affected content
+4. **Validate Calculations**: Ensure statistics remain accurate
+5. **Check Visual Elements**: Confirm banners, icons, and colors display correctly
+
+This comprehensive guide ensures that the DaggerHeart Character Builder remains true to the source material while providing an exceptional digital experience for players creating characters in this rich fantasy TTRPG system.
