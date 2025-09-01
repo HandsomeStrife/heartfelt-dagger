@@ -1,0 +1,89 @@
+@props([
+    'character',
+    'pronouns' => null,
+    'classData' => null,
+    'subclassData' => null,
+    'ancestryData' => null,
+    'communityData' => null,
+    'computedStats' => [],
+    'canEdit' => false,
+    'traitInfo' => [],
+])
+<header
+    class="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-900/40 to-fuchsia-900/30 px-6 md:px-8 py-6 shadow-lg relative">
+    <x-class-banner :class-name="$character->selected_class" size="sm" class="absolute top-0 right-6" />
+    <div class="absolute top-4 right-6 translate-y-full sm:translate-y-0 sm:top-3">
+        <div class="rounded-3xl ring-1 ring-indigo-400/40 bg-indigo-500/10 px-4 py-3 min-w-[8.5rem]">
+            <div class="text-[10px] uppercase tracking-wider text-indigo-200/90">Level</div>
+            <div class="text-3xl font-extrabold text-indigo-200 leading-none">1</div>
+        </div>
+    </div>
+    <div class="grid grid-cols-12 gap-6 items-start">
+        <div class="col-span-12 sm:col-span-2 flex sm:block justify-center">
+            <div>
+                <div aria-hidden
+                    class="aspect-square w-32 sm:w-32 md:w-40 rounded-2xl ring-1 ring-slate-700/60 overflow-hidden bg-slate-800/40">
+                    @if ($character->profile_image_path)
+                        <img src="{{ Storage::disk('s3')->url($character->profile_image_path) }}"
+                            alt="{{ $character->name }}" class="h-full w-full object-cover">
+                    @else
+                        <div class="h-full w-full bg-gradient-to-br from-slate-700 via-indigo-700 to-fuchsia-700"></div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="col-span-12 sm:col-span-10 flex flex-col h-full">
+            <div class="space-y-3">
+                <div class="flex items-center justify-center sm:justify-start gap-2">
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-center sm:text-left">
+                        {{ $character->name ?: 'Unnamed Character' }}
+                        <span class="text-xs text-slate-400 font-light ml-1">{{ $pronouns }}</span>
+                    </h1>
+                    @if ($canEdit)
+                        <a x-show="canEdit" :href="`/character-builder/${characterKey}`" aria-label="Edit character"
+                            class="inline-flex items-center p-1.5 rounded-md ring-1 ring-indigo-400/40 hover:bg-indigo-500/20 text-indigo-200">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15.232 5.232l3.536 3.536M4 20h4l10.607-10.607a2.5 2.5 0 10-3.536-3.536L4 16.464V20z" />
+                            </svg>
+                        </a>
+                    @endif
+                </div>
+                <div class="mt-2 flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                    <span class="inline-flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1 rounded-full ring-1 ring-indigo-400/40 bg-indigo-500/15 text-indigo-200">
+                        {{ $communityData['name'] ?? ucfirst($character->selected_community ?? 'Unknown') }}
+                        {{ $ancestryData['name'] ?? ucfirst($character->selected_ancestry ?? 'Unknown') }} •
+                        {{ $classData['name'] ?? ucfirst($character->selected_class ?? 'Unknown') }}
+                        @if ($character->selected_subclass && $subclassData)
+                            <span class="opacity-70">({{ $subclassData['name'] ?? ucwords(str_replace('-', ' ', $character->selected_subclass)) }})</span>
+                        @endif
+                    </span>
+                    @if ($classData && isset($classData['domains']))
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold ring-1 ring-slate-700/60 bg-slate-800/60">
+                            {{ ucfirst($classData['domains'][0] ?? '') }} & {{ ucfirst($classData['domains'][1] ?? '') }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+            <div class="mt-auto pt-3">
+                <div class="flex items-center gap-3 flex-nowrap overflow-x-auto">
+                    <div class="flex gap-2">
+                        <x-icons.evasion-frame :number="$computedStats['evasion'] ?? '?'" class="size-20" />
+                        <x-icons.armor-frame :number="$computedStats['armor_score'] ?? '?'" class="size-20" />
+                    </div>
+                    <span class="text-slate-500/80 select-none">|</span>
+                    @if (!empty($character->assigned_traits))
+                        <div class="flex items-center gap-1 flex-nowrap">
+                            @foreach ($traitInfo as $trait => $label)
+                                <x-icons.stat-frame :number="(($character->assigned_traits[$trait] ?? 0) >= 0 ? '+' : '') . ($character->assigned_traits[$trait] ?? 0)" :label="$label" class="size-20" />
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
