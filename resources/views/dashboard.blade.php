@@ -39,8 +39,8 @@
                                 </div>
                                 <h3 class="font-outfit text-lg font-bold text-white mb-2">Characters</h3>
                                 <p class="text-slate-400 text-sm mb-4">Forge your heroes</p>
-                                <a href="{{ route('character-builder') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
-                                    Create
+                                <a href="{{ route('characters') }}" class="inline-flex items-center justify-center w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm">
+                                    View your Characters
                                 </a>
                             </div>
                         </div>

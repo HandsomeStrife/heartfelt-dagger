@@ -258,6 +258,8 @@ class CharacterBuilderData extends Data implements Wireable
             'personality_traits' => $this->personality_traits,
             'personal_history' => $this->personal_history,
             'motivations' => $this->motivations,
+            'manual_step_completions' => $this->manual_step_completions,
+            'clank_bonus_experience' => $this->clank_bonus_experience,
         ];
     }
 
@@ -283,6 +285,8 @@ class CharacterBuilderData extends Data implements Wireable
             personality_traits: $data['personality_traits'] ?? null,
             personal_history: $data['personal_history'] ?? null,
             motivations: $data['motivations'] ?? null,
+            manual_step_completions: $data['manual_step_completions'] ?? [],
+            clank_bonus_experience: $data['clank_bonus_experience'] ?? null,
         );
     }
 

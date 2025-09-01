@@ -105,9 +105,9 @@ export function characterViewerState(options = {}) {
                 // ignore storage errors
             }
 
-            if (isAuthenticated) {
+            if (isAuthenticated && this.$wire) {
                 try {
-                    await $wire.saveCharacterState(state);
+                    await this.$wire.saveCharacterState(state);
                 } finally {
                     window.__saveSeq = (window.__saveSeq || 0) + 1;
                 }
@@ -119,9 +119,9 @@ export function characterViewerState(options = {}) {
         async loadCharacterState() {
             let state = null;
 
-            if (isAuthenticated) {
+            if (isAuthenticated && this.$wire) {
                 try {
-                    state = await $wire.getCharacterState();
+                    state = await this.$wire.getCharacterState();
                 } catch (error) {
                     console.warn('Failed to load character state from database:', error);
                 }

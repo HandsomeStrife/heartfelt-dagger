@@ -115,7 +115,7 @@ Route::delete('/api/character/{character_key}', [App\Http\Controllers\CharacterB
 
 Route::get('/range-check', function () {
     return view('range-check');
-});
+})->name('range-check');
 
 // WebRTC ICE configuration route
 Route::get('/api/webrtc/ice-config', [App\Http\Controllers\Api\WebRTCController::class, 'iceConfig'])->name('api.webrtc.ice-config');
