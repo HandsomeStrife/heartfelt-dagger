@@ -3,7 +3,7 @@
     selected_subclass: $wire.entangle('character.selected_subclass'),
     selected_ancestry: $wire.entangle('character.selected_ancestry'),
     selected_community: $wire.entangle('character.selected_community'),
-    currentStep: parseInt(sessionStorage.getItem('characterBuilderCurrentStep') || '1'),
+    currentStep: 1,
     
     // Trait Assignment Data
     draggedValue: null,
@@ -76,7 +76,6 @@
     
     goToStep(step) {
         this.currentStep = step;
-        sessionStorage.setItem('characterBuilderCurrentStep', step.toString());
     },
     
     // Trait Assignment Methods
