@@ -474,11 +474,15 @@ class CharacterBuilderData extends Data implements Wireable
         $base_hit_points = $class_data['startingHitPoints'] ?? 5;
         $agility_modifier = $this->assigned_traits['agility'] ?? 0;
 
-        // Calculate armor score from selected equipment
+        // Calculate armor score from selected equipment (support multiple key names)
         $armor_score = 0;
         foreach ($this->selected_equipment as $equipment) {
-            if ($equipment['type'] === 'armor') {
-                $armor_score += $equipment['data']['score'] ?? 0;
+            if (($equipment['type'] ?? null) === 'armor') {
+                $data = $equipment['data'] ?? [];
+                $armor_score += $data['baseScore']
+                    ?? $data['armor_score']
+                    ?? $data['score']
+                    ?? 0;
             }
         }
 

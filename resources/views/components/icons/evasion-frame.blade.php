@@ -2,7 +2,7 @@
     'number' => '11',
     'label' => 'EVASION',
     'labelColor' => '#ffffff',
-    'labelSize' => 42,
+    'labelSize' => 58,
     'numberSize' => 150,
 ])
 
@@ -36,7 +36,7 @@
 
     <!-- Number (same canvas coordinates as Armor) -->
     <text
-        x="240" y="230"
+        x="240" y="240"
         text-anchor="middle"
         dominant-baseline="middle"
         font-size="{{ $numberSize }}"
@@ -48,7 +48,7 @@
 
     <!-- Label (same baseline as Armor’s dark bar) -->
     <text
-        x="240" y="382"
+        x="240" y="392"
         text-anchor="middle"
         dominant-baseline="middle"
         font-size="{{ $labelSize }}"

@@ -32,6 +32,34 @@ test('character viewer displays basic character information correctly', function
         ->assertSee('Active Weapons');
 });
 
+test('viewer shows 12 total HP and Stress slots with future placeholders', function () {
+    $character = Character::factory()->complete()->create([
+        'name' => 'Slots Test Character',
+    ]);
+
+    $page = visit("/character/{$character->public_key}");
+    waitForHydration($page);
+
+    // Count interactive and future placeholders
+    $counts = $page->script('(function(){
+        const hpInteractive = document.querySelectorAll("[data-testid^=\\"hp-toggle-\\"]").length;
+        const hpFuture = document.querySelectorAll("[data-testid^=\\"hp-future-\\"]").length;
+        const stressInteractive = document.querySelectorAll("[data-testid^=\\"stress-toggle-\\"]").length;
+        const stressFuture = document.querySelectorAll("[data-testid^=\\"stress-future-\\"]").length;
+        return { hpInteractive, hpFuture, stressInteractive, stressFuture };
+    })()');
+
+    expect($counts['hpInteractive'] + $counts['hpFuture'])->toBe(12);
+    expect($counts['stressInteractive'] + $counts['stressFuture'])->toBe(12);
+
+    // Future placeholders should not be interactive; clicking should not change checked count
+    $initialChecked = $page->script('(function(){ return Array.from(document.querySelectorAll("[data-testid^=\\"hp-toggle-\\"] input")).filter(el => el.checked).length; })()');
+    // Click a future HP span if present
+    $hasFuture = $page->script('(function(){ const el = document.querySelector("[data-testid^=\\"hp-future-\\"]"); if(el){ el.click(); return true;} return false; })()');
+    $afterChecked = $page->script('(function(){ return Array.from(document.querySelectorAll("[data-testid^=\\"hp-toggle-\\"] input")).filter(el => el.checked).length; })()');
+    expect($afterChecked)->toBe($initialChecked);
+});
+
 test('character viewer shows trait values correctly', function () {
     $character = Character::factory()->complete()->create([
         'name' => 'Trait Test Character',

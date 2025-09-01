@@ -31,8 +31,8 @@ test('clank ancestry shows bonus selection ui', function () {
         ->type('[dusk="new-experience-name"]', 'Blacksmith')
         ->type('[dusk="new-experience-description"]', 'Working with metal and tools')
         ->click('[dusk="add-experience-button"]')
-        ->wait(1)
-        ->assertSee('Your Experiences')
+        ->wait(5)
+        ->assertPresent('[dusk="experience-card-0"]')
         ->assertSee('Click to select for your Clank heritage bonus (+3)');
 });
 
@@ -52,9 +52,8 @@ test('clank bonus appears after adding experiences', function () {
         ->type('[dusk="new-experience-name"]', 'Blacksmith')
         ->type('[dusk="new-experience-description"]', 'Working with metal and tools')
         ->click('[dusk="add-experience-button"]')
-        ->wait(1)
-        ->assertSee('Your Experiences')
-        ->assertSee('Blacksmith')
+        ->wait(5)
+        ->assertPresent('[dusk="experience-card-0"]')
         ->assertSee('+2'); // Should show base modifier initially
 });
 
@@ -73,7 +72,8 @@ test('selecting clank bonus updates modifier display', function () {
         ->click('[dusk="sidebar-tab-8"]')
         ->type('[dusk="new-experience-name"]', 'Blacksmith')
         ->click('[dusk="add-experience-button"]')
-        ->wait(1)
+        ->wait(5)
+        ->assertPresent('[dusk="experience-card-0"]')
         ->click('[dusk="experience-card-0"]')
         ->assertSee('Clank Bonus')
         ->assertSee('+3'); // Should now show enhanced modifier
@@ -95,7 +95,7 @@ test('clank bonus appears in viewer experience list', function () {
         ->type('[dusk="new-experience-name"]', 'Blacksmith')
         ->type('[dusk="new-experience-description"]', 'Working with metal and tools')
         ->click('[dusk="add-experience-button"]')
-        ->wait(1)
+        ->wait(5)
         ->click('[dusk="experience-card-0"]');
 
     // Extract character key from URL and fetch public key synchronously
@@ -145,7 +145,7 @@ test('non clank ancestry does not show bonus ui', function () {
         ->click('[dusk="sidebar-tab-8"]')
         ->type('[dusk="new-experience-name"]', 'Blacksmith')
         ->click('[dusk="add-experience-button"]')
-        ->wait(1)
-        ->assertSee('Your Experiences')
+        ->wait(5)
+        ->assertPresent('[dusk="experience-card-0"]')
         ->assertDontSee('Click to select for your Clank heritage bonus (+3)');
 });

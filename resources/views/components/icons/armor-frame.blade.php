@@ -2,7 +2,7 @@
     'number' => '10',
     'label' => 'ARMOR',
     'labelColor' => '#ffffff',
-    'labelSize' => 42,
+    'labelSize' => 58,
     'numberSize' => 150,
 ])
 
@@ -30,7 +30,7 @@
 
   <!-- Dynamic number and label aligned to the same canvas as evasion -->
   <text
-      x="240" y="230"
+      x="240" y="240"
       text-anchor="middle"
       dominant-baseline="middle"
       font-size="{{ $numberSize }}"

@@ -2,9 +2,10 @@
     canEdit: @js($can_edit),
     characterKey: @js($character_key),
     hitPoints: Array(@js($computed_stats['final_hit_points'] ?? 6)).fill(false),
-    stress: Array(6).fill(false),
+    stress: Array(@js($computed_stats['stress'] ?? 6)).fill(false),
     hope: [true, true, false, false, false, false],
-    armorSlots: Array(4).fill(false),
+    // Armor: allow marking only up to Armor Score; still show 12 total with placeholders
+    armorSlots: Array(Math.max(1, @js($computed_stats['armor_score'] ?? 0))).fill(false),
     goldHandfuls: Array(9).fill(false),
     goldBags: Array(9).fill(false),
     goldChest: false,
@@ -145,6 +146,18 @@
                 }
             }
 
+            // Ensure armorSlots length matches allowed Armor Score
+            const desiredArmorLen = Math.max(1, @js($computed_stats['armor_score'] ?? 0));
+            if (!Array.isArray(state.armorSlots)) {
+                state.armorSlots = Array(desiredArmorLen).fill(false);
+            } else if (state.armorSlots.length !== desiredArmorLen) {
+                const currentArmor = state.armorSlots.slice();
+                state.armorSlots = Array(desiredArmorLen).fill(false);
+                for (let i = 0; i < Math.min(currentArmor.length, desiredArmorLen); i++) {
+                    state.armorSlots[i] = currentArmor[i];
+                }
+            }
+
             Object.assign(this, state);
         }
         // Mark hydration complete for deterministic tests
@@ -226,14 +239,14 @@
                     <div class="mt-auto pt-3">
                         <div class="flex items-center gap-3 flex-nowrap overflow-x-auto">
                             <div class="flex gap-2">
-                                <x-icons.evasion-frame :number="$computed_stats['evasion'] ?? 10" class="size-20" />
-                                <x-icons.armor-frame :number="$computed_stats['armor'] ?? 10" class="size-20" />
+                                <x-icons.evasion-frame :number="$computed_stats['evasion'] ?? '?'" class="size-20" />
+                                <x-icons.armor-frame :number="$computed_stats['armor_score'] ?? '?'" class="size-20" />
                             </div>
                             <span class="text-slate-500/80 select-none">|</span>
                             @if (!empty($character->assigned_traits))
                                 <div class="flex items-center gap-1 flex-nowrap">
                                     @foreach ($this->getTraitInfo() as $trait => $label)
-                                        <x-icons.stat-frame :number="$this->getFormattedTraitValue($trait)" :label="$label" class="size-20" />
+                                        <x-icons.stat-frame :number="$this->getFormattedTraitValue($trait) ?? '?'" :label="$label" class="size-20" />
                                     @endforeach
                                 </div>
                             @endif
@@ -251,36 +264,20 @@
             <!-- Left: DAMAGE & HEALTH -->
             <div class="lg:col-span-7">
                 <div class="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
-                    <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center justify-between gap-3 overflow-auto">
                         <div class="flex items-center gap-3">
                             <h2 class="text-lg font-bold">Damage & Health</h2>
-                            <!-- Damage thresholds: two threshold values between damage categories -->
-                            <div class="hidden md:flex items-stretch gap-2">
-                                <div
-                                    class="flex items-center gap-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/40 px-2 py-1 text-[11px]">
-                                    <span class="font-semibold uppercase tracking-wide">Minor → Major</span>
-                                    <svg viewBox="0 0 24 24" class="w-3 h-3 opacity-70" fill="currentColor">
-                                        <path d="M8 4l8 8-8 8V4z" />
-                                    </svg>
-                                    <span class="opacity-80">{{ $computed_stats['major_threshold'] ?? 7 }}</span>
-                                </div>
-                                <div
-                                    class="flex items-center gap-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/40 px-2 py-1 text-[11px]">
-                                    <span class="font-semibold uppercase tracking-wide">Major → Severe</span>
-                                    <svg viewBox="0 0 24 24" class="w-3 h-3 opacity-70" fill="currentColor">
-                                        <path d="M8 4l8 8-8 8V4z" />
-                                    </svg>
-                                    <span class="opacity-80">{{ $computed_stats['severe_threshold'] ?? 14 }}</span>
-                                </div>
-                            </div>
+                        </div>
+                        <div class="w-92">
+                            <x-damage-threshold class="w-full text-zinc-800" :left="$computed_stats['major_threshold']" :right="$computed_stats['severe_threshold']" />
                         </div>
                     </div>
 
                     <!-- HP row -->
                     <div class="mt-4">
-                        <div class="flex items-center justify-between text-xs text-slate-400">
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
                             <span>HP</span>
-                            <span x-text="`${hitPoints.filter(Boolean).length} / ${hitPoints.length} Marked`"></span>
+                            <span class="scale-80" x-text="`${hitPoints.filter(Boolean).length} / ${hitPoints.length} Marked`"></span>
                         </div>
                         <div class="mt-2 flex flex-wrap gap-1.5">
                             <template x-for="(marked, index) in hitPoints" :key="index">
@@ -288,18 +285,23 @@
                                     <input type="checkbox" class="sr-only peer" :checked="marked"
                                         @change="toggleHitPoint(index)">
                                     <span
-                                        class="block w-11 h-4 rounded-full bg-slate-800 ring-1 ring-slate-700 peer-checked:bg-rose-500/85 transition-colors"
-                                        :class="canEdit ? 'cursor-pointer hover:ring-rose-400/50' : ''"></span>
+                                        class="block w-11 h-4 rounded-full border border-slate-700 peer-checked:bg-rose-500/85 transition-colors"
+                                        :class="canEdit ? 'cursor-pointer hover:border-rose-400/50' : ''"></span>
                                 </label>
+                            </template>
+                            <!-- Future HP slots up to 12 (non-interactive) -->
+                            <template x-for="(_, index) in Array(Math.max(0, 12 - hitPoints.length)).fill(0)" :key="'hp-future-' + index">
+                                <span :data-testid="'hp-future-' + index"
+                                    class="block w-11 h-4 rounded-full border border-dashed border-slate-700/60 bg-transparent"></span>
                             </template>
                         </div>
                     </div>
 
                     <!-- STRESS row -->
                     <div class="mt-5">
-                        <div class="flex items-center justify-between text-xs text-slate-400">
+                        <div class="flex items-center gap-2 text-xs text-slate-400">
                             <span>Stress</span>
-                            <span x-text="`${stress.filter(Boolean).length} / ${stress.length} Marked`"></span>
+                            <span class="scale-80" x-text="`${stress.filter(Boolean).length} / ${stress.length} Marked`"></span>
                         </div>
                         <div class="mt-2 flex flex-wrap gap-1.5">
                             <template x-for="(marked, index) in stress" :key="index">
@@ -307,9 +309,14 @@
                                     <input type="checkbox" class="sr-only peer" :checked="marked"
                                         @change="toggleStress(index)">
                                     <span
-                                        class="block w-11 h-4 rounded-full bg-slate-800 ring-1 ring-slate-700 peer-checked:bg-amber-400/80 transition-colors"
-                                        :class="canEdit ? 'cursor-pointer hover:ring-amber-400/50' : ''"></span>
+                                        class="block w-11 h-4 rounded-full border border-slate-700 peer-checked:bg-amber-400/80 transition-colors"
+                                        :class="canEdit ? 'cursor-pointer hover:border-amber-400/50' : ''"></span>
                                 </label>
+                            </template>
+                            <!-- Future Stress slots up to 12 (non-interactive) -->
+                            <template x-for="(_, index) in Array(Math.max(0, 12 - stress.length)).fill(0)" :key="'stress-future-' + index">
+                                <span :data-testid="'stress-future-' + index"
+                                    class="block w-11 h-4 rounded-full border border-dashed border-slate-700/60 bg-transparent"></span>
                             </template>
                         </div>
                     </div>
@@ -319,7 +326,7 @@
                         <div class="text-[11px] uppercase tracking-wide text-slate-400">Armor Slots</div>
                         <div class="mt-2 flex gap-2">
                             <template x-for="(damaged, index) in armorSlots" :key="index">
-                                <label class="inline-flex items-center justify-center">
+                                <label :data-testid="'armor-toggle-' + index" class="inline-flex items-center justify-center">
                                     <input type="checkbox" class="sr-only peer" :checked="damaged"
                                         @change="toggleArmorSlot(index)">
                                     <span
@@ -332,6 +339,11 @@
                                         </svg>
                                     </span>
                                 </label>
+                            </template>
+                            <!-- Future Armor slots up to 12 (non-interactive) -->
+                            <template x-for="(_, index) in Array(Math.max(0, 12 - armorSlots.length)).fill(0)" :key="'armor-future-' + index">
+                                <span :data-testid="'armor-future-' + index"
+                                    class="inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 ring-dashed ring-slate-700/60 bg-transparent"></span>
                             </template>
                         </div>
                     </div>
@@ -376,11 +388,7 @@
                                     </div>
                                 </div>
                                 <div class="md:text-right text-sm text-slate-300">
-                                    @if (isset($primary['data']['feature']))
-                                        {{ $primary['data']['feature'] }}
-                                    @else
-                                        No feature present for the selected weapon.
-                                    @endif
+                                    {{ $this->getWeaponFeatureText($primary['data']) }}
                                 </div>
                             </div>
                         @else

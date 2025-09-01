@@ -161,15 +161,61 @@ class CharacterViewer extends Component
             'weapons' => [],
             'armor' => [],
             'items' => [],
-            'consumables' => []
+            'consumables' => [],
+        ];
+
+        // Normalize singular types from storage to the pluralized keys used by the view
+        $typeMap = [
+            'weapon' => 'weapons',
+            'armor' => 'armor',
+            'item' => 'items',
+            'consumable' => 'consumables',
         ];
 
         foreach ($this->character->selected_equipment as $equipment) {
-            $type = $equipment['type'] ?? 'items';
-            $organized[$type][] = $equipment;
+            $type = $equipment['type'] ?? 'item';
+            $normalized = $typeMap[$type] ?? 'items';
+            $organized[$normalized][] = $equipment;
         }
 
         return $organized;
+    }
+
+    /**
+     * Produce a readable feature string for a weapon, regardless of data shape.
+     */
+    public function getWeaponFeatureText(array $weaponData): string
+    {
+        $feature = $weaponData['feature'] ?? null;
+
+        if ($feature === null || $feature === '') {
+            return 'No feature present for the selected weapon.';
+        }
+
+        if (is_string($feature)) {
+            return $feature;
+        }
+
+        if (is_array($feature)) {
+            // Numeric array → multiple features
+            if (function_exists('array_is_list') && array_is_list($feature)) {
+                $parts = [];
+                foreach ($feature as $entry) {
+                    if (is_string($entry)) {
+                        $parts[] = $entry;
+                    } elseif (is_array($entry)) {
+                        $parts[] = $entry['description'] ?? ($entry['name'] ?? '');
+                    }
+                }
+                $parts = array_filter($parts, fn ($p) => $p !== '');
+                return empty($parts) ? 'No feature present for the selected weapon.' : implode('; ', $parts);
+            }
+
+            // Associative array → single feature object
+            return $feature['description'] ?? ($feature['name'] ?? 'No feature present for the selected weapon.');
+        }
+
+        return 'No feature present for the selected weapon.';
     }
 
     /**
