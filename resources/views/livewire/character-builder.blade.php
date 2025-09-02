@@ -1,98 +1,4 @@
-<div class="min-h-screen" x-data="{
-    selected_class: $wire.entangle('character.selected_class'),
-    selected_subclass: $wire.entangle('character.selected_subclass'),
-    selected_ancestry: $wire.entangle('character.selected_ancestry'),
-    selected_community: $wire.entangle('character.selected_community'),
-    currentStep: 1,
-    
-    // Trait Assignment Data
-    draggedValue: null,
-    availableValues: [-1, 0, 0, 1, 1, 2],
-    assigned_traits: $wire.entangle('character.assigned_traits'),
-    
-    // Heritage Selection Data
-    hasSelectedAncestry: false,
-    hasSelectedCommunity: false,
-    
-    get hasSelectedClass() {
-        return !!this.selected_class;
-    },
-    
-    init() {
-        this.hasSelectedAncestry = !!this.selected_ancestry;
-        this.hasSelectedCommunity = !!this.selected_community;
-        
-        this.$watch('selected_ancestry', (value) => {
-            this.hasSelectedAncestry = !!value;
-        });
-        
-        this.$watch('selected_community', (value) => {
-            this.hasSelectedCommunity = !!value;
-        });
-    },
-    
-    get remainingValues() {
-        let remaining = [...this.availableValues];
-        Object.values(this.assigned_traits).forEach(value => {
-            const index = remaining.indexOf(value);
-            if (index > -1) remaining.splice(index, 1);
-        });
-        return remaining;
-    },
-    
-    selectClass(classKey) {
-        this.selected_class = classKey;
-        this.selected_subclass = null;
-        $wire.selectClass(classKey);
-        
-        // Scroll to top of content when selecting a class
-        if (classKey) {
-            document.getElementById('character-builder-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    },
-    
-    selectSubclass(subclassKey) {
-        this.selected_subclass = subclassKey;
-        $wire.selectSubclass(subclassKey);
-    },
-    
-    selectAncestry(ancestryKey) {
-        this.selected_ancestry = ancestryKey;
-        $wire.selectAncestry(ancestryKey);
-        
-        if (ancestryKey) {
-            document.getElementById('character-builder-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    },
-    
-    selectCommunity(communityKey) {
-        this.selected_community = communityKey;
-        $wire.selectCommunity(communityKey);
-        
-        if (communityKey) {
-            document.getElementById('character-builder-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    },
-    
-    goToStep(step) {
-        this.currentStep = step;
-    },
-    
-    // Trait Assignment Methods
-    canDropValue(traitKey, value) {
-        return this.remainingValues.includes(value) || this.assigned_traits[traitKey] === value;
-    },
-    
-    dropValue(traitKey, value) {
-        if (this.canDropValue(traitKey, value)) {
-            $wire.assignTrait(traitKey, value);
-        }
-    },
-    
-    removeValue(traitKey) {
-        $wire.assignTrait(traitKey, null);
-    }
-}">
+<div class="min-h-screen" x-data="characterBuilderComponent($wire)">
     <!-- Minimal Full-Width Sub-Header -->
     <x-sub-navigation>
         <div class="flex items-center justify-between">
@@ -105,64 +11,7 @@
                 @if($last_saved_timestamp)
                     <div 
                         class="flex items-center gap-1.5 text-xs text-slate-500"
-                        x-data="{ 
-                            lastSavedTimestamp: {{ $last_saved_timestamp }},
-                            timeAgoText: '',
-                            updateTimer: null,
-                            
-                            init() {
-                                this.updateTimeAgo();
-                                this.startTimer();
-                                
-                                // Listen for save events from Livewire
-                                this.$wire.$on('character-saved-timestamp', (data) => {
-                                    this.lastSavedTimestamp = data.timestamp;
-                                    this.updateTimeAgo();
-                                    this.restartTimer();
-                                });
-                            },
-                            
-                            updateTimeAgo() {
-                                // Validate that we have a valid timestamp
-                                if (!this.lastSavedTimestamp || isNaN(this.lastSavedTimestamp)) {
-                                    this.timeAgoText = '';
-                                    return;
-                                }
-                                
-                                const now = Math.floor(Date.now() / 1000);
-                                const diffInSeconds = now - this.lastSavedTimestamp;
-                                
-                                // Handle negative values (future dates)
-                                if (diffInSeconds < 0) {
-                                    this.timeAgoText = 'just now';
-                                } else if (diffInSeconds < 60) {
-                                    this.timeAgoText = 'just now';
-                                } else if (diffInSeconds < 3600) {
-                                    const minutes = Math.floor(diffInSeconds / 60);
-                                    this.timeAgoText = minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
-                                } else if (diffInSeconds < 86400) {
-                                    const hours = Math.floor(diffInSeconds / 3600);
-                                    this.timeAgoText = hours + (hours === 1 ? ' hour ago' : ' hours ago');
-                                } else {
-                                    const days = Math.floor(diffInSeconds / 86400);
-                                    this.timeAgoText = days + (days === 1 ? ' day ago' : ' days ago');
-                                }
-                            },
-                            
-                            startTimer() {
-                                this.updateTimer = setInterval(() => {
-                                    this.updateTimeAgo();
-                                }, 30000); // Update every 30 seconds
-                            },
-                            
-                            restartTimer() {
-                                if (this.updateTimer) {
-                                    clearInterval(this.updateTimer);
-                                }
-                                this.startTimer();
-                            }
-                        }"
-                        x-init="init()"
+                        x-data="lastSavedTimestampComponent({{ $last_saved_timestamp }})"
                     >
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -186,23 +35,53 @@
                     Save
                 </button>
 
-                <!-- Preview Button -->
-                @if($character->selected_class)
-                    <button 
-                        dusk="preview-character-button"
-                        onclick="viewCharacterInNewWindow()"
-                        class="inline-flex items-center justify-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white text-sm font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
-                    >
-                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        Preview
-                    </button>
-                @endif
+                <!-- View Character Button (Header) -->
+                <button 
+                    x-show="selected_class && !hasUnsavedChanges"
+                    pest="header-view-character-button"
+                    onclick="viewCharacterInNewWindow()"
+                    :disabled="hasUnsavedChanges"
+                    :class="{
+                        'inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-300 shadow-lg': true,
+                        'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white hover:shadow-blue-500/25': !hasUnsavedChanges,
+                        'bg-slate-700 text-slate-500 cursor-not-allowed': hasUnsavedChanges
+                    }"
+                >
+                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    View Character
+                </button>
             </div>
         </div>
     </x-sub-navigation>
+
+    <!-- Unsaved Changes Banner (Always Visible When Needed) -->
+    <div x-show="hasUnsavedChanges" x-cloak class="bg-amber-500/10 border-b border-amber-500/30">
+        <div class="container mx-auto px-4 sm:px-6 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <div>
+                        <p class="text-amber-300 font-semibold text-sm">You have unsaved changes</p>
+                        <p class="text-amber-200 text-xs">Remember to save your character to avoid losing progress.</p>
+                    </div>
+                </div>
+                <button 
+                    wire:click="saveCharacter"
+                    class="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-400 text-amber-900 text-sm font-medium rounded-lg transition-all duration-200"
+                >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Save Now
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div class="container mx-auto px-4 sm:px-6 pb-4 sm:pb-8">
 
@@ -616,18 +495,50 @@
                                     </div>
                                 </div>
                                 
+                                <!-- Unsaved Changes Warning -->
+                                <div x-show="hasUnsavedChanges" x-cloak class="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-300 text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="font-medium">You have unsaved changes. Save your character before viewing.</span>
+                                    </div>
+                                </div>
+                                
                                 <div class="flex flex-col sm:flex-row justify-center gap-3">
+                                    <!-- Save Character Button -->
+                                    <button 
+                                        pest="save-character-button"
+                                        wire:click="saveCharacter"
+                                        :disabled="!hasUnsavedChanges"
+                                        :class="{
+                                            'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl transition-all duration-300 shadow-lg': true,
+                                            'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white hover:shadow-emerald-500/25': hasUnsavedChanges,
+                                            'bg-slate-700 text-slate-500 cursor-not-allowed': !hasUnsavedChanges
+                                        }"
+                                    >
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                                        </svg>
+                                        <span x-text="hasUnsavedChanges ? 'Save Character' : 'Saved'"></span>
+                                    </button>
+
                                     <!-- View Character Button -->
                                     <button 
-                                        dusk="view-character-button"
+                                        pest="view-character-button"
                                         onclick="viewCharacter()"
-                                        class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
+                                        :disabled="hasUnsavedChanges"
+                                        :class="{
+                                            'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl transition-all duration-300 shadow-lg': true,
+                                            'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white hover:shadow-blue-500/25': !hasUnsavedChanges,
+                                            'bg-slate-700 text-slate-500 cursor-not-allowed': hasUnsavedChanges
+                                        }"
                                     >
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                        View Character Sheet
+                                        View Character
                                     </button>
                                     
                                     <!-- Return to Characters List -->
@@ -649,5 +560,18 @@
         </div> <!-- Close main layout flex container -->
     </div>
 
+    <!-- Floating Save Button (Always Visible) -->
+    <div x-show="hasUnsavedChanges" x-cloak class="fixed bottom-6 right-6 z-50">
+        <button 
+            pest="floating-save-button"
+            wire:click="saveCharacter"
+            class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 border-2 border-emerald-400/50 hover:border-emerald-300"
+        >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            Save Character
+        </button>
+    </div>
 
 </div>

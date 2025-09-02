@@ -47,7 +47,7 @@
                     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                         @foreach($filtered_data['available_subclasses'] as $subclassKey => $subclassData)
                             <div 
-                                dusk="subclass-card-{{ $subclassKey }}"
+                                pest="subclass-card-{{ $subclassKey }}"
                                 x-on:click="selectSubclass('{{ $subclassKey }}')"
                                 :class="{
                                     'relative group cursor-pointer transition-all duration-300 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border rounded-2xl overflow-hidden': true,

@@ -12,32 +12,65 @@ it('character builder basic flow: create → class selection → traits → equi
     // Header action present
     $page->assertPresent('[pest="save-character-button"]');
 
+    // Should start on Step 1: Class Selection
+    $page->assertSee('Choose a Class');
+    
     // Class selection available and interacts
     $page->assertPresent('[pest="class-card-bard"]');
     $page->click('[pest="class-card-bard"]');
     $page->wait(1);
 
-    // Domain cards filtered to two domains; only level 1 appear in UI labels
-    // Navigate to Domain Cards step via sidebar (Step 9)
-    // Navigate to Domain Cards step using Next button to avoid responsive sidebar differences
-    for ($i = 0; $i < 8; $i++) {
-        $page->click('[pest="next-step-button"]');
-        $page->wait(1);
-    }
+    // Class selection does NOT auto-advance - we need to click Continue to go to Step 2
+    $page->click('[pest="next-step-button"]'); // Step 1 → Step 2 (Subclass)
+    $page->wait(1);
+    $page->assertSee('Choose Your Subclass');
+
+    // Continue through the remaining steps to reach Domain Cards (Step 9)
+    // Step 2 → Step 3 (Ancestry)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Choose Your Ancestry');
+
+    // Step 3 → Step 4 (Community)  
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Choose Your Community');
+
+    // Step 4 → Step 5 (Traits)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Assign Traits');
+
+    // Step 5 → Step 6 (Equipment)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Select Equipment');
+
+    // Step 6 → Step 7 (Background)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Create Background');
+
+    // Step 7 → Step 8 (Experiences)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Add Experiences');
+
+    // Step 8 → Step 9 (Domain Cards)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
     $page->assertSee('Select Domain Cards');
+    
     // Should show all abilities for selected domains and grey out above-level ones
     $page->wait(2);
     $page->assertPresent('[pest="domain-card-selected-count"]');
 
-    // Trait enforcement: attempt to complete with invalid distribution should not allow
-    // Using client-side controls (labels/inputs may vary; assert presence of enforcement hints)
-    // Navigate to Trait Assignment (Step 5)
+    // Test sidebar navigation works - go back to Trait Assignment (Step 5)
     $page->click('[pest="sidebar-tab-5"]');
     $page->wait(1);
-    $page->assertSee('Trait');
+    $page->assertSee('Assign Traits');
 
-    // Equipment gating copy visible
-    // Navigate to Equipment (Step 6)
+    // Test sidebar navigation - go to Equipment (Step 6)
     $page->click('[pest="sidebar-tab-6"]');
     $page->wait(1);
     $page->assertSee('Select Equipment');
@@ -54,9 +87,8 @@ it('domain card selection toggles and enforces max selection', function () {
     $page->click('[pest="class-card-wizard"]');
     $page->wait(1);
 
-    // Select two level 1 cards from visible domains
-    // Use first two visible card action buttons (labels may vary, so click by index with CSS)
-    // Go to domain cards step via Next buttons
+    // Navigate step by step to reach Domain Cards (Step 9)
+    // Each click advances one step: 1→2→3→4→5→6→7→8→9
     for ($i = 0; $i < 8; $i++) {
         $page->click('[pest="next-step-button"]');
         $page->wait(1);
@@ -64,7 +96,7 @@ it('domain card selection toggles and enforces max selection', function () {
     $page->assertSee('Select Domain Cards');
 
     // Verify domain cards section loads and count is present
-    $page->wait(3);
+    $page->wait(2);
     $page->assertPresent('[pest="domain-card-selected-count"]');
     $page->assertSee('0', '[pest="domain-card-selected-count"]');
     

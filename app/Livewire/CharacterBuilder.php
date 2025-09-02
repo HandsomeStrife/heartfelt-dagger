@@ -97,7 +97,7 @@ class CharacterBuilder extends Component
     {
         if ($this->character->hasExperienceBonusSelection()) {
             $this->character->clank_bonus_experience = $experienceName;
-            $this->saveAndUpdateState();
+            $this->updateStateOnly();
         }
     }
 
@@ -176,8 +176,8 @@ class CharacterBuilder extends Component
         // Reset completed steps array
         $this->completed_steps = [];
         
-        // Save changes to database
-        $this->saveAndUpdateState();
+        // Update state only - do NOT auto-save to database
+        $this->updateStateOnly();
     }
 
     public function selectSubclass(string $subclass_key): void
@@ -197,20 +197,20 @@ class CharacterBuilder extends Component
         // Reset completed steps array
         $this->completed_steps = [];
         
-        // Save changes to database
-        $this->saveAndUpdateState();
+        // Update state only - do NOT auto-save to database
+        $this->updateStateOnly();
     }
 
     public function selectAncestry(?string $ancestry_key): void
     {
         $this->character->selected_ancestry = $ancestry_key;
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function selectCommunity(?string $community_key): void
     {
         $this->character->selected_community = $community_key;
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function assignTrait(string $trait_name, ?int $value): void
@@ -222,26 +222,26 @@ class CharacterBuilder extends Component
             $this->character->assigned_traits[$trait_name] = $value;
         }
 
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function resetTraits(): void
     {
         $this->character->assigned_traits = [];
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function updateCharacterName(string $name): void
     {
         $this->character->name = $name;
-        $this->saveToDatabase();
+        $this->saveToDatabase(); // Keep auto-save for name - typed input field
         $this->dispatch('character-updated', $this->character);
     }
 
     public function updatePronouns(string $pronouns): void
     {
         $this->pronouns = $pronouns;
-        $this->saveToDatabase();
+        $this->saveToDatabase(); // Keep auto-save for pronouns - typed input field
         $this->dispatch('character-updated', $this->character);
     }
 
@@ -447,13 +447,13 @@ class CharacterBuilder extends Component
     {
         unset($this->character->selected_equipment[$index]);
         $this->character->selected_equipment = array_values($this->character->selected_equipment);
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function clearAllEquipment(): void
     {
         $this->character->selected_equipment = [];
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function toggleEquipmentCategory(string $category): void
@@ -464,14 +464,14 @@ class CharacterBuilder extends Component
     public function updateBackgroundAnswer(int $question_index, string $answer): void
     {
         $this->character->background_answers[$question_index] = $answer;
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function markBackgroundComplete(): void
     {
         // Mark background step as manually complete
         $this->character->markStepComplete(\Domain\Character\Enums\CharacterBuilderStep::BACKGROUND);
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
         $this->dispatch('notify', [
             'type' => 'success',
             'message' => 'Background section marked as complete!',
@@ -502,21 +502,21 @@ class CharacterBuilder extends Component
         $this->new_experience_name = '';
         $this->new_experience_description = '';
 
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
         $this->dispatch('experience-added');
     }
 
     public function clearAllExperiences(): void
     {
         $this->character->experiences = [];
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function removeExperience(int $index): void
     {
         unset($this->character->experiences[$index]);
         $this->character->experiences = array_values($this->character->experiences);
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     /**
@@ -541,7 +541,7 @@ class CharacterBuilder extends Component
             $this->character->experiences[$index]['description'] = $this->edit_experience_description;
             $this->editing_experience = [];
             $this->edit_experience_description = '';
-            $this->saveAndUpdateState();
+            $this->updateStateOnly();
         }
     }
 
@@ -581,26 +581,26 @@ class CharacterBuilder extends Component
             ];
         }
 
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function removeDomainCard(int $index): void
     {
         unset($this->character->selected_domain_cards[$index]);
         $this->character->selected_domain_cards = array_values($this->character->selected_domain_cards);
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function clearAllDomainCards(): void
     {
         $this->character->selected_domain_cards = [];
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function updateConnectionAnswer(int $question_index, string $answer): void
     {
         $this->character->connection_answers[$question_index] = $answer;
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function applySuggestedTraits(): void
@@ -625,7 +625,7 @@ class CharacterBuilder extends Component
         }
 
         $this->character->assigned_traits = $class_data['suggestedTraits'];
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
         $this->dispatch('notify', [
             'type' => 'success',
             'message' => 'Applied suggested traits for '.($class_data['name'] ?? $this->character->selected_class).'!',
@@ -770,7 +770,7 @@ class CharacterBuilder extends Component
             }
         }
 
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
         $this->dispatch('notify', [
             'type' => 'success',
             'message' => 'Applied suggested equipment for '.($class_data['name'] ?? $this->character->selected_class).'!',
@@ -783,7 +783,17 @@ class CharacterBuilder extends Component
     }
 
     /**
+     * Helper method to update completion state and dispatch character-updated event (NO DATABASE SAVE)
+     */
+    private function updateStateOnly(): void
+    {
+        $this->updateCompletedSteps();
+        $this->dispatch('character-updated', $this->character);
+    }
+
+    /**
      * Helper method to update completion state, save to database, and dispatch character-updated event
+     * ONLY USE THIS FOR EXPLICIT SAVE OPERATIONS!
      */
     private function saveAndUpdateState(): void
     {
@@ -1236,7 +1246,7 @@ class CharacterBuilder extends Component
         $this->character->selected_equipment = $selected_equipment;
 
         // Update completion state and save
-        $this->saveAndUpdateState();
+        $this->updateStateOnly();
     }
 
     public function getInventoryItemData(string $item_name): array

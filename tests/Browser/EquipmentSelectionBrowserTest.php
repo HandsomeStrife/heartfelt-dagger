@@ -3,36 +3,49 @@
 declare(strict_types=1);
 
 it('allows primary weapon selection and replacement', function () {
-    $character = \Domain\Character\Models\Character::create([
-        'name' => null,
-        'character_key' => \Domain\Character\Models\Character::generateUniqueKey(),
-        'user_id' => null,
-        'class' => null,
-        'subclass' => null,
-        'ancestry' => null,
-        'community' => null,
-        'level' => 1,
-        'character_data' => [],
-        'is_public' => false,
-    ]);
+    // Use same working approach as CharacterBuilderFlowTest
+    $page = visit('/character-builder');
 
-    $page = visit('/character-builder/'.$character->character_key);
+    // Redirects to edit/{character_key}
+    $page->assertPathBeginsWith('/character-builder/');
+    $page->assertPresent('[pest="save-character-button"]');
+
+    // Should start on Step 1: Class Selection
+    $page->assertSee('Choose a Class');
     
-    // Select class to enable equipment
+    // Class selection available and interacts
     $page->assertPresent('[pest="class-card-warrior"]');
     $page->click('[pest="class-card-warrior"]');
     $page->wait(1);
 
-    // Navigate to Equipment step
-    for ($i = 0; $i < 5; $i++) {
-        $page->click('[pest="next-step-button"]');
-        $page->wait(1);
-    }
+    // Class selection does NOT auto-advance - we need to click Continue to go to Step 2
+    $page->click('[pest="next-step-button"]'); // Step 1 → Step 2 (Subclass)
+    $page->wait(1);
+    $page->assertSee('Choose Your Subclass');
 
+    // Continue through the remaining steps to reach Equipment (Step 6)
+    // Step 2 → Step 3 (Ancestry)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Choose Your Ancestry');
+
+    // Step 3 → Step 4 (Community)  
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Choose Your Community');
+
+    // Step 4 → Step 5 (Traits)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    $page->assertSee('Assign Traits');
+
+    // Step 5 → Step 6 (Equipment)
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
     $page->assertSee('Select Equipment');
-    $page->wait(2);
 
-    // Check that we can see weapon selection options
+    // Now we should see the equipment options since class is selected
+    $page->wait(2);
     $page->assertSee('Primary Weapon');
 
     // Select a primary weapon (click first available weapon)
@@ -64,11 +77,26 @@ it('enforces armor selection requirement', function () {
     $page->click('[pest="class-card-bard"]');
     $page->wait(1);
 
-    // Navigate to Equipment step
-    for ($i = 0; $i < 5; $i++) {
-        $page->click('[pest="next-step-button"]');
-        $page->wait(1);
-    }
+    // Navigate through all required steps to reach Equipment (Step 6)
+    // Step 1 → Step 2 (Subclass) 
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 2 → Step 3 (Ancestry) - skip subclass selection
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 3 → Step 4 (Community) - skip ancestry selection  
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 4 → Step 5 (Traits) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 5 → Step 6 (Equipment) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
 
     $page->wait(2);
 
@@ -106,11 +134,26 @@ it('handles starting inventory chooseOne requirements', function () {
     $page->click('[pest="class-card-bard"]');
     $page->wait(1);
 
-    // Navigate to Equipment step
-    for ($i = 0; $i < 5; $i++) {
-        $page->click('[pest="next-step-button"]');
-        $page->wait(1);
-    }
+    // Navigate through all required steps to reach Equipment (Step 6)
+    // Step 1 → Step 2 (Subclass) 
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 2 → Step 3 (Ancestry) - skip subclass selection
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 3 → Step 4 (Community) - skip ancestry selection  
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 4 → Step 5 (Traits) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 5 → Step 6 (Equipment) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
 
     $page->wait(2);
 
@@ -152,11 +195,26 @@ it('handles starting inventory chooseExtra requirements', function () {
     $page->click('[pest="class-card-guardian"]');
     $page->wait(1);
 
-    // Navigate to Equipment step
-    for ($i = 0; $i < 5; $i++) {
-        $page->click('[pest="next-step-button"]');
-        $page->wait(1);
-    }
+    // Navigate through all required steps to reach Equipment (Step 6)
+    // Step 1 → Step 2 (Subclass) 
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 2 → Step 3 (Ancestry) - skip subclass selection
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 3 → Step 4 (Community) - skip ancestry selection  
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 4 → Step 5 (Traits) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 5 → Step 6 (Equipment) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
 
     $page->wait(2);
 
@@ -201,11 +259,26 @@ it('allows secondary weapon selection as optional', function () {
     $page->click('[pest="class-card-warrior"]');
     $page->wait(1);
 
-    // Navigate to Equipment step
-    for ($i = 0; $i < 5; $i++) {
-        $page->click('[pest="next-step-button"]');
-        $page->wait(1);
-    }
+    // Navigate through all required steps to reach Equipment (Step 6)
+    // Step 1 → Step 2 (Subclass) 
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 2 → Step 3 (Ancestry) - skip subclass selection
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 3 → Step 4 (Community) - skip ancestry selection  
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 4 → Step 5 (Traits) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 5 → Step 6 (Equipment) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
 
     $page->wait(2);
 
@@ -248,11 +321,26 @@ it('shows equipment completion status correctly', function () {
     $page->click('[pest="class-card-warrior"]');
     $page->wait(1);
 
-    // Navigate to Equipment step
-    for ($i = 0; $i < 5; $i++) {
-        $page->click('[pest="next-step-button"]');
-        $page->wait(1);
-    }
+    // Navigate through all required steps to reach Equipment (Step 6)
+    // Step 1 → Step 2 (Subclass) 
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 2 → Step 3 (Ancestry) - skip subclass selection
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 3 → Step 4 (Community) - skip ancestry selection  
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 4 → Step 5 (Traits) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
+    
+    // Step 5 → Step 6 (Equipment) - skip trait assignment
+    $page->click('[pest="next-step-button"]');
+    $page->wait(1);
 
     $page->wait(2);
 
