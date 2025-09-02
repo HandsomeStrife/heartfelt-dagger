@@ -1,7 +1,7 @@
 <?php
 
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Laravel\{actingAs, get, post, put, patch, delete, assertAuthenticated, assertGuest};
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -10,14 +10,14 @@ test('navigation shows character links for unauthenticated users', function () {
 
     // Guest users should see branding and guest navigation links
     $response->assertSee('HeartfeltDagger');
-    $response->assertSee('Create');
     $response->assertSee('Characters');
+    $response->assertSee('Tools');
     $response->assertSee('Login');
     $response->assertSee('Register');
 
-    // But should NOT see auth-only features  
+    // But should NOT see auth-only navigation features
+    // Note: "Campaigns" appears in page content, so we check for dashboard and logout instead
     $response->assertDontSee('Dashboard');
-    $response->assertDontSee('Campaigns');
     $response->assertDontSee('Logout');
 });
 
@@ -30,8 +30,8 @@ test('navigation shows user menu for authenticated users', function () {
 
     $response->assertSee('testuser');
     $response->assertSee('Dashboard');
-    $response->assertSee('My Characters');
-    $response->assertSee('Create Character');
+    $response->assertSee('Characters');
+    $response->assertSee('Resources');
     $response->assertSee('Campaigns');
     $response->assertSee('Logout');
     $response->assertDontSee('Login');
@@ -78,18 +78,18 @@ test('navigation is not shown on login page', function () {
     $response = get('/login');
 
     // Navigation should not be visible on login page
-    $response->assertDontSee('Create Character');
-    $response->assertDontSee('My Characters');
+    $response->assertDontSee('Characters');
     $response->assertDontSee('Dashboard');
+    $response->assertDontSee('Campaigns');
 });
 
 test('navigation is not shown on register page', function () {
     $response = get('/register');
 
     // Navigation should not be visible on register page
-    $response->assertDontSee('Create Character');
-    $response->assertDontSee('My Characters');
+    $response->assertDontSee('Characters');
     $response->assertDontSee('Dashboard');
+    $response->assertDontSee('Campaigns');
 });
 
 test('navigation is shown on protected pages', function () {
@@ -134,7 +134,8 @@ test('dropdown menu structure', function () {
 
     // Check for dropdown elements
     $response->assertSee('Dashboard');
-    $response->assertSee('Create Character');
+    $response->assertSee('Characters');
+    $response->assertSee('Resources');
     $response->assertSee('Campaigns');
     $response->assertSee('Logout');
 });

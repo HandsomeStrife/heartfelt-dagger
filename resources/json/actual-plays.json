@@ -1,0 +1,361 @@
+{
+    "video_actual_plays": [
+        {
+            "creator": "Explorers of Elsewhere",
+            "campaign": "The Titan Isles",
+            "description": "Drawn to the Titan Isles, the resting place of two slumbering primal deities called World Spirits, five individuals find themselves racing to prevent a magical calamity.",
+            "links": {
+                "youtube": "https://www.youtube.com/@explorersofelsewhere",
+                "twitch": "https://www.twitch.tv/explorersofelsewhere"
+            },
+            "update_schedule": "Updates on Mondays!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Monday 1st September"
+            }
+        },
+        {
+            "creator": "Bladebound Saga",
+            "campaign": "Scapegoats Plunder",
+            "description": "A Daggerheart Content Creator Collaboration, following a group of shipwrecked pirates trying to uncover what happened to all who became stranded on the island before.",
+            "links": {
+                "youtube": "https://www.youtube.com/@BladeBoundSaga"
+            },
+            "update_schedule": "Updates on Wednesdays!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Wednesday 20th August"
+            }
+        },
+        {
+            "creator": "Epos Ex Prosa",
+            "campaign": null,
+            "description": "Two groups of adventurers on the continent of Mizani - one a mighty band of heroes and the other who walk a more sinister path - search for answers to their own questions--as well as new ones that arise.",
+            "links": {
+                "youtube": "https://www.youtube.com/@EposExProsa"
+            },
+            "update_schedule": "Updates on Tuesdays!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Saturday 30th August"
+            }
+        },
+        {
+            "creator": "Nat Good Enough",
+            "campaign": "What The Masks Reveal",
+            "description": "As technology begins to rise, the Deathless One's plan has finally come to fruition. What has the Archdevil Corruption planned for the world?",
+            "links": {
+                "youtube": "https://www.youtube.com/@natgoodenough",
+                "twitch": "https://www.twitch.tv/natgoodenough"
+            },
+            "update_schedule": "Updates fortnightly!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Sunday 10th July"
+            }
+        },
+        {
+            "creator": "The Pocket Dimension",
+            "campaign": "Queen's Light",
+            "description": "Insectoid fae navigate a strange, fading world with echoing ruins and just a touch of existential dread, in a campaign with Hollow Knight vibes that mixes mystery, memory, and moody magic.",
+            "links": {
+                "youtube": "https://www.youtube.com/@EnterThePocketDimension",
+                "twitch": "https://www.twitch.tv/enterthepocketdimension"
+            },
+            "update_schedule": "Updates regularly!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Friday 29nd July"
+            }
+        },
+        {
+            "creator": "Looking For Mom",
+            "campaign": "The Haunting of Hanashira",
+            "description": "Inspired by Princess Mononoke, Vaesen, and Korean folklore, this campaign blends spirits, steel, and sorrow into something hauntingly beautiful.",
+            "links": {
+                "youtube": "https://www.youtube.com/@LookingForMomTTRPG"
+            },
+            "status": "Adventure Completed!"
+        },
+        {
+            "creator": "Garblag Games",
+            "campaign": "The Mechanolith",
+            "description": "The colossal defensive ramparts of the World Mountain, the wall that literally holds back Hell, is beginning to fail. Our heroes are tasked with investigating faltering defences, strained alliances, insidious infiltrators, and potential traitors all with the goal of preserving the Mechanolith.",
+            "links": {
+                "youtube": "https://www.youtube.com/@GarblagGames"
+            },
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Thursday 21st August"
+            }
+        },
+        {
+            "creator": "Yes And Dragons",
+            "campaign": "Welcome to Vescarre",
+            "description": "Arcanopunk setting.",
+            "links": {
+                "youtube": "https://www.youtube.com/@YesAndDragons"
+            },
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Sunday 24th August"
+            }
+        },
+        {
+            "creator": "Ghost Light",
+            "campaign": "The Shattered God",
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@Ghost-Light"
+            },
+            "update_schedule": "Updates regularly!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Wednesday 20th August"
+            }
+        },
+        {
+            "creator": "Wither and Bloom Studios",
+            "campaign": "Beast Feast",
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@WitherandBloomStudios"
+            },
+            "most_recent_upload": {
+                "label": "Most recent upload",
+                "date_text": "Tuesday 26th August"
+            }
+        },
+        {
+            "creator": "Talking XP",
+            "campaign": "Bitten",
+            "description": "Zombie-themed.",
+            "links": {
+                "youtube": "https://m.youtube.com/@TalkingXP/videos:"
+            },
+            "most_recent_upload": {
+                "label": "Most recent upload",
+                "date_text": "Sunday 17th August"
+            }
+        },
+        {
+            "creator": "Theatre of the Mind Flayer",
+            "campaign": "A Mind Flayer Campaign",
+            "description": "Nautical Witherwild campaign.",
+            "links": {
+                "youtube": "https://www.youtube.com/@theatreofthemindflayer"
+            },
+            "most_recent_upload": {
+                "label": "Most recent upload",
+                "date_text": "Wednesday 13th August"
+            }
+        },
+        {
+            "creator": "More Than Dice",
+            "campaign": "Veil of the Lost",
+            "description": "Campaign set in Corvus Belli's Warcrow setting.",
+            "links": {
+                "youtube": "https://www.youtube.com/@MoreThanDice"
+            },
+            "most_recent_upload": {
+                "label": "Most recent upload",
+                "date_text": "Sunday 24th August"
+            }
+        },
+        {
+            "creator": "First Age Entertainment",
+            "campaign": null,
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@GrahamSpearing"
+            },
+            "update_schedule": "Updates every fortnightly on Saturdays!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Saturday 19th July"
+            }
+        },
+        {
+            "creator": "Landlocked Warlocks",
+            "campaign": null,
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@LandlockedWarlocks"
+            },
+            "update_schedule": "Updates on Fridays!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Friday 1st August"
+            }
+        },
+        {
+            "creator": "Emerald Collective Podcast",
+            "campaign": "The Burning Eye In The Dark",
+            "description": "Five adventurers embark a perilous expedition that will determine the very future of Horizons Hollow.",
+            "links": {
+                "twitch": "https://www.twitch.tv/emerald_collective",
+                "youtube": "https://www.youtube.com/@EmeraldCollectivePodcast"
+            },
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Sunday 20th July"
+            }
+        },
+        {
+            "creator": "SwiftX10",
+            "campaign": "Adventure Awaits: Exia",
+            "description": "A group of treasure hunters hear whispers of a newly discovered cave of interest hidden within a forest untouched by other adventurers. What mysteries hide within?",
+            "links": {
+                "youtube": "https://www.youtube.com/@SwiftX10"
+            },
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Saturday 19th July"
+            }
+        },
+        {
+            "creator": "Henchman's Memoirs",
+            "campaign": null,
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@henchmansmemoirs1487"
+            },
+            "update_schedule": "Updates regularly!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Saturday 5th July"
+            }
+        },
+        {
+            "creator": "The Faint Divinities",
+            "campaign": null,
+            "description": null,
+            "links": {
+                "twitch": "https://www.twitch.tv/thefaintdivinities",
+                "youtube": "https://www.youtube.com/@TheFaintDivinities/videos"
+            },
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Sunday 1st June"
+            }
+        },
+        {
+            "creator": "The Nocturnal Vanguard",
+            "campaign": "Chaos in Solara",
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@TheNocturnalVanguard"
+            },
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Thursday 28th August!"
+            }
+        },
+        {
+            "creator": "Somnus Grey",
+            "campaign": "Solo Daggerheart Play Campaign",
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@SomnusGrey"
+            },
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Coming soon!"
+            }
+        }
+    ],
+    "audio_actual_plays": [
+        {
+            "creator": "DodoBorne",
+            "campaign": null,
+            "description": "Join Kapi, Crank, and Pistachio as they navigate a rich world of mystery, magic, and malfeasance in this comedy storytelling podcast.",
+            "links": {
+                "youtube": "https://youtube.com/@dodobornepod",
+                "linktree": "https://linktr.ee/dodobornepod"
+            },
+            "update_schedule": "Updates on Tuesdays!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Tuesday 26th August"
+            }
+        },
+        {
+            "creator": "Hag Deal Gaming",
+            "campaign": "Queen of Daggers, Heart of Fire",
+            "description": "Four young Poets - the realm of Lacuna's specially gifted guardians - embark upon a simple visit to a neighboring town, as part of their training. Surely, despite the strange omens they've all seen, things will go as planned...",
+            "links": {
+                "youtube": "https://youtube.com/@hagdealgaming"
+            },
+            "update_schedule": "Updates every other Monday!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Sunday 24th August"
+            }
+        },
+        {
+            "creator": "Role of the Dice",
+            "campaign": "The Kyzor Saga",
+            "description": "The Hinterlands are riddled with mysteries older than your great-granny’s fruitcake. One such enigma is kyzorite, a substance so baffling it makes a labyrinth look like a straight line. Well, that just makes it all the more interesting, doesn’t it? After all, where’s the fun in predictability?",
+            "links": {
+                "podcast": "https://www.buzzsprout.com/2466135"
+            },
+            "update_schedule": "Updates on Thursdays!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Sunday 17th August"
+            }
+        },
+        {
+            "creator": "The Naturolls",
+            "campaign": "The Shatterlands",
+            "description": "Enter the world of Ardeia, colloquially known as The Shatterlands -- a realm divided politically by opposing kingdoms, and physically by a floating capital city. As unknown forces threaten the tenuous peace, heroes will rise to protect it. They are... The Naturolls!",
+            "links": {
+                "podcast": "https://thenaturolls.transistor.fm/"
+            },
+            "update_schedule": "Updates every other Monday!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Monday 25th August"
+            }
+        },
+        {
+            "creator": "Raven's Keep",
+            "campaign": null,
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@Ravenskeep24"
+            },
+            "update_schedule": "Updates on Fridays!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Saturday 23rd August"
+            }
+        },
+        {
+            "creator": "Thieves Guild Games",
+            "campaign": "Dark Fantasy Actual Play",
+            "description": null,
+            "links": {
+                "youtube": "https://www.youtube.com/@ThievesGuildGamesOfficial"
+            },
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Friday 1st August"
+            }
+        },
+        {
+            "creator": "Crash Course DM",
+            "campaign": null,
+            "description": "A comedy storytelling podcast where we're always trying new things with TTRPGs. Available in audio on YouTube and wherever you get your podcasts :)",
+            "links": {
+                "youtube": "https://www.youtube.com/@CrashCourseDM",
+                "podcast": "https://www.anythingyoucando.co/crash-course-dm"
+            },
+            "update_schedule": "Updates semi-regularly!",
+            "most_recent_upload": {
+                "label": "Most recent DH upload",
+                "date_text": "Thursday 29nd May"
+            }
+        }
+    ]
+}

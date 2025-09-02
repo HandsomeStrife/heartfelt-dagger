@@ -117,6 +117,11 @@ Route::get('/range-check', function () {
     return view('range-check');
 })->name('range-check');
 
+Route::get('/actual-plays', function () {
+    $actual_plays_data = json_decode(file_get_contents(resource_path('json/actual-plays.json')), true);
+    return view('actual-plays', compact('actual_plays_data'));
+})->name('actual-plays');
+
 // WebRTC ICE configuration route
 Route::get('/api/webrtc/ice-config', [App\Http\Controllers\Api\WebRTCController::class, 'iceConfig'])->name('api.webrtc.ice-config');
 

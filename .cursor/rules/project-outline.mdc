@@ -11,6 +11,8 @@ All code changes should be accompanied with automated tests, and use Pest 4 for 
 
 Tests should be run with `sail pest`
 
+If you create a new test, you should run it immediately.
+
 ## **KEY INFORMATION** 
 
 1. **No Creation of `app/Domain`**  

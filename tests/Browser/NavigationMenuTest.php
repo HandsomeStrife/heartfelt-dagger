@@ -13,7 +13,7 @@ test('guest sees Characters and Tools dropdowns and fake profile', function () {
         ->assertSee('Your Characters')
         ->assertSee('Character Builder');
 
-    // Tools dropdown
+    // Tools dropdown (for guests it's still "Tools")
     $page->click('[data-testid="nav-tools"]')
         ->assertSee('Visual Range Checker');
 
@@ -23,7 +23,7 @@ test('guest sees Characters and Tools dropdowns and fake profile', function () {
         ->assertSee('Register');
 });
 
-test('authenticated sees Campaigns, Characters/Tools dropdowns and profile options', function () {
+test('authenticated sees Campaigns, Characters/Resources dropdowns and profile options', function () {
     $user = User::factory()->create();
     actingAs($user);
 
@@ -36,7 +36,7 @@ test('authenticated sees Campaigns, Characters/Tools dropdowns and profile optio
         ->assertSee('Your Characters')
         ->assertSee('Character Builder');
 
-    // Tools dropdown
+    // Resources dropdown (renamed from Tools for authenticated users)
     $page->click('[data-testid="nav-tools"]')
         ->assertSee('Visual Range Checker');
 
