@@ -176,7 +176,7 @@
             <div class="flex items-center gap-2">
                 <!-- Save Button -->
                 <button 
-                    dusk="save-character-button"
+                    pest="save-character-button"
                     wire:click="saveToDatabase"
                     class="inline-flex items-center justify-center px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white text-sm font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-emerald-500/25"
                 >
@@ -378,7 +378,7 @@
                                             </div>
                                         @elseif($step === 5 && !empty($character->assigned_traits))
                                             <div class="text-xs mt-0.5 opacity-75">
-                                                {{ count(array_filter($character->assigned_traits)) }}/6 assigned
+                                                {{ collect($character->assigned_traits)->filter(fn($v) => $v !== null)->count() }}/6 assigned
                                             </div>
                                         @elseif($step === 6 && !empty($character->selected_equipment))
                                             <div class="text-xs mt-0.5 opacity-75">
@@ -418,7 +418,7 @@
                     <div class="space-y-3">
                         @foreach($tabs as $step => $title)
                             <button 
-                                dusk="sidebar-tab-{{ $step }}"
+                                pest="sidebar-tab-{{ $step }}"
                                 @click="goToStep({{ $step }})"
                                 :class="{
                                     'w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left group': true,
@@ -466,7 +466,7 @@
                                         </div>
                                     @elseif($step === 5 && !empty($character->assigned_traits))
                                         <div class="text-xs mt-1 opacity-80">
-                                            {{ count(array_filter($character->assigned_traits)) }}/6 assigned
+                                            {{ collect($character->assigned_traits)->filter(fn($v) => $v !== null)->count() }}/6 assigned
                                         </div>
                                     @elseif($step === 6 && !empty($character->selected_equipment))
                                         <div class="text-xs mt-1 opacity-80">
@@ -571,7 +571,7 @@
                     <!-- Navigation Buttons -->
                     <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-700/50">
                         <button 
-                            dusk="previous-step-button"
+                            pest="previous-step-button"
                             @click="currentStep > 1 && goToStep(currentStep - 1)"
                             :class="{
                                 'inline-flex items-center justify-center px-4 sm:px-6 py-3 rounded-xl transition-all duration-300 font-semibold': true,
@@ -587,7 +587,7 @@
                         </button>
 
                         <button 
-                            dusk="next-step-button"
+                            pest="next-step-button"
                             @click="currentStep < {{ count($tabs) }} && goToStep(currentStep + 1)"
                             :class="{
                                 'inline-flex items-center justify-center px-4 sm:px-6 py-3 rounded-xl transition-all duration-300 font-semibold': true,

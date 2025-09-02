@@ -1308,6 +1308,7 @@ class CharacterBuilder extends Component
             'connection_progress' => $this->getConnectionProgress(),
             'computed_stats' => $this->getComputedStats(),
             'ancestry_bonuses' => $this->character->getAncestryBonuses(),
+            'character_level' => $this->character_model?->level ?? 1,
         ]);
     }
 

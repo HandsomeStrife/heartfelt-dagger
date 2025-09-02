@@ -156,6 +156,7 @@ class CharacterBuilderData extends Data implements Wireable
 
     /**
      * Get filtered domain cards based on selected class domains
+     * Show all abilities for those domains (all levels).
      */
     public function getFilteredDomainCards(array $allDomains, array $allAbilities): array
     {
@@ -171,11 +172,14 @@ class CharacterBuilderData extends Data implements Wireable
                 $domain = $allDomains[$domainKey];
                 $domainAbilities = [];
 
-                // Get level 1 abilities for this domain
-                if (isset($domain['abilitiesByLevel']['1']['abilities'])) {
-                    foreach ($domain['abilitiesByLevel']['1']['abilities'] as $abilityKey) {
-                        if (isset($allAbilities[$abilityKey])) {
-                            $domainAbilities[$abilityKey] = $allAbilities[$abilityKey];
+                // Include ALL abilities across levels for this domain
+                if (isset($domain['abilitiesByLevel']) && is_array($domain['abilitiesByLevel'])) {
+                    foreach ($domain['abilitiesByLevel'] as $level => $levelBlock) {
+                        $abilityKeys = $levelBlock['abilities'] ?? [];
+                        foreach ($abilityKeys as $abilityKey) {
+                            if (isset($allAbilities[$abilityKey])) {
+                                $domainAbilities[$abilityKey] = $allAbilities[$abilityKey];
+                            }
                         }
                     }
                 }

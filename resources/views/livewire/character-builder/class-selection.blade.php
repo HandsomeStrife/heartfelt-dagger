@@ -26,7 +26,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
             @foreach($game_data['classes'] ?? [] as $classKey => $classData)
                 <div 
-                    dusk="class-card-{{ $classKey }}"
+                    pest="class-card-{{ $classKey }}"
                     x-on:click="selectClass('{{ $classKey }}')"
                     class="relative group cursor-pointer transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 rounded-2xl p-4 sm:p-6"
                 >
@@ -103,7 +103,7 @@
                         <!-- Change Class Button -->
                         <div class="flex justify-end mb-4">
                             <button 
-                                dusk="change-class-button"
+                                pest="change-class-button"
                                 x-on:click="selectClass(null)"
                                 class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm font-medium"
                             >

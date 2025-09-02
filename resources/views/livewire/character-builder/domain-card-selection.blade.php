@@ -1,17 +1,44 @@
 <!-- Domain Card Selection Step -->
-<div class="space-y-8">
+<div class="space-y-8" x-data="domainCardSelector({ level: @js($character_level ?? 1) })" x-init="init()">
     <!-- Step Header -->
     <div class="mb-8">
-        <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Select Domain Cards</h2>
-        <p class="text-slate-300 font-roboto">Choose {{ $character->getMaxDomainCards() }} starting domain card{{ $character->getMaxDomainCards() !== 1 ? 's' : '' }} from your class domains to represent your character's initial magical abilities.
-        @if($character->getMaxDomainCards() > 2)
-            <span class="text-purple-300"> (includes {{ $character->getMaxDomainCards() - 2 }} bonus card{{ $character->getMaxDomainCards() - 2 !== 1 ? 's' : '' }} from {{ ucfirst($character->selected_subclass) }})</span>
-        @endif
-        </p>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Select Domain Cards</h2>
+                <p class="text-slate-300 font-roboto">Choose {{ $character->getMaxDomainCards() }} starting domain card{{ $character->getMaxDomainCards() !== 1 ? 's' : '' }} from your class domains to represent your character's initial magical abilities.
+                @if($character->getMaxDomainCards() > 2)
+                    <span class="text-purple-300"> (includes {{ $character->getMaxDomainCards() - 2 }} bonus card{{ $character->getMaxDomainCards() - 2 !== 1 ? 's' : '' }} from {{ ucfirst($character->selected_subclass) }})</span>
+                @endif
+                </p>
+            </div>
+            
+            <!-- Level Filter Toggle -->
+            <div class="flex flex-col sm:items-end">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-slate-400" x-text="showAllLevels ? 'Showing all levels' : `Showing level ${level} only`"></span>
+                    <button 
+                        @click="toggleShowAllLevels()"
+                        :class="{
+                            'bg-blue-500 border-blue-400': showAllLevels,
+                            'bg-slate-700 border-slate-600': !showAllLevels
+                        }"
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg border transition-all duration-200 hover:scale-105"
+                        pest="toggle-all-levels-button"
+                    >
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  :d="showAllLevels ? 'M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878l-1.415 1.414M14.121 14.121l1.415 1.415M14.121 14.121L15.536 15.536M14.121 14.121l-1.415-1.414' : 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-white" x-text="showAllLevels ? 'Hide higher levels' : 'Show all levels'"></span>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-500 mt-1 text-right" x-text="showAllLevels ? 'Higher level cards are greyed out and cannot be selected' : 'Only cards you can currently select are visible'"></p>
+            </div>
+        </div>
     </div>
 
-    <!-- Step Completion Indicator -->
-    @if(count($character->selected_domain_cards) >= $character->getMaxDomainCards())
+    <!-- Step Completion Indicator (JS-first) -->
+    <template x-if="selected_domain_cards.length >= maxCards">
         <div class="my-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
             <div class="flex items-center">
                 <div class="bg-emerald-500 rounded-full p-2 mr-3">
@@ -21,11 +48,12 @@
                 </div>
                 <div>
                     <p class="text-emerald-400 font-semibold">Domain Card Selection Complete!</p>
-                    <p class="text-slate-300 text-sm">You have selected {{ count($character->selected_domain_cards) }} of {{ $character->getMaxDomainCards() }} domain card{{ $character->getMaxDomainCards() !== 1 ? 's' : '' }} for your character.</p>
+                    <p class="text-slate-300 text-sm">You have selected <span x-text="selected_domain_cards.length"></span> of <span x-text="maxCards"></span> domain card<span x-text="maxCards !== 1 ? 's' : ''"></span> for your character.</p>
                 </div>
             </div>
         </div>
-    @elseif(count($character->selected_domain_cards) >= 2)
+    </template>
+    <template x-if="selected_domain_cards.length >= 2 && selected_domain_cards.length < maxCards">
         <div class="my-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl">
             <div class="flex items-center">
                 <div class="bg-purple-500 rounded-full p-2 mr-3">
@@ -35,11 +63,11 @@
                 </div>
                 <div>
                     <p class="text-purple-400 font-semibold">Minimum Cards Selected</p>
-                    <p class="text-slate-300 text-sm">You have selected {{ count($character->selected_domain_cards) }} of {{ $character->getMaxDomainCards() }} domain cards. You can select {{ $character->getMaxDomainCards() - count($character->selected_domain_cards) }} more bonus card{{ ($character->getMaxDomainCards() - count($character->selected_domain_cards)) !== 1 ? 's' : '' }}.</p>
+                    <p class="text-slate-300 text-sm">You have selected <span x-text="selected_domain_cards.length"></span> of <span x-text="maxCards"></span> domain cards. You can select <span x-text="maxCards - selected_domain_cards.length"></span> more bonus card<span x-text="(maxCards - selected_domain_cards.length) !== 1 ? 's' : ''"></span>.</p>
                 </div>
             </div>
         </div>
-    @endif
+    </template>
     <!-- Domain Card Guide & Selection Strategy -->
     <div class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-6">
         <h4 class="text-purple-300 font-semibold font-outfit mb-3">Understanding Domain Cards & Selection Strategy</h4>
@@ -102,10 +130,17 @@
                             {{ ucfirst($domain) }}
                         </span>
                     @endforeach
-                    <span class="text-white font-bold ml-auto bg-slate-700 px-2 py-1 rounded-md">{{ count($character->selected_domain_cards) }}/2 selected</span>
+                    <span class="text-white font-bold ml-auto bg-slate-700 px-2 py-1 rounded-md"><span pest="domain-card-selected-count" x-text="selected_domain_cards.length"></span>/<span x-text="maxCards"></span> selected</span>
                 </div>
             </div>
         @endif
+    </div>
+
+    <!-- Persistent Selected Count Badge (JS-first, always rendered) -->
+    <div class="mt-2 flex justify-end">
+        <span class="text-white font-bold bg-slate-700 px-2 py-1 rounded-md">
+            <span pest="domain-card-selected-count" x-text="selected_domain_cards.length"></span>/<span x-text="maxCards"></span> selected
+        </span>
     </div>
 
     <!-- Domain Cards -->
@@ -114,9 +149,7 @@
             <div class="space-y-4">
                 <div class="flex items-center gap-4">
                     <h4 class="text-xl font-bold text-white font-outfit">{{ ucfirst($domainKey) }} Domain</h4>
-                    <span class="text-slate-400 text-sm">
-                        {{ count(collect($character->selected_domain_cards)->where('domain', $domainKey)) }} selected from this domain
-                    </span>
+                    <span class="text-slate-400 text-sm" x-text="countSelectedInDomain('{{ $domainKey }}') + ' selected from this domain'"></span>
                 </div>
 
                 <!-- Available Abilities -->
@@ -147,15 +180,24 @@
                         @endphp
                         
                         <div 
-                            dusk="domain-card-{{ $domainKey }}-{{ $abilityKey }}"
-                            wire:click="selectDomainCard('{{ $domainKey }}', '{{ $abilityKey }}')"
-                            @class([
-                                'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1',
-                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[400px] w-[280px] flex flex-col',
-                                'border-blue-500 ring-4 ring-blue-400/50 shadow-xl shadow-blue-500/25 scale-[1.02] -translate-y-1' => $isSelected,
-                                'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20' => !$isSelected && $canSelect,
-                                'border-slate-800 opacity-60 cursor-not-allowed' => !$isSelected && !$canSelect,
-                            ])
+                            x-data="{ ability: @js($abilityData) }"
+                            x-show="shouldShowCard(ability.level ?? 1)"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            pest="domain-card-{{ $domainKey }}-{{ $abilityKey }}"
+                            @click="toggleDomainCard('{{ $domainKey }}', '{{ $abilityKey }}', ability)"
+                            :class="{
+                                'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1': true,
+                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[400px] w-[280px] flex flex-col': true,
+                                'border-blue-500 ring-4 ring-blue-400/50 shadow-xl shadow-blue-500/25 scale-[1.02] -translate-y-1': isSelected('{{ $domainKey }}', '{{ $abilityKey }}'),
+                                'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20': !isSelected('{{ $domainKey }}', '{{ $abilityKey }}') && canSelectMore() && (ability.level ?? 1) <= level,
+                                'border-slate-800 opacity-60 cursor-not-allowed': (!isSelected('{{ $domainKey }}', '{{ $abilityKey }}') && !canSelectMore()) || ((ability.level ?? 1) > level),
+                                'grayscale-[65%] opacity-75': (ability.level ?? 1) > level,
+                            }"
                         >
                             <!-- Banner Structure -->
                             <div class="relative min-h-[120px] flex flex-col items-center justify-end bg-slate-900 w-full overflow-hidden rounded-t-xl">
@@ -204,6 +246,7 @@
                                     </h5>
                                     <div class="text-xs font-bold uppercase tracking-wide mt-1" style="color: {{ $domainColor }}">
                                         {{ $abilityData['type'] ?? 'ability' }}
+                                        <span class="ml-2 px-1.5 py-0.5 text-[10px] rounded bg-slate-600/60 text-slate-200">Lvl {{ $abilityData['level'] ?? 1 }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -229,22 +272,22 @@
                                 </div>
                             </div>
 
-                            @if(!$canSelect && !$isSelected)
+                            <template x-if="!isSelected('{{ $domainKey }}', '{{ $abilityKey }}') && !canSelectMore()">
                                 <div class="absolute inset-0 bg-slate-900/90 rounded-xl flex items-center justify-center z-50">
                                     <span class="text-white text-sm font-bold bg-slate-800 px-4 py-2 rounded-lg shadow-lg border border-slate-600">Maximum cards selected</span>
                                 </div>
-                            @endif
+                            </template>
 
                             <!-- Selection indicator - moved to bottom right -->
-                            @if($isSelected)
+                            <template x-if="isSelected('{{ $domainKey }}', '{{ $abilityKey }}')">
                                 <div class="absolute bottom-4 right-4 z-50">
                                     <div class="bg-green-500 rounded-full p-1.5 shadow-sm">
                                         <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                                         </svg>
                                     </div>
                                 </div>
-                            @endif
+                            </template>
                         </div>
                     @endforeach
                 </div>
@@ -262,3 +305,64 @@
         </div>
     @endif
 </div>
+
+<script>
+    function domainCardSelector(options = {}) {
+        return {
+            selected_domain_cards: @json($character->selected_domain_cards),
+            maxCards: @json($character->getMaxDomainCards()),
+            syncTimeout: null,
+            level: options.level ?? 1,
+            showAllLevels: false, // Toggle state for showing all levels
+
+            init() {},
+
+            toggleShowAllLevels() {
+                this.showAllLevels = !this.showAllLevels;
+            },
+
+            shouldShowCard(abilityLevel) {
+                if (this.showAllLevels) {
+                    return true; // Show all cards when toggle is on
+                }
+                return abilityLevel <= this.level; // Only show cards at or below character level
+            },
+
+            isSelected(domain, abilityKey) {
+                return this.selected_domain_cards.some(c => c.domain === domain && c.ability_key === abilityKey);
+            },
+
+            canSelectMore() {
+                return this.selected_domain_cards.length < this.maxCards;
+            },
+
+            countSelectedInDomain(domain) {
+                return this.selected_domain_cards.filter(c => c.domain === domain).length;
+            },
+
+            toggleDomainCard(domain, abilityKey, abilityData) {
+                const abilityLevel = parseInt(abilityData?.level ?? 1);
+                if (abilityLevel > this.level) {
+                    return; // UI-first: block selecting above-level abilities
+                }
+                const idx = this.selected_domain_cards.findIndex(c => c.domain === domain && c.ability_key === abilityKey);
+                if (idx !== -1) {
+                    this.selected_domain_cards.splice(idx, 1);
+                } else {
+                    if (!this.canSelectMore()) {
+                        return;
+                    }
+                    this.selected_domain_cards.push({ domain: domain, ability_key: abilityKey, ability_data: abilityData });
+                }
+                this.debouncedSync();
+            },
+
+            debouncedSync() {
+                clearTimeout(this.syncTimeout);
+                this.syncTimeout = setTimeout(() => {
+                    this.$wire.set('character.selected_domain_cards', this.selected_domain_cards);
+                }, 300);
+            }
+        }
+    }
+</script>
