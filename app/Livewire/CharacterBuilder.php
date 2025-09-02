@@ -842,15 +842,6 @@ class CharacterBuilder extends Component
 
     public function saveCharacter(): void
     {
-        if (! $this->character->isStepComplete(9)) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Please complete all steps before saving.',
-            ]);
-
-            return;
-        }
-
         try {
             $action = new SaveCharacterAction;
             $character = $action->execute($this->character, Auth::user());
