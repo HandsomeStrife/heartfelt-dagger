@@ -58,6 +58,10 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => true,
             'report' => true,
+            'signature_version' => env('AWS_SIGNATURE_VERSION', 'v4'),
+            'options' => [
+                'ServerSideEncryption' => env('AWS_SERVER_SIDE_ENCRYPTION', null),
+            ],
         ],
 
     ],

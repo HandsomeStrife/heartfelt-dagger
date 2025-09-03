@@ -16,7 +16,7 @@
             </div>
             <div>
                 <p class="text-emerald-400 font-semibold">Class Selection Complete!</p>
-                <p class="text-slate-300 text-sm">You have chosen <span x-text="selected_class ? ({{ json_encode($game_data['classes'] ?? []) }}[selected_class]?.name || '') : ''"></span></p>
+                <p class="text-slate-300 text-sm">You have chosen <span x-text="selectedClassData?.name || ''"></span></p>
             </div>
         </div>
     </div>
@@ -27,7 +27,7 @@
             @foreach($game_data['classes'] ?? [] as $classKey => $classData)
                 <div 
                     pest="class-card-{{ $classKey }}"
-                    x-on:click="selectClass('{{ $classKey }}')"
+                    @click="selectClass('{{ $classKey }}')"
                     class="relative group cursor-pointer transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 rounded-2xl p-4 sm:p-6"
                 >
                     <div class="flex flex-row gap-4">
@@ -36,7 +36,14 @@
                         </div>
 
                         <div class="flex-1">
-                            <h3 class="text-xl font-bold text-white font-outfit">{{ $classData['name'] }}</h3>
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="text-xl font-bold text-white font-outfit">{{ $classData['name'] }}</h3>
+                                @if(isset($classData['playtest']['isPlaytest']) && $classData['playtest']['isPlaytest'])
+                                    <span class="inline-flex items-center px-2 py-1 bg-purple-600/20 text-purple-300 text-xs font-bold rounded-md border border-purple-500/30">
+                                        {{ $classData['playtest']['label'] ?? 'PLAYTEST' }}
+                                    </span>
+                                @endif
+                            </div>
 
                             <!-- Class Info Preview -->
                             <div class="space-y-3">
@@ -61,7 +68,7 @@
         </div>
     </div>
     
-    <!-- Selected Class Details - Full Width -->
+    <!-- Selected Class Details - Full Width (using Blade for banners, AlpineJS for show/hide) -->
     <div x-show="hasSelectedClass" class="w-full">
         @foreach($game_data['classes'] ?? [] as $classKey => $classData)
             <div x-show="selected_class === '{{ $classKey }}'" class="bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border border-amber-500/50 rounded-2xl p-6">
@@ -75,23 +82,25 @@
                                 <x-class-banner className="{{ $classKey }}" class="absolute top-0 left-0" size="md" />
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h3 class="text-3xl font-bold text-white font-outfit mb-2">{{ $classData['name'] }}</h3>
+                                <div class="flex items-center gap-4 mb-2">
+                                    <h3 class="text-3xl font-bold text-white font-outfit">{{ $classData['name'] }}</h3>
+                                    @if(isset($classData['playtest']['isPlaytest']) && $classData['playtest']['isPlaytest'])
+                                        <span class="inline-flex items-center px-3 py-1 bg-purple-600/20 text-purple-300 text-sm font-bold rounded-lg border border-purple-500/30">
+                                            {{ $classData['playtest']['label'] ?? 'PLAYTEST' }}
+                                        </span>
+                                    @endif
+                                </div>
                                 <div class="flex flex-wrap gap-2 mb-4">
                                     @foreach($classData['domains'] ?? [] as $domain)
-                                        <span class="inline-flex items-center px-3 py-1 bg-slate-700/50 text-slate-300 text-sm font-medium rounded-lg border border-slate-600/50">
-                                            {{ ucfirst($domain) }}
-                                        </span>
+                                        <span class="inline-flex items-center px-3 py-1 bg-slate-700/50 text-slate-300 text-sm font-medium rounded-lg border border-slate-600/50">{{ ucfirst($domain) }}</span>
                                     @endforeach
                                 </div>
                                 <!-- Description -->
-                                <p class="text-slate-300 text-base leading-relaxed">
-                                    {{ $classData['description'] }}
-                                </p>
+                                <p class="text-slate-300 text-base leading-relaxed">{{ $classData['description'] }}</p>
 
                                 @if(isset($classData['classItems']))
                                     <p class="text-slate-300 text-xs leading-relaxed mt-6">
-                                        Starting Items:
-                                        {{ $classData['classItems'] }}
+                                        Starting Items: {{ $classData['classItems'] }}
                                     </p>
                                 @endif
                             </div>
@@ -104,7 +113,7 @@
                         <div class="flex justify-end mb-4">
                             <button 
                                 pest="change-class-button"
-                                x-on:click="selectClass(null)"
+                                @click="selectClass(null)"
                                 class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm font-medium"
                             >
                                 Change Class
@@ -142,9 +151,7 @@
                                     <span class="text-amber-400 font-bold text-lg">{{ $classData['hopeFeature']['name'] }}</span>
                                     <span class="bg-amber-500/20 text-amber-300 text-sm font-medium px-3 py-1 rounded-full">{{ $classData['hopeFeature']['hopeCost'] }} Hope</span>
                                 </div>
-                                <p class="text-slate-300 text-sm leading-relaxed">
-                                    {{ $classData['hopeFeature']['description'] }}
-                                </p>
+                                <p class="text-slate-300 text-sm leading-relaxed">{{ $classData['hopeFeature']['description'] }}</p>
                             </div>
                         </div>
                     @endif

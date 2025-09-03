@@ -36,6 +36,7 @@ class ClassBanner extends Component
             'top_color' => $top_color,
             'bottom_color' => $bottom_color,
             'size' => $this->size,
+            'name' => $class_data->value,
         ]);
     }
 }

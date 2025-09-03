@@ -43,31 +43,31 @@
             </div>
 
             <!-- Class Suggestions -->
-            @if($character->selected_class && isset($filtered_data['selected_class_data']['suggestedTraits']))
+            <template x-if="selected_class && selectedClassData?.suggestedTraits">
                 <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
-                    <h3 class="text-lg font-bold text-white mb-4 font-outfit">{{ $filtered_data['selected_class_data']['name'] }} Suggestions</h3>
+                    <h3 class="text-lg font-bold text-white mb-4 font-outfit" x-text="selectedClassData.name + ' Suggestions'"></h3>
                     
                     <div class="grid grid-cols-2 gap-3 mb-6">
-                        @foreach($filtered_data['selected_class_data']['suggestedTraits'] as $trait => $value)
+                        <template x-for="[trait, value] in Object.entries(selectedClassData.suggestedTraits)" :key="trait">
                             <div class="flex justify-between items-center">
-                                <span class="text-slate-300 text-sm">{{ ucfirst($trait) }}:</span>
-                                <span class="text-white font-medium">{{ $value > 0 ? '+' : '' }}{{ $value }}</span>
+                                <span class="text-slate-300 text-sm" x-text="trait.charAt(0).toUpperCase() + trait.slice(1) + ':'"></span>
+                                <span class="text-white font-medium" x-text="value > 0 ? '+' + value : value"></span>
                             </div>
-                        @endforeach
+                        </template>
                     </div>
                     
                     <button 
-                        wire:click="applySuggestedTraits"
+                        @click="applySuggestedTraits()"
                         class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
-                        dusk="apply-suggested-traits"
+                        pest="apply-suggested-traits"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
-                        Use {{ $filtered_data['selected_class_data']['name'] }} Suggestions
+                        <span x-text="'Use ' + selectedClassData.name + ' Suggestions'"></span>
                     </button>
                 </div>
-            @endif
+            </template>
         </div>
 
         <!-- Right Column: Trait Boxes (3x2 Grid) -->
@@ -117,49 +117,14 @@
             
             <!-- Trait Boxes Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                @php
-                    $traits = [
-                        'agility' => [
-                            'name' => 'AGILITY',
-                            'description' => 'Dexterity, speed, and finesse in movement and stealth.',
-                            'icon' => '🏃'
-                        ],
-                        'strength' => [
-                            'name' => 'STRENGTH', 
-                            'description' => 'Physical power, endurance, and raw might.',
-                            'icon' => '💪'
-                        ],
-                        'finesse' => [
-                            'name' => 'FINESSE',
-                            'description' => 'Grace, precision, and fine motor control.',
-                            'icon' => '🎯'
-                        ],
-                        'instinct' => [
-                            'name' => 'INSTINCT',
-                            'description' => 'Intuition, awareness, and gut reactions.',
-                            'icon' => '👁️'
-                        ],
-                        'presence' => [
-                            'name' => 'PRESENCE',
-                            'description' => 'Charisma, leadership, and force of personality.',
-                            'icon' => '✨'
-                        ],
-                        'knowledge' => [
-                            'name' => 'KNOWLEDGE',
-                            'description' => 'Learning, memory, and reasoning ability.',
-                            'icon' => '📚'
-                        ]
-                    ];
-                @endphp
-
-                @foreach($traits as $traitKey => $traitInfo)
+                <template x-for="[traitKey, traitInfo] in Object.entries(traitsData)" :key="traitKey">
                     <div 
                         @dragover.prevent
                         @dragenter.prevent
-                        @drop="dropValue('{{ $traitKey }}', draggedValue)"
+                        @drop="dropValue(traitKey, draggedValue)"
                         :class="{
                             'transition-all duration-200': true,
-                            'ring-2 ring-amber-400/50': draggedValue !== null && canDropValue('{{ $traitKey }}', draggedValue)
+                            'ring-2 ring-amber-400/50': draggedValue !== null && canDropValue(traitKey, draggedValue)
                         }"
                         class="group"
                     >
@@ -167,29 +132,29 @@
                         <div class="flex flex-col items-center w-20 sm:w-24 mx-auto">
                             <!-- Trait Name Header -->
                             <div class="bg-zinc-950 w-full rounded-t-lg px-2 py-1 text-center">
-                                <span class="font-semibold text-white text-xs tracking-wide">{{ $traitInfo['name'] }}</span>
+                                <span class="font-semibold text-white text-xs tracking-wide" x-text="traitInfo.name"></span>
                             </div>
                             
                             <!-- Stat Box with Background -->
                             <div class="relative w-full h-auto overflow-hidden rounded-b-lg">
-                                <img src="{{ asset('img/stat-box-bg.webp') }}" alt="Stat Box Background" class="w-full h-auto">
+                                <img src="/img/stat-box-bg.webp" alt="Stat Box Background" class="w-full h-auto">
                                 
                                 <!-- Content Overlay -->
                                 <div class="absolute inset-0 flex justify-center">
                                     <div class="text-center mt-4">
-                                        @if(isset($character->assigned_traits[$traitKey]))
+                                        <template x-if="assigned_traits[traitKey] !== undefined">
                                             <div 
-                                                @click="removeValue('{{ $traitKey }}')"
+                                                @click="removeValue(traitKey)"
                                                 class="text-4xl font-bold cursor-pointer hover:scale-110 transition-transform duration-200 text-zinc-900 drop-shadow-lg"
                                                 title="Click to remove"
-                                            >
-                                                {{ $character->assigned_traits[$traitKey] > 0 ? '+' : '' }}{{ $character->assigned_traits[$traitKey] }}
-                                            </div>
-                                        @else
+                                                x-text="assigned_traits[traitKey] > 0 ? '+' + assigned_traits[traitKey] : assigned_traits[traitKey]"
+                                            ></div>
+                                        </template>
+                                        <template x-if="assigned_traits[traitKey] === undefined">
                                             <div class="bg-white/80 backdrop-blur-sm border-2 border-dashed border-slate-600 rounded px-2 py-1 text-slate-700 text-xs font-medium shadow-sm">
                                                 Drop here
                                             </div>
-                                        @endif
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -197,10 +162,10 @@
                         
                         <!-- Trait Description -->
                         <div class="mt-2 text-center">
-                            <p class="text-slate-400 text-xs leading-tight">{{ $traitInfo['description'] }}</p>
+                            <p class="text-slate-400 text-xs leading-tight" x-text="traitInfo.description"></p>
                         </div>
                     </div>
-                @endforeach
+                </template>
             </div>
         </div>
     </div>

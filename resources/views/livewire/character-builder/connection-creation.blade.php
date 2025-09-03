@@ -8,7 +8,7 @@
     </div>
 
     <!-- Step Completion Indicator -->
-    @if($connection_progress['answered_connections'] >= $connection_progress['total_connections'] && $connection_progress['total_connections'] > 0)
+    <template x-if="isConnectionComplete">
         <div class="my-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
             <div class="flex items-center">
                 <div class="bg-emerald-500 rounded-full p-2 mr-3">
@@ -18,38 +18,38 @@
                 </div>
                 <div>
                     <p class="text-emerald-400 font-semibold">Connection Creation Complete!</p>
-                    <p class="text-slate-300 text-sm">You've answered all {{ $connection_progress['total_connections'] }} connection questions for your {{ ucfirst($character->selected_class) }}.</p>
+                    <p class="text-slate-300 text-sm">You've answered all <span x-text="totalConnections"></span> connection questions for your <span x-text="selectedClassData?.name || ''"></span>.</p>
                 </div>
             </div>
         </div>
-    @endif
+    </template>
 
     <!-- Connection Questions -->
-    @if(!empty($filtered_data['connection_questions']))
+    <template x-if="connectionQuestions.length > 0">
         <div class="space-y-6">
-            @foreach($filtered_data['connection_questions'] as $index => $question)
+            <template x-for="(question, index) in connectionQuestions" :key="index">
                 <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
                     <div class="mb-4">
                         <div class="flex items-start justify-between mb-3">
-                            <h4 class="text-white font-semibold font-outfit">Connection {{ $index + 1 }}</h4>
-                            @if(!empty(trim($character->connection_answers[$index] ?? '')))
+                            <h4 class="text-white font-semibold font-outfit" x-text="`Connection ${index + 1}`"></h4>
+                            <template x-if="connection_answers && connection_answers[index] && connection_answers[index].trim()">
                                 <div class="bg-pink-500 rounded-full p-1">
                                     <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                            @endif
+                            </template>
                         </div>
-                        <p class="text-slate-300 text-sm leading-relaxed">{{ $question }}</p>
+                        <p class="text-slate-300 text-sm leading-relaxed" x-text="question"></p>
                     </div>
 
                     <div>
-                        <label for="connection-{{ $index }}" class="block text-sm font-medium text-slate-300 mb-2">Your Connection</label>
+                        <label :for="`connection-${index}`" class="block text-sm font-medium text-slate-300 mb-2">Your Connection</label>
                         <textarea 
-                            dusk="connection-answer-{{ $index }}"
-                            id="connection-{{ $index }}"
-                            wire:model.live.debounce.500ms="character.connection_answers.{{ $index }}"
-                            wire:change="updateConnectionAnswer({{ $index }}, $event.target.value)"
+                            :dusk="`connection-answer-${index}`"
+                            :id="`connection-${index}`"
+                            x-model="connection_answers[index]"
+                            @input="markAsUnsaved()"
                             placeholder="Describe your connection with another party member..."
                             rows="4"
                             maxlength="400"
@@ -58,21 +58,22 @@
                         
                         <!-- Character Count -->
                         <div class="flex justify-between items-center mt-2 text-xs">
-                            <span class="text-slate-500">{{ strlen($character->connection_answers[$index] ?? '') }}/400 characters</span>
-                            @if(!empty(trim($character->connection_answers[$index] ?? '')))
+                            <span class="text-slate-500" x-text="`${(connection_answers && connection_answers[index] || '').length}/400 characters`"></span>
+                            <template x-if="connection_answers && connection_answers[index] && connection_answers[index].trim()">
                                 <span class="text-pink-400 flex items-center">
                                     <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                     Complete
                                 </span>
-                            @endif
+                            </template>
                         </div>
                     </div>
                 </div>
-            @endforeach
+            </template>
         </div>
-    @else
+    </template>
+    <template x-if="connectionQuestions.length === 0">
         <div class="text-center py-12 bg-slate-800/30 rounded-xl border border-slate-700/50">
             <div class="text-slate-400">
                 <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +83,7 @@
                 <p class="text-sm mt-1">Please complete the previous steps first.</p>
             </div>
         </div>
-    @endif
+    </template>
 
     <!-- Connection Tips -->
     <div class="bg-pink-500/10 border border-pink-500/20 rounded-xl p-6">
@@ -127,7 +128,7 @@
     </div>
 
     <!-- Completion Status -->
-    @if($connection_progress['answered_connections'] >= $connection_progress['total_connections'] && $connection_progress['total_connections'] > 0)
+    <template x-if="isConnectionComplete">
         <div class="bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 rounded-xl p-6">
             <div class="flex items-start">
                 <div class="bg-gradient-to-r from-pink-500 to-purple-500 rounded-full p-2 mr-4 flex-shrink-0">
@@ -185,7 +186,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Connections:</span>
-                                    <span class="text-white">{{ $connection_progress['answered_connections'] }}/{{ $connection_progress['total_connections'] }}</span>
+                                    <span class="text-white" x-text="`${answeredConnections}/${totalConnections}`"></span>
                                 </div>
                             </div>
                         </div>
@@ -194,7 +195,7 @@
                     <!-- Action Buttons -->
                     <div class="flex flex-wrap gap-3 mt-4">
                         <button 
-                            wire:click="saveCharacter"
+                            @click="saveCharacter()"
                             class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold rounded-lg transition-all duration-200"
                         >
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,5 +217,5 @@
                 </div>
             </div>
         </div>
-    @endif
+    </template>
 </div>

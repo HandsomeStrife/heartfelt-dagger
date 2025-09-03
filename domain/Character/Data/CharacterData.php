@@ -60,6 +60,7 @@ class CharacterData extends Data implements Wireable
             is_public: $character->is_public,
             created_at: $character->created_at,
             updated_at: $character->updated_at,
+            pronouns: $character->pronouns,
         );
     }
 

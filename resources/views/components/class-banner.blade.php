@@ -1,4 +1,4 @@
-<div {{ $attributes }}>
+<div {{ $attributes }} data-class-banner="{{ $className }}">
     <div class="relative class-banner-{{ $size }}">
         <!-- Banner Background -->
         <div class="absolute -top-1 left-[13.5px] z-40 w-full h-full">

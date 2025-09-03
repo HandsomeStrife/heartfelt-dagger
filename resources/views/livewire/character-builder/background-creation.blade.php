@@ -6,10 +6,7 @@
         <p class="text-slate-300 text-sm">Define your character's history and personality through class-specific questions.</p>
     </div>
 
-    @php
-        $totalQuestions = count($filtered_data['background_questions'] ?? []);
-        $answeredQuestions = count(array_filter($character->background_answers ?? [], fn($answer) => !empty(trim($answer))));
-    @endphp
+
 
     <!-- Mark Done Section (Moved to top) -->
     <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
@@ -34,27 +31,26 @@
             <!-- Mark Done Controls -->
             <div class="flex items-center justify-between">
                 <div class="text-slate-300 text-sm">
-                    @if($answeredQuestions >= 1)
+                    <template x-if="canMarkBackgroundComplete">
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                             </svg>
-                            <span>You've answered {{ $answeredQuestions }} question{{ $answeredQuestions !== 1 ? 's' : '' }}. Ready to continue?</span>
+                            <span>You've answered <span x-text="answeredQuestions"></span> question<span x-text="answeredQuestions !== 1 ? 's' : ''"></span>. Ready to continue?</span>
                         </div>
-                    @else
+                    </template>
+                    <template x-if="!canMarkBackgroundComplete">
                         <span>Fill in at least one question, then mark this section as done when ready.</span>
-                    @endif
+                    </template>
                 </div>
                 
                 <button 
-                    wire:click="markBackgroundComplete"
-                    @if($answeredQuestions >= 1) 
-                        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2"
-                        dusk="mark-background-complete"
-                    @else
-                        class="px-4 py-2 bg-slate-600 text-slate-400 font-medium rounded-lg cursor-not-allowed flex items-center gap-2"
-                        disabled
-                    @endif
+                    @click="markBackgroundComplete()"
+                    :class="canMarkBackgroundComplete ? 
+                        'px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2' :
+                        'px-4 py-2 bg-slate-600 text-slate-400 font-medium rounded-lg cursor-not-allowed flex items-center gap-2'"
+                    :disabled="!canMarkBackgroundComplete"
+                    dusk="mark-background-complete"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -88,34 +84,34 @@
                 </ul>
             </div>
         </div>
-        @if($character->selected_class)
+        <template x-if="selected_class">
             <div class="mt-3 pt-3 border-t border-blue-500/20">
-                <p class="text-blue-300 text-sm"><strong>{{ ucfirst($character->selected_class) }} Focus:</strong> Questions below are tailored to your class's themes and experiences.</p>
+                <p class="text-blue-300 text-sm"><strong x-text="selectedClassData?.name || ''"></strong> Focus: Questions below are tailored to your class's themes and experiences.</p>
             </div>
-        @endif
+        </template>
     </div>
 
     <!-- Progress Indicator -->
-    @if($totalQuestions > 0)
+    <template x-if="totalQuestions > 0">
         <div class="flex items-center justify-between bg-slate-800/30 rounded-lg p-3">
             <div class="flex items-center gap-3">
                 <div class="text-sm text-slate-300">
-                    <span class="font-medium text-white">{{ $answeredQuestions }}</span> of {{ $totalQuestions }} answered
+                    <span class="font-medium text-white" x-text="answeredQuestions"></span> of <span x-text="totalQuestions"></span> answered
                 </div>
-                @if($answeredQuestions >= 1)
+                <template x-if="answeredQuestions >= 1">
                     <div class="flex items-center text-emerald-400 text-sm">
                         <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
                         <span class="font-medium">Complete</span>
                     </div>
-                @endif
+                </template>
             </div>
             <div class="w-24 bg-slate-700 rounded-full h-2">
-                <div class="bg-emerald-500 h-2 rounded-full transition-all duration-300" style="width: {{ $totalQuestions > 0 ? round(($answeredQuestions / $totalQuestions) * 100) : 0 }}%"></div>
+                <div class="bg-emerald-500 h-2 rounded-full transition-all duration-300" :style="`width: ${progressPercentage}%`"></div>
             </div>
         </div>
-    @endif
+    </template>
 
     <!-- Main Content in Columns -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -124,44 +120,46 @@
         <div class="space-y-4">
             <h3 class="text-lg font-bold text-white font-outfit">Background Questions</h3>
             
-            @if(!empty($filtered_data['background_questions']))
+            <template x-if="backgroundQuestions.length > 0">
                 <div class="space-y-4">
-                    @foreach($filtered_data['background_questions'] as $index => $question)
+                    <template x-for="(question, index) in backgroundQuestions" :key="index">
                         <div class="bg-slate-800/30 backdrop-blur border border-slate-700/30 rounded-lg p-4">
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
-                                        <span class="text-amber-400 font-semibold text-sm">Q{{ $index + 1 }}</span>
-                                        @if(!empty(trim($character->background_answers[$index] ?? '')))
+                                        <span class="text-amber-400 font-semibold text-sm" x-text="`Q${index + 1}`"></span>
+                                        <template x-if="background_answers && background_answers[index] && background_answers[index].trim()">
                                             <div class="bg-emerald-500 rounded-full p-0.5">
                                                 <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                                 </svg>
                                             </div>
-                                        @endif
+                                        </template>
                                     </div>
-                                    <p class="text-slate-300 text-sm mb-3 leading-relaxed">{{ $question }}</p>
+                                    <p class="text-slate-300 text-sm mb-3 leading-relaxed" x-text="question"></p>
                                 </div>
                             </div>
 
                             <textarea
-                                dusk="background-answer-{{ $index }}"
-                                wire:model.live.debounce.500ms="character.background_answers.{{ $index }}"
+                                :dusk="`background-answer-${index}`"
+                                x-model="background_answers[index]"
+                                @input="markAsUnsaved()"
                                 class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                                 rows="3"
                                 placeholder="Describe your character's experience..."
                                 maxlength="500"
                             ></textarea>
                             
-                            @if(!empty(trim($character->background_answers[$index] ?? '')))
+                            <template x-if="background_answers && background_answers[index] && background_answers[index].trim()">
                                 <div class="mt-2 text-right text-xs text-slate-500">
-                                    {{ strlen($character->background_answers[$index] ?? '') }}/500 characters
+                                    <span x-text="(background_answers[index] || '').length"></span>/500 characters
                                 </div>
-                            @endif
+                            </template>
                         </div>
-                    @endforeach
+                    </template>
                 </div>
-            @else
+            </template>
+            <template x-if="backgroundQuestions.length === 0">
                 <div class="text-center py-8">
                     <div class="text-slate-400 mb-4">
                         <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,7 +169,7 @@
                     <h3 class="text-lg font-semibold text-white mb-2">Select a Class First</h3>
                     <p class="text-slate-400 text-sm">Background questions are tailored to your chosen class.</p>
                 </div>
-            @endif
+            </template>
         </div>
 
         <!-- Right Column: Additional Details -->
@@ -183,7 +181,8 @@
                 <label class="block text-sm font-semibold text-white mb-2">Physical Description</label>
                 <textarea
                     dusk="physical-description"
-                    wire:model.live.debounce.500ms="character.physical_description"
+                    x-model="physical_description"
+                    @input="markAsUnsaved()"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                     rows="3"
                     placeholder="Describe appearance and features..."
@@ -196,7 +195,8 @@
                 <label class="block text-sm font-semibold text-white mb-2">Personality & Mannerisms</label>
                 <textarea
                     dusk="personality-traits"
-                    wire:model.live.debounce.500ms="character.personality_traits"
+                    x-model="personality_traits"
+                    @input="markAsUnsaved()"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                     rows="3"
                     placeholder="Describe personality quirks and habits..."
@@ -209,7 +209,8 @@
                 <label class="block text-sm font-semibold text-white mb-2">Personal History</label>
                 <textarea
                     dusk="personal-history"
-                    wire:model.live.debounce.500ms="character.personal_history"
+                    x-model="personal_history"
+                    @input="markAsUnsaved()"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                     rows="3"
                     placeholder="Key events that shaped your character..."
@@ -222,7 +223,8 @@
                 <label class="block text-sm font-semibold text-white mb-2">Motivations & Goals</label>
                 <textarea
                     dusk="motivations-goals"
-                    wire:model.live.debounce.500ms="character.motivations"
+                    x-model="motivations"
+                    @input="markAsUnsaved()"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
                     rows="3"
                     placeholder="What drives your character forward..."

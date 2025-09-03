@@ -32,6 +32,9 @@
             </div>
         </div>
         
+        <!-- Toast notifications component -->
+        <livewire:toasts />
+        
         <div>
             @if(!request()->is('login') && !request()->is('register'))
                 <x-navigation />
@@ -87,6 +90,6 @@
             </footer>
         </div>
         
-        @livewireScripts
+        @livewireScriptConfig
     </body>
 </html>

@@ -18,20 +18,21 @@
                 dusk="character-name-input"
                 type="text" 
                 id="character-name"
-                wire:model.live.debounce.500ms="character.name"
+                x-model="name"
+                @input="markAsUnsaved()"
                 placeholder="Enter character name..."
                 maxlength="100"
                 class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
             >
             
-            @if(!empty($character->name))
+            <template x-if="hasCharacterName">
                 <div class="mt-2 flex items-center text-emerald-400 text-sm">
                     <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                     Character name set!
                 </div>
-            @endif
+            </template>
         </div>
     </div>
 
@@ -59,26 +60,33 @@
                         >
                         
                         <!-- Upload UI -->
-                        <div @class([
-                            'border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200',
-                            'border-slate-600 hover:border-slate-500 bg-slate-900/30' => !$profile_image,
-                            'border-amber-500 bg-amber-500/10' => $profile_image,
-                        ])>
-                            @if($profile_image)
-                                <svg class="w-12 h-12 text-amber-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                </svg>
-                                <p class="text-amber-400 font-semibold">Image selected!</p>
-                                <p class="text-slate-300 text-sm mt-1">{{ $profile_image->getClientOriginalName() }}</p>
-                                <p class="text-slate-400 text-xs mt-2">Click here to select a different image</p>
-                            @else
-                                <svg class="w-12 h-12 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                                </svg>
-                                <p class="text-white font-semibold">Upload Character Portrait</p>
-                                <p class="text-slate-300 text-sm mt-1">Drag and drop or click to select</p>
-                                <p class="text-slate-400 text-xs mt-2">PNG, JPG up to 2MB</p>
-                            @endif
+                        <div 
+                            :class="{
+                                'border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200': true,
+                                'border-slate-600 hover:border-slate-500 bg-slate-900/30': !profile_image,
+                                'border-amber-500 bg-amber-500/10': profile_image
+                            }"
+                        >
+                            <template x-if="profile_image">
+                                <div>
+                                    <svg class="w-12 h-12 text-amber-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                    <p class="text-amber-400 font-semibold">Image selected!</p>
+                                    <p class="text-slate-300 text-sm mt-1" x-text="profile_image?.name || 'Selected image'"></p>
+                                    <p class="text-slate-400 text-xs mt-2">Click here to select a different image</p>
+                                </div>
+                            </template>
+                            <template x-if="!profile_image">
+                                <div>
+                                    <svg class="w-12 h-12 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                    <p class="text-white font-semibold">Upload Character Portrait</p>
+                                    <p class="text-slate-300 text-sm mt-1">Drag and drop or click to select</p>
+                                    <p class="text-slate-400 text-xs mt-2">PNG, JPG up to 2MB</p>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -106,7 +114,7 @@
                     <!-- Clear Image Button -->
                     @if($profile_image || $character->profile_image_path)
                         <button 
-                            wire:click="clearProfileImage"
+                            @click="clearProfileImage()"
                             class="mt-3 inline-flex items-center px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 hover:border-red-500/50 rounded-lg text-sm font-medium transition-all duration-200"
                         >
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,28 +160,30 @@
     </div>
 
     <!-- Character Overview -->
-    @if(!empty($character->name) || $character->profile_image_path || $profile_image)
+    <template x-if="hasBasicCharacterInfo">
         <div class="bg-gradient-to-r from-emerald-500/10 to-amber-500/10 border border-emerald-500/20 rounded-xl p-6">
             <h3 class="text-lg font-bold text-white font-outfit mb-4">Character Overview</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Portrait -->
                 <div class="text-center">
-                    @if($profile_image)
+                    <template x-if="profile_image">
                         <div class="w-24 h-24 mx-auto mb-3">
-                            <img src="{{ $profile_image->temporaryUrl() }}" alt="Character" class="w-full h-full object-cover rounded-full border-2 border-amber-500">
+                            <img :src="profile_image?.temporaryUrl || ''" alt="Character" class="w-full h-full object-cover rounded-full border-2 border-amber-500">
                         </div>
-                    @elseif($character->profile_image_path)
+                    </template>
+                    <template x-if="!profile_image && profile_image_path">
                         <div class="w-24 h-24 mx-auto mb-3">
-                            <img src="{{ $character->getProfileImage() }}" alt="Character" class="w-full h-full object-cover rounded-full border-2 border-emerald-500">
+                            <img :src="$wire.getProfileImageUrl()" alt="Character" class="w-full h-full object-cover rounded-full border-2 border-emerald-500">
                         </div>
-                    @else
+                    </template>
+                    <template x-if="!profile_image && !profile_image_path">
                         <div class="w-24 h-24 mx-auto mb-3 bg-slate-700 rounded-full border-2 border-slate-600 flex items-center justify-center">
                             <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                         </div>
-                    @endif
+                    </template>
                     <p class="text-slate-400 text-sm">Portrait</p>
                 </div>
 

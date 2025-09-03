@@ -63,7 +63,7 @@ class CharacterBuilderData extends Data implements Wireable
             CharacterBuilderStep::BACKGROUND => $this->isBackgroundComplete(),
             CharacterBuilderStep::EXPERIENCES => count($this->experiences) >= 2,
             CharacterBuilderStep::DOMAIN_CARDS => count($this->selected_domain_cards) >= 2,
-            CharacterBuilderStep::CONNECTIONS => count(array_filter($this->connection_answers, fn ($answer) => ! empty(trim($answer)))) >= 1,
+            CharacterBuilderStep::CONNECTIONS => count(array_filter($this->connection_answers, fn ($answer) => ! empty(trim($answer ?? '')))) >= 1,
         };
     }
 

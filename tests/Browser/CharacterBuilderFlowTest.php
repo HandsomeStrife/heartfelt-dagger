@@ -103,8 +103,8 @@ it('domain card selection toggles and enforces max selection', function () {
     // Verify domain cards are present for the selected class
     $page->assertPresent('[pest^="domain-card-"]');
     
-    // Try to click on a domain card to select it
-    $page->click('[pest^="domain-card-"]:first-of-type');
+    // Try to click on a specific domain card to select it (use specific card instead of :first-of-type)
+    $page->click('[pest="domain-card-codex-book of ava"]');
     $page->wait(1);
     
     // Verify selection count increased

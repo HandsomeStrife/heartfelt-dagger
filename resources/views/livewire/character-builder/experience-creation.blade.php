@@ -7,7 +7,7 @@
     </div>
 
     <!-- Step Completion Indicator -->
-    @if(count($character->experiences) >= 2)
+    <template x-if="isExperienceComplete">
         <div class="my-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
             <div class="flex items-center">
                 <div class="bg-emerald-500 rounded-full p-2 mr-3">
@@ -21,7 +21,8 @@
                 </div>
             </div>
         </div>
-    @elseif(count($character->experiences) > 0)
+    </template>
+    <template x-if="isExperienceInProgress">
         <div class="my-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
             <div class="flex items-center">
                 <div class="bg-blue-500 rounded-full p-2 mr-3">
@@ -31,11 +32,11 @@
                 </div>
                 <div>
                     <p class="text-blue-400 font-semibold">Experience Creation In Progress</p>
-                    <p class="text-slate-300 text-sm">You have {{ count($character->experiences) }} of 2 required experiences. Add {{ 2 - count($character->experiences) }} more to complete this step.</p>
+                    <p class="text-slate-300 text-sm">You have <span x-text="experienceCount"></span> of 2 required experiences. Add <span x-text="experiencesRemaining"></span> more to complete this step.</p>
                 </div>
             </div>
         </div>
-    @endif
+    </template>
     <!-- Instructions -->
     <div class="bg-slate-800/30 rounded-lg p-4">
         <h5 class="text-white font-bold text-lg mb-3 font-outfit">What Is an Experience?</h5>
@@ -51,16 +52,14 @@
     </div>
 
     <!-- Add New Experience -->
-    @if(count($character->experiences) < 2)
-    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6" 
-         x-data="{ experienceName: '' }"
-         @experience-added.window="experienceName = ''">
-        <div class="flex items-center justify-between mb-4">
-            <h4 class="text-white font-semibold font-outfit">Add New Experience</h4>
-            <div class="text-sm text-slate-400">
-                {{ count($character->experiences) }} / 2 experiences
+    <template x-if="canAddExperience">
+        <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-white font-semibold font-outfit">Add New Experience</h4>
+                <div class="text-sm text-slate-400">
+                    <span x-text="experienceCount"></span> / 2 experiences
+                </div>
             </div>
-        </div>
         
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -70,8 +69,8 @@
                         dusk="new-experience-name"
                         type="text" 
                         id="new-experience-name"
-                        wire:model="new_experience_name"
-                        x-model="experienceName"
+                        x-model="new_experience_name"
+                        @input="markAsUnsaved()"
                         placeholder="e.g., Blacksmith, Silver Tongue, Fast Learner"
                         maxlength="50"
                         class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
@@ -84,22 +83,26 @@
                         dusk="new-experience-description"
                         type="text" 
                         id="new-experience-description"
-                        wire:model="new_experience_description"
+                        x-model="new_experience_description"
+                        @input="markAsUnsaved()"
                         placeholder="Brief description (optional)"
                         maxlength="100"
                         class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
                     >
+                    <div class="text-right mt-1">
+                        <span class="text-xs text-slate-400" x-text="`${(new_experience_description || '').length}/100`"></span>
+                    </div>
                 </div>
                 
                 <div class="lg:col-span-1 flex items-end">
                     <button 
                         dusk="add-experience-button"
-                        wire:click="addExperience"
-                        :disabled="experienceName.trim() === ''"
+                        @click="addExperience()"
+                        :disabled="!canAddNewExperience"
                         :class="{
                             'w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200': true,
-                            'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black': experienceName.trim() !== '',
-                            'bg-slate-700 text-slate-400 cursor-not-allowed': experienceName.trim() === ''
+                            'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black': canAddNewExperience,
+                            'bg-slate-700 text-slate-400 cursor-not-allowed': !canAddNewExperience
                         }"
                     >
                         <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,18 +112,17 @@
                     </button>
                 </div>
             </div>
-        @endif
-    </div>
+        </div>
+    </template>
 
     <!-- Experience List -->
-    @if(count($character->experiences) > 0)
+    <template x-if="experienceCount > 0">
         <div class="space-y-4 mt-6">
             <div class="flex items-center justify-between">
                 <h4 class="text-white font-semibold font-outfit">Your Experiences</h4>
-                @if(count($character->experiences) > 2)
+                <template x-if="experienceCount > 2">
                     <button 
-                        wire:click="clearAllExperiences"
-                        onclick="return confirm('Are you sure you want to remove all experiences?')"
+                        @click="clearAllExperiences()"
                         class="inline-flex items-center px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 hover:border-red-500/50 rounded-lg text-sm font-medium transition-all duration-200"
                     >
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,40 +130,32 @@
                         </svg>
                         Clear All
                     </button>
-                @endif
+                </template>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @foreach($character->experiences as $index => $experience)
-                    @php
-                        $modifier = $character->getExperienceModifier($experience['name']);
-                        $hasExperienceBonus = $character->hasExperienceBonusSelection();
-                        $isBonusExperience = $hasExperienceBonus && $character->clank_bonus_experience === $experience['name'];
-                        $canSelectBonus = $hasExperienceBonus && !$character->clank_bonus_experience;
-                    @endphp
+                <template x-for="(experience, index) in experiences" :key="index">
                     <div 
-                        dusk="experience-card-{{ $index }}"
-                        @if($hasExperienceBonus)
-                            wire:click="selectClankBonusExperience('{{ $experience['name'] }}')"
-                            style="cursor: pointer;"
-                        @endif
-                        class="relative group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border transition-all duration-300 rounded-xl p-5 {{ 
-                            $isBonusExperience 
-                                ? 'border-purple-400/70 ring-2 ring-purple-400/30' 
-                                : ($canSelectBonus 
-                                    ? 'border-slate-700/50 hover:border-purple-500/50 hover:bg-purple-500/5' 
-                                    : 'border-slate-700/50 hover:border-slate-600/70')
-                        }}"
+                        :dusk="`experience-card-${index}`"
+                        @click="canSelectBonusExperience(experience.name) ? selectClankBonusExperience(experience.name) : null"
+                        :class="{
+                            'relative group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border transition-all duration-300 rounded-xl p-5': true,
+                            'border-purple-400/70 ring-2 ring-purple-400/30': isBonusExperience(experience.name),
+                            'border-slate-700/50 hover:border-purple-500/50 hover:bg-purple-500/5 cursor-pointer': canSelectBonusExperience(experience.name),
+                            'border-slate-700/50 hover:border-slate-600/70': !isBonusExperience(experience.name) && !canSelectBonusExperience(experience.name)
+                        }"
                     >
                         <!-- Experience Header -->
                         <div class="flex items-start justify-between mb-3">
                             <div class="flex-1">
-                                <h5 class="text-white font-bold font-outfit text-lg">{{ $experience['name'] }}</h5>
-                                @if(($editing_experience['index'] ?? null) === $index)
+                                <h5 class="text-white font-bold font-outfit text-lg" x-text="experience.name"></h5>
+                                <template x-if="isEditingExperience(index)">
                                     <!-- Edit mode -->
                                     <div class="mt-2">
                                         <textarea 
-                                            wire:model="edit_experience_description"
+                                            :dusk="`edit-experience-description-${index}`"
+                                            x-model="edit_experience_description"
+                                            @input="markAsUnsaved()"
                                             placeholder="Enter description..."
                                             maxlength="100"
                                             class="w-full px-3 py-2 text-sm bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
@@ -170,35 +164,38 @@
                                         <div class="flex items-center justify-between mt-2">
                                             <div class="flex gap-2">
                                                 <button 
-                                                    wire:click="saveExperienceEdit"
+                                                    @click="saveExperienceEdit()"
                                                     class="px-3 py-1 bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30 hover:border-green-500/50 rounded text-xs font-medium transition-all duration-200"
                                                 >
                                                     Save
                                                 </button>
                                                 <button 
-                                                    wire:click="cancelExperienceEdit"
+                                                    @click="cancelExperienceEdit()"
                                                     class="px-3 py-1 bg-slate-600/20 hover:bg-slate-600/30 text-slate-300 border border-slate-500/30 hover:border-slate-500/50 rounded text-xs font-medium transition-all duration-200"
                                                 >
                                                     Cancel
                                                 </button>
                                             </div>
-                                            <span class="text-xs text-slate-400">{{ strlen($edit_experience_description) }}/100</span>
+                                            <span class="text-xs text-slate-400" x-text="`${(edit_experience_description || '').length}/100`"></span>
                                         </div>
                                     </div>
-                                @else
+                                </template>
+                                <template x-if="!isEditingExperience(index)">
                                     <!-- Display mode -->
-                                    @if(!empty($experience['description']))
-                                        <p class="text-slate-300 text-sm mt-1">{{ $experience['description'] }}</p>
-                                    @else
+                                    <template x-if="experience.description && experience.description.trim()">
+                                        <p class="text-slate-300 text-sm mt-1" x-text="experience.description"></p>
+                                    </template>
+                                    <template x-if="!experience.description || !experience.description.trim()">
                                         <p class="text-slate-400 text-sm mt-1 italic">No description</p>
-                                    @endif
-                                @endif
+                                    </template>
+                                </template>
                             </div>
                             
-                            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                @if(($editing_experience['index'] ?? null) !== $index)
+                            <div class="flex items-center gap-1 opacity-100 transition-opacity duration-200">
+                                <template x-if="!isEditingExperience(index)">
                                     <button 
-                                        wire:click="startEditingExperience({{ $index }})"
+                                        :dusk="`edit-experience-${index}`"
+                                        @click="startEditingExperience(index)"
                                         class="p-2 hover:bg-blue-600/20 rounded-lg"
                                         title="Edit description"
                                     >
@@ -206,10 +203,10 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
                                     </button>
-                                @endif
+                                </template>
                                 <button 
-                                    dusk="remove-experience-{{ $index }}"
-                                    wire:click="removeExperience({{ $index }})"
+                                    :dusk="`remove-experience-${index}`"
+                                    @click="removeExperience(index)"
                                     class="p-2 hover:bg-red-600/20 rounded-lg"
                                     title="Remove experience"
                                 >
@@ -221,58 +218,39 @@
                         </div>
 
                         <!-- Experience Modifier -->
-                        <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg p-3 {{ 
-                            $modifier > 2 ? 'ring-2 ring-purple-400/30' : '' 
-                        }}">
+                        <div 
+                            :class="{
+                                'bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-lg p-3': true,
+                                'ring-2 ring-purple-400/30': getExperienceModifier(experience.name) > 2
+                            }"
+                        >
                             <div class="flex items-center justify-between">
                                 <span class="text-amber-300 font-medium text-sm">Experience Modifier</span>
                                 <div class="flex items-center">
-                                    <span class="text-white font-bold text-lg">+{{ $modifier }}</span>
-                                    @if($modifier > 2)
-                                        @php
-                                            $ancestryName = ucfirst($character->selected_ancestry);
-                                        @endphp
-                                        <span class="ml-2 text-xs px-2 py-1 bg-purple-500/20 text-purple-300 rounded">
-                                            {{ $ancestryName }} Bonus
+                                    <span class="text-white font-bold text-lg" x-text="`+${getExperienceModifier(experience.name)}`"></span>
+                                    <template x-if="getExperienceModifier(experience.name) > 2">
+                                        <span class="ml-2 text-xs px-2 py-1 bg-purple-500/20 text-purple-300 rounded" x-text="`${selectedAncestryData?.name || ''} Bonus`">
                                         </span>
-                                    @endif
+                                    </template>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between mt-1">
                                 <p class="text-slate-300 text-xs">
                                     Added to relevant rolls when this experience applies
-                                    @if($modifier > 2)
-                                        @php
-                                            $ancestryName = ucfirst($character->selected_ancestry);
-                                            $featureName = null;
-                                            if ($hasExperienceBonus) {
-                                                $ancestriesData = json_decode(file_get_contents(resource_path('json/ancestries.json')), true);
-                                                $ancestryData = $ancestriesData[$character->selected_ancestry] ?? null;
-                                                if ($ancestryData) {
-                                                    foreach ($ancestryData['features'] ?? [] as $feature) {
-                                                        foreach ($feature['effects'] ?? [] as $effect) {
-                                                            if (($effect['type'] ?? '') === 'experience_bonus_selection') {
-                                                                $featureName = $feature['name'];
-                                                                break 2;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        @endphp
-                                        <span class="text-purple-300"> (includes +1 from {{ $ancestryName }} {{ $featureName ?? 'heritage' }})</span>
-                                    @endif
+                                    <template x-if="getExperienceModifier(experience.name) > 2">
+                                        <span class="text-purple-300" x-text="` (includes +1 from ${selectedAncestryData?.name || ''} heritage)`"></span>
+                                    </template>
                                 </p>
-                                @if($hasExperienceBonus && !$isBonusExperience && !$character->clank_bonus_experience)
-                                    <span class="text-purple-400 text-xs italic">Click to select for your {{ ucfirst($character->selected_ancestry) }} heritage bonus (+3)</span>
-                                @endif
+                                <template x-if="hasExperienceBonus && !isBonusExperience(experience.name) && !clank_bonus_experience">
+                                    <span class="text-purple-400 text-xs italic" x-text="`Click to select for your ${selectedAncestryData?.name || ''} heritage bonus (+3)`"></span>
+                                </template>
                             </div>
                         </div>
                     </div>
-                @endforeach
+                </template>
             </div>
         </div>
-    @endif
+    </template>
 
     <!-- Experience Guide -->
     <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 mt-6" x-data="{ showGuide: false }">

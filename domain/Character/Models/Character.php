@@ -233,13 +233,25 @@ class Character extends Model
     public function getProfileImage(): string
     {
         if ($this->profile_image_path) {
-            $s3Disk = Storage::disk('s3');
-            if ($s3Disk->exists($this->profile_image_path)) {
-                return $s3Disk->temporaryUrl(
-                    $this->profile_image_path,
-                    now()->addHours(24) // URLs valid for 24 hours
-                );
+            // Try S3 first if configured, otherwise fall back to local
+            try {
+                // Check if S3 is properly configured
+                if (config('filesystems.disks.s3.key') && config('filesystems.disks.s3.secret')) {
+                    $s3Disk = Storage::disk('s3');
+                    // For MinIO/S3, always try to generate temporaryUrl 
+                    // even if we can't check existence (exists() might fail on MinIO)
+                    return $s3Disk->temporaryUrl(
+                        $this->profile_image_path,
+                        now()->addHours(24) // URLs valid for 24 hours
+                    );
+                }
+            } catch (\Exception $e) {
+                // S3 not configured or error, fall back to local
+                \Illuminate\Support\Facades\Log::warning('S3 not available for profile image, falling back to local storage: ' . $e->getMessage());
             }
+            
+            // Fall back to local storage (use 'public' disk for local development)
+            return Storage::disk('public')->url($this->profile_image_path);
         }
 
         return asset('img/default-avatar.png');

@@ -21,6 +21,14 @@ class TestS3Upload extends Command
             // Test 1: Check S3 configuration
             $s3Disk = Storage::disk('s3');
             $this->info('S3 disk configuration loaded successfully');
+            
+            // Debug: Print S3 configuration
+            $s3Config = config('filesystems.disks.s3');
+            $this->info('S3 Configuration:');
+            $this->line('  Endpoint: ' . ($s3Config['endpoint'] ?? 'Not set'));
+            $this->line('  Region: ' . ($s3Config['region'] ?? 'Not set'));
+            $this->line('  Bucket: ' . ($s3Config['bucket'] ?? 'Not set'));
+            $this->line('  Use Path Style: ' . ($s3Config['use_path_style_endpoint'] ? 'true' : 'false'));
 
             // Test 2: Create a test file
             $testContent = 'This is a test file created at ' . now()->toString();
@@ -38,7 +46,7 @@ class TestS3Upload extends Command
                 'bucket' => env('AWS_BUCKET'),
                 'url' => env('AWS_URL'),
                 'endpoint' => env('AWS_ENDPOINT'),
-                'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+                'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true), // Force path-style for debugging
                 'throw' => true, // This will throw exceptions instead of returning false
             ]);
             
@@ -51,9 +59,13 @@ class TestS3Upload extends Command
                 if ($s3Disk->exists($testFileName)) {
                     $this->info('✅ File verified to exist on S3');
 
-                    // Test 5: Get file URL
-                    $url = $s3Disk->url($testFileName);
-                    $this->info("✅ File URL: {$url}");
+                    // Test 5: Generate temporary URL
+                    try {
+                        $url = $s3Disk->temporaryUrl($testFileName, now()->addMinutes(5));
+                        $this->info("✅ File temporary URL: {$url}");
+                    } catch (\Exception $e) {
+                        $this->warn("⚠️ Could not generate temporary URL: " . $e->getMessage());
+                    }
 
                     // Test 6: Clean up
                     $s3Disk->delete($testFileName);
@@ -72,10 +84,21 @@ class TestS3Upload extends Command
             $this->line('AWS_DEFAULT_REGION: ' . env('AWS_DEFAULT_REGION', 'Not set'));
             $this->line('AWS_BUCKET: ' . env('AWS_BUCKET', 'Not set'));
             $this->line('AWS_URL: ' . env('AWS_URL', 'Not set'));
+            $this->line('AWS_ENDPOINT: ' . env('AWS_ENDPOINT', 'Not set'));
+            $this->line('AWS_USE_PATH_STYLE_ENDPOINT: ' . env('AWS_USE_PATH_STYLE_ENDPOINT', 'Not set'));
 
         } catch (\Exception $e) {
             $this->error('❌ S3 test failed: ' . $e->getMessage());
-            $this->error('Stack trace: ' . $e->getTraceAsString());
+            
+            // Show environment variables even on failure
+            $this->info('Environment variables:');
+            $this->line('AWS_ACCESS_KEY_ID: ' . (env('AWS_ACCESS_KEY_ID') ? 'Set' : 'Not set'));
+            $this->line('AWS_SECRET_ACCESS_KEY: ' . (env('AWS_SECRET_ACCESS_KEY') ? 'Set' : 'Not set'));
+            $this->line('AWS_DEFAULT_REGION: ' . env('AWS_DEFAULT_REGION', 'Not set'));
+            $this->line('AWS_BUCKET: ' . env('AWS_BUCKET', 'Not set'));
+            $this->line('AWS_URL: ' . env('AWS_URL', 'Not set'));
+            $this->line('AWS_ENDPOINT: ' . env('AWS_ENDPOINT', 'Not set'));
+            $this->line('AWS_USE_PATH_STYLE_ENDPOINT: ' . env('AWS_USE_PATH_STYLE_ENDPOINT', 'Not set'));
         }
     }
 }

@@ -27,7 +27,8 @@ it('validates domain card selection and level toggle functionality', function ()
     $page->assertPresent('[pest^="domain-card-"]');
     
     // Verify domain cards can be selected (same as working tests)
-    $page->click('[pest^="domain-card-"]:first-of-type');
+    // Click on a specific domain card that should be available for Wizard (codex domain)
+    $page->click('[pest="domain-card-codex-book of ava"]');
     $page->wait(1);
     $page->assertSee('1', '[pest="domain-card-selected-count"]');
 });

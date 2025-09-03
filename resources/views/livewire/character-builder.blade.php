@@ -1,6 +1,10 @@
-<div class="min-h-screen" x-data="characterBuilderComponent($wire)">
-    <!-- Minimal Full-Width Sub-Header -->
-    <x-sub-navigation>
+<div class="min-h-screen" x-data="characterBuilderComponent($wire, {{ Js::from($game_data) }})">
+
+
+
+    <!-- Minimal Full-Width Sub-Header (hidden when unsaved changes) -->
+    <div x-show="!hasUnsavedChanges" x-cloak>
+        <x-sub-navigation>
         <div class="flex items-center justify-between">
             <!-- Left: Title and Last Saved -->
             <div class="flex items-center gap-4">
@@ -23,17 +27,7 @@
             
             <!-- Right: Actions -->
             <div class="flex items-center gap-2">
-                <!-- Save Button -->
-                <button 
-                    pest="save-character-button"
-                    wire:click="saveToDatabase"
-                    class="inline-flex items-center justify-center px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white text-sm font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-emerald-500/25"
-                >
-                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Save
-                </button>
+
 
                 <!-- View Character Button (Header) -->
                 <button 
@@ -55,7 +49,8 @@
                 </button>
             </div>
         </div>
-    </x-sub-navigation>
+        </x-sub-navigation>
+    </div>
 
     <!-- Unsaved Changes Banner (Always Visible When Needed) -->
     <div x-show="hasUnsavedChanges" x-cloak class="bg-amber-500/10 border-b border-amber-500/30">
@@ -71,7 +66,7 @@
                     </div>
                 </div>
                 <button 
-                    wire:click="saveCharacter"
+                    @click="saveCharacter()"
                     class="inline-flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-400 text-amber-900 text-sm font-medium rounded-lg transition-all duration-200"
                 >
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,14 +88,16 @@
                     <div class="relative">
                         @if($profile_image || $character->profile_image_path)
                             <!-- Image Preview -->
-                            <div class="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg">
-                                <img 
-                                    src="{{ $this->getImageUrl() }}" 
-                                    alt="Profile preview" 
-                                    class="w-full h-full object-cover"
-                                >
+                            <div class="character-image-preview-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg">
+                                <div class="character-image-preview w-full h-full">
+                                    <img 
+                                        src="{{ $this->getImageUrl() }}" 
+                                        alt="Profile preview" 
+                                        class="w-full h-full object-cover"
+                                    >
+                                </div>
                                 <button 
-                                    wire:click="clearProfileImage"
+                                    @click="clearProfileImage()"
                                     class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,28 +108,29 @@
                         @else
                             <!-- Upload Area -->
                             <div 
-                                x-data="{ dragOver: false }"
-                                @dragover.prevent="dragOver = true"
-                                @dragleave.prevent="dragOver = false"
-                                @drop.prevent="dragOver = false; $refs.fileInput.files = $event.dataTransfer.files; $refs.fileInput.dispatchEvent(new Event('change'))"
-                                :class="{ 'border-amber-500 bg-amber-500/10': dragOver }"
-                                class="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
-                                @click="$refs.fileInput.click()"
+                                class="character-image-upload-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
+                                @click="openImageUpload()"
+                                dusk="profile-image-upload"
                             >
                                 <svg class="w-8 h-8 text-slate-400 group-hover:text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
                                 <span class="text-xs text-slate-400 group-hover:text-slate-300 text-center">Upload Image</span>
-                                
-                                <input 
-                                    x-ref="fileInput"
-                                    dusk="profile-image-upload"
-                                    type="file" 
-                                    wire:model="profile_image"
-                                    accept="image/*"
-                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    style="pointer-events: none;"
+                            </div>
+                            
+                            <!-- Hidden preview area for Uppy -->
+                            <div class="character-image-preview-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg" style="display: none;">
+                                <div class="character-image-preview w-full h-full">
+                                    <!-- Preview image will be inserted by Uppy -->
+                                </div>
+                                <button 
+                                    @click="clearProfileImage()"
+                                    class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
                                 >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             </div>
                         @endif
                     </div>
@@ -509,7 +507,7 @@
                                     <!-- Save Character Button -->
                                     <button 
                                         pest="save-character-button"
-                                        wire:click="saveCharacter"
+                                        @click="saveCharacter()"
                                         :disabled="!hasUnsavedChanges"
                                         :class="{
                                             'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl transition-all duration-300 shadow-lg': true,
@@ -564,7 +562,7 @@
     <div x-show="hasUnsavedChanges" x-cloak class="fixed bottom-6 right-6 z-50">
         <button 
             pest="floating-save-button"
-            wire:click="saveCharacter"
+            @click="saveCharacter()"
             class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 border-2 border-emerald-400/50 hover:border-emerald-300"
         >
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -574,4 +572,36 @@
         </button>
     </div>
 
+    <!-- Saving Overlay -->
+    <div x-show="isSaving" 
+         x-cloak
+         class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
+        <div class="bg-slate-800/90 backdrop-blur-xl border border-slate-600 rounded-xl p-8 flex items-center space-x-4">
+            <svg class="animate-spin h-6 w-6 text-emerald-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-white font-medium">Saving character...</span>
+        </div>
+    </div>
+
+    <!-- Image Upload Overlay -->
+    <div x-show="isUploadingImage" 
+         x-cloak
+         class="uploading-overlay fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
+        <div class="bg-slate-800/90 backdrop-blur-xl border border-slate-600 rounded-xl p-8 flex items-center space-x-4">
+            <svg class="animate-spin h-6 w-6 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-white font-medium">Uploading image...</span>
+        </div>
+    </div> 
 </div>
+
+@script
+<script>
+    // Initialize character builder component with game data
+    Alpine.data('characterBuilderComponent', () => window.characterBuilderComponent($wire, @js($game_data)));
+</script>
+@endscript

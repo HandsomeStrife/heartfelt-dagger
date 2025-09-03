@@ -177,3 +177,6 @@ Route::get('/wasabi/connect', App\Livewire\WasabiAccountSetup::class)->name('was
 Route::get('/simple-test', function () {
     return view('simple-test-page');
 });
+
+// Character image upload routes
+require __DIR__ . '/character-image-upload.php';

@@ -7,16 +7,19 @@ namespace App\Livewire;
 use Domain\Character\Actions\LoadCharacterAction;
 use Domain\Character\Actions\SaveCharacterAction;
 use Domain\Character\Data\CharacterBuilderData;
+use Domain\Character\Enums\ClassEnum;
 use Domain\Character\Models\Character;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Usernotnull\Toast\Concerns\WireToast;
 
 class CharacterBuilder extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, WireToast;
 
     // State Properties
     public CharacterBuilderData $character;
@@ -37,13 +40,7 @@ class CharacterBuilder extends Component
     // Game Data
     public array $game_data = [];
 
-    // Equipment Category Expansion State
-    public array $equipment_category_expanded = [
-        'weapons' => true,
-        'armor' => true,
-        'items' => true,
-        'consumables' => true,
-    ];
+    // NOTE: Equipment category expansion state removed - UI state now handled client-side
 
     // Experience Form Fields
     public string $new_experience_name = '';
@@ -75,17 +72,29 @@ class CharacterBuilder extends Component
             return $this->profile_image->temporaryUrl();
         }
 
-        // 2. If character has a saved image, show that from S3
+        // 2. If character has a saved image, use the model's method
         if ($this->character_model && $this->character_model->profile_image_path) {
-            // Use signed URL for secure access (valid for 1 hour)
-            return Storage::disk('s3')->temporaryUrl(
-                $this->character_model->profile_image_path,
-                now()->addHour()
-            );
+            return $this->character_model->getProfileImage();
         }
 
         // 3. No image exists
         return null;
+    }
+
+    /**
+     * Refresh character data from database (e.g., after image upload)
+     */
+    public function refreshCharacter(): void
+    {
+        if ($this->storage_key) {
+            $action = new LoadCharacterAction;
+            $character_data = $action->execute($this->storage_key);
+            
+            if ($character_data) {
+                $this->character = $character_data;
+                $this->character_model = Character::where('character_key', $this->storage_key)->first();
+            }
+        }
     }
 
 
@@ -158,92 +167,16 @@ class CharacterBuilder extends Component
         }
     }
 
-    public function selectClass(?string $class_key): void
-    {
-        // Only reset the fields that should change when class changes
-        $this->character->assigned_traits = [];
-        $this->character->selected_equipment = [];
-        $this->character->background_answers = [];
-        $this->character->experiences = [];
-        $this->character->selected_domain_cards = [];
-        $this->character->connection_answers = [];
-        $this->character->manual_step_completions = [];
+    // NOTE: Character selection methods (selectClass, selectSubclass, selectAncestry, selectCommunity)
+    // are now handled client-side in character-builder.js for instant UI updates.
+    // Server-side sync happens via entangled properties and explicit save calls.
 
-        // Set the new class
-        $this->character->selected_class = $class_key;
-        $this->character->selected_subclass = null; // Reset subclass when class changes
+    // NOTE: Trait assignment methods (assignTrait, resetTraits) are now handled client-side
+    // in character-builder.js via applySuggestedTraits() for instant UI updates.
+    // Server-side sync happens via entangled properties.
 
-        // Reset completed steps array
-        $this->completed_steps = [];
-        
-        // Update state only - do NOT auto-save to database
-        $this->updateStateOnly();
-    }
-
-    public function selectSubclass(string $subclass_key): void
-    {
-        // Only reset the fields that should change when subclass changes
-        $this->character->assigned_traits = [];
-        $this->character->selected_equipment = [];
-        $this->character->background_answers = [];
-        $this->character->experiences = [];
-        $this->character->selected_domain_cards = [];
-        $this->character->connection_answers = [];
-        $this->character->manual_step_completions = [];
-
-        // Set the new subclass (preserve class)
-        $this->character->selected_subclass = $subclass_key;
-
-        // Reset completed steps array
-        $this->completed_steps = [];
-        
-        // Update state only - do NOT auto-save to database
-        $this->updateStateOnly();
-    }
-
-    public function selectAncestry(?string $ancestry_key): void
-    {
-        $this->character->selected_ancestry = $ancestry_key;
-        $this->updateStateOnly();
-    }
-
-    public function selectCommunity(?string $community_key): void
-    {
-        $this->character->selected_community = $community_key;
-        $this->updateStateOnly();
-    }
-
-    public function assignTrait(string $trait_name, ?int $value): void
-    {
-        if ($value === null) {
-            // Clear the trait assignment
-            unset($this->character->assigned_traits[$trait_name]);
-        } else {
-            $this->character->assigned_traits[$trait_name] = $value;
-        }
-
-        $this->updateStateOnly();
-    }
-
-    public function resetTraits(): void
-    {
-        $this->character->assigned_traits = [];
-        $this->updateStateOnly();
-    }
-
-    public function updateCharacterName(string $name): void
-    {
-        $this->character->name = $name;
-        $this->saveToDatabase(); // Keep auto-save for name - typed input field
-        $this->dispatch('character-updated', $this->character);
-    }
-
-    public function updatePronouns(string $pronouns): void
-    {
-        $this->pronouns = $pronouns;
-        $this->saveToDatabase(); // Keep auto-save for pronouns - typed input field
-        $this->dispatch('character-updated', $this->character);
-    }
+    // NOTE: updateCharacterName() and updatePronouns() removed
+    // Character name and pronouns now save only when user clicks Save button
 
     /**
      * Auto-save when character object properties change via live model binding
@@ -251,14 +184,27 @@ class CharacterBuilder extends Component
      */
     public function updatedCharacter($value, $key): void
     {
+        // Properties that should trigger step completion updates but not auto-save
+        $stepCompletionProperties = [
+            'selected_class',
+            'selected_subclass', 
+            'selected_ancestry',
+            'selected_community',
+            'assigned_traits',
+            'selected_equipment',
+            'experiences',
+            'selected_domain_cards'
+        ];
+        
         // Auto-save for specific properties that should save immediately
+        // NOTE: Most auto-save properties removed - only keep essential ones
         $autoSaveProperties = [
-            'name', 
-            'background_answers', 
-            'physical_description', 
-            'personality_traits', 
-            'personal_history', 
-            'motivations'
+            // 'name' removed - now manual save only
+            // 'background_answers' removed - now manual save only  
+            // 'physical_description' removed - now manual save only
+            // 'personality_traits' removed - now manual save only
+            // 'personal_history' removed - now manual save only
+            // 'motivations' removed - now manual save only
         ];
         
         // Handle nested properties like background_answers.0
@@ -267,17 +213,16 @@ class CharacterBuilder extends Component
         if (in_array($key, $autoSaveProperties) || in_array($topLevelKey, $autoSaveProperties)) {
             $this->saveToDatabase();
             $this->dispatch('character-updated', $this->character);
+        } elseif (in_array($key, $stepCompletionProperties) || in_array($topLevelKey, $stepCompletionProperties)) {
+            // Update step completion for selection properties without auto-saving
+            $this->updateStateOnly();
+            
+            // Force re-render for step completion updates
+            $this->dispatch('step-completion-updated');
         }
     }
 
-    /**
-     * Auto-save when pronouns change via live model binding
-     */
-    public function updatedPronouns(): void
-    {
-        $this->saveToDatabase();
-        $this->dispatch('character-updated', $this->character);
-    }
+    // NOTE: updatedPronouns() removed - pronouns now save only when user clicks Save button
 
     public function updatedProfileImage(): void
     {
@@ -286,6 +231,9 @@ class CharacterBuilder extends Component
         ]);
 
         if ($this->profile_image) {
+            // Dispatch upload start event
+            $this->dispatch('upload:start');
+            
             try {
                 // Generate organized path: year/month/day/character-token/image_name.extension
                 $date = now();
@@ -322,17 +270,17 @@ class CharacterBuilder extends Component
                 
                 $this->dispatch('character-updated', $this->character);
                 $this->dispatch('image-uploaded', ['path' => $path]);
-                $this->dispatch('notify', [
-                    'type' => 'success',
-                    'message' => 'Image uploaded successfully to S3!',
-                ]);
+                $this->dispatch('upload:finish');
+                
+                // Use toast notification instead of old notify system
+                toast()->success('Image uploaded successfully!')->push();
 
             } catch (\Exception $e) {
-                $this->dispatch('notify', [
-                    'type' => 'error',
-                    'message' => 'Failed to upload image: ' . $e->getMessage(),
-                ]);
-                \Log::error('Image upload failed', [
+                $this->dispatch('upload:error');
+                
+                toast()->danger('Failed to upload image: ' . $e->getMessage())->push();
+                
+                Log::error('Image upload failed', [
                     'error' => $e->getMessage(),
                     'character_key' => $this->storage_key,
                     'filename' => $original_name ?? 'unknown'
@@ -359,113 +307,15 @@ class CharacterBuilder extends Component
         $this->dispatch('character-updated', $this->character);
     }
 
-    public function selectEquipment(string $equipment_key, string $equipment_type): void
-    {
-        // Handle different data source naming conventions
-        $data_key = match ($equipment_type) {
-            'weapon' => 'weapons',
-            'armor' => 'armor',
-            default => $equipment_type.'s',
-        };
+    // NOTE: Equipment selection methods (selectEquipment, selectInventoryItem) are now handled
+    // client-side in character-builder.js for instant UI updates and better UX.
+    // Server-side sync happens via syncEquipment() method called from JavaScript.
 
-        $equipment = $this->game_data[$data_key][$equipment_key] ?? null;
+    // NOTE: removeEquipment(), clearAllEquipment(), and toggleEquipmentCategory() methods removed
+    // Equipment management and UI state now handled client-side for better performance and UX
 
-        if ($equipment) {
-            // Remove existing equipment of the same type for single selection
-            if ($equipment_type === 'weapon') {
-                // For weapons, check the weapon type (Primary/Secondary) for single selection
-                $weapon_type = $equipment['type'] ?? 'Primary';
-                $this->character->selected_equipment = collect($this->character->selected_equipment)
-                    ->reject(fn ($eq) => $eq['type'] === 'weapon' && ($eq['data']['type'] ?? 'Primary') === $weapon_type)
-                    ->values()
-                    ->toArray();
-            } else {
-                // For armor, remove any existing armor
-                $this->character->selected_equipment = collect($this->character->selected_equipment)
-                    ->reject(fn ($eq) => $eq['type'] === $equipment_type)
-                    ->values()
-                    ->toArray();
-            }
-
-            // Add the new equipment
-            $this->character->selected_equipment[] = [
-                'key' => $equipment_key,
-                'type' => $equipment_type,
-                'data' => $equipment,
-            ];
-
-            $this->updateCompletedSteps();
-            $this->saveToDatabase();
-            $this->dispatch('character-updated', $this->character);
-        }
-    }
-
-    public function selectInventoryItem(string $item_name): void
-    {
-        $item_key = strtolower($item_name);
-
-        // Try to find in items first
-        $item_data = $this->game_data['items'][$item_key] ?? null;
-        if ($item_data) {
-            $this->character->selected_equipment[] = [
-                'key' => $item_key,
-                'type' => 'item',
-                'data' => $item_data,
-            ];
-
-            $this->updateCompletedSteps();
-            $this->saveToDatabase();
-            $this->dispatch('character-updated', $this->character);
-
-            return;
-        }
-
-        // Try consumables if not found in items
-        $consumable_data = $this->game_data['consumables'][$item_key] ?? null;
-        if ($consumable_data) {
-            $this->character->selected_equipment[] = [
-                'key' => $item_key,
-                'type' => 'consumable',
-                'data' => $consumable_data,
-            ];
-
-            $this->updateCompletedSteps();
-            $this->saveToDatabase();
-            $this->dispatch('character-updated', $this->character);
-
-            return;
-        }
-
-        // Item not found in either category
-        $this->dispatch('notify', [
-            'type' => 'error',
-            'message' => "Item '{$item_name}' not found in game data.",
-        ]);
-    }
-
-    public function removeEquipment(int $index): void
-    {
-        unset($this->character->selected_equipment[$index]);
-        $this->character->selected_equipment = array_values($this->character->selected_equipment);
-        $this->updateStateOnly();
-    }
-
-    public function clearAllEquipment(): void
-    {
-        $this->character->selected_equipment = [];
-        $this->updateStateOnly();
-    }
-
-    public function toggleEquipmentCategory(string $category): void
-    {
-        $this->equipment_category_expanded[$category] = ! ($this->equipment_category_expanded[$category] ?? false);
-    }
-
-    public function updateBackgroundAnswer(int $question_index, string $answer): void
-    {
-        $this->character->background_answers[$question_index] = $answer;
-        $this->updateStateOnly();
-    }
+    // NOTE: updateBackgroundAnswer() removed - background answers are now handled via
+    // direct wire:model binding to character.background_answers array for real-time updates.
 
     public function markBackgroundComplete(): void
     {
@@ -554,228 +404,20 @@ class CharacterBuilder extends Component
         $this->edit_experience_description = '';
     }
 
-    public function selectDomainCard(string $domain, string $ability_key): void
-    {
-        $ability = $this->game_data['abilities'][$ability_key] ?? null;
+    // NOTE: selectDomainCard() method removed - domain card selection now handled client-side
+    // JavaScript method: toggleDomainCard() provides instant feedback and better UX
 
-        if (! $ability) {
-            return;
-        }
+    // NOTE: removeDomainCard() and clearAllDomainCards() methods removed - domain card management now handled client-side
+    // JavaScript methods provide instant feedback and better UX
 
-        // Check if the card is already selected and remove it (deselect)
-        $existing_index = collect($this->character->selected_domain_cards)->search(function ($card) use ($domain, $ability_key) {
-            return $card['domain'] === $domain && $card['ability_key'] === $ability_key;
-        });
+    // NOTE: updateConnectionAnswer() removed - connection answers are now handled via
+    // direct wire:model binding to character.connection_answers array for real-time updates.
 
-        if ($existing_index !== false) {
-            // Card is already selected, remove it (deselect)
-            unset($this->character->selected_domain_cards[$existing_index]);
-            $this->character->selected_domain_cards = array_values($this->character->selected_domain_cards);
-        } elseif (count($this->character->selected_domain_cards) < $this->character->getMaxDomainCards()) {
-            // Card is not selected and we have space, add it
-            $this->character->selected_domain_cards[] = [
-                'domain' => $domain,
-                'ability_key' => $ability_key,
-                'ability_level' => $ability['level'] ?? 1,
-                'ability_data' => $ability,
-            ];
-        }
+    // NOTE: applySuggestedTraits() method removed - trait application now handled client-side
+    // JavaScript method: applySuggestedTraits() provides instant feedback and better UX
 
-        $this->updateStateOnly();
-    }
-
-    public function removeDomainCard(int $index): void
-    {
-        unset($this->character->selected_domain_cards[$index]);
-        $this->character->selected_domain_cards = array_values($this->character->selected_domain_cards);
-        $this->updateStateOnly();
-    }
-
-    public function clearAllDomainCards(): void
-    {
-        $this->character->selected_domain_cards = [];
-        $this->updateStateOnly();
-    }
-
-    public function updateConnectionAnswer(int $question_index, string $answer): void
-    {
-        $this->character->connection_answers[$question_index] = $answer;
-        $this->updateStateOnly();
-    }
-
-    public function applySuggestedTraits(): void
-    {
-        if (! $this->character->selected_class) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Please select a class first.',
-            ]);
-
-            return;
-        }
-
-        $class_data = $this->game_data['classes'][$this->character->selected_class] ?? null;
-        if (! $class_data || ! isset($class_data['suggestedTraits'])) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'No trait suggestions available for this class.',
-            ]);
-
-            return;
-        }
-
-        $this->character->assigned_traits = $class_data['suggestedTraits'];
-        $this->updateStateOnly();
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => 'Applied suggested traits for '.($class_data['name'] ?? $this->character->selected_class).'!',
-        ]);
-    }
-
-    public function applySuggestedEquipment(): void
-    {
-        if (! $this->character->selected_class) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Please select a class first.',
-            ]);
-
-            return;
-        }
-
-        $class_data = $this->game_data['classes'][$this->character->selected_class] ?? null;
-        if (! $class_data) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'No equipment suggestions available for this class.',
-            ]);
-
-            return;
-        }
-
-        // Clear existing equipment
-        $this->character->selected_equipment = [];
-
-        // Add suggested weapons
-        if (isset($class_data['suggestedWeapons']['primary'])) {
-            $primary_weapon = $class_data['suggestedWeapons']['primary'];
-            if (is_array($primary_weapon) && isset($primary_weapon['name'])) {
-                $weapon_key = strtolower($primary_weapon['name']);
-                $weapon_data = $this->game_data['weapons'][$weapon_key] ?? null;
-
-                if ($weapon_data) {
-                    $this->character->selected_equipment[] = [
-                        'key' => $weapon_key,
-                        'type' => 'weapon',
-                        'data' => $weapon_data,
-                    ];
-                }
-            }
-        }
-
-        if (isset($class_data['suggestedWeapons']['secondary'])) {
-            $secondary_weapon = $class_data['suggestedWeapons']['secondary'];
-            if (is_array($secondary_weapon) && isset($secondary_weapon['name'])) {
-                $weapon_key = strtolower($secondary_weapon['name']);
-                $weapon_data = $this->game_data['weapons'][$weapon_key] ?? null;
-
-                if ($weapon_data) {
-                    $this->character->selected_equipment[] = [
-                        'key' => $weapon_key,
-                        'type' => 'weapon',
-                        'data' => $weapon_data,
-                    ];
-                }
-            }
-        }
-
-        // Add suggested armor
-        if (isset($class_data['suggestedArmor'])) {
-            $suggested_armor = $class_data['suggestedArmor'];
-            if (is_array($suggested_armor) && isset($suggested_armor['name'])) {
-                $armor_key = strtolower($suggested_armor['name']);
-                $armor_data = $this->game_data['armor'][$armor_key] ?? null;
-
-                if ($armor_data) {
-                    $this->character->selected_equipment[] = [
-                        'key' => $armor_key,
-                        'type' => 'armor',
-                        'data' => $armor_data,
-                    ];
-                }
-            }
-        }
-
-        // Add starting inventory items
-        if (isset($class_data['startingInventory'])) {
-            $inventory = $class_data['startingInventory'];
-
-            // Handle 'always' items
-            if (isset($inventory['always']) && is_array($inventory['always'])) {
-                foreach ($inventory['always'] as $item) {
-                    if (is_string($item)) {
-                        $item_key = strtolower($item);
-
-                        // Try to find in items first
-                        $item_data = $this->game_data['items'][$item_key] ?? null;
-                        if ($item_data) {
-                            $this->character->selected_equipment[] = [
-                                'key' => $item_key,
-                                'type' => 'item',
-                                'data' => $item_data,
-                            ];
-
-                            continue;
-                        }
-
-                        // Try consumables if not found in items
-                        $consumable_data = $this->game_data['consumables'][$item_key] ?? null;
-                        if ($consumable_data) {
-                            $this->character->selected_equipment[] = [
-                                'key' => $item_key,
-                                'type' => 'consumable',
-                                'data' => $consumable_data,
-                            ];
-                        }
-                    }
-                }
-            }
-
-            // Handle 'chooseOne' items (pick the first one)
-            if (isset($inventory['chooseOne']) && is_array($inventory['chooseOne']) && ! empty($inventory['chooseOne'])) {
-                $first_choice = $inventory['chooseOne'][0];
-                if (is_string($first_choice)) {
-                    $item_key = strtolower($first_choice);
-
-                    // Try to find in items first
-                    $item_data = $this->game_data['items'][$item_key] ?? null;
-                    if ($item_data) {
-                        $this->character->selected_equipment[] = [
-                            'key' => $item_key,
-                            'type' => 'item',
-                            'data' => $item_data,
-                        ];
-                    } else {
-                        // Try consumables if not found in items
-                        $consumable_data = $this->game_data['consumables'][$item_key] ?? null;
-                        if ($consumable_data) {
-                            $this->character->selected_equipment[] = [
-                                'key' => $item_key,
-                                'type' => 'consumable',
-                                'data' => $consumable_data,
-                            ];
-                        }
-                    }
-                }
-            }
-        }
-
-        $this->updateStateOnly();
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => 'Applied suggested equipment for '.($class_data['name'] ?? $this->character->selected_class).'!',
-        ]);
-    }
+    // NOTE: applySuggestedEquipment() method removed - equipment application now handled client-side
+    // JavaScript method: applySuggestedEquipment() provides instant feedback and better UX
 
     public function updateCompletedSteps(): void
     {
@@ -791,16 +433,8 @@ class CharacterBuilder extends Component
         $this->dispatch('character-updated', $this->character);
     }
 
-    /**
-     * Helper method to update completion state, save to database, and dispatch character-updated event
-     * ONLY USE THIS FOR EXPLICIT SAVE OPERATIONS!
-     */
-    private function saveAndUpdateState(): void
-    {
-        $this->updateCompletedSteps();
-        $this->saveToDatabase();
-        $this->dispatch('character-updated', $this->character);
-    }
+    // NOTE: saveAndUpdateState() removed - redundant with saveToDatabase() which already
+    // handles state updates and character-updated dispatching.
 
     public function saveToDatabase(): void
     {
@@ -826,257 +460,35 @@ class CharacterBuilder extends Component
                 timestamp: $this->last_saved_timestamp
             );
 
-            // Dispatch success notification
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Character saved successfully!',
-            ]);
+            // Dispatch character saved event for JavaScript state management
+            $this->dispatch('character-saved');
+
+            // Show success toast notification
+            toast()
+                ->success('Character saved successfully!')
+                ->push();
 
         } catch (\Exception $e) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Failed to save character: '.$e->getMessage(),
-            ]);
+            toast()
+                ->danger('Failed to save character: '.$e->getMessage())
+                ->push();
         }
     }
 
-    public function saveCharacter(): void
-    {
-        try {
-            $action = new SaveCharacterAction;
-            $character = $action->execute($this->character, Auth::user());
+    // NOTE: saveCharacter() method could be consolidated with saveToDatabase() for consistency
+    // Currently only used once in connection-creation.blade.php - consider using saveToDatabase() directly
 
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Character saved successfully!',
-            ]);
+    // NOTE: resetCharacter() removed - character reset is now handled client-side
+    // for better performance and instant UI updates.
 
-            $this->dispatch('character-saved', [
-                'character_key' => $character->character_key,
-                'share_url' => $character->getShareUrl(),
-            ]);
+    // NOTE: getSuggestedEquipment() method removed - equipment suggestions now computed client-side
+    // JavaScript computed properties: suggestedPrimaryWeapon, suggestedSecondaryWeapon, suggestedArmor
 
-        } catch (\Exception $e) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Failed to save character: '.$e->getMessage(),
-            ]);
-        }
-    }
+    // NOTE: getFilteredData() method removed - all filtering now handled client-side in character-builder.js
+    // Data filtering for subclasses, domain cards, background questions, and connection questions
+    // is now computed in real-time by JavaScript for better performance and instant UI updates
 
-    public function resetCharacter(): void
-    {
-        $this->character = new CharacterBuilderData;
-        $this->completed_steps = [];
-
-        $this->dispatch('reset-storage', ['key' => $this->storage_key]);
-        $this->dispatch('character-reset');
-    }
-
-    public function getSuggestedEquipment(): array
-    {
-        if (! $this->character->selected_class) {
-            return [];
-        }
-
-        $class_data = $this->game_data['classes'][$this->character->selected_class] ?? null;
-        if (! $class_data) {
-            return [];
-        }
-
-        $suggestions = [];
-
-        // Add suggested weapons
-        if (isset($class_data['suggestedWeapons']['primary'])) {
-            $primary_weapon = $class_data['suggestedWeapons']['primary'];
-            if (is_array($primary_weapon) && isset($primary_weapon['name'])) {
-                $weapon_key = strtolower($primary_weapon['name']);
-                $weapon_data = $this->game_data['weapons'][$weapon_key] ?? null;
-
-                if ($weapon_data) {
-                    $suggestions[] = [
-                        'key' => $weapon_key,
-                        'type' => 'weapon',
-                        'category' => 'Primary Weapon',
-                        'data' => $weapon_data,
-                        'reason' => 'Suggested primary weapon for '.$class_data['name'],
-                    ];
-                }
-            }
-        }
-
-        if (isset($class_data['suggestedWeapons']['secondary'])) {
-            $secondary_weapon = $class_data['suggestedWeapons']['secondary'];
-            if (is_array($secondary_weapon) && isset($secondary_weapon['name'])) {
-                $weapon_key = strtolower($secondary_weapon['name']);
-                $weapon_data = $this->game_data['weapons'][$weapon_key] ?? null;
-
-                if ($weapon_data) {
-                    $suggestions[] = [
-                        'key' => $weapon_key,
-                        'type' => 'weapon',
-                        'category' => 'Secondary Weapon',
-                        'data' => $weapon_data,
-                        'reason' => 'Suggested secondary weapon for '.$class_data['name'],
-                    ];
-                }
-            }
-        }
-
-        // Add suggested armor
-        if (isset($class_data['suggestedArmor'])) {
-            $suggested_armor = $class_data['suggestedArmor'];
-            if (is_array($suggested_armor) && isset($suggested_armor['name'])) {
-                $armor_key = strtolower($suggested_armor['name']);
-                $armor_data = $this->game_data['armor'][$armor_key] ?? null;
-
-                if ($armor_data) {
-                    $suggestions[] = [
-                        'key' => $armor_key,
-                        'type' => 'armor',
-                        'category' => 'Armor',
-                        'data' => $armor_data,
-                        'reason' => 'Suggested armor for '.$class_data['name'],
-                    ];
-                }
-            }
-        }
-
-        // Add starting inventory
-        if (isset($classData['startingInventory'])) {
-            $inventory = $classData['startingInventory'];
-
-            // Handle 'always' items
-            if (isset($inventory['always']) && is_array($inventory['always'])) {
-                foreach ($inventory['always'] as $item) {
-                    if (is_string($item)) {
-                        $itemKey = strtolower($item);
-
-                        // Try items first
-                        $itemData = $this->game_data['items'][$itemKey] ?? null;
-                        if ($itemData) {
-                            $suggestions[] = [
-                                'key' => $itemKey,
-                                'type' => 'item',
-                                'category' => 'Starting Gear',
-                                'data' => $itemData,
-                                'reason' => 'Essential starting item for '.$classData['name'],
-                            ];
-
-                            continue;
-                        }
-
-                        // Try consumables
-                        $consumableData = $this->game_data['consumables'][$itemKey] ?? null;
-                        if ($consumableData) {
-                            $suggestions[] = [
-                                'key' => $itemKey,
-                                'type' => 'consumable',
-                                'category' => 'Starting Consumables',
-                                'data' => $consumableData,
-                                'reason' => 'Essential starting consumable for '.$classData['name'],
-                            ];
-                        }
-                    }
-                }
-            }
-
-            // Handle 'chooseOne' items (pick the first one as suggestion)
-            if (isset($inventory['chooseOne']) && is_array($inventory['chooseOne']) && ! empty($inventory['chooseOne'])) {
-                $firstChoice = $inventory['chooseOne'][0];
-                if (is_string($firstChoice)) {
-                    $itemKey = strtolower($firstChoice);
-
-                    // Try items first
-                    $itemData = $this->game_data['items'][$itemKey] ?? null;
-                    if ($itemData) {
-                        $suggestions[] = [
-                            'key' => $itemKey,
-                            'type' => 'item',
-                            'category' => 'Starting Options',
-                            'data' => $itemData,
-                            'reason' => 'Recommended choice for '.$classData['name'],
-                        ];
-                    } else {
-                        // Try consumables
-                        $consumableData = $this->game_data['consumables'][$itemKey] ?? null;
-                        if ($consumableData) {
-                            $suggestions[] = [
-                                'key' => $itemKey,
-                                'type' => 'consumable',
-                                'category' => 'Starting Options',
-                                'data' => $consumableData,
-                                'reason' => 'Recommended choice for '.$classData['name'],
-                            ];
-                        }
-                    }
-                }
-            }
-        }
-
-        return $suggestions;
-    }
-
-    /**
-     * Get filtered data for current selections
-     */
-    public function getFilteredData(): array
-    {
-        return [
-            // Filtered subclasses based on selected class
-            'available_subclasses' => $this->character->getAvailableSubclasses(
-                $this->game_data['classes'] ?? [],
-                $this->game_data['subclasses'] ?? []
-            ),
-
-            // Filtered domain cards based on selected class
-            'filtered_domain_cards' => $this->character->getFilteredDomainCards(
-                $this->game_data['domains'] ?? [],
-                $this->game_data['abilities'] ?? []
-            ),
-
-            // Background questions based on selected class
-            'background_questions' => $this->character->getBackgroundQuestions(
-                $this->game_data['classes'] ?? []
-            ),
-
-            // Connection questions based on selected class
-            'connection_questions' => $this->character->getConnectionQuestions(
-                $this->game_data['classes'] ?? []
-            ),
-
-            // Selected class details
-            'selected_class_data' => ! empty($this->character->selected_class) && isset($this->game_data['classes'][$this->character->selected_class])
-                ? $this->game_data['classes'][$this->character->selected_class]
-                : null,
-
-            // Selected subclass details
-            'selected_subclass_data' => ! empty($this->character->selected_subclass) && isset($this->game_data['subclasses'][$this->character->selected_subclass])
-                ? $this->game_data['subclasses'][$this->character->selected_subclass]
-                : null,
-
-            // Selected ancestry details
-            'selected_ancestry_data' => ! empty($this->character->selected_ancestry) && isset($this->game_data['ancestries'][$this->character->selected_ancestry])
-                ? $this->game_data['ancestries'][$this->character->selected_ancestry]
-                : null,
-
-            // Selected community details
-            'selected_community_data' => ! empty($this->character->selected_community) && isset($this->game_data['communities'][$this->character->selected_community])
-                ? $this->game_data['communities'][$this->character->selected_community]
-                : null,
-
-            // Class suggestions
-            'suggested_equipment' => $this->getSuggestedEquipment(),
-            'suggested_primary_weapon' => $this->getSuggestedWeaponData('primary'),
-            'suggested_secondary_weapon' => $this->getSuggestedWeaponData('secondary'),
-            'suggested_armor' => $this->getSuggestedArmorData(),
-
-            // Pre-processed inventory items (to avoid @php tags in Blade)
-            'processed_choose_one_items' => $this->getProcessedInventoryItems('chooseOne'),
-            'processed_choose_extra_items' => $this->getProcessedInventoryItems('chooseExtra'),
-        ];
-    }
-
+    // NOTE: getTabsData() could be moved to client-side or enum helper for better performance
     public function getTabsData(): array
     {
         $tabs = [];
@@ -1089,51 +501,14 @@ class CharacterBuilder extends Component
 
     public function getEquipmentProgress(): array
     {
-        $selectedPrimary = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'weapon' && ($eq['data']['type'] ?? 'Primary') === 'Primary'
-        );
-
-        $selectedSecondary = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'weapon' && ($eq['data']['type'] ?? '') === 'Secondary'
-        );
-
-        $selectedArmor = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'armor'
-        );
-
-        // Check if starting inventory requirements are met
-        $hasSelectedChooseOne = true; // Default to true if no requirements
-        $hasSelectedChooseExtra = true; // Default to true if no requirements
+        $selectedPrimary = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'weapon' && ($eq['data']['type'] ?? 'Primary') === 'Primary');
+        $selectedSecondary = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'weapon' && ($eq['data']['type'] ?? '') === 'Secondary');
+        $selectedArmor = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'armor');
+        
+        // Basic implementation for backward compatibility until equipment template is fully converted
+        $hasSelectedChooseOne = true;
+        $hasSelectedChooseExtra = true; 
         $hasStartingInventory = false;
-
-        if ($this->character->selected_class && isset($this->game_data['classes'][$this->character->selected_class]['startingInventory'])) {
-            $startingInventory = $this->game_data['classes'][$this->character->selected_class]['startingInventory'];
-
-            // Check Choose One items
-            if (isset($startingInventory['chooseOne']) && is_array($startingInventory['chooseOne']) && ! empty($startingInventory['chooseOne'])) {
-                $hasSelectedChooseOne = false;
-                $hasStartingInventory = true;
-
-                foreach ($startingInventory['chooseOne'] as $item) {
-                    $itemKey = strtolower($item);
-                    if (collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['key'] === $itemKey)) {
-                        $hasSelectedChooseOne = true;
-                        break;
-                    }
-                }
-            }
-
-            // Check Choose Extra items
-            if (isset($startingInventory['chooseExtra']) && is_array($startingInventory['chooseExtra']) && ! empty($startingInventory['chooseExtra'])) {
-                $hasSelectedChooseExtra = false;
-                $hasStartingInventory = true;
-
-                foreach ($startingInventory['chooseExtra'] as $item) {
-                    $itemKey = strtolower($item);
-                    if (collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['key'] === $itemKey)) {
-                        $hasSelectedChooseExtra = true;
-                        break;
-                    }
-                }
-            }
-        }
 
         return [
             'selectedPrimary' => $selectedPrimary,
@@ -1142,94 +517,19 @@ class CharacterBuilder extends Component
             'hasSelectedChooseOne' => $hasSelectedChooseOne,
             'hasSelectedChooseExtra' => $hasSelectedChooseExtra,
             'hasStartingInventory' => $hasStartingInventory,
-            'equipmentComplete' => $selectedPrimary && $selectedArmor && $hasSelectedChooseOne && $hasSelectedChooseExtra,
+            'equipmentComplete' => $selectedPrimary && $selectedArmor,
         ];
     }
 
-    public function getSuggestedWeaponData(string $type): ?array
-    {
-        if (! $this->character->selected_class || ! isset($this->game_data['classes'][$this->character->selected_class]['suggestedWeapons'][$type])) {
-            return null;
-        }
+    // NOTE: Equipment suggestion methods removed - now handled client-side in character-builder.js
+    // The following methods were moved to JavaScript for better performance:
+    // - getSuggestedWeaponData() -> suggestedPrimaryWeapon, suggestedSecondaryWeapon computed properties
+    // - getSuggestedArmorData() -> suggestedArmor computed property  
+    // - isWeaponSuggested() -> client-side filtering in tier1PrimaryWeapons, tier1SecondaryWeapons
+    // - isArmorSuggested() -> client-side filtering in tier1Armor
 
-        $suggestion = $this->game_data['classes'][$this->character->selected_class]['suggestedWeapons'][$type];
-        $weaponKey = strtolower($suggestion['name']);
-        $weaponData = $this->game_data['weapons'][$weaponKey] ?? null;
-
-        if (! $weaponData) {
-            return null;
-        }
-
-        $isSelected = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['key'] === $weaponKey && $eq['type'] === 'weapon'
-        );
-
-        return [
-            'suggestion' => $suggestion,
-            'weaponKey' => $weaponKey,
-            'weaponData' => $weaponData,
-            'isSelected' => $isSelected,
-        ];
-    }
-
-    public function getSuggestedArmorData(): ?array
-    {
-        if (! $this->character->selected_class || ! isset($this->game_data['classes'][$this->character->selected_class]['suggestedArmor'])) {
-            return null;
-        }
-
-        $suggestion = $this->game_data['classes'][$this->character->selected_class]['suggestedArmor'];
-        $armorKey = strtolower($suggestion['name']);
-        $armorData = $this->game_data['armor'][$armorKey] ?? null;
-
-        if (! $armorData) {
-            return null;
-        }
-
-        $isSelected = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['key'] === $armorKey && $eq['type'] === 'armor'
-        );
-
-        return [
-            'suggestion' => $suggestion,
-            'armorKey' => $armorKey,
-            'armorData' => $armorData,
-            'isSelected' => $isSelected,
-        ];
-    }
-
-    public function isWeaponSuggested(string $weaponKey, string $type): bool
-    {
-        if (! $this->character->selected_class) {
-            return false;
-        }
-
-        $classData = $this->game_data['classes'][$this->character->selected_class] ?? null;
-        if (! $classData || ! isset($classData['suggestedWeapons'][$type])) {
-            return false;
-        }
-
-        return strtolower($classData['suggestedWeapons'][$type]['name']) === $weaponKey;
-    }
-
-    public function isArmorSuggested(string $armorKey): bool
-    {
-        if (! $this->character->selected_class) {
-            return false;
-        }
-
-        $classData = $this->game_data['classes'][$this->character->selected_class] ?? null;
-        if (! $classData || ! isset($classData['suggestedArmor'])) {
-            return false;
-        }
-
-        return strtolower($classData['suggestedArmor']['name']) === $armorKey;
-    }
-
-    public function isInventoryItemSelected(string $itemName): bool
-    {
-        $itemKey = strtolower($itemName);
-
-        return collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['key'] === $itemKey);
-    }
+    // NOTE: isInventoryItemSelected() method removed - inventory selection state now tracked client-side
+    // JavaScript component has isInventoryItemSelected() method for real-time UI updates
 
     public function syncEquipment(array $selected_equipment): void
     {
@@ -1240,76 +540,33 @@ class CharacterBuilder extends Component
         $this->updateStateOnly();
     }
 
-    public function getInventoryItemData(string $item_name): array
-    {
-        $item_key = strtolower($item_name);
-        $item_data = $this->game_data['consumables'][$item_key] ?? $this->game_data['items'][$item_key] ?? ['name' => $item_name];
-        $item_type = isset($this->game_data['consumables'][$item_key]) ? 'consumable' : 'item';
+    // NOTE: getInventoryItemData() method removed - inventory data lookup now handled client-side
+    // JavaScript component has direct access to gameData for item/consumable lookups
 
-        return [
-            'item_key' => $item_key,
-            'item_data' => $item_data,
-            'item_type' => $item_type,
-        ];
-    }
+    // NOTE: getProcessedInventoryItems() method removed - inventory processing now handled client-side
+    // Complex inventory selection (Choose One/Choose Extra) is handled in character-builder.js
 
-    /**
-     * Get processed inventory items for a specific category (chooseOne or chooseExtra)
-     * This avoids using @php tags in Blade templates
-     */
-    private function getProcessedInventoryItems(string $category): array
-    {
-        $processedItems = [];
-
-        if (! $this->character->selected_class || ! isset($this->game_data['classes'][$this->character->selected_class]['startingInventory'][$category])) {
-            return $processedItems;
-        }
-
-        $items = $this->game_data['classes'][$this->character->selected_class]['startingInventory'][$category];
-
-        if (! is_array($items)) {
-            return $processedItems;
-        }
-
-        foreach ($items as $item) {
-            $itemInfo = $this->getInventoryItemData($item);
-            $processedItems[] = [
-                'item_name' => $item,
-                'item_key' => $itemInfo['item_key'],
-                'item_data' => $itemInfo['item_data'],
-                'item_type' => $itemInfo['item_type'],
-            ];
-        }
-
-        return $processedItems;
-    }
-
-    public function getConnectionProgress(): array
-    {
-        $filtered_data = $this->getFilteredData();
-        $total_connections = count($filtered_data['connection_questions'] ?? []);
-        $answered_connections = count(array_filter($this->character->connection_answers ?? [], fn ($answer) => ! empty(trim($answer))));
-
-        return [
-            'total_connections' => $total_connections,
-            'answered_connections' => $answered_connections,
-        ];
-    }
+    // NOTE: getConnectionProgress() method removed - connection progress now tracked client-side
+    // JavaScript computed properties: totalConnections, answeredConnections, isConnectionComplete
 
     public function render()
     {
         return view('livewire.character-builder', [
             'game_data' => $this->game_data,
-            'filtered_data' => $this->getFilteredData(),
             'progress_percentage' => $this->character->getProgressPercentage(),
             'is_complete' => count($this->completed_steps) === count(\Domain\Character\Enums\CharacterBuilderStep::getAllInOrder()),
             'completed_steps' => $this->completed_steps,
             'tabs' => $this->getTabsData(),
             'equipment_progress' => $this->getEquipmentProgress(),
-            'connection_progress' => $this->getConnectionProgress(),
             'computed_stats' => $this->getComputedStats(),
             'ancestry_bonuses' => $this->character->getAncestryBonuses(),
             'character_level' => $this->character_model?->level ?? 1,
+            'last_saved_timestamp' => $this->last_saved_timestamp,
+            'classes' => ClassEnum::cases(),
+            // NOTE: Removed redundant data now handled client-side:
+            // - filtered_data (subclasses, domain cards, questions computed in JS)
+            // - equipment_progress (equipment completion tracked in JS)  
+            // - connection_progress (connection tracking handled in JS)
         ]);
     }
 
