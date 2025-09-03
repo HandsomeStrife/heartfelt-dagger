@@ -91,13 +91,21 @@ class SimpleImageUploader {
             const result = await this.uploadFile(file);
             
             if (result.success) {
-                // Update character builder with new image path
-                this.characterBuilder.profile_image_path = result.image_path;
+                // Mark as unsaved changes
                 this.characterBuilder.markAsUnsaved();
                 
-                // Refresh the Livewire component to update the image display
-                if (this.characterBuilder.$wire && this.characterBuilder.$wire.refreshCharacter) {
-                    this.characterBuilder.$wire.refreshCharacter();
+                // Force a complete Livewire component refresh
+                if (this.characterBuilder.$wire) {
+                    // Clear the temporary upload property first
+                    this.characterBuilder.$wire.profile_image = null;
+                    
+                    // Refresh the character data
+                    if (this.characterBuilder.$wire.refreshCharacter) {
+                        this.characterBuilder.$wire.refreshCharacter();
+                    }
+                    
+                    // Force a component re-render
+                    this.characterBuilder.$wire.$refresh();
                 }
                 
                 // Show success message

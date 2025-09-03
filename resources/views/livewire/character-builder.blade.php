@@ -86,18 +86,27 @@
                 <!-- Profile Image Upload -->
                 <div class="flex flex-col items-center justify-center sm:flex-shrink-0">
                     <div class="relative">
-                        @if($profile_image || $character->profile_image_path)
-                            <!-- Image Preview -->
-                            <div class="character-image-preview-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg">
-                                <div class="character-image-preview w-full h-full">
+                        @if($this->getImageUrl())
+                            <!-- Image Preview (Clickable to Replace) -->
+                            <div class="character-image-preview-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 hover:border-slate-500 shadow-lg cursor-pointer transition-all duration-200 group"
+                                 @click="openImageUpload()"
+                                 pest="profile-image-replace">
+                                <div class="character-image-preview w-full h-full relative">
                                     <img 
                                         src="{{ $this->getImageUrl() }}" 
                                         alt="Profile preview" 
-                                        class="w-full h-full object-cover"
+                                        class="w-full h-full object-cover group-hover:opacity-80 transition-opacity duration-200"
                                     >
+                                    <!-- Overlay icon for replace indication -->
+                                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                    </div>
                                 </div>
                                 <button 
-                                    @click="clearProfileImage()"
+                                    @click.stop="clearProfileImage()"
+                                    pest="clear-profile-image"
                                     class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +119,7 @@
                             <div 
                                 class="character-image-upload-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
                                 @click="openImageUpload()"
-                                dusk="profile-image-upload"
+                                pest="profile-image-upload"
                             >
                                 <svg class="w-8 h-8 text-slate-400 group-hover:text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -125,6 +134,7 @@
                                 </div>
                                 <button 
                                     @click="clearProfileImage()"
+                                    pest="clear-profile-image"
                                     class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

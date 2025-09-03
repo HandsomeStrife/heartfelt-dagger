@@ -10,10 +10,10 @@ describe('Profile Image Upload', function () {
 
         // Verify initial state - no image, upload area visible
         $page->assertSee('Upload Image');
-        $page->assertVisible('[dusk="profile-image-upload"]');
+        $page->assertVisible('[pest="profile-image-upload"]');
         
         // Click the upload area to trigger Uppy file dialog
-        $page->click('[dusk="profile-image-upload"]');
+        $page->click('[pest="profile-image-upload"]');
         
         // Wait a moment for any initialization
         $page->wait(2);
@@ -32,7 +32,7 @@ describe('Profile Image Upload', function () {
         $imagePath = realpath(__DIR__ . '/../../resources/img/sample.jpg');
         
         // Click the upload area to ensure the SimpleImageUploader is ready
-        $page->click('[dusk="profile-image-upload"]');
+        $page->click('[pest="profile-image-upload"]');
         $page->wait(1); // Wait for the file input to be created
         
         // Extract the character key from the URL and use it to find the specific file input
@@ -47,13 +47,13 @@ describe('Profile Image Upload', function () {
         $page->assertSee('Profile preview');
         
         // Click delete button  
-        $page->click('button[dusk="clear-profile-image"]');
+        $page->click('[pest="clear-profile-image"]');
         $page->wait(1);
         
         // Verify image is removed and upload area returns
-        $page->assertDontSee('img[alt="Profile preview"]');
+        $page->assertDontSee('Profile preview');
         $page->assertSee('Upload Image');
-        $page->assertVisible('[dusk="profile-image-upload"]');
+        $page->assertVisible('[pest="profile-image-upload"]');
     });
     
     it('shows unsaved changes when image is uploaded', function () {
@@ -67,7 +67,7 @@ describe('Profile Image Upload', function () {
         $imagePath = realpath(__DIR__ . '/../../resources/img/sample.jpg');
         
         // Click the upload area to ensure the SimpleImageUploader is ready
-        $page->click('[dusk="profile-image-upload"]');
+        $page->click('[pest="profile-image-upload"]');
         $page->wait(1); // Wait for the file input to be created
         
         // Extract the character key from the URL and use it to find the specific file input
@@ -91,7 +91,7 @@ describe('Profile Image Upload', function () {
         $imagePath = realpath(__DIR__ . '/../../resources/img/sample.jpg');
         
         // Click the upload area to ensure the SimpleImageUploader is ready
-        $page->click('[dusk="profile-image-upload"]');
+        $page->click('[pest="profile-image-upload"]');
         $page->wait(1); // Wait for the file input to be created
         
         // Extract the character key from the URL and use it to find the specific file input
@@ -101,7 +101,7 @@ describe('Profile Image Upload', function () {
         $page->wait(3);
         
         // Add a class to trigger unsaved changes and enable save
-        $page->click('[dusk="class-card-warrior"]');
+        $page->click('[pest="class-card-warrior"]');
         $page->wait(1);
         
         // Save character
@@ -110,7 +110,41 @@ describe('Profile Image Upload', function () {
         $page->wait(1);
         
         // Image should still be there
-        $page->assertVisible('img[alt="Profile preview"]');
+        $page->assertSee('Profile preview');
+        $page->assertDontSee('Upload Image');
+    });
+    
+    it('allows replacing existing image by clicking on it', function () {
+        $page = visit('/character-builder');
+        $page->assertPathBeginsWith('/character-builder/');
+        
+        // First upload an image
+        $imagePath = realpath(__DIR__ . '/../../resources/img/sample.jpg');
+        
+        // Click the upload area to trigger file dialog
+        $page->click('[pest="profile-image-upload"]');
+        $page->wait(1);
+        
+        // Extract the character key and attach the file
+        $currentUrl = $page->url();
+        $characterKey = basename($currentUrl);
+        $page->attach("#simple-input-{$characterKey}", $imagePath);
+        $page->wait(3);
+        
+        // Verify image is uploaded
+        $page->assertSee('Profile preview');
+        $page->assertDontSee('Upload Image');
+        
+        // Now click on the existing image to replace it
+        $page->click('[pest="profile-image-replace"]');
+        $page->wait(1);
+        
+        // Should be able to attach a new file
+        $page->attach("#simple-input-{$characterKey}", $imagePath);
+        $page->wait(3);
+        
+        // Image should still be visible (replaced)
+        $page->assertSee('Profile preview');
         $page->assertDontSee('Upload Image');
     });
     
