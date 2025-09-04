@@ -67,6 +67,7 @@
                     <label for="new-experience-name" class="block text-sm font-medium text-slate-300 mb-2">Experience Name</label>
                     <input 
                         dusk="new-experience-name"
+                        pest="experience-name-input"
                         type="text" 
                         id="new-experience-name"
                         x-model="new_experience_name"
@@ -81,6 +82,7 @@
                     <label for="new-experience-description" class="block text-sm font-medium text-slate-300 mb-2">Description</label>
                     <input 
                         dusk="new-experience-description"
+                        pest="experience-description-input"
                         type="text" 
                         id="new-experience-description"
                         x-model="new_experience_description"
@@ -94,9 +96,11 @@
                     </div>
                 </div>
                 
-                <div class="lg:col-span-1 flex items-end">
+                <div class="lg:col-span-1">
+                    <label class="block text-sm font-medium text-slate-300 mb-2 opacity-0">Add</label>
                     <button 
                         dusk="add-experience-button"
+                        pest="add-experience-button"
                         @click="addExperience()"
                         :disabled="!canAddNewExperience"
                         :class="{
@@ -137,6 +141,8 @@
                 <template x-for="(experience, index) in experiences" :key="index">
                     <div 
                         :dusk="`experience-card-${index}`"
+                        pest="experience-item"
+                        :pest-index="index"
                         @click="canSelectBonusExperience(experience.name) ? selectClankBonusExperience(experience.name) : null"
                         :class="{
                             'relative group bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border transition-all duration-300 rounded-xl p-5': true,
@@ -154,6 +160,8 @@
                                     <div class="mt-2">
                                         <textarea 
                                             :dusk="`edit-experience-description-${index}`"
+                                            pest="edit-experience-description"
+                                            :pest-index="index"
                                             x-model="edit_experience_description"
                                             @input="markAsUnsaved()"
                                             placeholder="Enter description..."
@@ -164,7 +172,9 @@
                                         <div class="flex items-center justify-between mt-2">
                                             <div class="flex gap-2">
                                                 <button 
-                                                    @click="saveExperienceEdit()"
+                                                    @click="saveExperienceEdit(index)"
+                                                    pest="save-experience-edit"
+                                                    :pest-index="index"
                                                     class="px-3 py-1 bg-green-600/20 hover:bg-green-600/30 text-green-300 border border-green-500/30 hover:border-green-500/50 rounded text-xs font-medium transition-all duration-200"
                                                 >
                                                     Save
@@ -195,7 +205,9 @@
                                 <template x-if="!isEditingExperience(index)">
                                     <button 
                                         :dusk="`edit-experience-${index}`"
-                                        @click="startEditingExperience(index)"
+                                        pest="edit-experience"
+                                        :pest-index="index"
+                                        @click.stop="startEditingExperience(index)"
                                         class="p-2 hover:bg-blue-600/20 rounded-lg"
                                         title="Edit description"
                                     >
@@ -206,7 +218,9 @@
                                 </template>
                                 <button 
                                     :dusk="`remove-experience-${index}`"
-                                    @click="removeExperience(index)"
+                                    pest="remove-experience"
+                                    :pest-index="index"
+                                    @click.stop="removeExperience(index)"
                                     class="p-2 hover:bg-red-600/20 rounded-lg"
                                     title="Remove experience"
                                 >
@@ -229,8 +243,18 @@
                                 <div class="flex items-center">
                                     <span class="text-white font-bold text-lg" x-text="`+${getExperienceModifier(experience.name)}`"></span>
                                     <template x-if="getExperienceModifier(experience.name) > 2">
-                                        <span class="ml-2 text-xs px-2 py-1 bg-purple-500/20 text-purple-300 rounded" x-text="`${selectedAncestryData?.name || ''} Bonus`">
-                                        </span>
+                                        <div class="ml-2 flex items-center gap-2">
+                                            <span class="text-xs px-2 py-1 bg-purple-500/20 text-purple-300 rounded" x-text="`${selectedAncestryData?.name || ''} Bonus`"></span>
+                                            <button 
+                                                @click.stop="removeClankBonus(experience.name)"
+                                                class="text-xs px-1.5 py-0.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 hover:border-red-500/50 rounded transition-all duration-200"
+                                                title="Remove bonus"
+                                                pest="remove-clank-bonus"
+                                                :pest-experience="experience.name"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
                                     </template>
                                 </div>
                             </div>

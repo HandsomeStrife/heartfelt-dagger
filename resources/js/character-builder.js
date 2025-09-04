@@ -16,11 +16,13 @@ export function characterBuilderComponent($wire, gameData = {}) {
         personal_history: $wire.entangle('character.personal_history'),
         motivations: $wire.entangle('character.motivations'),
         experiences: $wire.entangle('character.experiences'),
-        new_experience_name: $wire.entangle('new_experience_name'),
-        new_experience_description: $wire.entangle('new_experience_description'),
-        editing_experience: $wire.entangle('editing_experience'),
-        edit_experience_description: $wire.entangle('edit_experience_description'),
         clank_bonus_experience: $wire.entangle('character.clank_bonus_experience'),
+        
+        // Client-side experience editing properties
+        new_experience_name: '',
+        new_experience_description: '',
+        editing_experience: null,
+        edit_experience_description: '',
         connection_answers: $wire.entangle('character.connection_answers'),
         selected_domain_cards: $wire.entangle('character.selected_domain_cards'),
         name: $wire.entangle('character.name'),
@@ -48,6 +50,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
         
         // Trait assignment data
         draggedValue: null,
+        selectedValue: null,
         availableValues: [-1, 0, 0, 1, 1, 2],
         
         // Heritage selection data
@@ -441,7 +444,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
         },
 
         isEditingExperience(index) {
-            return this.editing_experience && this.editing_experience.index === index;
+            return this.editing_experience === index;
         },
 
         isBonusExperience(experienceName) {
@@ -737,13 +740,36 @@ export function characterBuilderComponent($wire, gameData = {}) {
         drop(event, traitKey) {
             event.preventDefault();
             if (this.draggedValue !== null) {
-                this.$wire.assignTrait(traitKey, this.draggedValue);
+                this.assignTrait(traitKey, this.draggedValue);
                 this.draggedValue = null;
             }
         },
 
         removeValue(traitKey) {
-            this.$wire.assignTrait(traitKey, null);
+            this.assignTrait(traitKey, null);
+        },
+
+        /**
+         * Client-side trait assignment logic
+         */
+        assignTrait(traitKey, value) {
+            if (value === null) {
+                // Remove trait assignment
+                if (this.assigned_traits[traitKey] !== undefined) {
+                    delete this.assigned_traits[traitKey];
+                }
+            } else {
+                // Check if value is available
+                if (this.canDropValue(traitKey, value)) {
+                    // Remove existing assignment for this trait
+                    if (this.assigned_traits[traitKey] !== undefined) {
+                        delete this.assigned_traits[traitKey];
+                    }
+                    // Assign new value
+                    this.assigned_traits[traitKey] = value;
+                }
+            }
+            this.markAsUnsaved();
         },
 
         /**
@@ -755,8 +781,26 @@ export function characterBuilderComponent($wire, gameData = {}) {
 
         dropValue(traitKey, value) {
             if (this.canDropValue(traitKey, value)) {
-                this.$wire.assignTrait(traitKey, value);
+                this.assignTrait(traitKey, value);
             }
+        },
+
+        /**
+         * Assign selected value to trait, or remove if already assigned
+         */
+        assignSelectedValue(traitKey) {
+            // If trait already has value, remove it
+            if (this.assigned_traits[traitKey] !== undefined) {
+                this.removeValue(traitKey);
+                return;
+            }
+            
+            // Only assign if a value is actually selected
+            if (this.selectedValue !== null) {
+                this.assignTrait(traitKey, this.selectedValue);
+                this.selectedValue = null; // Clear selection after assignment
+            }
+            // If no value is selected, do nothing (user needs to select a value first)
         },
 
         /**
@@ -964,6 +1008,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
 
             // Apply the suggested traits
             this.assigned_traits = { ...this.selectedClassData.suggestedTraits };
+            this.selectedValue = null; // Clear any selected value
             this.markAsUnsaved();
 
             // Sync to server
@@ -1004,42 +1049,60 @@ export function characterBuilderComponent($wire, gameData = {}) {
 
             this.markAsUnsaved();
 
-            // Sync to server
-            this.$wire.addExperience();
+            // No server sync needed - handled by entangled properties
         },
 
         clearAllExperiences() {
             if (confirm('Are you sure you want to remove all experiences?')) {
                 this.experiences = [];
                 this.markAsUnsaved();
-                this.$wire.clearAllExperiences();
             }
         },
 
         removeExperience(index) {
+            const experienceToRemove = this.experiences[index];
+            
+            // If this experience has the clank bonus, clear it
+            if (experienceToRemove && this.clank_bonus_experience === experienceToRemove.name) {
+                this.clank_bonus_experience = null;
+            }
+            
             this.experiences.splice(index, 1);
             this.markAsUnsaved();
-            this.$wire.removeExperience(index);
         },
 
         selectClankBonusExperience(experienceName) {
             this.clank_bonus_experience = experienceName;
             this.markAsUnsaved();
-            this.$wire.selectClankBonusExperience(experienceName);
+        },
+
+        removeClankBonus(experienceName) {
+            if (this.clank_bonus_experience === experienceName) {
+                this.clank_bonus_experience = null;
+                this.markAsUnsaved();
+            }
         },
 
         startEditingExperience(index) {
-            this.$wire.startEditingExperience(index);
+            this.editing_experience = index;
+            this.edit_experience_description = this.experiences[index]?.description || '';
         },
 
-        saveExperienceEdit() {
-            this.markAsUnsaved();
-            this.$wire.saveExperienceEdit();
+        saveExperienceEdit(index) {
+            if (this.experiences[index]) {
+                this.experiences[index].description = this.edit_experience_description.trim();
+                this.editing_experience = null;
+                this.edit_experience_description = '';
+                this.markAsUnsaved();
+            }
         },
 
         cancelExperienceEdit() {
-            this.$wire.cancelExperienceEdit();
+            this.editing_experience = null;
+            this.edit_experience_description = '';
         },
+
+
 
         // Background management
         markBackgroundComplete() {
