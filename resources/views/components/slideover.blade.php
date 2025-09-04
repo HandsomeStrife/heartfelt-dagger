@@ -6,8 +6,6 @@
     'onClose' => null
 ])
 
-
-
 <div 
     x-data="{ 
         show: @js($show),
@@ -34,6 +32,7 @@
     x-trap="show"
     class="fixed inset-0 z-50 overflow-hidden"
     x-cloak
+    {{ $attributes }}
 >
     <!-- Background overlay -->
     <div 
