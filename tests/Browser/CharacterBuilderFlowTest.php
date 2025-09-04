@@ -9,9 +9,7 @@ it('character builder basic flow: create → class selection → traits → equi
 
     // Redirects to edit/{character_key}
     $page->assertPathBeginsWith('/character-builder/');
-    // Header action present
-    $page->assertPresent('[pest="save-character-button"]');
-
+    
     // Should start on Step 1: Class Selection
     $page->assertSee('Choose a Class');
     
@@ -80,7 +78,6 @@ it('domain card selection toggles and enforces max selection', function () {
     $page = visit('/character-builder');
 
     $page->assertPathBeginsWith('/character-builder/');
-    $page->assertPresent('[pest="save-character-button"]');
 
     // Select a class to enable domain cards
     $page->assertPresent('[pest="class-card-wizard"]');

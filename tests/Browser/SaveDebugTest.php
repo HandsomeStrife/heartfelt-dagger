@@ -9,7 +9,7 @@ it('debugs save button behavior step by step', function () {
 
     // Step 1: Verify initial state
     $page->assertDontSee('You have unsaved changes');
-    $page->waitForText('Choose a Class'); // Ensure page is loaded
+    $page->wait(2)->assertSee('Choose a Class'); // Ensure page is loaded
     
     // Step 2: Select a class
     $page->click('[pest="class-card-warrior"]');

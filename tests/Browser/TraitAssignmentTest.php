@@ -16,7 +16,7 @@ describe('Trait Assignment', function () {
 
     it('can click trait boxes to assign values', function () {
         visit('/character-builder/' . $this->character->storage_key)
-            ->click('[pest="tab-traits"]')
+            ->click('[pest="sidebar-tab-5"]')
             ->waitFor('[pest="trait-box"][pest-trait="agility"]')
             ->click('[pest="trait-box"][pest-trait="agility"]')
             ->waitUntil('document.querySelector("[pest-trait=agility]").textContent.includes("2")', 3)
@@ -25,7 +25,7 @@ describe('Trait Assignment', function () {
 
     it('can remove trait assignments by clicking again', function () {
         visit('/character-builder/' . $this->character->storage_key)
-            ->click('[pest="tab-traits"]')
+            ->click('[pest="sidebar-tab-5"]')
             ->waitFor('[pest="trait-box"][pest-trait="agility"]')
             ->click('[pest="trait-box"][pest-trait="agility"]') // Assign first value
             ->waitUntil('document.querySelector("[pest-trait=agility]").textContent.includes("2")', 3)
@@ -36,7 +36,7 @@ describe('Trait Assignment', function () {
 
     it('can apply suggested traits for class', function () {
         visit('/character-builder/' . $this->character->storage_key)
-            ->click('[pest="tab-traits"]')
+            ->click('[pest="sidebar-tab-5"]')
             ->waitFor('[pest="apply-suggested-traits"]')
             ->click('[pest="apply-suggested-traits"]')
             ->waitUntil('document.querySelector("[pest-trait=strength]").textContent.includes("2")', 3)
@@ -45,7 +45,7 @@ describe('Trait Assignment', function () {
 
     it('shows unsaved changes banner when traits are modified', function () {
         visit('/character-builder/' . $this->character->storage_key)
-            ->click('[pest="tab-traits"]')
+            ->click('[pest="sidebar-tab-5"]')
             ->waitFor('[pest="trait-box"][pest-trait="agility"]')
             ->click('[pest="trait-box"][pest-trait="agility"]')
             ->waitFor('.bg-gradient-to-r.from-amber-500')

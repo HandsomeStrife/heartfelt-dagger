@@ -182,6 +182,7 @@
                                                 </button>
                                                 <button 
                                                     @click="cancelExperienceEdit()"
+                                                    pest="cancel-experience-edit"
                                                     class="px-3 py-1 bg-slate-600/20 hover:bg-slate-600/30 text-slate-300 border border-slate-500/30 hover:border-slate-500/50 rounded text-xs font-medium transition-all duration-200"
                                                 >
                                                     Cancel

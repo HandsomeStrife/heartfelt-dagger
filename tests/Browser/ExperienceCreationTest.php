@@ -92,7 +92,7 @@ describe('Experience Creation', function () {
             ->clear('[pest="edit-experience-description"][pest-index="0"]')
             ->type('[pest="edit-experience-description"][pest-index="0"]', 'This should be cancelled')
             // Cancel the edit
-            ->click('button:contains("Cancel")')
+            ->click('[pest="cancel-experience-edit"]')
             ->wait(1)
             ->assertMissing('[pest="edit-experience-description"][pest-index="0"]')
             ->assertSee('Academic research skills')

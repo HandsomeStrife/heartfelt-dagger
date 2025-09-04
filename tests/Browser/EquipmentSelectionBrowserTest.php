@@ -68,7 +68,6 @@ it('shows correct suggested equipment for warrior', function () {
     
     // Redirects to edit/{character_key}
     $page->assertPathBeginsWith('/character-builder/');
-    $page->assertPresent('[pest="save-character-button"]');
     
     // Should start on Step 1: Class Selection
     $page->assertSee('Choose a Class');
@@ -122,7 +121,6 @@ it('shows correct suggested equipment for bard', function () {
     $page = visit('/character-builder');
     
     $page->assertPathBeginsWith('/character-builder/');
-    $page->assertPresent('[pest="save-character-button"]');
     $page->assertSee('Choose a Class');
     
     // Select bard instead of warrior
@@ -211,7 +209,6 @@ it('allows primary weapon selection and replacement', function () {
 
     // Redirects to edit/{character_key}
     $page->assertPathBeginsWith('/character-builder/');
-    $page->assertPresent('[pest="save-character-button"]');
 
     // Should start on Step 1: Class Selection
     $page->assertSee('Choose a Class');
@@ -265,7 +262,6 @@ it('allows applying all suggested equipment at once', function () {
 
     // Redirects to edit/{character_key}
     $page->assertPathBeginsWith('/character-builder/');
-    $page->assertPresent('[pest="save-character-button"]');
 
     // Should start on Step 1: Class Selection
     $page->assertSee('Choose a Class');

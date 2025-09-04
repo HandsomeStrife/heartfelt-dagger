@@ -305,6 +305,14 @@ class CharacterBuilder extends Component
     public function saveToDatabase(): void
     {
         try {
+            // Debug: Log that method was called
+            error_log('SAVE TO DATABASE CALLED!');
+            logger('=== SaveToDatabase Debug ===');
+            logger('Character selected_equipment count: ' . count($this->character->selected_equipment ?? []));
+            foreach ($this->character->selected_equipment ?? [] as $eq) {
+                logger("  - Equipment: {$eq['type']} - {$eq['key']}");
+            }
+            
             // Load the existing character from database
             $character = \Domain\Character\Models\Character::where('character_key', $this->storage_key)->firstOrFail();
 

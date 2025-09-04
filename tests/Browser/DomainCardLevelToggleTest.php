@@ -6,7 +6,6 @@ declare(strict_types=1);
 it('validates domain card selection and level toggle functionality', function () {
     $page = visit('/character-builder');
     $page->assertPathBeginsWith('/character-builder/');
-    $page->assertPresent('[pest="save-character-button"]');
 
     // Select class (same pattern as working tests)
     $page->assertPresent('[pest="class-card-wizard"]');

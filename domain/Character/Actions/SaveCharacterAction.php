@@ -130,7 +130,12 @@ class SaveCharacterAction
 
             // Clear and recreate equipment
             $character->equipment()->delete();
+            
+            // Debug: Log equipment data being saved
+            logger('=== SaveCharacterAction Equipment Debug ===');
+            logger('Builder data selected_equipment count: ' . count($builder_data->selected_equipment));
             foreach ($builder_data->selected_equipment as $equipment) {
+                logger("  - Saving equipment: {$equipment['type']} - {$equipment['key']}");
                 CharacterEquipment::create([
                     'character_id' => $character->id,
                     'equipment_type' => $equipment['type'],

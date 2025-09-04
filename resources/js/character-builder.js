@@ -95,20 +95,10 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.$wire.$on('character-saved', () => {
                 this.hasUnsavedChanges = false;
                 this.isSaving = false;
-                // Recapture current state as the new baseline
+                // Recapture current state as the new baseline after a longer delay to ensure all entangled properties have synced
                 setTimeout(() => {
                     this.captureCurrentState();
-                }, 100);
-            });
-            
-            // Also listen for successful save notifications
-            this.$wire.$on('notify', (data) => {
-                if (data.type === 'success' && data.message === 'Character saved successfully!') {
-                    this.hasUnsavedChanges = false;
-                    setTimeout(() => {
-                        this.captureCurrentState();
-                    }, 100);
-                }
+                }, 300);
             });
             
             // Listen for image upload events
@@ -966,8 +956,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
 
             this.markAsUnsaved();
             
-            // Sync to server
-            this.$wire.set('character.selected_domain_cards', this.selected_domain_cards);
+            // NOTE: No manual sync needed - entangled properties handle server sync automatically
         },
 
         isDomainCardSelected(domain, abilityKey) {
@@ -1011,8 +1000,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.selectedValue = null; // Clear any selected value
             this.markAsUnsaved();
 
-            // Sync to server
-            this.$wire.set('character.assigned_traits', this.assigned_traits);
+            // NOTE: No manual sync needed - entangled properties handle server sync automatically
             
             // Show notification
             this.$dispatch('notify', {
@@ -1121,8 +1109,8 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.$wire.saveToDatabase().then(() => {
                 // Success is handled by the character-saved event listener
             }).catch((error) => {
-                this.isSaving = false;
                 console.error('Save failed:', error);
+                this.isSaving = false;
             });
         },
 

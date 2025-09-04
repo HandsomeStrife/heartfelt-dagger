@@ -154,6 +154,7 @@
                         <label for="character-name" class="block text-sm font-medium text-slate-300 mb-2">Character Name</label>
                         <input 
                             dusk="character-name-input"
+                            pest="character-name-input"
                             type="text" 
                             id="character-name"
                             x-model="name"
@@ -165,6 +166,7 @@
                     <div>
                         <label for="character-pronouns" class="block text-sm font-medium text-slate-300 mb-2">Pronouns</label>
                         <input 
+                            pest="character-pronouns-input"
                             type="text" 
                             id="character-pronouns"
                             x-model="pronouns"

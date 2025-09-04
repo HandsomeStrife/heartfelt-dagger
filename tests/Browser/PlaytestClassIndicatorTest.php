@@ -12,7 +12,7 @@ it('shows playtest indicators on class selection grid', function () {
     $page->assertSee('Void - Playtest v1.5');
     
     // Verify that playtest badges are visible and styled correctly
-    $page->waitForText('Void - Playtest v1.5');
+    $page->wait(2)->assertSee('Void - Playtest v1.5');
 });
 
 it('shows playtest indicator in detailed class view', function () {
