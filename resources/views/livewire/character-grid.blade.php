@@ -62,16 +62,19 @@
                                  'X-Requested-With': 'XMLHttpRequest',
                                  'X-CSRF-TOKEN': token
                              }
-                         }).then(response => {
-                             if (response.ok) {
-                                 // Remove from localStorage
-                                 let keys = JSON.parse(localStorage.getItem('daggerheart_characters') || '[]');
-                                 keys = keys.filter(key => key !== character_key);
-                                 localStorage.setItem('daggerheart_characters', JSON.stringify(keys));
-                                 
-                                 // Reload the character grid
-                                 $wire.loadCharacters(keys);
-                             } else {
+                                                 }).then(response => {
+                            if (response.ok) {
+                                if (this.isAuthed) {
+                                    // For authenticated users, refresh from database
+                                    $wire.refreshCharacters();
+                                } else {
+                                    // For guest users, remove from localStorage and reload
+                                    let keys = JSON.parse(localStorage.getItem('daggerheart_characters') || '[]');
+                                    keys = keys.filter(key => key !== character_key);
+                                    localStorage.setItem('daggerheart_characters', JSON.stringify(keys));
+                                    $wire.loadCharacters(keys);
+                                }
+                            } else {
                                  response.json().then(data => {
                                      console.error('Delete failed:', data);
                                      alert(data.error || 'Failed to delete character. Please try again.');

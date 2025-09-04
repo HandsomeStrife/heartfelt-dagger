@@ -12,7 +12,7 @@
 <header
     pest="character-viewer-top-banner"
     class="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-900/40 to-fuchsia-900/30 px-6 md:px-8 py-6 shadow-lg relative">
-    <x-class-banner :class-name="$character->selected_class" size="sm" class="absolute top-0 right-6" />
+    <x-class-banner :class-name="$character->class" size="sm" class="absolute top-0 right-6" />
     <div class="absolute top-4 right-6 translate-y-full sm:translate-y-0 sm:top-3">
         <div class="rounded-3xl ring-1 ring-indigo-400/40 bg-indigo-500/10 px-4 py-3 min-w-[8.5rem]">
             <div class="text-[10px] uppercase tracking-wider text-indigo-200/90">Level</div>
@@ -53,11 +53,11 @@
                 </div>
                 <div class="mt-2 flex flex-wrap items-center gap-2 justify-center sm:justify-start">
                     <span pest="character-heritage" class="inline-flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1 rounded-full ring-1 ring-indigo-400/40 bg-indigo-500/15 text-indigo-200">
-                        {{ $communityData['name'] ?? ucfirst($character->selected_community ?? 'Unknown') }}
-                        {{ $ancestryData['name'] ?? ucfirst($character->selected_ancestry ?? 'Unknown') }} •
-                        {{ $classData['name'] ?? ucfirst($character->selected_class ?? 'Unknown') }}
-                        @if ($character->selected_subclass && $subclassData)
-                            <span class="opacity-70">({{ $subclassData['name'] ?? ucwords(str_replace('-', ' ', $character->selected_subclass)) }})</span>
+                        {{ $communityData['name'] ?? ucfirst($character->community ?? 'Unknown') }}
+                        {{ $ancestryData['name'] ?? ucfirst($character->ancestry ?? 'Unknown') }} •
+                        {{ $classData['name'] ?? ucfirst($character->class ?? 'Unknown') }}
+                        @if ($character->subclass && $subclassData)
+                            <span class="opacity-70">({{ $subclassData['name'] ?? ucwords(str_replace('-', ' ', $character->subclass)) }})</span>
                         @endif
                     </span>
                     @if ($classData && isset($classData['domains']))
@@ -74,13 +74,11 @@
                         <x-icons.armor-frame pest="armor-stat" :number="$computedStats['armor_score'] ?? '?'" class="size-20" />
                     </div>
                     <span class="text-slate-500/80 select-none">|</span>
-                    @if (!empty($character->assigned_traits))
-                        <div pest="trait-stats" class="flex items-center gap-1 flex-nowrap">
-                            @foreach ($traitInfo as $trait => $label)
-                                <x-icons.stat-frame pest="trait-{{ $trait }}" :number="(($character->assigned_traits[$trait] ?? 0) >= 0 ? '+' : '') . ($character->assigned_traits[$trait] ?? 0)" :label="$label" class="size-20" />
-                            @endforeach
-                        </div>
-                    @endif
+                    <div pest="trait-stats" class="flex items-center gap-1 flex-nowrap">
+                        @foreach ($traitInfo as $trait => $label)
+                            <x-icons.stat-frame pest="trait-{{ $trait }}" :number="$traitValues[$trait] ?? '+0'" :label="$label" class="size-20" />
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>

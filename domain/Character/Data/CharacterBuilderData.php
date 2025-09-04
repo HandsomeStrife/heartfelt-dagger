@@ -500,17 +500,25 @@ class CharacterBuilderData extends Data implements Wireable
         $ancestry_stress_bonus = $this->getAncestryStressBonus();
         $ancestry_damage_threshold_bonus = $this->getAncestryDamageThresholdBonus();
 
+        // Get subclass bonuses
+        $subclass_evasion_bonus = $this->getSubclassEvasionBonus();
+        $subclass_hit_point_bonus = $this->getSubclassHitPointBonus();
+        $subclass_stress_bonus = $this->getSubclassStressBonus();
+        $subclass_damage_threshold_bonus = $this->getSubclassDamageThresholdBonus();
+        $subclass_severe_threshold_bonus = $this->getSubclassSevereThresholdBonus();
+
         // Calculate final stats
-        $final_evasion = $base_evasion + $agility_modifier + $ancestry_evasion_bonus;
-        $final_hit_points = $base_hit_points + $ancestry_hit_point_bonus; // Base hit points + ancestry bonus
-        $final_stress = 6 + $ancestry_stress_bonus; // Every PC starts with 6 stress slots + ancestry bonus
-        $major_threshold = max(1, $armor_score + 4 + $ancestry_damage_threshold_bonus); // Level 1 + 3 + ancestry
-        $severe_threshold = max(1, $armor_score + 9 + $ancestry_damage_threshold_bonus); // Level 1 + 8 + ancestry
+        $final_evasion = $base_evasion + $agility_modifier + $ancestry_evasion_bonus + $subclass_evasion_bonus;
+        $final_hit_points = $base_hit_points + $ancestry_hit_point_bonus + $subclass_hit_point_bonus; // Base hit points + ancestry + subclass bonuses
+        $final_stress = 6 + $ancestry_stress_bonus + $subclass_stress_bonus; // Every PC starts with 6 stress slots + ancestry + subclass bonuses
+        $major_threshold = max(1, $armor_score + 4 + $ancestry_damage_threshold_bonus + $subclass_damage_threshold_bonus); // Level 1 + 3 + ancestry + subclass
+        $severe_threshold = max(1, $armor_score + 9 + $ancestry_damage_threshold_bonus + $subclass_damage_threshold_bonus + $subclass_severe_threshold_bonus); // Level 1 + 8 + ancestry + subclass bonuses
 
         return [
             // Simple values for tests and general use
             'evasion' => $final_evasion,
             'hit_points' => $final_hit_points,
+            'final_hit_points' => $final_hit_points, // Alias for viewer compatibility
             'stress' => $final_stress,
             'hope' => 2,
             'major_threshold' => $major_threshold,
@@ -523,16 +531,19 @@ class CharacterBuilderData extends Data implements Wireable
                     'base' => $base_evasion,
                     'agility_modifier' => $agility_modifier,
                     'ancestry_bonus' => $ancestry_evasion_bonus,
+                    'subclass_bonus' => $subclass_evasion_bonus,
                     'total' => $final_evasion,
                 ],
                 'hit_points' => [
                     'base' => $base_hit_points,
                     'ancestry_bonus' => $ancestry_hit_point_bonus,
+                    'subclass_bonus' => $subclass_hit_point_bonus,
                     'total' => $final_hit_points,
                 ],
                 'stress' => [
                     'base' => 6,
                     'ancestry_bonus' => $ancestry_stress_bonus,
+                    'subclass_bonus' => $subclass_stress_bonus,
                     'total' => $final_stress,
                 ],
                 'damage_thresholds' => [

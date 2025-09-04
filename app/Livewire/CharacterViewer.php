@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use Domain\Character\Actions\LoadCharacterAction;
-use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Models\Character;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
@@ -17,7 +15,7 @@ class CharacterViewer extends Component
     public string $character_key;
     public bool $can_edit;
 
-    public ?CharacterBuilderData $character = null;
+    public ?Character $character = null;
 
     public ?string $pronouns = null;
 
@@ -30,16 +28,14 @@ class CharacterViewer extends Component
         $this->character_key = $characterKey;
         $this->can_edit = $canEdit;
 
-        $action = new LoadCharacterAction;
-        $this->character = $action->execute($characterKey);
-
+        // Load the character model directly (not CharacterBuilderData)
+        $this->character = Character::where('character_key', $characterKey)->first();
+        
         if (! $this->character) {
             abort(404, 'Character not found');
         }
 
-        // Load the character model to get pronouns from database
-        $character_model = Character::where('character_key', $characterKey)->first();
-        $this->pronouns = $character_model->pronouns ?? null;
+        $this->pronouns = $this->character->pronouns ?? null;
 
         $this->loadGameData();
     }
@@ -113,11 +109,11 @@ class CharacterViewer extends Component
      */
     public function getComputedStats(): array
     {
-        if (!$this->character->selected_class || !isset($this->game_data['classes'][$this->character->selected_class])) {
+        if (!$this->character->class || !isset($this->game_data['classes'][$this->character->class])) {
             return [];
         }
 
-        $class_data = $this->game_data['classes'][$this->character->selected_class];
+        $class_data = $this->game_data['classes'][$this->character->class];
         return $this->character->getComputedStats($class_data);
     }
 
@@ -126,11 +122,11 @@ class CharacterViewer extends Component
      */
     public function getClassData(): ?array
     {
-        if (empty($this->character->selected_class) || !isset($this->game_data['classes'][$this->character->selected_class])) {
+        if (empty($this->character->class) || !isset($this->game_data['classes'][$this->character->class])) {
             return null;
         }
 
-        return $this->game_data['classes'][$this->character->selected_class];
+        return $this->game_data['classes'][$this->character->class];
     }
 
     /**
@@ -138,8 +134,26 @@ class CharacterViewer extends Component
      */
     public function getFormattedTraitValue(string $trait): string
     {
-        $value = $this->character->assigned_traits[$trait] ?? 0;
+        $trait_record = $this->character->traits()->where('trait_name', $trait)->first();
+        $value = $trait_record ? $trait_record->trait_value : 0;
         return $value >= 0 ? '+' . $value : (string) $value;
+    }
+
+    /**
+     * Get all trait values formatted for display
+     */
+    public function getFormattedTraitValues(): array
+    {
+        $trait_values = [];
+        $trait_names = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+        
+        foreach ($trait_names as $trait) {
+            $trait_record = $this->character->traits()->where('trait_name', $trait)->first();
+            $value = $trait_record ? $trait_record->trait_value : 0;
+            $trait_values[$trait] = $value >= 0 ? '+' . $value : (string) $value;
+        }
+        
+        return $trait_values;
     }
 
     /**
@@ -162,11 +176,11 @@ class CharacterViewer extends Component
      */
     public function getSubclassData(): ?array
     {
-        if (empty($this->character->selected_subclass) || !isset($this->game_data['subclasses'][$this->character->selected_subclass])) {
+        if (empty($this->character->subclass) || !isset($this->game_data['subclasses'][$this->character->subclass])) {
             return null;
         }
 
-        return $this->game_data['subclasses'][$this->character->selected_subclass];
+        return $this->game_data['subclasses'][$this->character->subclass];
     }
 
     /**
@@ -174,11 +188,11 @@ class CharacterViewer extends Component
      */
     public function getAncestryData(): ?array
     {
-        if (empty($this->character->selected_ancestry) || !isset($this->game_data['ancestries'][$this->character->selected_ancestry])) {
+        if (empty($this->character->ancestry) || !isset($this->game_data['ancestries'][$this->character->ancestry])) {
             return null;
         }
 
-        return $this->game_data['ancestries'][$this->character->selected_ancestry];
+        return $this->game_data['ancestries'][$this->character->ancestry];
     }
 
     /**
@@ -186,11 +200,11 @@ class CharacterViewer extends Component
      */
     public function getCommunityData(): ?array
     {
-        if (empty($this->character->selected_community) || !isset($this->game_data['communities'][$this->character->selected_community])) {
+        if (empty($this->character->community) || !isset($this->game_data['communities'][$this->character->community])) {
             return null;
         }
 
-        return $this->game_data['communities'][$this->character->selected_community];
+        return $this->game_data['communities'][$this->character->community];
     }
 
     /**
@@ -213,10 +227,14 @@ class CharacterViewer extends Component
             'consumable' => 'consumables',
         ];
 
-        foreach ($this->character->selected_equipment as $equipment) {
-            $type = $equipment['type'] ?? 'item';
+        foreach ($this->character->equipment as $equipment) {
+            $type = $equipment->equipment_type ?? 'item';
             $normalized = $typeMap[$type] ?? 'items';
-            $organized[$normalized][] = $equipment;
+            $organized[$normalized][] = [
+                'type' => $equipment->equipment_type,
+                'key' => $equipment->equipment_key,
+                'data' => $equipment->equipment_data
+            ];
         }
 
         return $organized;
@@ -266,15 +284,25 @@ class CharacterViewer extends Component
     {
         $domain_cards = [];
         
-        foreach ($this->character->selected_domain_cards as $card) {
-            $ability_key = $card['ability_key'] ?? null;
-            $domain = $card['domain'] ?? null;
+        foreach ($this->character->domainCards as $card) {
+            $ability_key = $card->ability_key ?? null;
+            $domain = $card->domain ?? null;
             
             if ($ability_key && isset($this->game_data['abilities'][$ability_key])) {
                 $ability_data = $this->game_data['abilities'][$ability_key];
-                $domain_cards[] = array_merge($card, ['ability_data' => $ability_data]);
+                $domain_cards[] = [
+                    'domain' => $card->domain,
+                    'ability_key' => $card->ability_key,
+                    'ability_level' => $card->ability_level,
+                    'ability_data' => $ability_data
+                ];
             } else {
-                $domain_cards[] = $card;
+                $domain_cards[] = [
+                    'domain' => $card->domain,
+                    'ability_key' => $card->ability_key,
+                    'ability_level' => $card->ability_level,
+                    'ability_data' => null
+                ];
             }
         }
 
@@ -319,17 +347,19 @@ class CharacterViewer extends Component
 
     public function render()
     {
+        $class_data = $this->getClassData();
         return view('livewire.character-viewer', [
             'character' => $this->character,
             'pronouns' => $this->pronouns,
             'game_data' => $this->game_data,
-            'computed_stats' => $this->getComputedStats(),
-            'class_data' => $this->getClassData(),
+            'computed_stats' => $this->getComputedStats($class_data ?? []),
+            'class_data' => $class_data,
             'subclass_data' => $this->getSubclassData(),
             'ancestry_data' => $this->getAncestryData(),
             'community_data' => $this->getCommunityData(),
             'organized_equipment' => $this->getOrganizedEquipment(),
             'domain_card_details' => $this->getDomainCardDetails(),
+            'trait_values' => $this->getFormattedTraitValues(),
         ]);
     }
 }

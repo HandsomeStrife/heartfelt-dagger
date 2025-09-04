@@ -19,6 +19,11 @@ class CharacterGrid extends Component
     public function mount(): void
     {
         $this->characters = collect();
+        $this->loadCharactersForCurrentUser();
+    }
+
+    public function loadCharactersForCurrentUser(): void
+    {
         // For authenticated users, load characters server-side by user
         if (Auth::check()) {
             $keys = Character::where('user_id', Auth::id())
@@ -67,6 +72,11 @@ class CharacterGrid extends Component
         
         $this->characters = $characters;
         $this->loading = false;
+    }
+
+    public function refreshCharacters(): void
+    {
+        $this->loadCharactersForCurrentUser();
     }
 
 

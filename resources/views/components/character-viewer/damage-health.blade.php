@@ -15,7 +15,7 @@
         </div>
         <div pest="hit-points-track" class="mt-2 flex flex-wrap gap-1.5">
             <template x-for="(marked, index) in hitPoints" :key="index">
-                <label :data-testid="'hp-toggle-' + index" :pest="'hp-slot-' + index">
+                <label :data-testid="'hp-toggle-' + index" x-bind:pest="'hp-slot-' + index">
                     <input type="checkbox" class="sr-only peer" :checked="marked" @change="toggleHitPoint(index)">
                     <span class="block w-11 h-4 rounded-full border border-slate-700 peer-checked:bg-rose-500/85 transition-colors" :class="canEdit ? 'cursor-pointer hover:border-rose-400/50' : ''"></span>
                 </label>
@@ -33,7 +33,7 @@
         </div>
         <div pest="stress-track" class="mt-2 flex flex-wrap gap-1.5">
             <template x-for="(marked, index) in stress" :key="index">
-                <label :data-testid="'stress-toggle-' + index" :pest="'stress-slot-' + index">
+                <label :data-testid="'stress-toggle-' + index" x-bind:pest="'stress-slot-' + index">
                     <input type="checkbox" class="sr-only peer" :checked="marked" @change="toggleStress(index)">
                     <span class="block w-11 h-4 rounded-full border border-slate-700 peer-checked:bg-amber-400/80 transition-colors" :class="canEdit ? 'cursor-pointer hover:border-amber-400/50' : ''"></span>
                 </label>
@@ -48,7 +48,7 @@
         <div class="text-[11px] uppercase tracking-wide text-slate-400">Armor Slots</div>
         <div pest="armor-slots-track" class="mt-2 flex gap-2">
             <template x-for="(damaged, index) in armorSlots" :key="index">
-                <label :data-testid="'armor-toggle-' + index" :pest="'armor-slot-' + index" class="inline-flex items-center justify-center">
+                <label :data-testid="'armor-toggle-' + index" x-bind:pest="'armor-slot-' + index" class="inline-flex items-center justify-center">
                     <input type="checkbox" class="sr-only peer" :checked="damaged" @change="toggleArmorSlot(index)">
                     <span class="inline-flex items-center justify-center w-7 h-7 rounded-md ring-1 ring-slate-700 bg-slate-900 peer-checked:bg-emerald-500/20 transition-colors" :class="canEdit ? 'cursor-pointer hover:ring-emerald-400/50' : ''">
                         <svg viewBox="0 0 24 24" class="w-4 h-4 text-slate-400 peer-checked:text-emerald-400" fill="currentColor">

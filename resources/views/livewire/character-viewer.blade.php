@@ -4,7 +4,8 @@
     characterKey: @js($character_key),
     final_hit_points: @js($computed_stats['final_hit_points'] ?? 6),
     stress_len: @js($computed_stats['stress'] ?? 6),
-    armor_score: @js($computed_stats['armor_score'] ?? 0)
+    armor_score: @js($computed_stats['armor_score'] ?? 0),
+    hope: @js($computed_stats['hope'] ?? 2)
 })" class="bg-slate-950 text-slate-100/95 antialiased min-h-screen"
     style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';">
 
@@ -21,6 +22,7 @@
             :computed-stats="$computed_stats"
             :can-edit="$can_edit"
             :trait-info="$this->getTraitInfo()"
+            :trait-values="$trait_values"
         />
 
         <!-- MAIN: Left = Damage & Health, Right = Hope + Gold -->

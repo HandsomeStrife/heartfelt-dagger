@@ -746,4 +746,52 @@ class Character extends Model
             ->filter()
             ->toArray();
     }
+
+    /**
+     * Get computed character stats for display in viewer
+     */
+    public function getComputedStats(array $class_data = []): array
+    {
+        // For saved characters, we need to reconstruct the CharacterBuilderData from the database
+        // The class/subclass are stored as separate columns, not in character_data
+        if (!empty($this->character_data)) {
+            // Build a complete character data array that matches CharacterBuilderData structure
+            $builder_data_array = [
+                'selected_class' => $this->class,
+                'selected_subclass' => $this->subclass,
+                'selected_ancestry' => $this->ancestry,
+                'selected_community' => $this->community,
+                'name' => $this->name,
+                'assigned_traits' => $this->getTraitsArray(),
+                'background_answers' => $this->character_data['background']['answers'] ?? [],
+                'connections' => $this->character_data['connections'] ?? [],
+                'experiences' => $this->experiences()->get()->map(function($exp) {
+                    return [
+                        'name' => $exp->experience_name,
+                        'description' => $exp->experience_description
+                    ];
+                })->toArray(),
+                'selected_equipment' => $this->equipment()->get()->map(function($equip) {
+                    return [
+                        'type' => $equip->equipment_type,
+                        'key' => $equip->equipment_key,
+                        'data' => $equip->equipment_data
+                    ];
+                })->toArray(),
+                'selected_domain_cards' => $this->domainCards()->get()->map(function($card) {
+                    return [
+                        'domain' => $card->domain,
+                        'ability_key' => $card->ability_key,
+                        'ability_level' => $card->ability_level
+                    ];
+                })->toArray(),
+            ];
+
+            $character_builder_data = \Domain\Character\Data\CharacterBuilderData::from($builder_data_array);
+            return $character_builder_data->getComputedStats($class_data);
+        }
+
+        // Fallback for empty character data - use CharacterStatsData
+        return \Domain\Character\Data\CharacterStatsData::fromModel($this)->toArray();
+    }
 }

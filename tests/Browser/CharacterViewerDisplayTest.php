@@ -181,6 +181,93 @@ describe('Character Viewer Display Validation', function () {
         $page->assertPresent('[pest="domain-cards-section"]');
     });
 
+    it('validates subclass features section displays correctly', function () {
+        $character = Character::factory()->create([
+            'character_data' => [
+                'selected_class' => 'wizard',
+                'selected_subclass' => 'school-of-knowledge',
+                'selected_ancestry' => 'human',
+                'selected_community' => 'loreborne',
+                'assigned_traits' => ['agility' => 0, 'strength' => 0, 'finesse' => 1, 'instinct' => 1, 'presence' => 0, 'knowledge' => 2],
+                'selected_equipment' => [],
+                'experiences' => [],
+                'selected_domain_cards' => [],
+            ],
+            'name' => 'Mira Scholarly',
+        ]);
+
+        $page = visit('/character/' . $character->character_key);
+        
+        // Verify subclass features section exists
+        $page->assertPresent('[pest="subclass-features-section"]')
+            ->assertSee('School of Knowledge Features');
+    });
+
+    it('validates ancestry features section displays correctly', function () {
+        $character = Character::factory()->create([
+            'character_data' => [
+                'selected_class' => 'rogue',
+                'selected_subclass' => 'nightwalker',
+                'selected_ancestry' => 'clank',
+                'selected_community' => 'slyborne',
+                'assigned_traits' => ['agility' => 2, 'strength' => 0, 'finesse' => 1, 'instinct' => 1, 'presence' => 0, 'knowledge' => -1],
+                'selected_equipment' => [],
+                'experiences' => [],
+                'selected_domain_cards' => [],
+            ],
+            'name' => 'Cogwright Seven',
+        ]);
+
+        $page = visit('/character/' . $character->character_key);
+        
+        // Verify ancestry features section exists
+        $page->assertPresent('[pest="ancestry-features-section"]')
+            ->assertSee('Clank Features');
+    });
+
+    it('validates community features section displays correctly', function () {
+        $character = Character::factory()->create([
+            'character_data' => [
+                'selected_class' => 'guardian',
+                'selected_subclass' => 'protector',
+                'selected_ancestry' => 'dwarf',
+                'selected_community' => 'ridgeborne',
+                'assigned_traits' => ['agility' => 0, 'strength' => 2, 'finesse' => 0, 'instinct' => 1, 'presence' => 1, 'knowledge' => -1],
+                'selected_equipment' => [],
+                'experiences' => [],
+                'selected_domain_cards' => [],
+            ],
+            'name' => 'Thorin Ironforge',
+        ]);
+
+        $page = visit('/character/' . $character->character_key);
+        
+        // Verify community features section exists
+        $page->assertPresent('[pest="community-features-section"]')
+            ->assertSee('Ridgeborne Features');
+    });
+
+    it('validates playtest content displays proper labels', function () {
+        $character = Character::factory()->create([
+            'character_data' => [
+                'selected_class' => 'druid',
+                'selected_subclass' => 'nature-spirit',
+                'selected_ancestry' => 'earthkin', // Playtest ancestry
+                'selected_community' => 'wildborne',
+                'assigned_traits' => ['agility' => 1, 'strength' => 1, 'finesse' => 0, 'instinct' => 2, 'presence' => 0, 'knowledge' => -1],
+                'selected_equipment' => [],
+                'experiences' => [],
+                'selected_domain_cards' => [],
+            ],
+            'name' => 'Stone Walker',
+        ]);
+
+        $page = visit('/character/' . $character->character_key);
+        
+        // Verify playtest label is displayed for Earthkin
+        $page->assertSee('Void - Playtest');
+    });
+
     it('validates viewer handles missing or empty data gracefully', function () {
         $character = Character::factory()->create([
             'character_data' => [
