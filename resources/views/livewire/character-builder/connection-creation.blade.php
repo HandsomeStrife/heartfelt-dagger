@@ -111,8 +111,8 @@
                 </ul>
             </div>
             <div>
-                <h5 class="text-white font-medium mb-3">Connection Examples</h5>
-                <div class="space-y-3 text-sm text-slate-300">
+                <h5 class="text-white font-medium mb-3 text-sm sm:text-base">Connection Examples</h5>
+                <div class="space-y-3 text-xs sm:text-sm text-slate-300">
                     <div class="bg-slate-800/30 rounded-lg p-3">
                         <p class="italic">"You saved my life once, and I've never forgotten that debt of honor."</p>
                     </div>
@@ -129,24 +129,24 @@
 
     <!-- Completion Status -->
     <template x-if="isConnectionComplete">
-        <div class="bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 rounded-xl p-6">
+        <div class="bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20 rounded-xl p-4 sm:p-6">
             <div class="flex items-start">
-                <div class="bg-gradient-to-r from-pink-500 to-purple-500 rounded-full p-2 mr-4 flex-shrink-0">
-                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-gradient-to-r from-pink-500 to-purple-500 rounded-full p-2 mr-3 sm:mr-4 flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                     </svg>
                 </div>
                 <div class="flex-1">
-                    <p class="text-pink-400 font-semibold font-outfit mb-1">Character Creation Complete!</p>
-                    <p class="text-slate-300 text-sm mb-4">
+                    <p class="text-pink-400 font-semibold font-outfit mb-1 text-sm sm:text-base">Character Creation Complete!</p>
+                    <p class="text-slate-300 text-xs sm:text-sm mb-4">
                         🎉 Congratulations! You've successfully created your {{ ucfirst($character->selected_class) }} character. 
                         All connections have been established and your character is ready for adventure!
                     </p>
                     
                     <!-- Character Summary -->
-                    <div class="bg-slate-800/30 rounded-lg p-4">
-                        <h5 class="text-white font-medium mb-3">Character Summary</h5>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-slate-800/30 rounded-lg p-3 sm:p-4">
+                        <h5 class="text-white font-medium mb-3 text-sm sm:text-base">Character Summary</h5>
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
                             <div class="space-y-2">
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">Name:</span>
@@ -193,12 +193,12 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex flex-wrap gap-3 mt-4">
+                    <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4">
                         <button 
                             @click="saveCharacter()"
-                            class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold rounded-lg transition-all duration-200"
+                            class="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base"
                         >
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
                             Save Character
@@ -206,12 +206,13 @@
                         
                         <button 
                             onclick="window.print()"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-all duration-200"
+                            class="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-all duration-200 text-sm sm:text-base"
                         >
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3 h-3 sm:w-4 sm:h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
-                            Print Sheet
+                            <span class="hidden sm:inline">Print Sheet</span>
+                            <span class="sm:hidden">Print</span>
                         </button>
                     </div>
                 </div>

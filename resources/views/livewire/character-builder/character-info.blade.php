@@ -1,14 +1,14 @@
 <!-- Character Information Step -->
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8">
     <!-- Step Header -->
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Character Information</h2>
-        <p class="text-slate-300 font-roboto">Set your character's name and upload a profile image.</p>
+    <div class="mb-6 sm:mb-8">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2 font-outfit">Character Information</h2>
+        <p class="text-slate-300 font-roboto text-sm sm:text-base">Set your character's name and upload a profile image.</p>
     </div>
     <!-- Character Name -->
-    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
-        <h3 class="text-xl font-bold text-white font-outfit mb-4">Character Name</h3>
-        <p class="text-slate-300 text-sm mb-6">
+    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4 sm:p-6">
+        <h3 class="text-lg sm:text-xl font-bold text-white font-outfit mb-4">Character Name</h3>
+        <p class="text-slate-300 text-xs sm:text-sm mb-4 sm:mb-6">
             Give your character a memorable name that fits their background and personality.
         </p>
         
@@ -22,7 +22,7 @@
                 @input="markAsUnsaved()"
                 placeholder="Enter character name..."
                 maxlength="100"
-                class="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                class="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
             >
             
             <template x-if="hasCharacterName">
@@ -37,13 +37,13 @@
     </div>
 
     <!-- Character Portrait -->
-    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
-        <h3 class="text-xl font-bold text-white font-outfit mb-4">Character Portrait</h3>
-        <p class="text-slate-300 text-sm mb-6">
+    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4 sm:p-6">
+        <h3 class="text-lg sm:text-xl font-bold text-white font-outfit mb-4">Character Portrait</h3>
+        <p class="text-slate-300 text-xs sm:text-sm mb-4 sm:mb-6">
             Upload an image to represent your character. This is optional but helps bring your character to life.
         </p>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
             <!-- Upload Area -->
             <div>
                 <div class="mb-4">
@@ -62,28 +62,28 @@
                         <!-- Upload UI -->
                         <div 
                             :class="{
-                                'border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200': true,
+                                'border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-200': true,
                                 'border-slate-600 hover:border-slate-500 bg-slate-900/30': !profile_image,
                                 'border-amber-500 bg-amber-500/10': profile_image
                             }"
                         >
                             <template x-if="profile_image">
                                 <div>
-                                    <svg class="w-12 h-12 text-amber-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-10 h-10 sm:w-12 sm:h-12 text-amber-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                     </svg>
-                                    <p class="text-amber-400 font-semibold">Image selected!</p>
-                                    <p class="text-slate-300 text-sm mt-1" x-text="profile_image?.name || 'Selected image'"></p>
-                                    <p class="text-slate-400 text-xs mt-2">Click here to select a different image</p>
+                                    <p class="text-amber-400 font-semibold text-sm sm:text-base">Image selected!</p>
+                                    <p class="text-slate-300 text-xs sm:text-sm mt-1" x-text="profile_image?.name || 'Selected image'"></p>
+                                    <p class="text-slate-400 text-xs mt-2">Tap here to select a different image</p>
                                 </div>
                             </template>
                             <template x-if="!profile_image">
                                 <div>
-                                    <svg class="w-12 h-12 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-10 h-10 sm:w-12 sm:h-12 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                     </svg>
-                                    <p class="text-white font-semibold">Upload Character Portrait</p>
-                                    <p class="text-slate-300 text-sm mt-1">Drag and drop or click to select</p>
+                                    <p class="text-white font-semibold text-sm sm:text-base">Upload Character Portrait</p>
+                                    <p class="text-slate-300 text-xs sm:text-sm mt-1">Drag and drop or tap to select</p>
                                     <p class="text-slate-400 text-xs mt-2">PNG, JPG up to 2MB</p>
                                 </div>
                             </template>

@@ -142,7 +142,7 @@
                     </div>
 
                     <!-- Available Abilities -->
-                    <div class="flex flex-wrap justify-center sm:justify-start gap-4 sm:gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 justify-items-center">
                         @foreach($domainAbilities as $abilityKey => $abilityData)
                         @php
                             $isSelected = collect($character->selected_domain_cards)->contains(fn($card) => 
@@ -180,7 +180,7 @@
                             @click="toggleDomainCard('{{ $domainKey }}', '{{ $abilityKey }}', ability)"
                             :class="{
                                 'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98]': true,
-                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[350px] sm:min-h-[400px] w-[260px] sm:w-[280px] flex flex-col touch-manipulation': true,
+                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg w-[240px] h-[360px] flex flex-col touch-manipulation': true,
                                 'border-blue-500 ring-4 ring-blue-400/50 shadow-xl shadow-blue-500/25 scale-[1.02] -translate-y-1': isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}'),
                                 'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20': !isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}') && canSelectMoreDomainCards(),
                                 'border-slate-800 opacity-60 cursor-not-allowed': !isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}') && !canSelectMoreDomainCards()

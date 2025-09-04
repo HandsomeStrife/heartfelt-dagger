@@ -1,15 +1,15 @@
 <!-- Background Creation Step -->
-<div class="space-y-6">
+<div class="space-y-4 sm:space-y-6">
     <!-- Step Header -->
-    <div class="mb-6">
-        <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Create Background</h2>
-        <p class="text-slate-300 text-sm">Define your character's history and personality through class-specific questions.</p>
+    <div class="mb-4 sm:mb-6">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2 font-outfit">Create Background</h2>
+        <p class="text-slate-300 text-xs sm:text-sm">Define your character's history and personality through class-specific questions.</p>
     </div>
 
 
 
     <!-- Mark Done Section (Moved to top) -->
-    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
+    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-3 sm:p-4">
         @if(in_array(\Domain\Character\Enums\CharacterBuilderStep::BACKGROUND->getStepNumber(), $completed_steps))
             <!-- Already Marked Complete -->
             <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
@@ -47,8 +47,8 @@
                 <button 
                     @click="markBackgroundComplete()"
                     :class="canMarkBackgroundComplete ? 
-                        'px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2' :
-                        'px-4 py-2 bg-slate-600 text-slate-400 font-medium rounded-lg cursor-not-allowed flex items-center gap-2'"
+                        'px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 text-sm sm:text-base' :
+                        'px-3 sm:px-4 py-2 bg-slate-600 text-slate-400 font-medium rounded-lg cursor-not-allowed flex items-center gap-2 text-sm sm:text-base'"
                     :disabled="!canMarkBackgroundComplete"
                     dusk="mark-background-complete"
                 >
@@ -62,9 +62,9 @@
     </div>
 
     <!-- Writing Tips (Moved to top, replacing Background Guidelines) -->
-    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-        <h3 class="text-lg font-bold text-white font-outfit mb-3">Writing Tips</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300 text-sm">
+    <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 sm:p-4">
+        <h3 class="text-base sm:text-lg font-bold text-white font-outfit mb-3">Writing Tips</h3>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 text-slate-300 text-xs sm:text-sm">
             <div>
                 <h5 class="text-white font-medium mb-2">Writing Guidelines</h5>
                 <ul class="space-y-1 text-xs">
@@ -93,7 +93,7 @@
 
     <!-- Progress Indicator -->
     <template x-if="totalQuestions > 0">
-        <div class="flex items-center justify-between bg-slate-800/30 rounded-lg p-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-800/30 rounded-lg p-3 gap-2 sm:gap-0">
             <div class="flex items-center gap-3">
                 <div class="text-sm text-slate-300">
                     <span class="font-medium text-white" x-text="answeredQuestions"></span> of <span x-text="totalQuestions"></span> answered
@@ -114,16 +114,16 @@
     </template>
 
     <!-- Main Content in Columns -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         
         <!-- Left Column: Background Questions -->
-        <div class="space-y-4">
-            <h3 class="text-lg font-bold text-white font-outfit">Background Questions</h3>
+        <div class="space-y-3 sm:space-y-4">
+            <h3 class="text-base sm:text-lg font-bold text-white font-outfit">Background Questions</h3>
             
             <template x-if="backgroundQuestions.length > 0">
-                <div class="space-y-4">
+                <div class="space-y-3 sm:space-y-4">
                     <template x-for="(question, index) in backgroundQuestions" :key="index">
-                        <div class="bg-slate-800/30 backdrop-blur border border-slate-700/30 rounded-lg p-4">
+                        <div class="bg-slate-800/30 backdrop-blur border border-slate-700/30 rounded-lg p-3 sm:p-4">
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
@@ -144,8 +144,8 @@
                                 :dusk="`background-answer-${index}`"
                                 x-model="background_answers[index]"
                                 @input="markAsUnsaved()"
-                                class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
-                                rows="3"
+                                class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-xs sm:text-sm"
+                                rows="4"
                                 placeholder="Describe your character's experience..."
                                 maxlength="500"
                             ></textarea>
@@ -173,32 +173,32 @@
         </div>
 
         <!-- Right Column: Additional Details -->
-        <div class="space-y-4">
-            <h3 class="text-lg font-bold text-white font-outfit">Character Details</h3>
+        <div class="space-y-3 sm:space-y-4">
+            <h3 class="text-base sm:text-lg font-bold text-white font-outfit">Character Details</h3>
             
             <!-- Physical Description -->
-            <div class="bg-slate-800/20 backdrop-blur border border-slate-700/20 rounded-lg p-4">
-                <label class="block text-sm font-semibold text-white mb-2">Physical Description</label>
+            <div class="bg-slate-800/20 backdrop-blur border border-slate-700/20 rounded-lg p-3 sm:p-4">
+                <label class="block text-xs sm:text-sm font-semibold text-white mb-2">Physical Description</label>
                 <textarea
                     dusk="physical-description"
                     x-model="physical_description"
                     @input="markAsUnsaved()"
-                    class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
-                    rows="3"
+                    class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-xs sm:text-sm"
+                    rows="4"
                     placeholder="Describe appearance and features..."
                     maxlength="300"
                 ></textarea>
             </div>
 
             <!-- Personality Traits -->
-            <div class="bg-slate-800/20 backdrop-blur border border-slate-700/20 rounded-lg p-4">
-                <label class="block text-sm font-semibold text-white mb-2">Personality & Mannerisms</label>
+            <div class="bg-slate-800/20 backdrop-blur border border-slate-700/20 rounded-lg p-3 sm:p-4">
+                <label class="block text-xs sm:text-sm font-semibold text-white mb-2">Personality & Mannerisms</label>
                 <textarea
                     dusk="personality-traits"
                     x-model="personality_traits"
                     @input="markAsUnsaved()"
-                    class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
-                    rows="3"
+                    class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-xs sm:text-sm"
+                    rows="4"
                     placeholder="Describe personality quirks and habits..."
                     maxlength="300"
                 ></textarea>

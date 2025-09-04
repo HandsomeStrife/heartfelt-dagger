@@ -8,16 +8,25 @@
 
     <!-- Step Completion Indicator -->
     <div x-show="selected_class" class="mb-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
-        <div class="flex items-center">
-            <div class="bg-emerald-500 rounded-full p-2 mr-3">
-                <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="bg-emerald-500 rounded-full p-2 mr-3">
+                    <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-emerald-400 font-semibold">Class Selection Complete!</p>
+                    <p class="text-slate-300 text-sm">You have chosen <span x-text="selectedClassData?.name || ''"></span></p>
+                </div>
             </div>
-            <div>
-                <p class="text-emerald-400 font-semibold">Class Selection Complete!</p>
-                <p class="text-slate-300 text-sm">You have chosen <span x-text="selectedClassData?.name || ''"></span></p>
-            </div>
+            <button 
+                pest="change-class-button"
+                @click="selectClass(null)"
+                class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm font-medium"
+            >
+                Change Class
+            </button>
         </div>
     </div>
 
@@ -128,17 +137,6 @@
 
                     <!-- Right Column: Stats & Items -->
                     <div class="col-span-1 xl:col-span-1 space-y-4 order-first xl:order-last">
-                        <!-- Change Class Button -->
-                        <div class="flex justify-center xl:justify-end mb-4">
-                            <button 
-                                pest="change-class-button"
-                                @click="selectClass(null)"
-                                class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg border border-slate-600 hover:border-slate-500 transition-all duration-200 text-sm font-medium"
-                            >
-                                Change Class
-                            </button>
-                        </div>
-                        
                         <!-- Starting Stats (Desktop Only) -->
                         <div class="mb-6 hidden xl:block">
                             <div class="space-y-2">

@@ -1,9 +1,9 @@
 <!-- Experience Creation Step -->
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8">
     <!-- Step Header -->
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Add Experiences</h2>
-        <p class="text-slate-300 font-roboto">Add experiences that shaped your character's past.</p>
+    <div class="mb-6 sm:mb-8">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2 font-outfit">Add Experiences</h2>
+        <p class="text-slate-300 font-roboto text-sm sm:text-base">Add experiences that shaped your character's past.</p>
     </div>
 
     <!-- Step Completion Indicator -->
@@ -38,8 +38,8 @@
         </div>
     </template>
     <!-- Instructions -->
-    <div class="bg-slate-800/30 rounded-lg p-4">
-        <h5 class="text-white font-bold text-lg mb-3 font-outfit">What Is an Experience?</h5>
+    <div class="bg-slate-800/30 rounded-lg p-3 sm:p-4">
+        <h5 class="text-white font-bold text-base sm:text-lg mb-3 font-outfit">What Is an Experience?</h5>
         <p class="text-slate-300 text-sm mb-3">
             An Experience is a word or phrase used to encapsulate a specific set of skills, personality traits, or aptitudes your character has acquired over the course of their life.
         </p>
@@ -53,17 +53,17 @@
 
     <!-- Add New Experience -->
     <template x-if="canAddExperience">
-        <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
+        <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4 sm:p-6">
             <div class="flex items-center justify-between mb-4">
-                <h4 class="text-white font-semibold font-outfit">Add New Experience</h4>
+                <h4 class="text-white font-semibold font-outfit text-sm sm:text-base">Add New Experience</h4>
                 <div class="text-sm text-slate-400">
                     <span x-text="experienceCount"></span> / 2 experiences
                 </div>
             </div>
         
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div class="lg:col-span-1">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                <div class="xl:col-span-1">
                     <label for="new-experience-name" class="block text-sm font-medium text-slate-300 mb-2">Experience Name</label>
                     <input 
                         dusk="new-experience-name"
@@ -78,7 +78,7 @@
                     >
                 </div>
                 
-                <div class="lg:col-span-1">
+                <div class="xl:col-span-1">
                     <label for="new-experience-description" class="block text-sm font-medium text-slate-300 mb-2">Description</label>
                     <input 
                         dusk="new-experience-description"
@@ -96,7 +96,7 @@
                     </div>
                 </div>
                 
-                <div class="lg:col-span-1">
+                <div class="xl:col-span-1">
                     <label class="block text-sm font-medium text-slate-300 mb-2 opacity-0">Add</label>
                     <button 
                         dusk="add-experience-button"
@@ -104,15 +104,16 @@
                         @click="addExperience()"
                         :disabled="!canAddNewExperience"
                         :class="{
-                            'w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200': true,
+                            'w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg font-semibold transition-all duration-200 text-sm sm:text-base': true,
                             'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black': canAddNewExperience,
                             'bg-slate-700 text-slate-400 cursor-not-allowed': !canAddNewExperience
                         }"
                     >
-                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3 sm:w-4 sm:h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        Add Experience
+                        <span class="hidden sm:inline">Add Experience</span>
+                        <span class="sm:hidden">Add</span>
                     </button>
                 </div>
             </div>
@@ -137,7 +138,7 @@
                 </template>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <template x-for="(experience, index) in experiences" :key="index">
                     <div 
                         :dusk="`experience-card-${index}`"
