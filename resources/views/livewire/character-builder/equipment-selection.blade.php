@@ -124,8 +124,8 @@
                                  pest="suggested-primary-weapon"
                                 :class="{
                                     'flex items-center justify-between p-2 sm:p-3 rounded-lg border cursor-pointer transition-all duration-200': true,
-                                    'bg-emerald-400/20 border-emerald-400': isEquipmentSelected(suggestedPrimaryWeapon.weaponKey, 'weapon'),
-                                    'bg-emerald-500/10 border-emerald-500/50 hover:border-emerald-400': !isEquipmentSelected(suggestedPrimaryWeapon.weaponKey, 'weapon')
+                                    'bg-amber-400/20 border-amber-400': isEquipmentSelected(suggestedPrimaryWeapon.weaponKey, 'weapon'),
+                                    'bg-slate-700/50 border-slate-600 hover:border-slate-500': !isEquipmentSelected(suggestedPrimaryWeapon.weaponKey, 'weapon')
                                 }">
                                 <div class="flex-1 min-w-0">
                                     <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
@@ -139,7 +139,7 @@
                                     </div>
                                 </div>
                                 <div x-show="isEquipmentSelected(suggestedPrimaryWeapon.weaponKey, 'weapon')"
-                                    class="bg-emerald-400 rounded-full p-1 ml-2">
+                                    class="bg-amber-400 rounded-full p-1 ml-2">
                                     <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -191,8 +191,8 @@
                                  pest="suggested-secondary-weapon"
                                 :class="{
                                     'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200': true,
-                                    'bg-emerald-400/20 border-emerald-400': isEquipmentSelected(suggestedSecondaryWeapon.weaponKey, 'weapon'),
-                                    'bg-emerald-500/10 border-emerald-500/50 hover:border-emerald-400': !isEquipmentSelected(suggestedSecondaryWeapon.weaponKey, 'weapon')
+                                    'bg-amber-400/20 border-amber-400': isEquipmentSelected(suggestedSecondaryWeapon.weaponKey, 'weapon'),
+                                    'bg-slate-700/50 border-slate-600 hover:border-slate-500': !isEquipmentSelected(suggestedSecondaryWeapon.weaponKey, 'weapon')
                                 }">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2">
@@ -206,7 +206,7 @@
                                     </div>
                                 </div>
                                 <div x-show="isEquipmentSelected(suggestedSecondaryWeapon.weaponKey, 'weapon')"
-                                    class="bg-emerald-400 rounded-full p-1 ml-2">
+                                    class="bg-amber-400 rounded-full p-1 ml-2">
                                     <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -260,8 +260,8 @@
                                  pest="suggested-armor"
                                 :class="{
                                     'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200': true,
-                                    'bg-emerald-400/20 border-emerald-400': isEquipmentSelected(suggestedArmor.armorKey, 'armor'),
-                                    'bg-emerald-500/10 border-emerald-500/50 hover:border-emerald-400': !isEquipmentSelected(suggestedArmor.armorKey, 'armor')
+                                    'bg-amber-400/20 border-amber-400': isEquipmentSelected(suggestedArmor.armorKey, 'armor'),
+                                    'bg-slate-700/50 border-slate-600 hover:border-slate-500': !isEquipmentSelected(suggestedArmor.armorKey, 'armor')
                                 }">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2">
@@ -274,7 +274,7 @@
                                     </div>
                                 </div>
                                 <div x-show="isEquipmentSelected(suggestedArmor.armorKey, 'armor')"
-                                    class="bg-emerald-400 rounded-full p-1 ml-2">
+                                    class="bg-amber-400 rounded-full p-1 ml-2">
                                     <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -290,7 +290,7 @@
                                  :pest="`armor-${armorKey}`"
                                 :class="{
                                     'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200': true,
-                                    'bg-blue-400/20 border-blue-400': isEquipmentSelected(armorKey, 'armor'),
+                                    'bg-amber-400/20 border-amber-400': isEquipmentSelected(armorKey, 'armor'),
                                     'bg-slate-700/50 border-slate-600 hover:border-slate-500': !isEquipmentSelected(armorKey, 'armor')
                                 }">
                                 <div class="flex-1">
@@ -301,7 +301,7 @@
                                     </div>
                                 </div>
                                 <div x-show="isEquipmentSelected(armorKey, 'armor')"
-                                    class="bg-blue-400 rounded-full p-1 ml-2">
+                                    class="bg-amber-400 rounded-full p-1 ml-2">
                                     <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
                                             d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -343,7 +343,7 @@
                                                 :pest="`inventory-item-${item.toLowerCase().replace(/\s+/g, '-')}`"
                                                 @click="selectInventoryItem(item)"
                                                 :class="isInventoryItemSelected(item) ? 
-                                                    'bg-amber-500/20 border-amber-500/50 hover:border-amber-500/70' : 
+                                                    'bg-amber-400/20 border-amber-400' : 
                                                     'bg-slate-700/50 border-slate-600/50 hover:border-slate-500/70'"
                                                 class="cursor-pointer transition-all duration-200 border rounded-lg p-3 group"
                                             >
@@ -372,13 +372,13 @@
                                                 :pest="`inventory-item-${item.toLowerCase().replace(/\s+/g, '-')}`"
                                                 @click="selectInventoryItem(item)"
                                                 :class="isInventoryItemSelected(item) ? 
-                                                    'bg-emerald-500/20 border-emerald-500/50 hover:border-emerald-500/70' : 
+                                                    'bg-amber-400/20 border-amber-400' : 
                                                     'bg-slate-700/50 border-slate-600/50 hover:border-slate-500/70'"
                                                 class="cursor-pointer transition-all duration-200 border rounded-lg p-3 group"
                                             >
                                                 <div class="flex items-center justify-between">
                                                     <span class="text-white font-medium text-sm" x-text="item"></span>
-                                                    <div x-show="isInventoryItemSelected(item)" class="text-emerald-400">
+                                                    <div x-show="isInventoryItemSelected(item)" class="text-amber-400">
                                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                                         </svg>
