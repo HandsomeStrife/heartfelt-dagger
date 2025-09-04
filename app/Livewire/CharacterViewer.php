@@ -9,6 +9,7 @@ use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Models\Character;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
+use GrahamCampbell\Markdown\Facades\Markdown;
 
 class CharacterViewer extends Component
 {
@@ -63,6 +64,46 @@ class CharacterViewer extends Component
             $path = resource_path("json/{$file}.json");
             if (File::exists($path)) {
                 $this->game_data[$file] = json_decode(File::get($path), true);
+            }
+        }
+
+        // Process markdown in subclass feature descriptions
+        if (isset($this->game_data['subclasses'])) {
+            $this->processSubclassMarkdown();
+        }
+    }
+
+    /**
+     * Convert markdown formatting in subclass feature descriptions to HTML
+     */
+    private function processSubclassMarkdown(): void
+    {
+        foreach ($this->game_data['subclasses'] as $subclassKey => &$subclass) {
+            // Process foundation features
+            if (isset($subclass['foundationFeatures']) && is_array($subclass['foundationFeatures'])) {
+                foreach ($subclass['foundationFeatures'] as &$feature) {
+                    if (isset($feature['description']) && is_string($feature['description'])) {
+                        $feature['description'] = Markdown::convert($feature['description'])->getContent();
+                    }
+                }
+            }
+
+            // Process specialization features
+            if (isset($subclass['specializationFeatures']) && is_array($subclass['specializationFeatures'])) {
+                foreach ($subclass['specializationFeatures'] as &$feature) {
+                    if (isset($feature['description']) && is_string($feature['description'])) {
+                        $feature['description'] = Markdown::convert($feature['description'])->getContent();
+                    }
+                }
+            }
+
+            // Process mastery features
+            if (isset($subclass['masteryFeatures']) && is_array($subclass['masteryFeatures'])) {
+                foreach ($subclass['masteryFeatures'] as &$feature) {
+                    if (isset($feature['description']) && is_string($feature['description'])) {
+                        $feature['description'] = Markdown::convert($feature['description'])->getContent();
+                    }
+                }
             }
         }
     }

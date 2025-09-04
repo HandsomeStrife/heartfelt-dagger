@@ -1,4 +1,4 @@
-<div class="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg mt-6">
+<div pest="active-weapons-section" class="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg mt-6">
     <div class="flex items-center justify-between">
         <h2 class="text-lg font-bold">Active Weapons</h2>
         <div class="flex items-center gap-1 text-indigo-200" aria-label="Proficiency">
@@ -12,20 +12,20 @@
     @if (!empty($organizedEquipment['weapons']))
         @php $primary = collect($organizedEquipment['weapons'])->first(fn($w) => ($w['data']['type'] ?? 'Primary') === 'Primary'); @endphp
         @if ($primary)
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div pest="primary-weapon-details" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-400">Primary</div>
-                    <div class="text-base font-semibold">{{ $primary['data']['name'] ?? 'Weapon' }}</div>
-                    <div class="text-xs text-slate-400">Trait: {{ ucfirst($primary['data']['range'] ?? 'Melee') }}</div>
+                    <div pest="weapon-name" class="text-base font-semibold">{{ $primary['data']['name'] ?? 'Weapon' }}</div>
+                    <div pest="weapon-range" class="text-xs text-slate-400">Trait: {{ ucfirst($primary['data']['range'] ?? 'Melee') }}</div>
                 </div>
                 <div class="flex items-end gap-3">
-                    <div class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60">
+                    <div pest="weapon-trait-stat" class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60">
                         <div class="text-[10px] uppercase text-slate-400">{{ ucfirst($primary['data']['trait'] ?? 'Strength') }}</div>
                         <div class="font-bold">
                             {{ $character->assigned_traits[$primary['data']['trait'] ?? 'strength'] ?? 0 > 0 ? '+' : '' }}{{ $character->assigned_traits[$primary['data']['trait'] ?? 'strength'] ?? 0 }}
                         </div>
                     </div>
-                    <div class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60">
+                    <div pest="weapon-damage-stat" class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60">
                         <div class="text-[10px] uppercase text-slate-400">Damage</div>
                         <div class="font-bold">
                             {{ $primary['data']['damage']['dice'] ?? 'd6' }}{{ isset($primary['data']['damage']['modifier']) && $primary['data']['damage']['modifier'] > 0 ? ' + ' . $primary['data']['damage']['modifier'] : '' }} ({{ $primary['data']['damage']['type'] ?? 'physical' }})

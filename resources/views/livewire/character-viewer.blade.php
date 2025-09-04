@@ -47,6 +47,9 @@
         <!-- FEATURES -->
         <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div class="lg:col-span-12 grid grid-cols-1 gap-6">
+                <!-- Subclass Features -->
+                <x-character-viewer.subclass-features :subclass-data="$subclass_data" />
+                
                 <!-- Domain Effects as Cards -->
                 <x-character-viewer.domain-cards :domain-card-details="$domain_card_details" />
             </div>

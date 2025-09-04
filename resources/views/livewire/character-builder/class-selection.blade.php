@@ -86,7 +86,7 @@
                     <!-- Left Column: Core Info -->
                     <div class="col-span-1 xl:col-span-4">
                         <!-- Class Header Section -->
-                        <div class="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6 mb-6 sm:mb-8">
+                        <div class="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
                             <div class="class-banner-md-width flex-shrink-0 self-center sm:self-start hidden sm:block">
                                 <x-class-banner className="{{ $classKey }}" class="absolute top-0 left-0" size="md" />
                             </div>
@@ -158,7 +158,7 @@
                 </div>
 
                 <!-- Features Section - Two Column -->
-                <div class="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div class="mt-6 sm:mt-8">
                     <!-- Hope Feature -->
                     @if(isset($classData['hopeFeature']))
                         <div>
@@ -175,9 +175,9 @@
 
                     <!-- Class Features -->
                     @if(!empty($classData['classFeatures']))
-                        <div>
+                        <div class="mt-6 sm:mt-8">
                             <h4 class="text-base sm:text-lg font-semibold text-white font-outfit mb-3">Class Features</h4>
-                            <div class="space-y-3">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                                 @foreach($classData['classFeatures'] as $feature)
                                     <div class="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 sm:p-4">
                                         <h5 class="text-white font-semibold text-sm sm:text-base mb-2">{{ $feature['name'] }}</h5>

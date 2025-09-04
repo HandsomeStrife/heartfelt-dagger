@@ -1,7 +1,7 @@
-@if (!empty($domain_card_details))
-    <div class="flex flex-wrap justify-start gap-6">
-        @foreach ($domain_card_details as $card)
-            <div class="bg-slate-900/60 border border-slate-800 rounded-xl shadow-lg overflow-hidden w-[360px] flex flex-col">
+@if (!empty($domainCardDetails))
+    <div pest="domain-cards-section" class="flex flex-wrap justify-start gap-6">
+        @foreach ($domainCardDetails as $index => $card)
+            <div pest="domain-card-{{ $index }}" class="bg-slate-900/60 border border-slate-800 rounded-xl shadow-lg overflow-hidden w-[360px] flex flex-col">
                 <div class="relative min-h-[120px] flex flex-col items-center justify-end bg-slate-900 w-full overflow-hidden">
                     <div class="absolute -top-1 left-[13.5px] z-40">
                         <img class="h-[120px] w-[75px]" src="/img/empty-banner.webp">
@@ -27,15 +27,15 @@
                         </div>
                     @endif
                     <div class="w-full pl-[100px] pr-4 pb-3">
-                        <h3 class="text-white font-black font-outfit text-lg leading-tight uppercase">
+                        <h3 pest="domain-card-name" class="text-white font-black font-outfit text-lg leading-tight uppercase">
                             {{ $card['ability_data']['name'] ?? ucwords(str_replace('-', ' ', $card['ability_key'])) }}
                         </h3>
-                        <div class="text-[10px] font-bold uppercase tracking-wide mt-1 text-slate-300">
+                        <div pest="domain-card-type" class="text-[10px] font-bold uppercase tracking-wide mt-1 text-slate-300">
                             {{ $card['ability_data']['type'] ?? 'ability' }}
                         </div>
                     </div>
                 </div>
-                <div class="px-4 py-4 text-sm text-white flex-1">
+                <div pest="domain-card-description" class="px-4 py-4 text-sm text-white flex-1">
                     @if (isset($card['ability_data']['descriptions']) && is_array($card['ability_data']['descriptions']))
                         <div class="text-slate-300 space-y-2 leading-relaxed">
                             @foreach ($card['ability_data']['descriptions'] as $description)
@@ -47,7 +47,7 @@
                     @endif
                 </div>
                 <div class="mt-auto px-4 pb-4">
-                    <span class="inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md bg-slate-700 text-white">
+                    <span pest="domain-card-domain" class="inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md bg-slate-700 text-white">
                         {{ ucfirst($card['ability_data']['domain'] ?? ($card['domain'] ?? 'codex')) }} Domain
                     </span>
                 </div>

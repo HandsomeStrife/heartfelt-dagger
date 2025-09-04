@@ -10,6 +10,7 @@
     'traitInfo' => [],
 ])
 <header
+    pest="character-viewer-top-banner"
     class="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-900/40 to-fuchsia-900/30 px-6 md:px-8 py-6 shadow-lg relative">
     <x-class-banner :class-name="$character->selected_class" size="sm" class="absolute top-0 right-6" />
     <div class="absolute top-4 right-6 translate-y-full sm:translate-y-0 sm:top-3">
@@ -36,9 +37,9 @@
         <div class="col-span-12 sm:col-span-10 flex flex-col h-full">
             <div class="space-y-3">
                 <div class="flex items-center justify-center sm:justify-start gap-2">
-                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-center sm:text-left">
+                    <h1 pest="character-name" class="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-center sm:text-left">
                         {{ $character->name ?: 'Unnamed Character' }}
-                        <span class="text-xs text-slate-400 font-light ml-1">{{ $pronouns }}</span>
+                        <span pest="character-pronouns" class="text-xs text-slate-400 font-light ml-1">{{ $pronouns }}</span>
                     </h1>
                     @if ($canEdit)
                         <a x-show="canEdit" :href="`/character-builder/${characterKey}`" aria-label="Edit character"
@@ -51,7 +52,7 @@
                     @endif
                 </div>
                 <div class="mt-2 flex flex-wrap items-center gap-2 justify-center sm:justify-start">
-                    <span class="inline-flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1 rounded-full ring-1 ring-indigo-400/40 bg-indigo-500/15 text-indigo-200">
+                    <span pest="character-heritage" class="inline-flex items-center gap-1 text-xs md:text-sm font-semibold px-3 py-1 rounded-full ring-1 ring-indigo-400/40 bg-indigo-500/15 text-indigo-200">
                         {{ $communityData['name'] ?? ucfirst($character->selected_community ?? 'Unknown') }}
                         {{ $ancestryData['name'] ?? ucfirst($character->selected_ancestry ?? 'Unknown') }} •
                         {{ $classData['name'] ?? ucfirst($character->selected_class ?? 'Unknown') }}
@@ -60,23 +61,23 @@
                         @endif
                     </span>
                     @if ($classData && isset($classData['domains']))
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold ring-1 ring-slate-700/60 bg-slate-800/60">
+                        <span pest="class-domains" class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold ring-1 ring-slate-700/60 bg-slate-800/60">
                             {{ ucfirst($classData['domains'][0] ?? '') }} & {{ ucfirst($classData['domains'][1] ?? '') }}
                         </span>
                     @endif
                 </div>
             </div>
             <div class="mt-auto pt-3">
-                <div class="flex items-center gap-3 flex-nowrap overflow-x-auto">
+                <div pest="character-stats" class="flex items-center gap-3 flex-nowrap overflow-x-auto">
                     <div class="flex gap-2">
-                        <x-icons.evasion-frame :number="$computedStats['evasion'] ?? '?'" class="size-20" />
-                        <x-icons.armor-frame :number="$computedStats['armor_score'] ?? '?'" class="size-20" />
+                        <x-icons.evasion-frame pest="evasion-stat" :number="$computedStats['evasion'] ?? '?'" class="size-20" />
+                        <x-icons.armor-frame pest="armor-stat" :number="$computedStats['armor_score'] ?? '?'" class="size-20" />
                     </div>
                     <span class="text-slate-500/80 select-none">|</span>
                     @if (!empty($character->assigned_traits))
-                        <div class="flex items-center gap-1 flex-nowrap">
+                        <div pest="trait-stats" class="flex items-center gap-1 flex-nowrap">
                             @foreach ($traitInfo as $trait => $label)
-                                <x-icons.stat-frame :number="(($character->assigned_traits[$trait] ?? 0) >= 0 ? '+' : '') . ($character->assigned_traits[$trait] ?? 0)" :label="$label" class="size-20" />
+                                <x-icons.stat-frame pest="trait-{{ $trait }}" :number="(($character->assigned_traits[$trait] ?? 0) >= 0 ? '+' : '') . ($character->assigned_traits[$trait] ?? 0)" :label="$label" class="size-20" />
                             @endforeach
                         </div>
                     @endif
