@@ -24,6 +24,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
         connection_answers: $wire.entangle('character.connection_answers'),
         selected_domain_cards: $wire.entangle('character.selected_domain_cards'),
         name: $wire.entangle('character.name'),
+        pronouns: $wire.entangle('pronouns'),
         profile_image_path: $wire.entangle('character.profile_image_path'),
         profile_image: $wire.entangle('profile_image'),
         
@@ -134,6 +135,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
             });
             this.$watch('assigned_traits', () => this.markAsUnsaved(), { deep: true });
             this.$watch('selected_domain_cards', () => this.markAsUnsaved(), { deep: true });
+            this.$watch('selected_equipment', () => this.markAsUnsaved(), { deep: true });
         },
 
         /**
@@ -266,8 +268,11 @@ export function characterBuilderComponent($wire, gameData = {}) {
 
         get tier1PrimaryWeapons() {
             const weapons = {};
+            // Get the suggested weapon key to exclude it from the list
+            const suggestedKey = this.suggestedPrimaryWeapon?.weaponKey;
+            
             for (const [key, weapon] of Object.entries(this.gameData.weapons || {})) {
-                if ((weapon.tier || 1) === 1 && (weapon.type || 'Primary') === 'Primary') {
+                if ((weapon.tier || 1) === 1 && (weapon.type || 'Primary') === 'Primary' && key !== suggestedKey) {
                     weapons[key] = weapon;
                 }
             }
@@ -276,8 +281,11 @@ export function characterBuilderComponent($wire, gameData = {}) {
 
         get tier1SecondaryWeapons() {
             const weapons = {};
+            // Get the suggested weapon key to exclude it from the list
+            const suggestedKey = this.suggestedSecondaryWeapon?.weaponKey;
+            
             for (const [key, weapon] of Object.entries(this.gameData.weapons || {})) {
-                if ((weapon.tier || 1) === 1 && weapon.type === 'Secondary') {
+                if ((weapon.tier || 1) === 1 && weapon.type === 'Secondary' && key !== suggestedKey) {
                     weapons[key] = weapon;
                 }
             }
@@ -286,8 +294,11 @@ export function characterBuilderComponent($wire, gameData = {}) {
 
         get tier1Armor() {
             const armor = {};
+            // Get the suggested armor key to exclude it from the list
+            const suggestedKey = this.suggestedArmor?.armorKey;
+            
             for (const [key, armorPiece] of Object.entries(this.gameData.armor || {})) {
-                if ((armorPiece.tier || 1) === 1) {
+                if ((armorPiece.tier || 1) === 1 && key !== suggestedKey) {
                     armor[key] = armorPiece;
                 }
             }
@@ -535,19 +546,66 @@ export function characterBuilderComponent($wire, gameData = {}) {
          * Equipment selection state and methods
          */
         selected_equipment: [],
-        saving_equipment: false,
-        equipment_sync_timeout: null,
+        
+        /**
+         * Equipment progress computed properties
+         */
+        get selectedPrimary() {
+            return this.selected_equipment.some(eq => eq.type === 'weapon' && (eq.data?.type ?? 'Primary') === 'Primary');
+        },
+        
+        get selectedSecondary() {
+            return this.selected_equipment.some(eq => eq.type === 'weapon' && (eq.data?.type ?? '') === 'Secondary');
+        },
+        
+        get selectedArmor() {
+            return this.selected_equipment.some(eq => eq.type === 'armor');
+        },
+        
+        get equipmentComplete() {
+            return this.selectedPrimary && this.selectedArmor;
+        },
 
         /**
          * Unsaved changes tracking methods
          */
         captureCurrentState() {
             this.lastSavedState = JSON.stringify({
+                // Step 1: Class selection
                 selected_class: this.selected_class,
                 selected_subclass: this.selected_subclass,
+                
+                // Step 2: Heritage (Ancestry + Community)
                 selected_ancestry: this.selected_ancestry,
                 selected_community: this.selected_community,
-                assigned_traits: this.assigned_traits
+                
+                // Step 3: Traits
+                assigned_traits: this.assigned_traits,
+                
+                // Step 4: Character Details
+                name: this.name,
+                pronouns: this.pronouns,
+                profile_image_path: this.profile_image_path,
+                
+                // Step 5: Equipment
+                selected_equipment: this.selected_equipment,
+                
+                // Step 6: Background
+                background_answers: this.background_answers,
+                physical_description: this.physical_description,
+                personality_traits: this.personality_traits,
+                personal_history: this.personal_history,
+                motivations: this.motivations,
+                
+                // Step 7: Experiences
+                experiences: this.experiences,
+                clank_bonus_experience: this.clank_bonus_experience,
+                
+                // Step 8: Domain Cards
+                selected_domain_cards: this.selected_domain_cards,
+                
+                // Step 9: Connections
+                connection_answers: this.connection_answers
             });
         },
 
@@ -555,11 +613,41 @@ export function characterBuilderComponent($wire, gameData = {}) {
             // Only mark as unsaved if we have a baseline to compare against
             if (this.lastSavedState) {
                 const currentState = JSON.stringify({
+                    // Step 1: Class selection
                     selected_class: this.selected_class,
                     selected_subclass: this.selected_subclass,
+                    
+                    // Step 2: Heritage (Ancestry + Community)
                     selected_ancestry: this.selected_ancestry,
                     selected_community: this.selected_community,
-                    assigned_traits: this.assigned_traits
+                    
+                    // Step 3: Traits
+                    assigned_traits: this.assigned_traits,
+                    
+                    // Step 4: Character Details
+                    name: this.name,
+                    pronouns: this.pronouns,
+                    profile_image_path: this.profile_image_path,
+                    
+                    // Step 5: Equipment
+                    selected_equipment: this.selected_equipment,
+                    
+                    // Step 6: Background
+                    background_answers: this.background_answers,
+                    physical_description: this.physical_description,
+                    personality_traits: this.personality_traits,
+                    personal_history: this.personal_history,
+                    motivations: this.motivations,
+                    
+                    // Step 7: Experiences
+                    experiences: this.experiences,
+                    clank_bonus_experience: this.clank_bonus_experience,
+                    
+                    // Step 8: Domain Cards
+                    selected_domain_cards: this.selected_domain_cards,
+                    
+                    // Step 9: Connections
+                    connection_answers: this.connection_answers
                 });
                 this.hasUnsavedChanges = currentState !== this.lastSavedState;
             }
@@ -675,28 +763,42 @@ export function characterBuilderComponent($wire, gameData = {}) {
          * Equipment selection methods
          */
         selectEquipment(key, type, data) {
-            // Remove existing equipment of the same type (single selection)
-            if (type === 'weapon') {
-                const weaponType = data.type || 'Primary';
-                this.selected_equipment = this.selected_equipment.filter(eq =>
-                    !(eq.type === 'weapon' && (eq.data.type || 'Primary') === weaponType)
-                );
+            // Check if this item is already selected
+            const isAlreadySelected = this.isEquipmentSelected(key, type);
+            
+            if (isAlreadySelected) {
+                // Unselect: Remove the equipment
+                if (type === 'weapon') {
+                    const weaponType = data.type || 'Primary';
+                    this.selected_equipment = this.selected_equipment.filter(eq =>
+                        !(eq.type === 'weapon' && (eq.data.type || 'Primary') === weaponType && eq.key === key)
+                    );
+                } else {
+                    this.selected_equipment = this.selected_equipment.filter(eq => !(eq.key === key && eq.type === type));
+                }
             } else {
-                this.selected_equipment = this.selected_equipment.filter(eq => eq.type !== type);
-            }
+                // Select: Remove existing equipment of the same type, then add new equipment
+                if (type === 'weapon') {
+                    const weaponType = data.type || 'Primary';
+                    this.selected_equipment = this.selected_equipment.filter(eq =>
+                        !(eq.type === 'weapon' && (eq.data.type || 'Primary') === weaponType)
+                    );
+                } else {
+                    this.selected_equipment = this.selected_equipment.filter(eq => eq.type !== type);
+                }
 
-            // Add new equipment
-            this.selected_equipment.push({
-                key: key,
-                type: type,
-                data: data
-            });
+                // Add new equipment
+                this.selected_equipment.push({
+                    key: key,
+                    type: type,
+                    data: data
+                });
+            }
 
             // Mark as unsaved
             this.markAsUnsaved();
 
-            // Sync to server after a short delay to batch updates
-            this.debouncedEquipmentSync();
+            // NOTE: Equipment sync removed - now handled via entangled properties
         },
 
         selectInventoryItem(itemName) {
@@ -740,7 +842,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
                 }
             }
 
-            // Mark as unsaved - no Livewire call needed, sync handled via syncEquipment
+            // Mark as unsaved - sync handled via entangled properties
             this.markAsUnsaved();
         },
 
@@ -753,15 +855,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
             return this.selected_equipment.some(eq => eq.key === itemKey);
         },
 
-        // Debounced sync to server for equipment
-        debouncedEquipmentSync() {
-            this.saving_equipment = true;
-            clearTimeout(this.equipment_sync_timeout);
-            this.equipment_sync_timeout = setTimeout(() => {
-                this.$wire.syncEquipment(this.selected_equipment);
-                this.saving_equipment = false;
-            }, 500);
-        },
+        // NOTE: debouncedEquipmentSync() removed - equipment now synced via entangled properties automatically
 
         // Apply all suggested equipment at once
         applySuggestedEquipment() {
@@ -797,8 +891,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
             // Mark as unsaved
             this.markAsUnsaved();
             
-            // Sync to server immediately
-            this.debouncedEquipmentSync();
+            // NOTE: Equipment sync removed - now handled via entangled properties
         },
 
         // Performance optimization: Clear cached data when selections change
@@ -956,6 +1049,12 @@ export function characterBuilderComponent($wire, gameData = {}) {
         // Character saving
         saveCharacter() {
             this.isSaving = true;
+            
+            // Sync data to Livewire before saving
+            this.$wire.character.selected_equipment = this.selected_equipment;
+            this.$wire.character.name = this.name;
+            this.$wire.pronouns = this.pronouns;
+            
             this.$wire.saveToDatabase().then(() => {
                 // Success is handled by the character-saved event listener
             }).catch((error) => {

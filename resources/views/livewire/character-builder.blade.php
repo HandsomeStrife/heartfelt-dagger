@@ -14,7 +14,7 @@
                 
                 @if($last_saved_timestamp)
                     <div 
-                        class="flex items-center gap-1.5 text-xs text-slate-500"
+                        class="hidden sm:flex items-center gap-1.5 text-xs text-slate-500"
                         x-data="lastSavedTimestampComponent({{ $last_saved_timestamp }})"
                     >
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    View Character
+                    <span class="hidden sm:inline">View Character</span>
+                    <span class="sm:hidden">View</span>
                 </button>
             </div>
         </div>
@@ -78,17 +79,17 @@
         </div>
     </div>
 
-    <div class="container mx-auto px-4 sm:px-6 pb-4 sm:pb-8">
+    <div class="container mx-auto px-3 sm:px-6 pb-4 sm:pb-8">
 
         <!-- Character Information Section -->
-        <div class="p-4 sm:p-8 mb-6 sm:mb-8">
-            <div class="flex flex-col sm:flex-row gap-4 sm:gap-8">
+        <div class="p-3 sm:p-8 mb-4 sm:mb-8">
+            <div class="flex flex-col gap-4 sm:flex-row sm:gap-8">
                 <!-- Profile Image Upload -->
-                <div class="flex flex-col items-center justify-center sm:flex-shrink-0">
+                <div class="flex flex-col items-center justify-center sm:flex-shrink-0 order-2 sm:order-1">
                     <div class="relative">
                         @if($this->getImageUrl())
                             <!-- Image Preview (Clickable to Replace) -->
-                            <div class="character-image-preview-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 hover:border-slate-500 shadow-lg cursor-pointer transition-all duration-200 group"
+                            <div class="character-image-preview-area relative w-20 h-20 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 hover:border-slate-500 shadow-lg cursor-pointer transition-all duration-200 group"
                                  @click="openImageUpload()"
                                  pest="profile-image-replace">
                                 <div class="character-image-preview w-full h-full relative">
@@ -107,9 +108,9 @@
                                 <button 
                                     @click.stop="clearProfileImage()"
                                     pest="clear-profile-image"
-                                    class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
+                                    class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
                                 >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
@@ -117,47 +118,47 @@
                         @else
                             <!-- Upload Area -->
                             <div 
-                                class="character-image-upload-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
+                                class="character-image-upload-area relative w-20 h-20 sm:w-32 sm:h-32 rounded-full border-2 border-dashed border-slate-600 hover:border-slate-500 bg-slate-800/50 hover:bg-slate-800 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 group"
                                 @click="openImageUpload()"
                                 pest="profile-image-upload"
                             >
-                                <svg class="w-8 h-8 text-slate-400 group-hover:text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-slate-400 group-hover:text-slate-300 mb-1 sm:mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
-                                <span class="text-xs text-slate-400 group-hover:text-slate-300 text-center">Upload Image</span>
+                                <span class="text-xs text-slate-400 group-hover:text-slate-300 text-center px-1">Upload<br class="sm:hidden">Image</span>
                             </div>
                             
                             <!-- Hidden preview area for Uppy -->
-                            <div class="character-image-preview-area relative w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg" style="display: none;">
+                            <div class="character-image-preview-area relative w-20 h-20 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-slate-600 shadow-lg" style="display: none;">
                                 <div class="character-image-preview w-full h-full">
                                     <!-- Preview image will be inserted by Uppy -->
                                 </div>
                                 <button 
                                     @click="clearProfileImage()"
                                     pest="clear-profile-image"
-                                    class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
+                                    class="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-colors duration-200 z-50"
                                 >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
                         @endif
                     </div>
-                    <p class="text-xs text-slate-500 mt-2 text-center">Click or drag to upload<br>character portrait</p>
+                    <p class="text-xs text-slate-500 mt-2 text-center leading-tight">Tap to upload<br>character portrait</p>
                 </div>
 
                 <!-- Character Name & Pronouns -->
-                <div class="space-y-6 w-full">
+                <div class="space-y-4 sm:space-y-6 w-full order-1 sm:order-2">
                     <div>
                         <label for="character-name" class="block text-sm font-medium text-slate-300 mb-2">Character Name</label>
                         <input 
                             dusk="character-name-input"
                             type="text" 
                             id="character-name"
-                            wire:model.live.debounce.500ms="character.name"
+                            x-model="name"
                             placeholder="Enter your character's name..."
-                            class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                            class="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 text-base"
                         >
                     </div>
                     
@@ -166,9 +167,9 @@
                         <input 
                             type="text" 
                             id="character-pronouns"
-                            wire:model.live.debounce.500ms="pronouns"
+                            x-model="pronouns"
                             placeholder="e.g., they/them, she/her, he/him..."
-                            class="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200"
+                            class="w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 text-base"
                         >
                     </div>
                 </div>
@@ -176,11 +177,11 @@
         </div>
 
         <!-- Main Layout with Sidebar -->
-        <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div class="flex flex-col lg:flex-row gap-4 lg:gap-8">
             <!-- Left Sidebar Navigation -->
             <div class="lg:w-80 flex-shrink-0">
                 <!-- Mobile Dropdown -->
-                <div class="lg:hidden mb-6" x-data="{ dropdownOpen: false }">
+                <div class="lg:hidden mb-4" x-data="{ dropdownOpen: false }">
                     <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl">
                         <button 
                             @click="dropdownOpen = !dropdownOpen"
@@ -400,7 +401,7 @@
             <div id="character-builder-content" class="flex-1 min-w-0">
             <!-- Step Content Area -->
             <div class="w-full">
-                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 sm:p-8">
+                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-3 sm:p-8">
 
                     <!-- Step Content -->
                     <div class="step-content">
@@ -456,7 +457,7 @@
                     </div>
 
                     <!-- Navigation Buttons -->
-                    <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-700/50">
+                    <div class="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-4 sm:mt-8 pt-3 sm:pt-6 border-t border-slate-700/50">
                         <button 
                             pest="previous-step-button"
                             @click="currentStep > 1 && goToStep(currentStep - 1)"
@@ -514,44 +515,45 @@
                                 </div>
                                 
                                 <div class="flex flex-col sm:flex-row justify-center gap-3">
-                                    <!-- Save Character Button -->
-                                    <button 
-                                        pest="save-character-button"
-                                        @click="saveCharacter()"
-                                        :disabled="!hasUnsavedChanges"
-                                        :class="{
-                                            'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl transition-all duration-300 shadow-lg': true,
-                                            'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white hover:shadow-emerald-500/25': hasUnsavedChanges,
-                                            'bg-slate-700 text-slate-500 cursor-not-allowed': !hasUnsavedChanges
-                                        }"
-                                    >
+                                                            <!-- Save Character Button -->
+                        <button 
+                            pest="save-character-button"
+                            @click="saveCharacter()"
+                            :disabled="!hasUnsavedChanges"
+                            :class="{
+                                'inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 font-semibold rounded-xl transition-all duration-300 shadow-lg text-sm sm:text-base': true,
+                                'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white hover:shadow-emerald-500/25': hasUnsavedChanges,
+                                'bg-slate-700 text-slate-500 cursor-not-allowed': !hasUnsavedChanges
+                            }"
+                        >
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
                                         </svg>
                                         <span x-text="hasUnsavedChanges ? 'Save Character' : 'Saved'"></span>
                                     </button>
 
-                                    <!-- View Character Button -->
-                                    <button 
-                                        pest="view-character-button"
-                                        onclick="viewCharacter()"
-                                        :disabled="hasUnsavedChanges"
-                                        :class="{
-                                            'inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl transition-all duration-300 shadow-lg': true,
-                                            'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white hover:shadow-blue-500/25': !hasUnsavedChanges,
-                                            'bg-slate-700 text-slate-500 cursor-not-allowed': hasUnsavedChanges
-                                        }"
-                                    >
+                                                            <!-- View Character Button -->
+                        <button 
+                            pest="view-character-button"
+                            onclick="viewCharacter()"
+                            :disabled="hasUnsavedChanges"
+                            :class="{
+                                'inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 font-semibold rounded-xl transition-all duration-300 shadow-lg text-sm sm:text-base': true,
+                                'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white hover:shadow-blue-500/25': !hasUnsavedChanges,
+                                'bg-slate-700 text-slate-500 cursor-not-allowed': hasUnsavedChanges
+                            }"
+                        >
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                        View Character
+                                        <span class="hidden sm:inline">View Character</span>
+                                        <span class="sm:hidden">View</span>
                                     </button>
                                     
-                                    <!-- Return to Characters List -->
-                                    <a href="{{ route('characters') }}" 
-                                       class="inline-flex items-center justify-center px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-300 border border-slate-600 hover:border-slate-500">
+                                                            <!-- Return to Characters List -->
+                        <a href="{{ route('characters') }}" 
+                           class="inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-300 border border-slate-600 hover:border-slate-500 text-sm sm:text-base">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                                         </svg>
@@ -569,11 +571,11 @@
     </div>
 
     <!-- Floating Save Button (Always Visible) -->
-    <div x-show="hasUnsavedChanges" x-cloak class="fixed bottom-6 right-6 z-50">
+    <div x-show="hasUnsavedChanges" x-cloak class="fixed bottom-4 right-4 z-50">
         <button 
             pest="floating-save-button"
             @click="saveCharacter()"
-            class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 border-2 border-emerald-400/50 hover:border-emerald-300"
+            class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 border-2 border-emerald-400/50 hover:border-emerald-300 text-sm"
         >
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />

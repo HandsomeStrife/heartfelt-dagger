@@ -1,9 +1,9 @@
 <!-- Subclass Selection Step -->
 <div x-cloak>
     <!-- Step Header -->
-    <div class="mb-8" x-show="!selected_subclass">
-        <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Choose Your Subclass</h2>
-        <p class="text-slate-300 font-roboto">Select a subclass to further specialize your character's abilities and playstyle.</p>
+    <div class="mb-6 sm:mb-8" x-show="!selected_subclass">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2 font-outfit">Choose Your Subclass</h2>
+        <p class="text-slate-300 font-roboto text-sm sm:text-base">Select a subclass to further specialize your character's abilities and playstyle.</p>
     </div>
 
     <!-- Step Completion Indicator -->
@@ -41,15 +41,15 @@
     <!-- Subclass Selection -->
     <div x-show="selected_class" class="space-y-6">
         <template x-if="availableSubclasses && Object.keys(availableSubclasses).length > 0">
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <template x-for="[subclassKey, subclassData] in Object.entries(availableSubclasses)" :key="subclassKey">
                     <div 
                         :pest="`subclass-card-${subclassKey}`"
                         @click="selectSubclass(subclassKey)"
                         :class="{
-                            'relative group cursor-pointer transition-all duration-300 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border rounded-2xl overflow-hidden': true,
+                            'relative group cursor-pointer transition-all duration-300 bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur border rounded-2xl overflow-hidden touch-manipulation': true,
                             'border-emerald-500/50 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/20': selected_subclass === subclassKey,
-                            'border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 transform hover:scale-[1.02]': selected_subclass !== subclassKey
+                            'border-slate-700/50 hover:border-slate-600/70 hover:shadow-lg hover:shadow-slate-500/10 transform hover:scale-[1.02] active:scale-[0.98]': selected_subclass !== subclassKey
                         }"
                     >
                         <!-- Selection Indicator -->
@@ -61,7 +61,7 @@
                             </div>
                         </template>
 
-                        <div class="p-6">
+                        <div class="p-4 sm:p-6">
                             <!-- Subclass Header -->
                             <div class="mb-6">
                                 <h4 class="text-2xl font-bold text-white font-outfit mb-3" x-text="subclassData.name"></h4>

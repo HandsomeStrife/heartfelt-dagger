@@ -1,9 +1,9 @@
 <!-- Trait Assignment Step -->
 <div class="space-y-6">
     <!-- Step Header -->
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Assign Traits</h2>
-        <p class="text-slate-300 font-roboto">Distribute trait values to determine your character's strengths and weaknesses.</p>
+    <div class="mb-6 sm:mb-8">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2 font-outfit">Assign Traits</h2>
+        <p class="text-slate-300 font-roboto text-sm sm:text-base">Distribute trait values to determine your character's strengths and weaknesses.</p>
     </div>
 
     <!-- Step Completion Indicator -->
@@ -22,15 +22,15 @@
     </div>
     
     <!-- Two Column Layout -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-12">
         <!-- Left Column: Instructions and Controls -->
-        <div class="space-y-8">
+        <div class="space-y-6 lg:space-y-8 order-2 lg:order-1">
             <!-- Instructions -->
-            <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
-                <h3 class="text-lg font-bold text-white mb-4 font-outfit">Character Traits</h3>
+            <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4 sm:p-6">
+                <h3 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4 font-outfit">Character Traits</h3>
                 <div class="space-y-3 text-slate-300">
                     <p class="text-sm">Traits determine your character's core abilities and how they interact with the world.</p>
-                    <div class="space-y-2 text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-1 sm:gap-2 text-sm">
                         <p><strong class="text-blue-400">Agility:</strong> Speed, reflexes, and stealth</p>
                         <p><strong class="text-red-400">Strength:</strong> Physical power and endurance</p>
                         <p><strong class="text-green-400">Finesse:</strong> Precision and fine motor control</p>
@@ -38,44 +38,45 @@
                         <p><strong class="text-pink-400">Presence:</strong> Charisma and leadership</p>
                         <p><strong class="text-amber-400">Knowledge:</strong> Learning and reasoning</p>
                     </div>
-                    <p class="text-xs text-slate-400 mt-4">Use the values on the right to assign <strong class="text-amber-400">-1, 0, 0, +1, +1, +2</strong> to these traits. Higher values make you better at related actions.</p>
+                    <p class="text-xs text-slate-400 mt-4">Use the values below to assign <strong class="text-amber-400">-1, 0, 0, +1, +1, +2</strong> to these traits. Higher values make you better at related actions.</p>
                 </div>
             </div>
 
             <!-- Class Suggestions -->
             <template x-if="selected_class && selectedClassData?.suggestedTraits">
-                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-6">
-                    <h3 class="text-lg font-bold text-white mb-4 font-outfit" x-text="selectedClassData.name + ' Suggestions'"></h3>
+                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4 sm:p-6">
+                    <h3 class="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4 font-outfit" x-text="selectedClassData.name + ' Suggestions'"></h3>
                     
-                    <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
                         <template x-for="[trait, value] in Object.entries(selectedClassData.suggestedTraits)" :key="trait">
                             <div class="flex justify-between items-center">
                                 <span class="text-slate-300 text-sm" x-text="trait.charAt(0).toUpperCase() + trait.slice(1) + ':'"></span>
-                                <span class="text-white font-medium" x-text="value > 0 ? '+' + value : value"></span>
+                                <span class="text-white font-medium text-sm" x-text="value > 0 ? '+' + value : value"></span>
                             </div>
                         </template>
                     </div>
                     
                     <button 
                         @click="applySuggestedTraits()"
-                        class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+                        class="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base"
                         pest="apply-suggested-traits"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
-                        <span x-text="'Use ' + selectedClassData.name + ' Suggestions'"></span>
+                        <span class="hidden sm:inline" x-text="'Use ' + selectedClassData.name + ' Suggestions'"></span>
+                        <span class="sm:hidden">Use Suggestions</span>
                     </button>
                 </div>
             </template>
         </div>
 
         <!-- Right Column: Trait Boxes (3x2 Grid) -->
-        <div class="space-y-6">
+        <div class="space-y-4 sm:space-y-6 order-1 lg:order-2">
             <!-- Heading with Progress -->
             <div class="text-center">
-                <div class="flex items-center justify-center gap-4 mb-4">
-                    <h3 class="text-lg font-bold text-white font-outfit">Character Traits</h3>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-4">
+                    <h3 class="text-base sm:text-lg font-bold text-white font-outfit">Character Traits</h3>
                     <div class="flex items-center gap-2 text-sm">
                         <span class="text-slate-300">
                             <span x-text="6 - remainingValues.length"></span>/6 assigned
@@ -90,8 +91,8 @@
                 </div>
                 
                 <!-- Available Values -->
-                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-lg p-4 mb-6">
-                    <p class="text-slate-300 text-sm mb-3">Drag values onto trait boxes below:</p>
+                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+                    <p class="text-slate-300 text-sm mb-3">Tap values to assign to traits below:</p>
                     <div class="flex flex-wrap gap-2 justify-center">
                         <template x-for="(value, index) in remainingValues" :key="'remaining-' + index">
                             <div 
@@ -99,7 +100,7 @@
                                 @dragstart="draggedValue = value"
                                 @dragend="draggedValue = null"
                                 :class="{
-                                    'px-3 py-1 rounded-lg font-bold text-sm cursor-grab active:cursor-grabbing transition-all duration-200 shadow-lg': true,
+                                    'px-3 py-1.5 rounded-lg font-bold text-sm cursor-grab active:cursor-grabbing transition-all duration-200 shadow-lg touch-manipulation': true,
                                     'bg-red-500 text-white': value < 0,
                                     'bg-slate-500 text-white': value === 0,
                                     'bg-emerald-500 text-white': value > 0
@@ -108,7 +109,7 @@
                             ></div>
                         </template>
                         
-                        <div x-show="remainingValues.length === 0" class="text-slate-400 text-center py-1 px-3 text-sm">
+                        <div x-show="remainingValues.length === 0" class="text-slate-400 text-center py-1.5 px-3 text-sm">
                             All values assigned
                         </div>
                     </div>
@@ -116,7 +117,7 @@
             </div>
             
             <!-- Trait Boxes Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                 <template x-for="[traitKey, traitInfo] in Object.entries(traitsData)" :key="traitKey">
                     <div 
                         @dragover.prevent
@@ -129,9 +130,9 @@
                         class="group"
                     >
                         <!-- Stat Box Container -->
-                        <div class="flex flex-col items-center w-20 sm:w-24 mx-auto">
+                        <div class="flex flex-col items-center w-16 sm:w-20 lg:w-24 mx-auto">
                             <!-- Trait Name Header -->
-                            <div class="bg-zinc-950 w-full rounded-t-lg px-2 py-1 text-center">
+                            <div class="bg-zinc-950 w-full rounded-t-lg px-1 sm:px-2 py-1 text-center">
                                 <span class="font-semibold text-white text-xs tracking-wide" x-text="traitInfo.name"></span>
                             </div>
                             
@@ -141,18 +142,18 @@
                                 
                                 <!-- Content Overlay -->
                                 <div class="absolute inset-0 flex justify-center">
-                                    <div class="text-center mt-4">
+                                    <div class="text-center mt-2 sm:mt-4">
                                         <template x-if="assigned_traits[traitKey] !== undefined">
                                             <div 
                                                 @click="removeValue(traitKey)"
-                                                class="text-4xl font-bold cursor-pointer hover:scale-110 transition-transform duration-200 text-zinc-900 drop-shadow-lg"
-                                                title="Click to remove"
+                                                class="text-2xl sm:text-3xl lg:text-4xl font-bold cursor-pointer hover:scale-110 active:scale-95 transition-transform duration-200 text-zinc-900 drop-shadow-lg touch-manipulation"
+                                                title="Tap to remove"
                                                 x-text="assigned_traits[traitKey] > 0 ? '+' + assigned_traits[traitKey] : assigned_traits[traitKey]"
                                             ></div>
                                         </template>
                                         <template x-if="assigned_traits[traitKey] === undefined">
-                                            <div class="bg-white/80 backdrop-blur-sm border-2 border-dashed border-slate-600 rounded px-2 py-1 text-slate-700 text-xs font-medium shadow-sm">
-                                                Drop here
+                                            <div class="bg-white/80 backdrop-blur-sm border-2 border-dashed border-slate-600 rounded px-1 sm:px-2 py-1 text-slate-700 text-xs font-medium shadow-sm">
+                                                Tap here
                                             </div>
                                         </template>
                                     </div>

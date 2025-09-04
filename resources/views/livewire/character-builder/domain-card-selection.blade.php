@@ -1,11 +1,11 @@
 <!-- Domain Card Selection Step -->
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8">
     <!-- Step Header -->
-    <div class="mb-8">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+    <div class="mb-6 sm:mb-8">
+        <div class="flex flex-col gap-3 sm:gap-4 mb-4">
             <div>
-                <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Select Domain Cards</h2>
-                <p class="text-slate-300 font-roboto">Choose {{ $character->getMaxDomainCards() }} starting domain card{{ $character->getMaxDomainCards() !== 1 ? 's' : '' }} from your class domains to represent your character's initial magical abilities.
+                <h2 class="text-xl sm:text-2xl font-bold text-white mb-2 font-outfit">Select Domain Cards</h2>
+                <p class="text-slate-300 font-roboto text-sm sm:text-base">Choose {{ $character->getMaxDomainCards() }} starting domain card{{ $character->getMaxDomainCards() !== 1 ? 's' : '' }} from your class domains to represent your character's initial magical abilities.
                 @if($character->getMaxDomainCards() > 2)
                     <span class="text-purple-300"> (includes {{ $character->getMaxDomainCards() - 2 }} bonus card{{ $character->getMaxDomainCards() - 2 !== 1 ? 's' : '' }} from {{ ucfirst($character->selected_subclass) }})</span>
                 @endif
@@ -13,13 +13,12 @@
             </div>
             
             <!-- Level Filter Toggle -->
-            <div class="flex flex-col sm:items-end">
-                <div class="flex items-center gap-3">
+            <div class="flex flex-col">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                     <span class="text-sm text-slate-400">Showing level 1 cards only</span>
-                    <!-- Level toggle simplified since we're focusing on level 1 cards for character creation -->
                     <div class="text-xs text-slate-500">Higher level cards will be available as you advance</div>
                 </div>
-                <p class="text-xs text-slate-500 mt-1 text-right">Only level 1 cards available for character creation</p>
+                <p class="text-xs text-slate-500 mt-1">Only level 1 cards available for character creation</p>
             </div>
         </div>
     </div>
@@ -56,9 +55,9 @@
         </div>
     </template>
     <!-- Domain Card Guide & Selection Strategy -->
-    <div class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-6">
-        <h4 class="text-purple-300 font-semibold font-outfit mb-3">Understanding Domain Cards & Selection Strategy</h4>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-slate-300">
+    <div class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 sm:p-6">
+        <h4 class="text-purple-300 font-semibold font-outfit mb-3 text-sm sm:text-base">Understanding Domain Cards & Selection Strategy</h4>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 text-sm text-slate-300">
             <div>
                 <h5 class="text-white font-medium mb-3">What Are Domain Cards?</h5>
                 <ul class="space-y-2 text-xs leading-relaxed">
@@ -143,7 +142,7 @@
                     </div>
 
                     <!-- Available Abilities -->
-                    <div class="flex flex-wrap justify-start gap-8">
+                    <div class="flex flex-wrap justify-center sm:justify-start gap-4 sm:gap-8">
                         @foreach($domainAbilities as $abilityKey => $abilityData)
                         @php
                             $isSelected = collect($character->selected_domain_cards)->contains(fn($card) => 
@@ -180,8 +179,8 @@
                             pest="domain-card-{{ $domainKey }}-{{ $abilityKey }}"
                             @click="toggleDomainCard('{{ $domainKey }}', '{{ $abilityKey }}', ability)"
                             :class="{
-                                'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1': true,
-                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[400px] w-[280px] flex flex-col': true,
+                                'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98]': true,
+                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg min-h-[350px] sm:min-h-[400px] w-[260px] sm:w-[280px] flex flex-col touch-manipulation': true,
                                 'border-blue-500 ring-4 ring-blue-400/50 shadow-xl shadow-blue-500/25 scale-[1.02] -translate-y-1': isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}'),
                                 'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20': !isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}') && canSelectMoreDomainCards(),
                                 'border-slate-800 opacity-60 cursor-not-allowed': !isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}') && !canSelectMoreDomainCards()
@@ -228,8 +227,8 @@
                                 @endif
 
                                 <!-- Card Title -->
-                                <div class="w-full pl-[100px]">
-                                    <h5 class="text-white font-black font-outfit text-xl leading-tight uppercase">
+                                <div class="w-full pl-[90px] sm:pl-[100px] pr-2">
+                                    <h5 class="text-white font-black font-outfit text-lg sm:text-xl leading-tight uppercase">
                                         {{ $abilityData['name'] ?? ucwords(str_replace('-', ' ', $abilityKey)) }}
                                     </h5>
                                     <div class="text-xs font-bold uppercase tracking-wide mt-1" style="color: {{ $domainColor }}">
@@ -240,7 +239,7 @@
                             </div>
 
                             <!-- Card Content -->
-                            <div class="flex flex-col relative px-4 py-4 z-40 text-sm text-white flex-1">
+                            <div class="flex flex-col relative px-3 sm:px-4 py-3 sm:py-4 z-40 text-sm text-white flex-1">
                                 <!-- Full Ability Text -->
                                 <div class="flex-1 text-white text-sm leading-relaxed">
                                     @if(isset($abilityData['descriptions']) && is_array($abilityData['descriptions']))

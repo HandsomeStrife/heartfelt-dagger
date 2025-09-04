@@ -1,139 +1,87 @@
 <!-- Equipment Selection Step -->
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8">
     <!-- Step Header -->
-    <div class="mb-8">
-        <h2 class="text-2xl font-bold text-white mb-2 font-outfit">Select Equipment</h2>
-        <p class="text-slate-300 font-roboto">Choose your starting weapons, armor, and inventory according to Daggerheart
+    <div class="mb-6 sm:mb-8">
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-2 font-outfit">Select Equipment</h2>
+        <p class="text-slate-300 font-roboto text-sm sm:text-base">Choose your starting weapons, armor, and inventory according to Daggerheart
             rules.</p>
     </div>
 
     <div x-show="selected_class">
         <!-- Progress Indicator -->
-        <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
+        <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-3 sm:p-4">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-                <div class="flex items-center gap-2 sm:gap-4 text-sm flex-wrap">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-sm">
                     <div class="flex items-center gap-2">
-                        @if ($equipment_progress['selectedPrimary'])
-                            <div class="bg-emerald-500 rounded-full p-1">
-                                <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <span class="text-emerald-400">Primary</span>
-                        @else
-                            <div class="bg-slate-600 rounded-full p-1">
-                                <svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <span class="text-slate-400">Primary</span>
-                        @endif
-                    </div>
-                    <div class="flex items-center gap-2">
-                        @if ($equipment_progress['selectedSecondary'])
-                            <div class="bg-emerald-500 rounded-full p-1">
-                                <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <span class="text-emerald-400">Secondary</span>
-                        @else
-                            <div class="bg-slate-600 rounded-full p-1">
-                                <svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <span class="text-slate-400">Secondary</span>
-                        @endif
-                    </div>
-                    <div class="flex items-center gap-2">
-                        @if ($equipment_progress['selectedArmor'])
-                            <div class="bg-emerald-500 rounded-full p-1">
-                                <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <span class="text-emerald-400">Armor</span>
-                        @else
-                            <div class="bg-slate-600 rounded-full p-1">
-                                <svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <span class="text-slate-400">Armor</span>
-                        @endif
-                    </div>
-                    @if ($equipment_progress['hasStartingInventory'])
-                        <div class="flex items-center gap-2">
-                            @if ($equipment_progress['hasSelectedChooseOne'] && $equipment_progress['hasSelectedChooseExtra'])
-                                <div class="bg-emerald-500 rounded-full p-1">
-                                    <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span class="text-emerald-400">Inventory</span>
-                            @elseif($equipment_progress['hasSelectedChooseOne'] || $equipment_progress['hasSelectedChooseExtra'])
-                                <div class="bg-amber-500 rounded-full p-1">
-                                    <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span class="text-amber-400">Inventory (Partial)</span>
-                            @else
-                                <div class="bg-slate-600 rounded-full p-1">
-                                    <svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                                            clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <span class="text-slate-400">Inventory</span>
-                            @endif
+                        <div x-show="selectedPrimary" class="bg-emerald-500 rounded-full p-1">
+                            <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
                         </div>
-                    @endif
+                        <div x-show="!selectedPrimary" class="bg-slate-600 rounded-full p-1">
+                            <svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span class="text-emerald-400" x-show="selectedPrimary">Primary</span>
+                        <span class="text-slate-400" x-show="!selectedPrimary">Primary</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div x-show="selectedSecondary" class="bg-emerald-500 rounded-full p-1">
+                            <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div x-show="!selectedSecondary" class="bg-slate-600 rounded-full p-1">
+                            <svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span class="text-emerald-400" x-show="selectedSecondary">Secondary</span>
+                        <span class="text-slate-400" x-show="!selectedSecondary">Secondary</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div x-show="selectedArmor" class="bg-emerald-500 rounded-full p-1">
+                            <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div x-show="!selectedArmor" class="bg-slate-600 rounded-full p-1">
+                            <svg class="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <span class="text-emerald-400" x-show="selectedArmor">Armor</span>
+                        <span class="text-slate-400" x-show="!selectedArmor">Armor</span>
+                    </div>
+                    <!-- TODO: Inventory progress indicator - need to implement client-side inventory tracking -->
                 </div>
 
                 <div class="flex items-center gap-4">
-                    @if ($equipment_progress['equipmentComplete'])
-                        <div class="flex items-center gap-2">
-                            <div class="bg-emerald-500 rounded-full p-1">
-                                <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <span class="text-emerald-400 font-medium text-sm">Complete!</span>
+                    <div x-show="equipmentComplete" class="flex items-center gap-2">
+                        <div class="bg-emerald-500 rounded-full p-1">
+                            <svg class="w-3 h-3 text-black" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clip-rule="evenodd" />
+                            </svg>
                         </div>
-                    @endif
-
-                    <!-- Saving indicator -->
-                    <div x-show="saving_equipment" class="flex items-center gap-2 text-amber-400">
-                        <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor"
-                                d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                            </path>
-                        </svg>
-                        <span class="text-xs">Saving...</span>
+                        <span class="text-emerald-400 font-medium text-sm">Complete!</span>
                     </div>
+
+                    <!-- NOTE: Equipment saving indicator removed - equipment now saves only on explicit save button click -->
                 </div>
             </div>
         </div>
@@ -164,25 +112,25 @@
         <!-- Equipment Selection -->
         <div class="space-y-4 sm:space-y-6">
             <!-- Weapons Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
                 <!-- Primary Weapons -->
-                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
-                    <h3 class="text-lg font-bold text-white font-outfit mb-4">Primary Weapon</h3>
+                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-3 sm:p-4">
+                    <h3 class="text-base sm:text-lg font-bold text-white font-outfit mb-3 sm:mb-4">Primary Weapon</h3>
 
-                    <div class="space-y-2 max-h-80 overflow-y-auto">
+                    <div class="space-y-2 max-h-64 sm:max-h-80 overflow-y-auto">
                         <!-- Class Suggested Primary Weapon -->
                         <template x-if="suggestedPrimaryWeapon">
                             <div @click="selectEquipment(suggestedPrimaryWeapon.weaponKey, 'weapon', suggestedPrimaryWeapon.weaponData)"
                                  pest="suggested-primary-weapon"
                                 :class="{
-                                    'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200': true,
+                                    'flex items-center justify-between p-2 sm:p-3 rounded-lg border cursor-pointer transition-all duration-200': true,
                                     'bg-emerald-400/20 border-emerald-400': isEquipmentSelected(suggestedPrimaryWeapon.weaponKey, 'weapon'),
                                     'bg-emerald-500/10 border-emerald-500/50 hover:border-emerald-400': !isEquipmentSelected(suggestedPrimaryWeapon.weaponKey, 'weapon')
                                 }">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <h4 class="text-white font-medium" x-text="suggestedPrimaryWeapon.weaponData.name"></h4>
-                                        <span class="bg-emerald-500 text-black px-1.5 py-0.5 rounded text-xs font-bold">Recommended</span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                                        <h4 class="text-white font-medium text-sm sm:text-base" x-text="suggestedPrimaryWeapon.weaponData.name"></h4>
+                                        <span class="bg-emerald-500 text-black px-1.5 py-0.5 rounded text-xs font-bold self-start">Recommended</span>
                                     </div>
                                     <div class="text-xs text-slate-300 mt-1">
                                         <span x-text="suggestedPrimaryWeapon.weaponData.trait || 'N/A'"></span> •
@@ -206,12 +154,12 @@
                             <div @click="selectEquipment(weaponKey, 'weapon', weaponData)"
                                  :pest="`weapon-${weaponKey}`"
                                 :class="{
-                                    'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200': true,
+                                    'flex items-center justify-between p-2 sm:p-3 rounded-lg border cursor-pointer transition-all duration-200': true,
                                     'bg-amber-400/20 border-amber-400': isEquipmentSelected(weaponKey, 'weapon'),
                                     'bg-slate-700/50 border-slate-600 hover:border-slate-500': !isEquipmentSelected(weaponKey, 'weapon')
                                 }">
-                                <div class="flex-1">
-                                    <h4 class="text-white font-medium" x-text="weaponData.name"></h4>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="text-white font-medium text-sm sm:text-base" x-text="weaponData.name"></h4>
                                     <div class="text-xs text-slate-400 mt-1">
                                         <span x-text="weaponData.trait || 'N/A'"></span> •
                                         <span x-text="weaponData.range || 'N/A'"></span> •
@@ -232,11 +180,11 @@
                 </div>
 
                 <!-- Secondary Weapons -->
-                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
-                    <h3 class="text-lg font-bold text-white font-outfit mb-4">Secondary Weapon <span
+                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-3 sm:p-4">
+                    <h3 class="text-base sm:text-lg font-bold text-white font-outfit mb-3 sm:mb-4">Secondary Weapon <span
                             class="text-slate-400 text-sm font-normal">(Optional)</span></h3>
 
-                    <div class="space-y-2 max-h-80 overflow-y-auto">
+                    <div class="space-y-2 max-h-64 sm:max-h-80 overflow-y-auto">
                         <!-- Class Suggested Secondary Weapon -->
                         <template x-if="suggestedSecondaryWeapon">
                             <div @click="selectEquipment(suggestedSecondaryWeapon.weaponKey, 'weapon', suggestedSecondaryWeapon.weaponData)"
@@ -300,12 +248,12 @@
             </div>
 
             <!-- Armor and Inventory Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
                 <!-- Armor -->
-                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
-                    <h3 class="text-lg font-bold text-white font-outfit mb-4">Armor</h3>
+                <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-3 sm:p-4">
+                    <h3 class="text-base sm:text-lg font-bold text-white font-outfit mb-3 sm:mb-4">Armor</h3>
 
-                    <div class="space-y-2 max-h-80 overflow-y-auto">
+                    <div class="space-y-2 max-h-64 sm:max-h-80 overflow-y-auto">
                         <!-- Class Suggested Armor -->
                         <template x-if="suggestedArmor">
                             <div @click="selectEquipment(suggestedArmor.armorKey, 'armor', suggestedArmor.armorData)"
@@ -367,10 +315,10 @@
 
                 <!-- Starting Inventory -->
                 <template x-if="selected_class && classStartingInventory">
-                    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-4">
-                        <h3 class="text-lg font-bold text-white font-outfit mb-4">Starting Inventory</h3>
+                    <div class="bg-slate-800/50 backdrop-blur border border-slate-700/50 rounded-xl p-3 sm:p-4">
+                        <h3 class="text-base sm:text-lg font-bold text-white font-outfit mb-3 sm:mb-4">Starting Inventory</h3>
 
-                        <div class="space-y-4 max-h-80 overflow-y-auto">
+                        <div class="space-y-3 sm:space-y-4 max-h-64 sm:max-h-80 overflow-y-auto">
                             <!-- Always Items -->
                             <template x-if="classStartingInventory.always && Array.isArray(classStartingInventory.always)">
                                 <div>
@@ -463,13 +411,14 @@
         <div class="flex justify-center">
             <button
                 @click="applySuggestedEquipment(); markAsUnsaved()"
-                class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all duration-200 flex items-center gap-2"
+                class="px-4 sm:px-6 py-2.5 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all duration-200 flex items-center gap-2 text-sm sm:text-base"
                 pest="apply-all-suggestions">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                 </svg>
-                Apply All <span x-text="selectedClassData?.name || 'Class'"></span> Suggestions
+                <span class="hidden sm:inline">Apply All <span x-text="selectedClassData?.name || 'Class'"></span> Suggestions</span>
+                <span class="sm:hidden">Apply Suggestions</span>
             </button>
         </div>
     </div>

@@ -9,9 +9,7 @@ use Domain\Character\Actions\SaveCharacterAction;
 use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Enums\ClassEnum;
 use Domain\Character\Models\Character;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -42,28 +40,12 @@ class CharacterBuilder extends Component
 
     // NOTE: Equipment category expansion state removed - UI state now handled client-side
 
-    // Experience Form Fields
-    public string $new_experience_name = '';
-
-    public string $new_experience_description = '';
-
-    // Experience editing fields
-    public array $editing_experience = [];
-    public string $edit_experience_description = '';
+    // NOTE: Experience form fields removed - experience editing now handled client-side
 
     // Character model for accessing methods like getProfileImage()
     protected ?Character $character_model = null;
 
-    // Computed Properties for Tests
-    public function getComputedStatsProperty(): array
-    {
-        return $this->getComputedStats();
-    }
-
-    public function getAncestryBonusesProperty(): array
-    {
-        return $this->character->getAncestryBonuses();
-    }
+    // NOTE: Computed property wrappers removed - use getComputedStats() and $character->getAncestryBonuses() directly
 
     public function getImageUrl(): ?string
     {
@@ -137,11 +119,7 @@ class CharacterBuilder extends Component
         $this->loadGameData();
     }
 
-    public function initializeCharacter(): void
-    {
-        $this->character = new CharacterBuilderData;
-        $this->updateCompletedSteps();
-    }
+    // NOTE: initializeCharacter() removed - characters are now always loaded from database
 
     public function loadGameData(): void
     {
@@ -224,70 +202,7 @@ class CharacterBuilder extends Component
 
     // NOTE: updatedPronouns() removed - pronouns now save only when user clicks Save button
 
-    public function updatedProfileImage(): void
-    {
-        $this->validate([
-            'profile_image' => 'image|max:2048', // 2MB Max
-        ]);
-
-        if ($this->profile_image) {
-            // Dispatch upload start event
-            $this->dispatch('upload:start');
-            
-            try {
-                // Generate organized path: year/month/day/character-token/image_name.extension
-                $date = now();
-                $year = $date->format('Y');
-                $month = $date->format('m');
-                $day = $date->format('d');
-
-                // Get original filename and extension
-                $original_name = $this->profile_image->getClientOriginalName();
-                $extension = $this->profile_image->getClientOriginalExtension();
-                $filename = pathinfo($original_name, PATHINFO_FILENAME);
-
-                // Sanitize filename and add timestamp to avoid conflicts
-                $sanitized_filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
-                $timestamp = $date->format('His');
-                $final_filename = "{$sanitized_filename}_{$timestamp}.{$extension}";
-
-                // Construct the directory path
-                $directory = "character-portraits/{$year}/{$month}/{$day}/{$this->storage_key}";
-
-                // Store the file to S3 (no ACL visibility - rely on bucket policy)
-                $path = $this->profile_image->storeAs($directory, $final_filename, 's3');
-
-                // Verify the file was actually uploaded
-                if (!Storage::disk('s3')->exists($path)) {
-                    throw new \Exception('File upload to S3 failed - file does not exist after upload');
-                }
-
-                $this->character->profile_image_path = $path;
-                $this->saveToDatabase();
-                
-                // Refresh character model after uploading
-                $this->character_model = Character::where('character_key', $this->storage_key)->first();
-                
-                $this->dispatch('character-updated', $this->character);
-                $this->dispatch('image-uploaded', ['path' => $path]);
-                $this->dispatch('upload:finish');
-                
-                // Use toast notification instead of old notify system
-                toast()->success('Image uploaded successfully!')->push();
-
-            } catch (\Exception $e) {
-                $this->dispatch('upload:error');
-                
-                toast()->danger('Failed to upload image: ' . $e->getMessage())->push();
-                
-                Log::error('Image upload failed', [
-                    'error' => $e->getMessage(),
-                    'character_key' => $this->storage_key,
-                    'filename' => $original_name ?? 'unknown'
-                ]);
-            }
-        }
-    }
+    // NOTE: updatedProfileImage() removed - image uploads now handled via SimpleImageUploader and CharacterImageUploadController
 
     public function clearProfileImage(): void
     {
@@ -317,23 +232,11 @@ class CharacterBuilder extends Component
     // NOTE: updateBackgroundAnswer() removed - background answers are now handled via
     // direct wire:model binding to character.background_answers array for real-time updates.
 
-    public function markBackgroundComplete(): void
-    {
-        // Mark background step as manually complete
-        $this->character->markStepComplete(\Domain\Character\Enums\CharacterBuilderStep::BACKGROUND);
-        $this->updateStateOnly();
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => 'Background section marked as complete!',
-        ]);
-    }
+    // NOTE: markBackgroundComplete() removed - step completion now automatically calculated based on content
 
-    public function addExperience(?string $name = null, ?string $description = null): void
+    public function addExperience(string $name, string $description = ''): void
     {
-        $experience_name = $name ?? trim($this->new_experience_name);
-        $experience_description = $description ?? trim($this->new_experience_description);
-
-        if (empty($experience_name)) {
+        if (empty(trim($name))) {
             return;
         }
 
@@ -343,14 +246,10 @@ class CharacterBuilder extends Component
         }
 
         $this->character->experiences[] = [
-            'name' => $experience_name,
-            'description' => $experience_description,
+            'name' => trim($name),
+            'description' => trim($description),
             'modifier' => 2,
         ];
-
-        // Clear form fields
-        $this->new_experience_name = '';
-        $this->new_experience_description = '';
 
         $this->updateStateOnly();
         $this->dispatch('experience-added');
@@ -369,40 +268,7 @@ class CharacterBuilder extends Component
         $this->updateStateOnly();
     }
 
-    /**
-     * Start editing an experience description
-     */
-    public function startEditingExperience(int $index): void
-    {
-        $experience = $this->character->experiences[$index] ?? null;
-        if ($experience) {
-            $this->editing_experience = ['index' => $index];
-            $this->edit_experience_description = $experience['description'] ?? '';
-        }
-    }
-
-    /**
-     * Save the edited experience description
-     */
-    public function saveExperienceEdit(): void
-    {
-        $index = $this->editing_experience['index'] ?? null;
-        if ($index !== null && isset($this->character->experiences[$index])) {
-            $this->character->experiences[$index]['description'] = $this->edit_experience_description;
-            $this->editing_experience = [];
-            $this->edit_experience_description = '';
-            $this->updateStateOnly();
-        }
-    }
-
-    /**
-     * Cancel editing experience description
-     */
-    public function cancelExperienceEdit(): void
-    {
-        $this->editing_experience = [];
-        $this->edit_experience_description = '';
-    }
+    // NOTE: Experience editing methods removed - experience editing now handled client-side for better UX
 
     // NOTE: selectDomainCard() method removed - domain card selection now handled client-side
     // JavaScript method: toggleDomainCard() provides instant feedback and better UX
@@ -499,27 +365,7 @@ class CharacterBuilder extends Component
         return $tabs;
     }
 
-    public function getEquipmentProgress(): array
-    {
-        $selectedPrimary = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'weapon' && ($eq['data']['type'] ?? 'Primary') === 'Primary');
-        $selectedSecondary = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'weapon' && ($eq['data']['type'] ?? '') === 'Secondary');
-        $selectedArmor = collect($this->character->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'armor');
-        
-        // Basic implementation for backward compatibility until equipment template is fully converted
-        $hasSelectedChooseOne = true;
-        $hasSelectedChooseExtra = true; 
-        $hasStartingInventory = false;
-
-        return [
-            'selectedPrimary' => $selectedPrimary,
-            'selectedSecondary' => $selectedSecondary,
-            'selectedArmor' => $selectedArmor,
-            'hasSelectedChooseOne' => $hasSelectedChooseOne,
-            'hasSelectedChooseExtra' => $hasSelectedChooseExtra,
-            'hasStartingInventory' => $hasStartingInventory,
-            'equipmentComplete' => $selectedPrimary && $selectedArmor,
-        ];
-    }
+    // NOTE: getEquipmentProgress() removed - equipment progress now tracked client-side via AlpineJS computed properties
 
     // NOTE: Equipment suggestion methods removed - now handled client-side in character-builder.js
     // The following methods were moved to JavaScript for better performance:
@@ -531,14 +377,7 @@ class CharacterBuilder extends Component
     // NOTE: isInventoryItemSelected() method removed - inventory selection state now tracked client-side
     // JavaScript component has isInventoryItemSelected() method for real-time UI updates
 
-    public function syncEquipment(array $selected_equipment): void
-    {
-        // Update the character's selected equipment from Alpine.js state
-        $this->character->selected_equipment = $selected_equipment;
-
-        // Update completion state and save
-        $this->updateStateOnly();
-    }
+    // NOTE: syncEquipment() removed - equipment now synced via entangled properties automatically
 
     // NOTE: getInventoryItemData() method removed - inventory data lookup now handled client-side
     // JavaScript component has direct access to gameData for item/consumable lookups
@@ -557,7 +396,6 @@ class CharacterBuilder extends Component
             'is_complete' => count($this->completed_steps) === count(\Domain\Character\Enums\CharacterBuilderStep::getAllInOrder()),
             'completed_steps' => $this->completed_steps,
             'tabs' => $this->getTabsData(),
-            'equipment_progress' => $this->getEquipmentProgress(),
             'computed_stats' => $this->getComputedStats(),
             'ancestry_bonuses' => $this->character->getAncestryBonuses(),
             'character_level' => $this->character_model?->level ?? 1,
@@ -565,7 +403,6 @@ class CharacterBuilder extends Component
             'classes' => ClassEnum::cases(),
             // NOTE: Removed redundant data now handled client-side:
             // - filtered_data (subclasses, domain cards, questions computed in JS)
-            // - equipment_progress (equipment completion tracked in JS)  
             // - connection_progress (connection tracking handled in JS)
         ]);
     }
