@@ -142,7 +142,7 @@
                     </div>
 
                     <!-- Available Abilities -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 justify-items-center">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         @foreach($domainAbilities as $abilityKey => $abilityData)
                         @php
                             $isSelected = collect($character->selected_domain_cards)->contains(fn($card) => 
@@ -180,7 +180,7 @@
                             @click="toggleDomainCard('{{ $domainKey }}', '{{ $abilityKey }}', ability)"
                             :class="{
                                 'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98]': true,
-                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg w-[240px] h-[360px] flex flex-col touch-manipulation': true,
+                                'bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg flex flex-col touch-manipulation min-h-[400px]': true,
                                 'border-blue-500 ring-4 ring-blue-400/50 shadow-xl shadow-blue-500/25 scale-[1.02] -translate-y-1': isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}'),
                                 'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20': !isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}') && canSelectMoreDomainCards(),
                                 'border-slate-800 opacity-60 cursor-not-allowed': !isDomainCardSelected('{{ $domainKey }}', '{{ $abilityKey }}') && !canSelectMoreDomainCards()
@@ -227,8 +227,8 @@
                                 @endif
 
                                 <!-- Card Title -->
-                                <div class="w-full pl-[90px] sm:pl-[100px] pr-2">
-                                    <h5 class="text-white font-black font-outfit text-lg sm:text-xl leading-tight uppercase">
+                                <div class="w-full pl-[100px] pr-3">
+                                    <h5 class="text-white font-black font-outfit text-xl leading-tight uppercase">
                                         {{ $abilityData['name'] ?? ucwords(str_replace('-', ' ', $abilityKey)) }}
                                     </h5>
                                     <div class="text-xs font-bold uppercase tracking-wide mt-1" style="color: {{ $domainColor }}">
@@ -239,7 +239,7 @@
                             </div>
 
                             <!-- Card Content -->
-                            <div class="flex flex-col relative px-3 sm:px-4 py-3 sm:py-4 z-40 text-sm text-white flex-1">
+                            <div class="flex flex-col relative px-4 py-4 z-40 text-sm text-white flex-1">
                                 <!-- Full Ability Text -->
                                 <div class="flex-1 text-white text-sm leading-relaxed">
                                     @if(isset($abilityData['descriptions']) && is_array($abilityData['descriptions']))
