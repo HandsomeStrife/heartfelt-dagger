@@ -52,6 +52,15 @@
                 
                 <!-- Domain Effects as Cards -->
                 <x-character-viewer.domain-cards :domain-card-details="$domain_card_details" />
+                
+                <!-- Ancestry and Community Features (side-by-side on xl screens) -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <!-- Ancestry Features -->
+                    <x-character-viewer.ancestry-features :ancestry-data="$ancestry_data" />
+                    
+                    <!-- Community Features -->
+                    <x-character-viewer.community-features :community-data="$community_data" />
+                </div>
             </div>
         </section>
 
