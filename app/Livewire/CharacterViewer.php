@@ -143,15 +143,16 @@ class CharacterViewer extends Component
         }
 
         // Convert CharacterStatsData to the array format expected by the frontend
+        // Use CharacterData methods for SRD-compliant threshold calculations
         return [
             'evasion' => $this->character->stats->evasion,
             'hit_points' => $this->character->stats->hit_points,
             'final_hit_points' => $this->character->stats->hit_points,
             'stress' => $this->character->stats->stress,
             'hope' => $this->character->stats->hope,
-            'major_threshold' => $this->character->stats->major_threshold,
-            'severe_threshold' => $this->character->stats->severe_threshold,
-            'armor_score' => $this->character->stats->armor_score,
+            'major_threshold' => $this->character->getMajorThreshold(),
+            'severe_threshold' => $this->character->getSevereThreshold(),
+            'armor_score' => $this->character->getTotalArmorScore(),
         ];
     }
 

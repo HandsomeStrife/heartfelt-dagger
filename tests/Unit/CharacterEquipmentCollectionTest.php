@@ -90,7 +90,7 @@ it('calculates damage thresholds correctly', function () {
         'level' => 5,
     ]);
 
-    // Create armor with armor score 3
+    // Create chainmail armor with proper SRD base thresholds
     CharacterEquipment::factory()->create([
         'character_id' => $character->id,
         'equipment_type' => EquipmentType::ARMOR->value,
@@ -98,20 +98,21 @@ it('calculates damage thresholds correctly', function () {
         'equipment_data' => [
             'name' => 'Chainmail',
             'armor_score' => 3,
+            'baseThresholds' => ['lower' => 7, 'higher' => 15], // Chainmail SRD values
         ],
         'is_equipped' => true,
     ]);
 
     $characterData = CharacterData::fromModel($character);
 
-    // At level 5, proficiency bonus is 3
+    // SRD calculation for level 5 with chainmail:
     // Total armor score: 1 (base) + 3 (chainmail) = 4
-    // Major threshold: 4 (armor) + 3 (proficiency) + 5 (level) = 12
-    // Severe threshold: 12 (major) + 5 = 17
+    // Major threshold: 7 (chainmail base) + 4 (level bonus) = 11
+    // Severe threshold: 15 (chainmail base) + 4 (level bonus) = 19
 
     expect($characterData->getTotalArmorScore())->toBe(4);
-    expect($characterData->getMajorThreshold())->toBe(12);
-    expect($characterData->getSevereThreshold())->toBe(17);
+    expect($characterData->getMajorThreshold())->toBe(11);
+    expect($characterData->getSevereThreshold())->toBe(19);
 });
 
 it('handles character with no equipment', function () {

@@ -59,7 +59,17 @@ class CharacterEquipmentItemData extends Data implements Wireable
      */
     public function getThresholds(): ?array
     {
-        return $this->equipment_data['thresholds'] ?? $this->equipment_data['baseThresholds'] ?? null;
+        // Check for baseThresholds first (from armor.json)
+        if (isset($this->equipment_data['baseThresholds'])) {
+            return $this->equipment_data['baseThresholds'];
+        }
+        
+        // Fallback to direct thresholds format
+        if (isset($this->equipment_data['thresholds'])) {
+            return $this->equipment_data['thresholds'];
+        }
+        
+        return null;
     }
 
     /**

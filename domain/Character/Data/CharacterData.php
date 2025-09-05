@@ -140,33 +140,81 @@ class CharacterData extends Data implements Wireable
     }
 
     /**
-     * Get major damage threshold
+     * Get major damage threshold according to DaggerHeart SRD
      */
     public function getMajorThreshold(): int
     {
-        // Base calculation: armor score + proficiency bonus + level + bonuses
-        $proficiencyBonus = $this->getProficiencyBonus();
-        $armorScore = $this->getTotalArmorScore();
+        $equippedArmor = $this->getEquippedArmor();
+        
+        if ($equippedArmor->isEmpty()) {
+            // Unarmored: Major threshold = character level
+            return max(1, $this->level);
+        }
+        
+        // With armor: Use armor's base threshold + level bonus (level - 1) + other bonuses
+        $baseThreshold = $this->getHighestArmorMajorThreshold($equippedArmor);
+        $levelBonus = max(0, $this->level - 1); // Level bonus starts at 0 for level 1
         
         // Get bonuses from ancestry, subclass, and advancements (if any)
-        // For now, we'll use 0 as placeholder - this would come from the character's advancement data
-        $damageThresholdBonus = 0;
+        $damageThresholdBonus = 0; // Placeholder for future implementation
         
-        return max(1, $armorScore + $proficiencyBonus + $this->level + $damageThresholdBonus);
+        return max(1, $baseThreshold + $levelBonus + $damageThresholdBonus);
     }
 
     /**
-     * Get severe damage threshold
+     * Get severe damage threshold according to DaggerHeart SRD
      */
     public function getSevereThreshold(): int
     {
-        // Base calculation: major threshold + 5 + additional bonuses
-        $majorThreshold = $this->getMajorThreshold();
+        $equippedArmor = $this->getEquippedArmor();
+        
+        if ($equippedArmor->isEmpty()) {
+            // Unarmored: Severe threshold = 2 × character level
+            return max(1, $this->level * 2);
+        }
+        
+        // With armor: Use armor's base severe threshold + level bonus + other bonuses
+        $baseThreshold = $this->getHighestArmorSevereThreshold($equippedArmor);
+        $levelBonus = max(0, $this->level - 1); // Level bonus starts at 0 for level 1
         
         // Get severe threshold bonuses from subclass (if any)
-        $severeThresholdBonus = 0;
+        $severeThresholdBonus = 0; // Placeholder for future implementation
         
-        return max(1, $majorThreshold + 5 + $severeThresholdBonus);
+        return max(1, $baseThreshold + $levelBonus + $severeThresholdBonus);
+    }
+
+    /**
+     * Get the highest major threshold from equipped armor
+     */
+    private function getHighestArmorMajorThreshold(Collection $equippedArmor): int
+    {
+        $highestThreshold = 0;
+        
+        foreach ($equippedArmor as $armor) {
+            $thresholds = $armor->getThresholds();
+            if ($thresholds && isset($thresholds['lower'])) {
+                $highestThreshold = max($highestThreshold, $thresholds['lower']);
+            }
+        }
+        
+        return $highestThreshold;
+    }
+
+    /**
+     * Get the highest severe threshold from equipped armor
+     */
+    private function getHighestArmorSevereThreshold(Collection $equippedArmor): int
+    {
+        $highestThreshold = 0;
+        
+        foreach ($equippedArmor as $armor) {
+            $thresholds = $armor->getThresholds();
+            if ($thresholds && isset($thresholds['higher'])) {
+                $highestThreshold = max($highestThreshold, $thresholds['higher']);
+            }
+        }
+        
+        return $highestThreshold;
     }
 
     /**
