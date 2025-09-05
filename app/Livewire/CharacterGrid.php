@@ -55,9 +55,9 @@ class CharacterGrid extends Component
             try {
                 $character = $action->execute($key);
                 if ($character) {
-                    // Get the character model for additional data
+                    // Get the character model for ownership validation
                     $character_model = Character::where('character_key', $key)->first();
-                    if ($character_model) {
+                    if ($character_model && $this->userCanAccessCharacter($character_model)) {
                         // Add model data to character data
                         $character->character_key = $key;
                         $character->public_key = $character_model->public_key;
@@ -72,6 +72,22 @@ class CharacterGrid extends Component
         
         $this->characters = $characters;
         $this->loading = false;
+    }
+
+    /**
+     * Determine if the current user can access a character in the character grid.
+     * - Authenticated users can only see characters they own
+     * - Guest users can only see characters with no user_id (anonymous characters)
+     */
+    private function userCanAccessCharacter(Character $character): bool
+    {
+        if (Auth::check()) {
+            // Authenticated users can only see their own characters
+            return $character->user_id === Auth::id();
+        } else {
+            // Guest users can only see anonymous characters (no user_id)
+            return $character->user_id === null;
+        }
     }
 
     public function refreshCharacters(): void
