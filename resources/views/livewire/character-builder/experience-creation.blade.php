@@ -66,7 +66,7 @@
                 <div class="xl:col-span-1">
                     <label for="new-experience-name" class="block text-sm font-medium text-slate-300 mb-2">Experience Name</label>
                     <input 
-                        dusk="new-experience-name"
+                        pest="new-experience-name"
                         pest="experience-name-input"
                         type="text" 
                         id="new-experience-name"
@@ -81,7 +81,7 @@
                 <div class="xl:col-span-1">
                     <label for="new-experience-description" class="block text-sm font-medium text-slate-300 mb-2">Description</label>
                     <input 
-                        dusk="new-experience-description"
+                        pest="new-experience-description"
                         pest="experience-description-input"
                         type="text" 
                         id="new-experience-description"
@@ -99,7 +99,7 @@
                 <div class="xl:col-span-1">
                     <label class="block text-sm font-medium text-slate-300 mb-2 opacity-0">Add</label>
                     <button 
-                        dusk="add-experience-button"
+                        pest="add-experience-button"
                         pest="add-experience-button"
                         @click="addExperience()"
                         :disabled="!canAddNewExperience"
@@ -141,7 +141,7 @@
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <template x-for="(experience, index) in experiences" :key="index">
                     <div 
-                        :dusk="`experience-card-${index}`"
+                        :pest="`experience-card-${index}`"
                         pest="experience-item"
                         :pest-index="index"
                         @click="canSelectBonusExperience(experience.name) ? selectClankBonusExperience(experience.name) : null"
@@ -160,7 +160,7 @@
                                     <!-- Edit mode -->
                                     <div class="mt-2">
                                         <textarea 
-                                            :dusk="`edit-experience-description-${index}`"
+                                            :pest="`edit-experience-description-${index}`"
                                             pest="edit-experience-description"
                                             :pest-index="index"
                                             x-model="edit_experience_description"
@@ -206,7 +206,7 @@
                             <div class="flex items-center gap-1 opacity-100 transition-opacity duration-200">
                                 <template x-if="!isEditingExperience(index)">
                                     <button 
-                                        :dusk="`edit-experience-${index}`"
+                                        :pest="`edit-experience-${index}`"
                                         pest="edit-experience"
                                         :pest-index="index"
                                         @click.stop="startEditingExperience(index)"
@@ -219,7 +219,7 @@
                                     </button>
                                 </template>
                                 <button 
-                                    :dusk="`remove-experience-${index}`"
+                                    :pest="`remove-experience-${index}`"
                                     pest="remove-experience"
                                     :pest-index="index"
                                     @click.stop="removeExperience(index)"

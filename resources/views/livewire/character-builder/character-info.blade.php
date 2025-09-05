@@ -15,7 +15,7 @@
         <div class="max-w-md">
             <label for="character-name" class="block text-sm font-medium text-slate-300 mb-2">Name</label>
             <input 
-                dusk="character-name-input"
+                pest="character-name-input"
                 type="text" 
                 id="character-name"
                 x-model="name"
@@ -52,7 +52,7 @@
                     <!-- File Upload Input -->
                     <div class="relative">
                         <input 
-                            dusk="profile-image-input"
+                            pest="profile-image-input"
                             type="file" 
                             wire:model="profileImage"
                             accept="image/*"
@@ -134,13 +134,13 @@
                     @if($profile_image)
                         <!-- Temporary Preview -->
                         <div class="aspect-square max-w-sm mx-auto">
-                            <img dusk="profile-image-preview" src="{{ $profile_image->temporaryUrl() }}" alt="Character Preview" class="w-full h-full object-cover rounded-xl">
+                            <img pest="profile-image-preview" src="{{ $profile_image->temporaryUrl() }}" alt="Character Preview" class="w-full h-full object-cover rounded-xl">
                         </div>
                         <p class="text-center text-slate-400 text-xs mt-3">Image preview</p>
                     @elseif($character->profile_image_path)
                         <!-- Saved Image -->
                         <div class="aspect-square max-w-sm mx-auto">
-                            <img dusk="profile-image-saved" src="{{ $character->getProfileImage() }}" alt="Character Portrait" class="w-full h-full object-cover rounded-xl">
+                            <img pest="profile-image-saved" src="{{ $character->getProfileImage() }}" alt="Character Portrait" class="w-full h-full object-cover rounded-xl">
                         </div>
                         <p class="text-center text-emerald-400 text-xs mt-3">✓ Saved portrait</p>
                     @else

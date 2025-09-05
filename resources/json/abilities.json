@@ -446,7 +446,7 @@
         "key": "chains of affliction",
         "name": "Chains of Affliction",
         "domain": "dread",
-        "level": 3,
+        "level": 4,
         "type": "Spell",
         "recallCost": 2,
         "playtest": {
@@ -1843,7 +1843,7 @@
         "key": "summon horror",
         "name": "Summon Horror",
         "domain": "dread",
-        "level": 3,
+        "level": 4,
         "type": "Spell",
         "recallCost": 2,
         "playtest": {
@@ -2198,7 +2198,7 @@
         "key": "terrify",
         "name": "Terrify",
         "domain": "dread",
-        "level": 2,
+        "level": 3,
         "type": "Spell",
         "recallCost": 1,
         "playtest": {

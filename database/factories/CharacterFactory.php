@@ -30,6 +30,7 @@ class CharacterFactory extends Factory
 
         return [
             'character_key' => Character::generateUniqueKey(),
+            'public_key' => Character::generateUniquePublicKey(),
             'user_id' => null, // Can be set with ->for(User::factory())
             'name' => $this->faker->firstName(),
             'pronouns' => $this->faker->randomElement(['he/him', 'she/her', 'they/them', 'xe/xem', null]),

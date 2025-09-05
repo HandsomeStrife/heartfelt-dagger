@@ -50,7 +50,7 @@
                         'px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2 text-sm sm:text-base' :
                         'px-3 sm:px-4 py-2 bg-slate-600 text-slate-400 font-medium rounded-lg cursor-not-allowed flex items-center gap-2 text-sm sm:text-base'"
                     :disabled="!canMarkBackgroundComplete"
-                    dusk="mark-background-complete"
+                    pest="mark-background-complete"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -141,7 +141,7 @@
                             </div>
 
                             <textarea
-                                :dusk="`background-answer-${index}`"
+                                :pest="`background-answer-${index}`"
                                 x-model="background_answers[index]"
                                 @input="markAsUnsaved()"
                                 class="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-xs sm:text-sm"
@@ -180,7 +180,7 @@
             <div class="bg-slate-800/20 backdrop-blur border border-slate-700/20 rounded-lg p-3 sm:p-4">
                 <label class="block text-xs sm:text-sm font-semibold text-white mb-2">Physical Description</label>
                 <textarea
-                    dusk="physical-description"
+                    pest="physical-description"
                     x-model="physical_description"
                     @input="markAsUnsaved()"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-xs sm:text-sm"
@@ -194,7 +194,7 @@
             <div class="bg-slate-800/20 backdrop-blur border border-slate-700/20 rounded-lg p-3 sm:p-4">
                 <label class="block text-xs sm:text-sm font-semibold text-white mb-2">Personality & Mannerisms</label>
                 <textarea
-                    dusk="personality-traits"
+                    pest="personality-traits"
                     x-model="personality_traits"
                     @input="markAsUnsaved()"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-xs sm:text-sm"
@@ -208,7 +208,7 @@
             <div class="bg-slate-800/20 backdrop-blur border border-slate-700/20 rounded-lg p-4">
                 <label class="block text-sm font-semibold text-white mb-2">Personal History</label>
                 <textarea
-                    dusk="personal-history"
+                    pest="personal-history"
                     x-model="personal_history"
                     @input="markAsUnsaved()"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"
@@ -222,7 +222,7 @@
             <div class="bg-slate-800/20 backdrop-blur border border-slate-700/20 rounded-lg p-4">
                 <label class="block text-sm font-semibold text-white mb-2">Motivations & Goals</label>
                 <textarea
-                    dusk="motivations-goals"
+                    pest="motivations-goals"
                     x-model="motivations"
                     @input="markAsUnsaved()"
                     class="w-full px-3 py-2 bg-slate-900/40 border border-slate-600/40 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-500/50 focus:border-amber-500/50 resize-none text-sm"

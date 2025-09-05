@@ -153,7 +153,6 @@
                     <div>
                         <label for="character-name" class="block text-sm font-medium text-slate-300 mb-2">Character Name</label>
                         <input 
-                            dusk="character-name-input"
                             pest="character-name-input"
                             type="text" 
                             id="character-name"
@@ -220,7 +219,7 @@
                              class="mt-2 mx-4 mb-4 bg-slate-800 border border-slate-600 rounded-lg shadow-xl">
                             @foreach($tabs as $step => $title)
                                 <button 
-                                    dusk="mobile-tab-{{ $step }}"
+                                    pest="mobile-tab-{{ $step }}"
                                     @click="goToStep({{ $step }}); dropdownOpen = false"
                                     :class="{
                                         'w-full flex items-center gap-3 px-4 py-3 text-left border-b border-slate-600 last:border-b-0': true,

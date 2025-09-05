@@ -46,7 +46,7 @@
                     <div>
                         <label :for="`connection-${index}`" class="block text-sm font-medium text-slate-300 mb-2">Your Connection</label>
                         <textarea 
-                            :dusk="`connection-answer-${index}`"
+                            :pest="`connection-answer-${index}`"
                             :id="`connection-${index}`"
                             x-model="connection_answers[index]"
                             @input="markAsUnsaved()"

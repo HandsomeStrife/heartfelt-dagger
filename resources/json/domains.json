@@ -328,16 +328,14 @@
                 "level": 2,
                 "abilities": [
                     "hideous retribution",
-                    "siphon essence",
-                    "terrify"
+                    "siphon essence"
                 ]
             },
             "3": {
                 "level": 3,
                 "abilities": [
-                    "shared trauma",
-                    "chains of affliction",
-                    "summon horror"
+                    "terrify",
+                    "shared trauma"
                 ]
             },
             "4": {
