@@ -6,10 +6,14 @@ namespace Domain\Character\Data;
 
 use Domain\Character\Enums\TraitName;
 use Domain\Character\Models\Character;
+use Livewire\Wireable;
+use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
 
-class CharacterTraitsData extends Data
+class CharacterTraitsData extends Data implements Wireable
 {
+    use WireableData;
+    
     public function __construct(
         public int $agility,
         public int $strength,

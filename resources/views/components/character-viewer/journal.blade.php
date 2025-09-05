@@ -1,16 +1,16 @@
 <div class="w-full rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
     <h2 class="text-lg font-bold">Journal</h2>
     <div class="mt-3 rounded-2xl ring-1 ring-slate-700/60 p-4 bg-slate-950/40 min-h-[8rem]">
-        @if ($character->personal_history || $character->motivations || $character->personality_traits)
+        @if ($character->background->backstory || $character->background->motivations || $character->background->personality)
             <div class="text-sm text-slate-300 space-y-2">
-                @if ($character->personality_traits)
-                    <div><strong>Personality:</strong> {{ $character->personality_traits }}</div>
+                @if ($character->background->personality)
+                    <div><strong>Personality:</strong> {{ $character->background->personality }}</div>
                 @endif
-                @if ($character->personal_history)
-                    <div><strong>History:</strong> {{ $character->personal_history }}</div>
+                @if ($character->background->backstory)
+                    <div><strong>History:</strong> {{ $character->background->backstory }}</div>
                 @endif
-                @if ($character->motivations)
-                    <div><strong>Motivations:</strong> {{ $character->motivations }}</div>
+                @if ($character->background->motivations)
+                    <div><strong>Motivations:</strong> {{ $character->background->motivations }}</div>
                 @endif
             </div>
         @else

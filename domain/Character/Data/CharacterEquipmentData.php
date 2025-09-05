@@ -6,10 +6,14 @@ namespace Domain\Character\Data;
 
 use Domain\Character\Enums\EquipmentType;
 use Domain\Character\Models\Character;
+use Livewire\Wireable;
+use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
 
-class CharacterEquipmentData extends Data
+class CharacterEquipmentData extends Data implements Wireable
 {
+    use WireableData;
+    
     public function __construct(
         public ?array $primary_weapon,
         public ?array $secondary_weapon,
@@ -38,10 +42,15 @@ class CharacterEquipmentData extends Data
 
     public static function fromBuilderData(array $selected_equipment): self
     {
-        $weapons = array_filter($selected_equipment, fn ($item) => $item['type'] === 'weapon');
-        $armor = array_filter($selected_equipment, fn ($item) => $item['type'] === 'armor');
-        $items = array_filter($selected_equipment, fn ($item) => $item['type'] === 'item');
-        $consumables = array_filter($selected_equipment, fn ($item) => $item['type'] === 'consumable');
+        // Filter out null values and ensure each item has required structure
+        $valid_equipment = array_filter($selected_equipment, fn ($item) => 
+            $item !== null && is_array($item) && isset($item['type'])
+        );
+        
+        $weapons = array_filter($valid_equipment, fn ($item) => $item['type'] === 'weapon');
+        $armor = array_filter($valid_equipment, fn ($item) => $item['type'] === 'armor');
+        $items = array_filter($valid_equipment, fn ($item) => $item['type'] === 'item');
+        $consumables = array_filter($valid_equipment, fn ($item) => $item['type'] === 'consumable');
 
         $weapons_list = array_values($weapons);
 

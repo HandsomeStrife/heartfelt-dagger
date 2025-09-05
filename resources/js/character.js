@@ -5,28 +5,49 @@ export function characterViewerState(options = {}) {
     const canEditInitial = Boolean(options.canEdit);
     const isAuthenticated = Boolean(options.isAuthenticated);
     const characterKey = String(options.characterKey || '');
+    const initialStatus = options.initialStatus;
 
     const hitPointsLen = Number(options.final_hit_points ?? 6);
     const stressLen = Number(options.stress_len ?? 6);
     const armorScore = Math.max(1, Number(options.armor_score ?? 0));
     const hopeValue = Number(options.hope ?? 2);
 
-    // Initialize hope array with correct number of filled slots
-    const hopeArray = Array(6).fill(false);
-    for (let i = 0; i < Math.min(hopeValue, 6); i++) {
-        hopeArray[i] = true;
+    // Initialize arrays - use initialStatus if available, otherwise defaults
+    let hitPoints, stress, hope, armorSlots, goldHandfuls, goldBags, goldChest;
+    
+    if (initialStatus) {
+        hitPoints = initialStatus.hitPoints || Array(hitPointsLen).fill(false);
+        stress = initialStatus.stress || Array(stressLen).fill(false);
+        hope = initialStatus.hope || Array(6).fill(false);
+        armorSlots = initialStatus.armorSlots || Array(armorScore).fill(false);
+        goldHandfuls = initialStatus.goldHandfuls || Array(9).fill(false);
+        goldBags = initialStatus.goldBags || Array(9).fill(false);
+        goldChest = initialStatus.goldChest || false;
+    } else {
+        // Default initialization
+        hitPoints = Array(hitPointsLen).fill(false);
+        stress = Array(stressLen).fill(false);
+        hope = Array(6).fill(false);
+        // Set hope based on computed value
+        for (let i = 0; i < Math.min(hopeValue, 6); i++) {
+            hope[i] = true;
+        }
+        armorSlots = Array(armorScore).fill(false);
+        goldHandfuls = Array(9).fill(false);
+        goldBags = Array(9).fill(false);
+        goldChest = false;
     }
 
     return {
         canEdit: canEditInitial,
         characterKey: characterKey,
-        hitPoints: Array(hitPointsLen).fill(false),
-        stress: Array(stressLen).fill(false),
-        hope: hopeArray,
-        armorSlots: Array(armorScore).fill(false),
-        goldHandfuls: Array(9).fill(false),
-        goldBags: Array(9).fill(false),
-        goldChest: false,
+        hitPoints: hitPoints,
+        stress: stress,
+        hope: hope,
+        armorSlots: armorSlots,
+        goldHandfuls: goldHandfuls,
+        goldBags: goldBags,
+        goldChest: goldChest,
 
         init() {
             if (!isAuthenticated) {
@@ -95,19 +116,47 @@ export function characterViewerState(options = {}) {
             return keys.some(k => Object.prototype.hasOwnProperty.call(state, k));
         },
 
+        refresh() {
+            if (this.$wire) {
+                this.$wire.$refresh();
+            }
+        },
+
         async saveCharacterState() {
-            // Character viewer should NEVER save state anywhere
-            // Interactive changes (marking HP, stress, etc.) are temporary and lost on refresh
-            // This is intentional - the viewer shows computed stats from database
-            
-            // Just update the sequence number for any UI that might depend on it
-            window.__saveSeq = (window.__saveSeq || 0) + 1;
+            // Save to database via Livewire (no localStorage)
+            if (this.$wire && this.canEdit) {
+                const state = {
+                    hitPoints: this.hitPoints,
+                    stress: this.stress,
+                    hope: this.hope,
+                    armorSlots: this.armorSlots,
+                    goldHandfuls: this.goldHandfuls,
+                    goldBags: this.goldBags,
+                    goldChest: this.goldChest
+                };
+                
+                try {
+                    await this.$wire.saveCharacterState(state);
+                    window.__saveSeq = (window.__saveSeq || 0) + 1;
+                } catch (error) {
+                    console.error('Failed to save character state:', error);
+                }
+            }
         },
 
         async loadCharacterState() {
-            // Character viewer should NEVER load saved state from localStorage or database
-            // All state should be derived from computed stats passed from PHP
-            // Interactive changes are temporary and lost on refresh
+            // Load from database via Livewire (no localStorage)
+            if (this.$wire && this.canEdit) {
+                try {
+                    const state = await this.$wire.getCharacterState();
+                    if (state && this.isValidState(state)) {
+                        // Apply loaded state
+                        Object.assign(this, state);
+                    }
+                } catch (error) {
+                    console.error('Failed to load character state:', error);
+                }
+            }
             
             document.body.dataset.hydrated = '1';
         },

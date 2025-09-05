@@ -24,16 +24,13 @@ describe('Class Domain Mapping SRD Compliance', function () {
         $classesData = json_decode(file_get_contents(resource_path('json/classes.json')), true);
         
         foreach ($expectedClassDomains as $classKey => $expectedDomains) {
-            expect($classesData)->toHaveKey($classKey, "Class '{$classKey}' missing from classes.json");
+            expect($classesData)->toHaveKey($classKey);
             
             $actualDomains = $classesData[$classKey]['domains'] ?? [];
             sort($actualDomains);
             sort($expectedDomains);
             
-            expect($actualDomains)->toBe($expectedDomains, 
-                "Class '{$classKey}' has incorrect domains. Expected: " . implode(', ', $expectedDomains) . 
-                ". Actual: " . implode(', ', $actualDomains)
-            );
+            expect($actualDomains)->toBe($expectedDomains);
         }
     });
 

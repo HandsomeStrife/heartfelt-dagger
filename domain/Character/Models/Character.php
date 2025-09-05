@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 class Character extends Model
@@ -143,6 +144,14 @@ class Character extends Model
     public function advancements(): HasMany
     {
         return $this->hasMany(CharacterAdvancement::class);
+    }
+
+    /**
+     * Get the character's interactive status (HP marks, stress marks, etc.)
+     */
+    public function status(): HasOne
+    {
+        return $this->hasOne(CharacterStatus::class);
     }
 
     /**

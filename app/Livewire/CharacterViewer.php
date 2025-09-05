@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use Domain\Character\Actions\LoadCharacterStatusAction;
+use Domain\Character\Actions\SaveCharacterStatusAction;
+use Domain\Character\Data\CharacterData;
+use Domain\Character\Data\CharacterStatusData;
 use Domain\Character\Models\Character;
+use Domain\Character\Repositories\CharacterRepository;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
 use GrahamCampbell\Markdown\Facades\Markdown;
@@ -15,12 +20,16 @@ class CharacterViewer extends Component
     public string $character_key;
     public bool $can_edit;
 
-    public ?Character $character = null;
+    public ?CharacterData $character = null;
+    public ?CharacterStatusData $character_status = null;
 
     public ?string $pronouns = null;
 
     // Game Data
     public array $game_data = [];
+
+    // Repository
+    private CharacterRepository $character_repository;
 
     public function mount(string $publicKey, string $characterKey, bool $canEdit): void
     {
@@ -28,8 +37,11 @@ class CharacterViewer extends Component
         $this->character_key = $characterKey;
         $this->can_edit = $canEdit;
 
-        // Load the character model directly (not CharacterBuilderData)
-        $this->character = Character::where('character_key', $characterKey)->first();
+        // Initialize repository
+        $this->character_repository = new CharacterRepository();
+
+        // Load character data using repository
+        $this->character = $this->character_repository->findByKey($characterKey);
         
         if (! $this->character) {
             abort(404, 'Character not found');
@@ -37,7 +49,24 @@ class CharacterViewer extends Component
 
         $this->pronouns = $this->character->pronouns ?? null;
 
+        // Load character status
+        $this->loadCharacterStatus();
+
         $this->loadGameData();
+    }
+
+    public function loadCharacterStatus(): void
+    {
+        if (!$this->character) {
+            return;
+        }
+
+        // Get computed stats for the character
+        $computed_stats = $this->getComputedStats();
+
+        // Load character status using Action
+        $load_action = new LoadCharacterStatusAction();
+        $this->character_status = $load_action->execute($this->character_key, $computed_stats);
     }
 
     public function loadGameData(): void
@@ -109,12 +138,21 @@ class CharacterViewer extends Component
      */
     public function getComputedStats(): array
     {
-        if (!$this->character->class || !isset($this->game_data['classes'][$this->character->class])) {
+        if (!$this->character) {
             return [];
         }
 
-        $class_data = $this->game_data['classes'][$this->character->class];
-        return $this->character->getComputedStats($class_data);
+        // Convert CharacterStatsData to the array format expected by the frontend
+        return [
+            'evasion' => $this->character->stats->evasion,
+            'hit_points' => $this->character->stats->hit_points,
+            'final_hit_points' => $this->character->stats->hit_points,
+            'stress' => $this->character->stats->stress,
+            'hope' => $this->character->stats->hope,
+            'major_threshold' => $this->character->stats->major_threshold,
+            'severe_threshold' => $this->character->stats->severe_threshold,
+            'armor_score' => $this->character->stats->armor_score,
+        ];
     }
 
     /**
@@ -148,8 +186,7 @@ class CharacterViewer extends Component
         $trait_names = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
         
         foreach ($trait_names as $trait) {
-            $trait_record = $this->character->traits()->where('trait_name', $trait)->first();
-            $value = $trait_record ? $trait_record->trait_value : 0;
+            $value = $this->character->traits->{$trait} ?? 0;
             $trait_values[$trait] = $value >= 0 ? '+' . $value : (string) $value;
         }
         
@@ -219,22 +256,25 @@ class CharacterViewer extends Component
             'consumables' => [],
         ];
 
-        // Normalize singular types from storage to the pluralized keys used by the view
-        $typeMap = [
-            'weapon' => 'weapons',
-            'armor' => 'armor',
-            'item' => 'items',
-            'consumable' => 'consumables',
-        ];
-
+        // Group equipment by type
         foreach ($this->character->equipment as $equipment) {
-            $type = $equipment->equipment_type ?? 'item';
-            $normalized = $typeMap[$type] ?? 'items';
-            $organized[$normalized][] = [
+            $equipment_data = [
+                'id' => $equipment->id,
                 'type' => $equipment->equipment_type,
                 'key' => $equipment->equipment_key,
-                'data' => $equipment->equipment_data
+                'data' => $equipment->equipment_data,
+                'is_equipped' => $equipment->is_equipped,
             ];
+
+            if ($equipment->isWeapon()) {
+                $organized['weapons'][] = $equipment_data;
+            } elseif ($equipment->isArmor()) {
+                $organized['armor'][] = $equipment_data;
+            } elseif ($equipment->isItem()) {
+                $organized['items'][] = $equipment_data;
+            } elseif ($equipment->isConsumable()) {
+                $organized['consumables'][] = $equipment_data;
+            }
         }
 
         return $organized;
@@ -284,23 +324,24 @@ class CharacterViewer extends Component
     {
         $domain_cards = [];
         
-        foreach ($this->character->domainCards as $card) {
+        foreach ($this->character->domain_cards as $card) {
             $ability_key = $card->ability_key ?? null;
             $domain = $card->domain ?? null;
+            $ability_level = $card->level ?? 1;
             
             if ($ability_key && isset($this->game_data['abilities'][$ability_key])) {
                 $ability_data = $this->game_data['abilities'][$ability_key];
                 $domain_cards[] = [
-                    'domain' => $card->domain,
-                    'ability_key' => $card->ability_key,
-                    'ability_level' => $card->ability_level,
+                    'domain' => $domain,
+                    'ability_key' => $ability_key,
+                    'ability_level' => $ability_level,
                     'ability_data' => $ability_data
                 ];
             } else {
                 $domain_cards[] = [
-                    'domain' => $card->domain,
-                    'ability_key' => $card->ability_key,
-                    'ability_level' => $card->ability_level,
+                    'domain' => $domain,
+                    'ability_key' => $ability_key,
+                    'ability_level' => $ability_level,
                     'ability_data' => null
                 ];
             }
@@ -311,48 +352,46 @@ class CharacterViewer extends Component
 
     public function saveCharacterState(array $state): void
     {
-        if (!$this->can_edit) {
+        if (!$this->can_edit || !$this->character) {
             return;
         }
 
-        // Find the character in the database
-        $character = Character::where('character_key', $this->character_key)->first();
-        
-        if (!$character) {
-            return;
+        try {
+            // Convert Alpine.js state to CharacterStatusData
+            $status_data = CharacterStatusData::fromAlpineState($this->character->id, $state);
+            
+            // Save using Action
+            $save_action = new SaveCharacterStatusAction();
+            $this->character_status = $save_action->execute($this->character_key, $status_data);
+            
+        } catch (\Exception $e) {
+            // Log error but don't break the UI
+            \Log::error('Failed to save character state: ' . $e->getMessage());
         }
-
-        // Get existing character_data or initialize empty array
-        $characterData = $character->character_data ?? [];
-        
-        // Update the interactive_state section
-        $characterData['interactive_state'] = $state;
-        
-        // Save to database
-        $character->update(['character_data' => $characterData]);
     }
 
     public function getCharacterState(): ?array
     {
-        // Find the character in the database
-        $character = Character::where('character_key', $this->character_key)->first();
-        
-        if (!$character) {
+        if (!$this->character_status) {
             return null;
         }
 
-        // Return the interactive_state from character_data
-        return $character->character_data['interactive_state'] ?? null;
+        // Return state in Alpine.js format
+        return $this->character_status->toAlpineState();
     }
 
     public function render()
     {
         $class_data = $this->getClassData();
+        $computed_stats = $this->getComputedStats();
+        ray()->send($this->character);
+        
         return view('livewire.character-viewer', [
             'character' => $this->character,
+            'character_status' => $this->character_status,
             'pronouns' => $this->pronouns,
             'game_data' => $this->game_data,
-            'computed_stats' => $this->getComputedStats($class_data ?? []),
+            'computed_stats' => $computed_stats,
             'class_data' => $class_data,
             'subclass_data' => $this->getSubclassData(),
             'ancestry_data' => $this->getAncestryData(),

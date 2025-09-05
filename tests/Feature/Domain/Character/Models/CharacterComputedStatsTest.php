@@ -12,18 +12,17 @@ describe('Character Model Computed Stats', function () {
     it('calculates School of War hit point bonus correctly from saved character data', function () {
         // Create a character with School of War subclass saved in database
         $character = Character::factory()->create([
+            'class' => 'wizard',
+            'subclass' => 'school of war',
+            'ancestry' => 'human',
+            'community' => 'loreborne',
             'character_data' => [
-                'selected_class' => 'wizard',
-                'selected_subclass' => 'school of war',
-                'selected_ancestry' => 'human',
-                'selected_community' => 'loreborne',
                 'assigned_traits' => ['agility' => -1, 'strength' => 0, 'finesse' => 0, 'instinct' => 1, 'presence' => 1, 'knowledge' => 2],
                 'selected_equipment' => [],
                 'background_answers' => ['answer1', 'answer2', 'answer3'],
                 'connections' => ['connection1', 'connection2', 'connection3'],
                 'experiences' => [],
-                'selected_domain_cards' => [],
-                'name' => 'Test School of War Wizard from DB'
+                'selected_domain_cards' => []
             ]
         ]);
 
@@ -43,18 +42,17 @@ describe('Character Model Computed Stats', function () {
     it('calculates multiple HP bonuses correctly from saved character data', function () {
         // Create a character with School of War subclass (+1 HP) AND Giant ancestry (+1 HP)
         $character = Character::factory()->create([
+            'class' => 'wizard',
+            'subclass' => 'school of war',
+            'ancestry' => 'giant',
+            'community' => 'wildborne',
             'character_data' => [
-                'selected_class' => 'wizard',
-                'selected_subclass' => 'school of war',
-                'selected_ancestry' => 'giant',
-                'selected_community' => 'wildborne',
                 'assigned_traits' => ['agility' => 0, 'strength' => 1, 'finesse' => 0, 'instinct' => 1, 'presence' => 2, 'knowledge' => -1],
                 'selected_equipment' => [],
                 'background_answers' => ['answer1', 'answer2', 'answer3'],
                 'connections' => ['connection1', 'connection2', 'connection3'],
                 'experiences' => [],
-                'selected_domain_cards' => [],
-                'name' => 'Test Giant School of War Wizard from DB'
+                'selected_domain_cards' => []
             ]
         ]);
 

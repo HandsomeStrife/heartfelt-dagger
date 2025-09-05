@@ -5,7 +5,8 @@
     final_hit_points: @js($computed_stats['final_hit_points'] ?? 6),
     stress_len: @js($computed_stats['stress'] ?? 6),
     armor_score: @js($computed_stats['armor_score'] ?? 0),
-    hope: @js($computed_stats['hope'] ?? 2)
+    hope: @js($computed_stats['hope'] ?? 2),
+    initialStatus: @js($character_status ? $character_status->toAlpineState() : null)
 })" class="bg-slate-950 text-slate-100/95 antialiased min-h-screen"
     style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';">
 
@@ -71,5 +72,7 @@
             <x-character-viewer.equipment :organized-equipment="$organized_equipment" />
             <x-character-viewer.journal :character="$character" />
         </section>
+
+        <button pest="refresh-button" wire:click='$refresh'>Refresh</button>
     </main>
 </div>

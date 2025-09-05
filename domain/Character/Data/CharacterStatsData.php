@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Domain\Character\Data;
 
 use Domain\Character\Models\Character;
+use Livewire\Wireable;
+use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
 
-class CharacterStatsData extends Data
+class CharacterStatsData extends Data implements Wireable
 {
+    use WireableData;
+    
     public function __construct(
         public int $evasion,
         public int $hit_points,
@@ -23,14 +27,14 @@ class CharacterStatsData extends Data
     {
         // Load class data from JSON file (use default if no class set)
         $class_data = $character->class ? self::getClassData($character->class) : ['startingEvasion' => 10, 'startingHitPoints' => 5];
-        $equipment_data = $character->equipment()->armor()->get();
 
         $base_evasion = $class_data['startingEvasion'] ?? 10;
         $base_hit_points = $class_data['startingHitPoints'] ?? 5;
 
         // Calculate armor score from equipped armor (with base armor score of 1)
         $base_armor_score = 1; // Base armor score for all characters
-        $equipment_armor_score = $equipment_data->sum(function ($armor) {
+        $equipped_armor = $character->equipment()->where('equipment_type', 'armor')->where('is_equipped', true)->get();
+        $equipment_armor_score = $equipped_armor->sum(function ($armor) {
             return $armor->equipment_data['armor_score'] ?? $armor->equipment_data['baseScore'] ?? 0;
         });
         $armor_score = $base_armor_score + $equipment_armor_score;

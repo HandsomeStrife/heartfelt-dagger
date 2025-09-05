@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Domain\Character\Repositories;
 
 use Domain\Character\Data\CharacterData;
+use Domain\Character\Data\CharacterStatusData;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
 use Illuminate\Support\Collection;
@@ -38,7 +39,7 @@ class CharacterRepository
     }
 
     /**
-     * Find a character by key
+     * Find a character by character key
      */
     public function findByKey(string $key): ?CharacterData
     {
@@ -52,6 +53,60 @@ class CharacterRepository
     }
 
     /**
+     * Find a character by public key (for viewer)
+     */
+    public function findByPublicKey(string $public_key): ?CharacterData
+    {
+        $character = Character::where('public_key', $public_key)->first();
+
+        if (!$character) {
+            return null;
+        }
+
+        return CharacterData::from($character);
+    }
+
+    /**
+     * Find a character with status by character key
+     */
+    public function findByKeyWithStatus(string $key): ?array
+    {
+        $character = Character::with('status')->where('character_key', $key)->first();
+
+        if (!$character) {
+            return null;
+        }
+
+        $character_data = CharacterData::from($character);
+        $status_data = $character->status ? CharacterStatusData::fromModel($character->status) : null;
+
+        return [
+            'character' => $character_data,
+            'status' => $status_data,
+        ];
+    }
+
+    /**
+     * Find a character with status by public key (for viewer)
+     */
+    public function findByPublicKeyWithStatus(string $public_key): ?array
+    {
+        $character = Character::with('status')->where('public_key', $public_key)->first();
+
+        if (!$character) {
+            return null;
+        }
+
+        $character_data = CharacterData::from($character);
+        $status_data = $character->status ? CharacterStatusData::fromModel($character->status) : null;
+
+        return [
+            'character' => $character_data,
+            'status' => $status_data,
+        ];
+    }
+
+    /**
      * Get characters by user with filtering options
      */
     public function getByUserWithFilters(User $user, array $filters = []): Collection
@@ -59,17 +114,17 @@ class CharacterRepository
         $query = Character::where('user_id', $user->id);
 
         if (isset($filters['class'])) {
-            $query->where('selected_class', $filters['class']);
+            $query->where('class', $filters['class']);
         }
 
         if (isset($filters['ancestry'])) {
-            $query->where('selected_ancestry', $filters['ancestry']);
+            $query->where('ancestry', $filters['ancestry']);
         }
 
         if (isset($filters['completed']) && $filters['completed']) {
-            $query->whereNotNull('selected_class')
-                  ->whereNotNull('selected_ancestry')
-                  ->whereNotNull('selected_community');
+            $query->whereNotNull('class')
+                  ->whereNotNull('ancestry')
+                  ->whereNotNull('community');
         }
 
         $characters = $query->orderBy('updated_at', 'desc')->get();
