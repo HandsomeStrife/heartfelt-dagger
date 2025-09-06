@@ -32,4 +32,20 @@ class RoomData extends Data implements Wireable
         public ?Collection $participants = null,
         public ?int $active_participant_count = null,
     ) {}
+
+    /**
+     * Get the active participant count
+     */
+    public function getActiveParticipantCount(): int
+    {
+        return $this->active_participant_count ?? 0;
+    }
+
+    /**
+     * Get the total capacity (guest count)
+     */
+    public function getTotalCapacity(): int
+    {
+        return $this->guest_count;
+    }
 }

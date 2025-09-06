@@ -158,6 +158,81 @@ export default class RoomWebRTC {
         this.connectToAblyChannel();
     }
 
+    /**
+     * Checks consent requirements immediately upon entering the room
+     * This shows consent dialogs before the user tries to join a slot
+     */
+    async checkInitialConsentRequirements() {
+        console.log('🔒 Checking initial consent requirements...');
+        
+        const needsSttConsent = this.consentManager.stt.enabled;
+        const needsRecordingConsent = this.consentManager.recording.enabled;
+
+        if (!needsSttConsent && !needsRecordingConsent) {
+            console.log('🔒 No consent requirements for this room');
+            return;
+        }
+
+        // Disable UI until consent is resolved
+        this.disableJoinUI();
+
+        try {
+            // Check consent statuses in parallel
+            const consentChecks = [];
+            
+            if (needsSttConsent) {
+                consentChecks.push(this.checkConsentStatus('stt'));
+            }
+            
+            if (needsRecordingConsent) {
+                consentChecks.push(this.checkConsentStatus('recording'));
+            }
+
+            await Promise.all(consentChecks);
+
+            // Process consent results and show dialogs if needed
+            await this.processInitialConsentResults();
+
+        } catch (error) {
+            console.error('❌ Error checking initial consent requirements:', error);
+        }
+    }
+
+    /**
+     * Processes initial consent results and shows dialogs if needed
+     */
+    async processInitialConsentResults() {
+        const sttStatus = this.consentManager.stt.status;
+        const recordingStatus = this.consentManager.recording.status;
+
+        // Collect consent dialogs needed
+        const dialogsNeeded = [];
+        
+        if (sttStatus?.requires_consent) {
+            dialogsNeeded.push('stt');
+        }
+        
+        if (recordingStatus?.requires_consent) {
+            dialogsNeeded.push('recording');
+        }
+
+        // Show consent dialogs sequentially if needed
+        if (dialogsNeeded.length > 0) {
+            console.log('🔒 Showing initial consent dialogs for:', dialogsNeeded);
+            await this.showConsentDialogs(dialogsNeeded);
+        } else {
+            // Check for any denials that require redirection (only for required consent)
+            if (sttStatus?.consent_denied && sttStatus?.consent_required) {
+                this.handleConsentDenied();
+            } else if (recordingStatus?.consent_denied && recordingStatus?.consent_required) {
+                this.handleConsentDenied();
+            } else {
+                // All consents resolved (either given or optionally denied)
+                this.enableJoinUI();
+            }
+        }
+    }
+
     // ===========================================
     // ABLY REALTIME MESSAGING SYSTEM
     // ===========================================
@@ -1003,6 +1078,28 @@ export default class RoomWebRTC {
     }
 
     /**
+     * Disables all join buttons and UI interactions until consent is resolved
+     */
+    disableJoinUI() {
+        document.querySelectorAll('.join-btn').forEach(button => {
+            button.disabled = true;
+            button.style.opacity = '0.5';
+            button.style.cursor = 'not-allowed';
+            if (!button.dataset.originalText) {
+                button.dataset.originalText = button.textContent;
+            }
+            button.textContent = 'Awaiting Consent...';
+        });
+        
+        // Also disable other interactive elements
+        document.querySelectorAll('[data-testid="participant-count"], [data-testid="leave-room-button"]').forEach(element => {
+            element.disabled = true;
+            element.style.opacity = '0.5';
+            element.style.pointerEvents = 'none';
+        });
+    }
+
+    /**
      * Re-enables all join buttons with their original text
      */
     enableJoinUI() {
@@ -1014,6 +1111,13 @@ export default class RoomWebRTC {
                 button.textContent = button.dataset.originalText;
                 delete button.dataset.originalText;
             }
+        });
+        
+        // Re-enable other interactive elements
+        document.querySelectorAll('[data-testid="participant-count"], [data-testid="leave-room-button"]').forEach(element => {
+            element.disabled = false;
+            element.style.opacity = '';
+            element.style.pointerEvents = '';
         });
     }
 
@@ -1033,6 +1137,9 @@ export default class RoomWebRTC {
             this.enableJoinUI();
             return;
         }
+
+        // Disable UI until consent is resolved
+        this.disableJoinUI();
 
         try {
             // Check consent statuses in parallel
@@ -1155,7 +1262,7 @@ export default class RoomWebRTC {
         // Create modal backdrop
         const backdrop = document.createElement('div');
         backdrop.id = `${type}-consent-backdrop`;
-        backdrop.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+        backdrop.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 consent-dialog';
         
         backdrop.innerHTML = `
             <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md mx-4 shadow-2xl">
@@ -1187,11 +1294,13 @@ export default class RoomWebRTC {
         document.body.appendChild(backdrop);
 
         // Add event listeners
-        document.getElementById(`${type}-consent-accept`).addEventListener('click', () => {
+        const acceptButton = document.getElementById(`${type}-consent-accept`);
+        const declineButton = document.getElementById(`${type}-consent-deny`);
+        acceptButton.addEventListener('click', () => {
             this.handleConsentDecision(type, true, backdrop, onComplete);
         });
 
-        document.getElementById(`${type}-consent-deny`).addEventListener('click', () => {
+        declineButton.addEventListener('click', () => {
             this.handleConsentDecision(type, false, backdrop, onComplete);
         });
 
@@ -1267,8 +1376,8 @@ export default class RoomWebRTC {
                     // Complete this consent flow
                     onComplete();
                 } else {
-                    // Redirect out of room for any denial
-                    this.handleConsentDenied();
+                    // Handle consent denial based on requirement type
+                    this.handleConsentDenial(type);
                 }
                 
                 // Check if all consents are resolved
@@ -1298,7 +1407,24 @@ export default class RoomWebRTC {
     }
 
     /**
-     * Handles when user denies any consent - shows unified denial message
+     * Handles consent denial based on whether it's required or optional
+     */
+    handleConsentDenial(type) {
+        const status = this.consentManager[type].status;
+        const isRequired = status?.consent_required;
+        
+        if (isRequired) {
+            // Required consent denied - redirect user
+            this.handleConsentDenied();
+        } else {
+            // Optional consent denied - allow user to continue
+            console.log(`🔒 ${type.toUpperCase()} consent declined (optional) - user can continue`);
+            this.checkAllConsentsResolved();
+        }
+    }
+
+    /**
+     * Handles when user denies required consent - shows unified denial message
      */
     handleConsentDenied() {
         const backdrop = document.createElement('div');

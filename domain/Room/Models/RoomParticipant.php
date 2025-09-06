@@ -22,6 +22,8 @@ class RoomParticipant extends Model
         'left_at' => 'datetime',
         'stt_consent_given' => 'boolean',
         'stt_consent_at' => 'datetime',
+        'recording_consent_given' => 'boolean',
+        'recording_consent_at' => 'datetime',
     ];
 
     public function room(): BelongsTo
@@ -173,6 +175,63 @@ class RoomParticipant extends Model
     }
 
     /**
+     * Check if this participant has given consent for video recording
+     */
+    public function hasRecordingConsent(): bool
+    {
+        return $this->recording_consent_given === true;
+    }
+
+    /**
+     * Check if this participant has explicitly denied recording consent
+     */
+    public function hasRecordingConsentDenied(): bool
+    {
+        return $this->recording_consent_given === false;
+    }
+
+    /**
+     * Check if this participant hasn't made a recording consent decision yet
+     */
+    public function hasNoRecordingConsentDecision(): bool
+    {
+        return is_null($this->recording_consent_given);
+    }
+
+    /**
+     * Grant recording consent for this participant
+     */
+    public function giveRecordingConsent(): void
+    {
+        $this->update([
+            'recording_consent_given' => true,
+            'recording_consent_at' => now(),
+        ]);
+    }
+
+    /**
+     * Deny recording consent for this participant
+     */
+    public function denyRecordingConsent(): void
+    {
+        $this->update([
+            'recording_consent_given' => false,
+            'recording_consent_at' => now(),
+        ]);
+    }
+
+    /**
+     * Reset recording consent decision (remove consent decision)
+     */
+    public function resetRecordingConsent(): void
+    {
+        $this->update([
+            'recording_consent_given' => null,
+            'recording_consent_at' => null,
+        ]);
+    }
+
+    /**
      * Scope a query to only include active participants
      */
     public function scopeActive(Builder $query): Builder
@@ -218,6 +277,30 @@ class RoomParticipant extends Model
     public function scopePendingSttConsent(Builder $query): Builder
     {
         return $query->whereNull('stt_consent_given');
+    }
+
+    /**
+     * Scope a query to only include participants who have given recording consent
+     */
+    public function scopeWithRecordingConsent(Builder $query): Builder
+    {
+        return $query->where('recording_consent_given', true);
+    }
+
+    /**
+     * Scope a query to only include participants who have denied recording consent
+     */
+    public function scopeWithoutRecordingConsent(Builder $query): Builder
+    {
+        return $query->where('recording_consent_given', false);
+    }
+
+    /**
+     * Scope a query to only include participants with no recording consent decision
+     */
+    public function scopePendingRecordingConsent(Builder $query): Builder
+    {
+        return $query->whereNull('recording_consent_given');
     }
 
     protected static function newFactory()

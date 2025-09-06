@@ -1,56 +1,78 @@
-<div class="space-y-6">
-    {{-- Header Section --}}
-    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-xl p-6">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h1 class="text-2xl font-outfit font-bold text-white">Video Library</h1>
-                <p class="text-slate-300 mt-2">Your recorded room sessions and video content</p>
-            </div>
-            <div class="flex items-center space-x-3">
-                {{-- View Mode Toggle --}}
-                <div class="flex bg-slate-800 rounded-lg p-1">
-                    <button wire:click="setViewMode('list')" 
-                            class="px-3 py-1 text-sm font-medium rounded transition-all duration-200 {{ $viewMode === 'list' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white' }}">
-                        <i class="fas fa-list mr-1"></i>List
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+    <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
+        <div class="max-w-6xl mx-auto space-y-8">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="font-outfit text-3xl text-white tracking-wide">
+                        Video Library
+                    </h1>
+                    <p class="text-slate-300 text-lg">
+                        Your recorded room sessions and video content
+                    </p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    {{-- View Mode Toggle --}}
+                    <div class="flex bg-slate-800 rounded-lg p-1">
+                        <button wire:click="setViewMode('list')" 
+                                class="px-3 py-1 flex gap-1 items-center text-sm font-medium rounded transition-all duration-200 {{ $viewMode === 'list' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white' }}">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            List
+                        </button>
+                        <button wire:click="setViewMode('grid')" 
+                                class="px-3 py-1 flex gap-1 items-center text-sm font-medium rounded transition-all duration-200 {{ $viewMode === 'grid' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white' }}">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                            </svg>
+                            Grid
+                        </button>
+                        <button wire:click="setViewMode('rooms')" 
+                                class="px-3 py-1 flex gap-1 items-center text-sm font-medium rounded transition-all duration-200 {{ $viewMode === 'rooms' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white' }}">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Rooms
+                        </button>
+                    </div>
+                    
+                    {{-- Analytics Toggle --}}
+                    <button wire:click="toggleAnalytics" 
+                            class="inline-flex items-center bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-indigo-500/25">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        Analytics
                     </button>
-                    <button wire:click="setViewMode('grid')" 
-                            class="px-3 py-1 text-sm font-medium rounded transition-all duration-200 {{ $viewMode === 'grid' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white' }}">
-                        <i class="fas fa-th mr-1"></i>Grid
-                    </button>
-                    <button wire:click="setViewMode('rooms')" 
-                            class="px-3 py-1 text-sm font-medium rounded transition-all duration-200 {{ $viewMode === 'rooms' ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white' }}">
-                        <i class="fas fa-door-open mr-1"></i>Rooms
+                    
+                    {{-- Filters Toggle --}}
+                    <button wire:click="toggleFilters" 
+                            class="inline-flex items-center bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-slate-500/25">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        Filters
                     </button>
                 </div>
-                
-                {{-- Analytics Toggle --}}
-                <button wire:click="toggleAnalytics" 
-                        class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-lg transition-all duration-200 font-medium">
-                    <i class="fas fa-chart-bar mr-2"></i>Analytics
-                </button>
-                
-                {{-- Filters Toggle --}}
-                <button wire:click="toggleFilters" 
-                        class="px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white rounded-lg transition-all duration-200 font-medium">
-                    <i class="fas fa-filter mr-2"></i>Filters
-                </button>
             </div>
-        </div>
-
-        {{-- Search Bar --}}
-        <div class="relative mb-4">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i class="fas fa-search text-slate-400"></i>
-            </div>
-            <input type="text" 
-                   wire:model.live.debounce.300ms="searchQuery"
-                   placeholder="Search recordings by room name or description..."
-                   class="block w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
-        </div>
-
-        {{-- Filters Panel --}}
-        @if($showFilters)
-            <div class="border-t border-slate-600 pt-4 mt-4">
+            
+            <!-- Search Bar -->
+            <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" 
+                           wire:model.live.debounce.300ms="searchQuery"
+                           placeholder="Search recordings by room name or description..."
+                           class="block w-full pl-10 pr-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                
+                {{-- Filters Panel --}}
+                @if($showFilters)
+                    <div class="border-t border-slate-600 pt-4 mt-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {{-- Provider Filter --}}
                     <div>
@@ -110,14 +132,13 @@
                                    class="w-full bg-slate-800 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent">
                         </div>
                     </div>
+                    @endif
                 @endif
             </div>
-        @endif
-    </div>
 
-    {{-- Analytics Panel --}}
-    @if($showAnalytics && !empty($storageAnalytics))
-        <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-xl p-6">
+            {{-- Analytics Panel --}}
+            @if($showAnalytics && !empty($storageAnalytics))
+                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
             <h2 class="text-xl font-outfit font-bold text-white mb-4">Storage Analytics</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -240,47 +261,56 @@
                         </div>
                     </div>
                 </div>
+                @endif
+                </div>
             @endif
-        </div>
-    @endif
 
-    {{-- Main Content --}}
-    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-xl p-6">
-        @if($recordings->isEmpty())
-            {{-- Empty State --}}
-            <div class="text-center py-12 text-slate-400">
-                <i class="fas fa-video text-6xl mb-4 opacity-50"></i>
-                @if(!empty($searchQuery))
-                    <h3 class="text-xl font-medium text-white mb-2">No recordings found</h3>
-                    <p class="mb-4">No recordings match your search criteria</p>
-                    <button wire:click="clearFilters" 
-                            class="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 font-medium">
-                        Clear Search
-                    </button>
+            {{-- Main Content --}}
+            <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
+                @if($recordings->isEmpty())
+                    {{-- Empty State --}}
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-600 mb-4 mx-auto">
+                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        @if(!empty($searchQuery))
+                            <h3 class="text-white font-semibold mb-2">No recordings found</h3>
+                            <p class="text-slate-400 text-sm mb-4">No recordings match your search criteria</p>
+                            <button wire:click="clearFilters" 
+                                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white text-sm font-semibold rounded-lg transition-all duration-300">
+                                Clear Search
+                            </button>
+                        @else
+                            <h3 class="text-white font-semibold mb-2">No recordings yet</h3>
+                            <p class="text-slate-400 text-sm mb-4">Start recording in your rooms to see videos here</p>
+                            <a href="{{ route('rooms.index') }}" 
+                               class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white text-sm font-semibold rounded-lg transition-all duration-300">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Browse Rooms
+                            </a>
+                        @endif
+                    </div>
                 @else
-                    <h3 class="text-xl font-medium text-white mb-2">No recordings yet</h3>
-                    <p class="mb-4">Start recording in your rooms to see videos here</p>
-                    <a href="{{ route('rooms.index') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 font-medium">
-                        <i class="fas fa-door-open mr-2"></i>Browse Rooms
-                    </a>
+                    @if($viewMode === 'list')
+                        @include('livewire.video-library.list-view')
+                    @elseif($viewMode === 'grid')
+                        @include('livewire.video-library.grid-view')
+                    @elseif($viewMode === 'rooms')
+                        @include('livewire.video-library.rooms-view')
+                    @endif
                 @endif
             </div>
-        @else
-            @if($viewMode === 'list')
-                @include('livewire.video-library.list-view')
-            @elseif($viewMode === 'grid')
-                @include('livewire.video-library.grid-view')
-            @elseif($viewMode === 'rooms')
-                @include('livewire.video-library.rooms-view')
-            @endif
-        @endif
-    </div>
 
-    {{-- Recording Detail Modal --}}
-    @if($this->selectedRecording)
-        @include('livewire.video-library.recording-modal')
-    @endif
+            {{-- Recording Detail Modal --}}
+            @if($this->selectedRecording)
+                @include('livewire.video-library.recording-modal')
+            @endif
+        </div>
+    </div>
 </div>
 
 @script

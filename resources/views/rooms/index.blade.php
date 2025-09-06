@@ -84,7 +84,7 @@
                                                     <span>Created {{ \Carbon\Carbon::parse($room->created_at)->diffForHumans() }}</span>
                                                 </div>
                                             </div>
-                                            <a href="{{ route('rooms.show', $room) }}" class="ml-4 text-emerald-400 hover:text-emerald-300 transition-colors">
+                                            <a href="{{ route('rooms.show', $room->invite_code) }}" class="ml-4 text-emerald-400 hover:text-emerald-300 transition-colors">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                                 </svg>
@@ -138,7 +138,7 @@
                                                     <span>Creator: {{ $room->creator->username ?? 'Unknown' }}</span>
                                                 </div>
                                             </div>
-                                            <a href="{{ route('rooms.session', $room) }}" class="ml-4 text-blue-400 hover:text-blue-300 transition-colors">
+                                            <a href="{{ route('rooms.session', $room->invite_code) }}" class="ml-4 text-blue-400 hover:text-blue-300 transition-colors">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293H15M9 10V9a2 2 0 012-2h2a2 2 0 012 2v1M9 10v5a2 2 0 002 2h2a2 2 0 002-2v-5" />
                                                 </svg>

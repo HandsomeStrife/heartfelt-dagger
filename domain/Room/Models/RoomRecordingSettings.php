@@ -108,6 +108,22 @@ class RoomRecordingSettings extends Model
         $this->update(['stt_enabled' => false]);
     }
 
+    /**
+     * Check if STT consent is required (vs optional)
+     */
+    public function isSttConsentRequired(): bool
+    {
+        return $this->stt_consent_requirement === 'required';
+    }
+
+    /**
+     * Check if recording consent is required (vs optional)
+     */
+    public function isRecordingConsentRequired(): bool
+    {
+        return $this->recording_consent_requirement === 'required';
+    }
+
     protected static function newFactory()
     {
         return \Database\Factories\RoomRecordingSettingsFactory::new();

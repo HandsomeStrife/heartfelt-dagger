@@ -23,10 +23,11 @@
     </head>
     <body class="bg-slate-900 text-white min-h-screen overflow-hidden">
         <div class="fixed w-full h-full bg-repeat opacity-10 pointer-events-none z-0" style="background-image: url('{{ asset('img/textures/black-marble.jpg') }}');"></div>
-        <div class="relative z-[9999] h-screen w-screen">
+        <div class="relative h-screen w-screen">
             <main class="relative z-10 h-full w-full">
                 {{ $slot }}
             </main>
         </div>
+        @livewireScriptConfig
     </body>
 </html>

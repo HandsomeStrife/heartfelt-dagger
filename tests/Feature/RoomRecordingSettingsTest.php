@@ -19,14 +19,14 @@ test('room creator can update recording settings', function () {
         $user,
         recordingEnabled: true,
         sttEnabled: true,
-        storageProvider: 'local',
+        storageProvider: 'local_device',
         storageAccountId: null
     );
 
     expect($settings)->toBeInstanceOf(RoomRecordingSettings::class);
     expect($settings->recording_enabled)->toBeTrue();
     expect($settings->stt_enabled)->toBeTrue();
-    expect($settings->storage_provider)->toBe('local');
+    expect($settings->storage_provider)->toBe('local_device');
     expect($settings->storage_account_id)->toBeNull();
 });
 
@@ -43,7 +43,7 @@ test('non-creator cannot update recording settings', function () {
             $otherUser,
             recordingEnabled: true,
             sttEnabled: false,
-            storageProvider: 'local',
+            storageProvider: 'local_device',
             storageAccountId: null
         );
     })->toThrow(\Exception::class, 'Only the room creator can modify recording settings');
@@ -211,7 +211,7 @@ test('defaults to local storage when recording enabled without provider', functi
     );
 
     expect($settings->recording_enabled)->toBeTrue();
-    expect($settings->storage_provider)->toBe('local');
+    expect($settings->storage_provider)->toBe('local_device');
     expect($settings->storage_account_id)->toBeNull();
 });
 
@@ -235,13 +235,13 @@ test('can update existing room recording settings', function () {
         $user,
         recordingEnabled: true,
         sttEnabled: true,
-        storageProvider: 'local',
+        storageProvider: 'local_device',
         storageAccountId: null
     );
 
     expect($settings->recording_enabled)->toBeTrue();
     expect($settings->stt_enabled)->toBeTrue();
-    expect($settings->storage_provider)->toBe('local');
+    expect($settings->storage_provider)->toBe('local_device');
     
     // Verify only one settings record exists
     expect(RoomRecordingSettings::where('room_id', $room->id)->count())->toBe(1);
@@ -275,5 +275,74 @@ test('validates storage provider matches account provider', function () {
             storageAccountId: $storageAccount->id
         );
     })->toThrow(\Exception::class, 'Storage provider mismatch with selected account');
+});
+
+test('can enable speech-to-text without video recording', function () {
+    $user = User::factory()->create();
+    $room = Room::factory()->create(['creator_id' => $user->id]);
+
+    $action = new UpdateRoomRecordingSettings();
+    
+    $settings = $action->execute(
+        $room,
+        $user,
+        recordingEnabled: false,
+        sttEnabled: true,
+        storageProvider: null,
+        storageAccountId: null
+    );
+
+    expect($settings->recording_enabled)->toBeFalse();
+    expect($settings->stt_enabled)->toBeTrue();
+    expect($settings->storage_provider)->toBeNull();
+    expect($settings->storage_account_id)->toBeNull();
+});
+
+test('can enable both recording and speech-to-text independently', function () {
+    $user = User::factory()->create();
+    $room = Room::factory()->create(['creator_id' => $user->id]);
+
+    $action = new UpdateRoomRecordingSettings();
+    
+    // First enable only STT
+    $settings = $action->execute(
+        $room,
+        $user,
+        recordingEnabled: false,
+        sttEnabled: true,
+        storageProvider: null,
+        storageAccountId: null
+    );
+
+    expect($settings->recording_enabled)->toBeFalse();
+    expect($settings->stt_enabled)->toBeTrue();
+    
+    // Then enable recording while keeping STT
+    $settings = $action->execute(
+        $room,
+        $user,
+        recordingEnabled: true,
+        sttEnabled: true,
+        storageProvider: 'local_device',
+        storageAccountId: null
+    );
+
+    expect($settings->recording_enabled)->toBeTrue();
+    expect($settings->stt_enabled)->toBeTrue();
+    expect($settings->storage_provider)->toBe('local_device');
+    
+    // Then disable recording while keeping STT
+    $settings = $action->execute(
+        $room,
+        $user,
+        recordingEnabled: false,
+        sttEnabled: true,
+        storageProvider: null,
+        storageAccountId: null
+    );
+
+    expect($settings->recording_enabled)->toBeFalse();
+    expect($settings->stt_enabled)->toBeTrue();
+    expect($settings->storage_provider)->toBeNull();
 });
 

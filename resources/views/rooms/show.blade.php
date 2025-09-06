@@ -106,7 +106,7 @@
                 @if($user_is_creator)
                     <!-- Recording Settings -->
                     <div class="mb-8">
-                        @livewire('room-recording-settings', ['room' => $room])
+                        <livewire:room-recording-settings :room="$room" />
                     </div>
                 @endif
 

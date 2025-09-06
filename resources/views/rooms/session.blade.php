@@ -142,14 +142,30 @@
             }
         });
         
-        // Initialize RoomWebRTC when DOM is ready
-        if (window.roomData && window.RoomWebRTC) {
-            console.log('🚀 Starting Room WebRTC system');
-            window.roomWebRTC = new window.RoomWebRTC(window.roomData);
-        } else if (window.roomData && !window.RoomWebRTC) {
-            console.warn('🎬 RoomWebRTC not available - ensure it\'s included in the main bundle');
+        // Initialize RoomWebRTC when DOM and modules are ready
+        function initializeRoomWebRTC() {
+            if (window.roomData && window.RoomWebRTC) {
+                console.log('🚀 Starting Room WebRTC system');
+                window.roomWebRTC = new window.RoomWebRTC(window.roomData);
+                
+                // Check consent requirements immediately upon entering the room
+                window.roomWebRTC.checkInitialConsentRequirements();
+            } else if (window.roomData && !window.RoomWebRTC) {
+                console.warn('🎬 RoomWebRTC not available - ensure it\'s included in the main bundle');
+                // Retry after a short delay in case the bundle is still loading
+                setTimeout(initializeRoomWebRTC, 100);
+            } else {
+                console.warn('⚠️ No room data found, WebRTC not initialized');
+            }
+        }
+        
+        // Wait for DOM and give modules time to load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(initializeRoomWebRTC, 50);
+            });
         } else {
-            console.warn('⚠️ No room data found, WebRTC not initialized');
+            setTimeout(initializeRoomWebRTC, 50);
         }
     </script>
     

@@ -18,7 +18,9 @@ class UpdateRoomRecordingSettings
         bool $recordingEnabled,
         bool $sttEnabled,
         ?string $storageProvider = null,
-        ?int $storageAccountId = null
+        ?int $storageAccountId = null,
+        string $sttConsentRequirement = 'optional',
+        string $recordingConsentRequirement = 'optional'
     ): RoomRecordingSettings {
         // Verify user is the room creator
         if ($room->creator_id !== $user->id) {
@@ -50,9 +52,9 @@ class UpdateRoomRecordingSettings
             $storageAccountId = null;
         }
 
-        // If recording is enabled but no storage provider specified, default to local
+        // If recording is enabled but no storage provider specified, default to local_device
         if ($recordingEnabled && !$storageProvider) {
-            $storageProvider = 'local';
+            $storageProvider = 'local_device';
             $storageAccountId = null;
         }
 
@@ -64,13 +66,13 @@ class UpdateRoomRecordingSettings
             $settings->stt_enabled = $sttEnabled;
             $settings->storage_provider = $storageProvider;
             $settings->storage_account_id = $storageAccountId;
+            $settings->stt_consent_requirement = $sttConsentRequirement;
+            $settings->recording_consent_requirement = $recordingConsentRequirement;
             
             $settings->save();
 
-            // If STT is disabled but recording consent was previously enabled,
-            // we might want to reset participant consent (optional business logic)
+            // If STT is disabled, reset all participant STT consent for this room
             if (!$sttEnabled) {
-                // Reset all participant STT consent for this room
                 $room->participants()->update([
                     'stt_consent_given' => null,
                     'stt_consent_at' => null,

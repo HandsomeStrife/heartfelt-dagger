@@ -35,20 +35,50 @@
                     </p>
                 </div>
             </div>
+        </div>
 
-            @if($form->recording_enabled)
-                <div class="ml-7 space-y-4 border-l-2 border-amber-500/20 pl-4">
-                    {{-- Speech-to-Text Option --}}
-                    <div class="flex items-start space-x-3">
-                        <input type="checkbox" 
-                               id="stt_enabled" 
-                               wire:model.live="form.stt_enabled"
-                               class="mt-1 h-4 w-4 text-amber-500 focus:ring-amber-500 border-slate-600 rounded bg-slate-800">
-                        <div class="flex-1">
-                            <label for="stt_enabled" class="text-white font-medium">Enable Speech-to-Text</label>
-                            <p class="text-slate-400 text-sm mt-1">
-                                Automatically transcribe participant speech during sessions. Requires participant consent.
-                            </p>
+        {{-- Speech-to-Text Option (Independent) --}}
+        <div class="space-y-4">
+            <div class="flex items-start space-x-3">
+                <input type="checkbox" 
+                       id="stt_enabled" 
+                       wire:model.live="form.stt_enabled"
+                       class="mt-1 h-4 w-4 text-amber-500 focus:ring-amber-500 border-slate-600 rounded bg-slate-800">
+                <div class="flex-1">
+                    <label for="stt_enabled" class="text-white font-medium">Enable Speech-to-Text</label>
+                    <p class="text-slate-400 text-sm mt-1">
+                        Automatically transcribe participant speech during sessions. Requires participant consent. Can be enabled independently of video recording.
+                    </p>
+                </div>
+            </div>
+
+            @if($form->stt_enabled)
+                <div class="ml-7 space-y-3 border-l-2 border-amber-500/20 pl-4">
+                    <div>
+                        <label class="block text-white font-medium mb-2">Speech-to-Text Consent Requirement</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center space-x-3">
+                                <input type="radio" 
+                                       name="stt_consent_requirement" 
+                                       value="optional" 
+                                       wire:model.live="form.stt_consent_requirement"
+                                       class="h-4 w-4 text-amber-500 focus:ring-amber-500 border-slate-600 bg-slate-800">
+                                <div>
+                                    <span class="text-white text-sm font-medium">Optional</span>
+                                    <p class="text-slate-400 text-xs">Participants can decline and still join the room</p>
+                                </div>
+                            </label>
+                            <label class="flex items-center space-x-3">
+                                <input type="radio" 
+                                       name="stt_consent_requirement" 
+                                       value="required" 
+                                       wire:model.live="form.stt_consent_requirement"
+                                       class="h-4 w-4 text-amber-500 focus:ring-amber-500 border-slate-600 bg-slate-800">
+                                <div>
+                                    <span class="text-white text-sm font-medium">Required</span>
+                                    <p class="text-slate-400 text-xs">Participants must consent or will be redirected</p>
+                                </div>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -58,26 +88,55 @@
         {{-- Storage Provider Selection --}}
         @if($form->recording_enabled)
             <div class="space-y-4">
+                {{-- Recording Consent Requirement --}}
+                <div>
+                    <label class="block text-white font-medium mb-2">Video Recording Consent Requirement</label>
+                    <div class="space-y-2 mb-4">
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" 
+                                   name="recording_consent_requirement" 
+                                   value="optional" 
+                                   wire:model.live="form.recording_consent_requirement"
+                                   class="h-4 w-4 text-amber-500 focus:ring-amber-500 border-slate-600 bg-slate-800">
+                            <div>
+                                <span class="text-white text-sm font-medium">Optional</span>
+                                <p class="text-slate-400 text-xs">Participants can decline and still join the room</p>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" 
+                                   name="recording_consent_requirement" 
+                                   value="required" 
+                                   wire:model.live="form.recording_consent_requirement"
+                                   class="h-4 w-4 text-amber-500 focus:ring-amber-500 border-slate-600 bg-slate-800">
+                            <div>
+                                <span class="text-white text-sm font-medium">Required</span>
+                                <p class="text-slate-400 text-xs">Participants must consent or will be redirected</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-white font-medium mb-3">Storage Provider</label>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {{-- Local Storage --}}
+                        {{-- Local Device Storage --}}
                         <label class="relative cursor-pointer">
                             <input type="radio" 
                                    name="storage_provider" 
-                                   value="local" 
+                                   value="local_device" 
                                    wire:model.live="form.storage_provider"
                                    class="sr-only">
-                            <div class="border-2 rounded-lg p-4 transition-all duration-200 @if($form->storage_provider === 'local') border-amber-500 bg-amber-500/10 @else border-slate-600 hover:border-slate-500 @endif">
+                            <div class="border-2 rounded-lg p-4 transition-all duration-200 @if($form->storage_provider === 'local_device') border-amber-500 bg-amber-500/10 @else border-slate-600 hover:border-slate-500 @endif">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 rounded-full @if($form->storage_provider === 'local') bg-amber-500 @else bg-slate-600 @endif flex items-center justify-center">
+                                    <div class="w-8 h-8 rounded-full @if($form->storage_provider === 'local_device') bg-amber-500 @else bg-slate-600 @endif flex items-center justify-center">
                                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v2M7 7h10"/>
                                         </svg>
                                     </div>
                                     <div>
-                                        <h4 class="font-medium text-white">Local Server</h4>
-                                        <p class="text-xs text-slate-400">Store on this server</p>
+                                        <h4 class="font-medium text-white">Local Device</h4>
+                                        <p class="text-xs text-slate-400">Save to your computer</p>
                                     </div>
                                 </div>
                             </div>
@@ -236,4 +295,119 @@
             </button>
         </div>
     </form>
+
+    {{-- Participant Consent Management --}}
+    @if($participants->count() > 0)
+        <div class="mt-8 bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-outfit font-bold text-white">Participant Consent Status</h3>
+                    <p class="text-slate-400 text-sm mt-1">View and manage consent decisions for room participants</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    @if($form->stt_enabled)
+                        <button type="button" 
+                                wire:click="resetAllSttConsent" 
+                                wire:confirm="Are you sure you want to reset all STT consent decisions? Participants will need to consent again."
+                                class="inline-flex items-center px-3 py-2 border border-amber-500/30 text-xs font-medium rounded-md text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all duration-200">
+                            Reset All STT
+                        </button>
+                    @endif
+                    @if($form->recording_enabled)
+                        <button type="button" 
+                                wire:click="resetAllRecordingConsent" 
+                                wire:confirm="Are you sure you want to reset all recording consent decisions? Participants will need to consent again."
+                                class="inline-flex items-center px-3 py-2 border border-red-500/30 text-xs font-medium rounded-md text-red-400 bg-red-500/10 hover:bg-red-500/20 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900 transition-all duration-200">
+                            Reset All Recording
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                @foreach($participants as $participant)
+                    <div class="bg-slate-800/50 rounded-lg p-4 border border-slate-600/30">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-slate-600 rounded-full flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-white">{{ $participant['display_name'] }}</h4>
+                                    <p class="text-sm text-slate-400">
+                                        @if($participant['character_class'])
+                                            {{ ucfirst($participant['character_class']) }}
+                                        @else
+                                            No class
+                                        @endif
+                                        • Joined {{ \Carbon\Carbon::parse($participant['joined_at'])->diffForHumans() }}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-4">
+                                {{-- STT Consent Status --}}
+                                @if($form->stt_enabled)
+                                    <div class="text-center">
+                                        <div class="text-xs text-slate-400 mb-1">STT Consent</div>
+                                        @if(is_null($participant['stt_consent_given']))
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                                Pending
+                                            </span>
+                                        @elseif($participant['stt_consent_given'])
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                ✓ Granted
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                                                ✗ Denied
+                                            </span>
+                                        @endif
+                                        @if(!is_null($participant['stt_consent_given']))
+                                            <button type="button" 
+                                                    wire:click="resetSttConsent({{ $participant['id'] }})"
+                                                    wire:confirm="Reset STT consent for {{ $participant['display_name'] }}?"
+                                                    class="block mt-1 text-xs text-amber-400 hover:text-amber-300 underline">
+                                                Reset
+                                            </button>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                {{-- Recording Consent Status --}}
+                                @if($form->recording_enabled)
+                                    <div class="text-center">
+                                        <div class="text-xs text-slate-400 mb-1">Recording Consent</div>
+                                        @if(is_null($participant['recording_consent_given']))
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                                                Pending
+                                            </span>
+                                        @elseif($participant['recording_consent_given'])
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                ✓ Granted
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                                                ✗ Denied
+                                            </span>
+                                        @endif
+                                        @if(!is_null($participant['recording_consent_given']))
+                                            <button type="button" 
+                                                    wire:click="resetRecordingConsent({{ $participant['id'] }})"
+                                                    wire:confirm="Reset recording consent for {{ $participant['display_name'] }}?"
+                                                    class="block mt-1 text-xs text-red-400 hover:text-red-300 underline">
+                                                Reset
+                                            </button>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 </div>

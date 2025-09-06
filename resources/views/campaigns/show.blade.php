@@ -186,7 +186,7 @@
                                                 Campaign
                                             </span>
                                         </div>
-                                        <a href="{{ route('rooms.show', $room->id) }}" 
+                                        <a href="{{ route('rooms.show', $room->invite_code) }}" 
                                            class="text-indigo-400 hover:text-indigo-300 transition-colors">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

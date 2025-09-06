@@ -69,21 +69,22 @@ class RoomRecordingSettings extends Component
         return [
             'form.recording_enabled' => 'boolean',
             'form.stt_enabled' => 'boolean',
-            'form.storage_provider' => 'nullable|in:local,wasabi,google_drive',
+            'form.storage_provider' => 'nullable|in:local_device,wasabi,google_drive',
             'form.storage_account_id' => 'nullable|integer',
+            'form.stt_consent_requirement' => 'in:optional,required',
+            'form.recording_consent_requirement' => 'in:optional,required',
         ];
     }
 
     public function updatedFormRecordingEnabled(): void
     {
-        // If recording is disabled, also disable STT and clear storage
+        // If recording is disabled, clear storage settings
         if (!$this->form->recording_enabled) {
-            $this->form->stt_enabled = false;
             $this->form->storage_provider = null;
             $this->form->storage_account_id = null;
         } else if (!$this->form->storage_provider) {
-            // If recording is enabled but no storage provider, default to local
-            $this->form->storage_provider = 'local';
+            // If recording is enabled but no storage provider, default to local_device
+            $this->form->storage_provider = 'local_device';
         }
     }
 
@@ -92,8 +93,8 @@ class RoomRecordingSettings extends Component
         // Clear storage account when switching providers
         $this->form->storage_account_id = null;
         
-        // If switching to local, no account needed
-        if ($this->form->storage_provider === 'local') {
+        // If switching to local_device, no account needed
+        if ($this->form->storage_provider === 'local_device') {
             return;
         }
         
@@ -134,7 +135,9 @@ class RoomRecordingSettings extends Component
                 $this->form->recording_enabled,
                 $this->form->stt_enabled,
                 $this->form->storage_provider,
-                $this->form->storage_account_id
+                $this->form->storage_account_id,
+                $this->form->stt_consent_requirement,
+                $this->form->recording_consent_requirement
             );
 
             session()->flash('success', 'Recording settings updated successfully!');
@@ -168,8 +171,108 @@ class RoomRecordingSettings extends Component
         return $account ? $account->display_name : 'Unknown account';
     }
 
+    /**
+     * Get participants with their consent status
+     */
+    public function getParticipantsWithConsent(): Collection
+    {
+        return $this->room->participants()
+            ->with(['user'])
+            ->whereNull('left_at')
+            ->get()
+            ->map(function ($participant) {
+                return [
+                    'id' => $participant->id,
+                    'user_id' => $participant->user_id,
+                    'display_name' => $participant->getDisplayName(),
+                    'character_class' => $participant->getCharacterClass(),
+                    'stt_consent_given' => $participant->stt_consent_given,
+                    'stt_consent_at' => $participant->stt_consent_at,
+                    'recording_consent_given' => $participant->recording_consent_given,
+                    'recording_consent_at' => $participant->recording_consent_at,
+                    'joined_at' => $participant->joined_at,
+                ];
+            });
+    }
+
+    /**
+     * Reset STT consent for a specific participant
+     */
+    public function resetSttConsent(int $participantId): void
+    {
+        $participant = $this->room->participants()->find($participantId);
+        
+        if (!$participant) {
+            session()->flash('error', 'Participant not found.');
+            return;
+        }
+
+        $participant->resetSttConsent();
+        session()->flash('success', "STT consent reset for {$participant->getDisplayName()}.");
+    }
+
+    /**
+     * Reset recording consent for a specific participant
+     */
+    public function resetRecordingConsent(int $participantId): void
+    {
+        $participant = $this->room->participants()->find($participantId);
+        
+        if (!$participant) {
+            session()->flash('error', 'Participant not found.');
+            return;
+        }
+
+        $participant->resetRecordingConsent();
+        session()->flash('success', "Recording consent reset for {$participant->getDisplayName()}.");
+    }
+
+    /**
+     * Reset all STT consent decisions
+     */
+    public function resetAllSttConsent(): void
+    {
+        $count = $this->room->participants()
+            ->whereNull('left_at')
+            ->whereNotNull('stt_consent_given')
+            ->count();
+
+        $this->room->participants()
+            ->whereNull('left_at')
+            ->whereNotNull('stt_consent_given')
+            ->each(function ($participant) {
+                $participant->resetSttConsent();
+            });
+
+        session()->flash('success', "STT consent reset for {$count} participants.");
+    }
+
+    /**
+     * Reset all recording consent decisions
+     */
+    public function resetAllRecordingConsent(): void
+    {
+        $count = $this->room->participants()
+            ->whereNull('left_at')
+            ->whereNotNull('recording_consent_given')
+            ->count();
+
+        $this->room->participants()
+            ->whereNull('left_at')
+            ->whereNotNull('recording_consent_given')
+            ->each(function ($participant) {
+                $participant->resetRecordingConsent();
+            });
+
+        session()->flash('success', "Recording consent reset for {$count} participants.");
+    }
+
     public function render()
     {
-        return view('livewire.room-recording-settings');
+        $participants = $this->getParticipantsWithConsent();
+        
+        return view('livewire.room-recording-settings', [
+            'participants' => $participants
+        ]);
     }
 }

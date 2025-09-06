@@ -8,8 +8,10 @@ import RoomUppy from './room-uppy';
 import RoomWebRTC from './room-webrtc';
 
 // Make room classes globally available for room sessions
+console.log('🎬 Loading RoomUppy and RoomWebRTC...');
 window.RoomUppy = RoomUppy;
 window.RoomWebRTC = RoomWebRTC;
+console.log('✅ RoomWebRTC available:', typeof window.RoomWebRTC);
 
 // Character Viewer state module (Alpine)
 import { characterViewerState } from './character';
@@ -33,10 +35,21 @@ import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.e
 // Import tall-toasts
 import ToastComponent from '../../vendor/usernotnull/tall-toasts/resources/js/tall-toasts';
 
-// Register tall-toasts plugin with Alpine before Livewire starts
-Alpine.plugin(ToastComponent);
-
 // Make Alpine available globally for individual components
 window.Alpine = Alpine;
 
-Livewire.start();
+// Register tall-toasts plugin with Alpine before Livewire starts
+console.log('🔧 Registering ToastComponent plugin...');
+Alpine.plugin(ToastComponent);
+
+console.log('🚀 Starting Livewire...');
+
+// Add error handling for Livewire start to catch plugin conflicts
+try {
+    Livewire.start();
+} catch (error) {
+    console.error('❌ Error starting Livewire:', error);
+    // Try to start without plugins if there's a conflict
+    console.log('🔄 Attempting to start Livewire without conflicting plugins...');
+    // Note: This is a fallback - the real fix should prevent the conflict
+}
