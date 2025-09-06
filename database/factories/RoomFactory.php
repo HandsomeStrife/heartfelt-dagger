@@ -23,7 +23,7 @@ class RoomFactory extends Factory
             'name' => $this->faker->words(rand(2, 4), true),
             'description' => $this->faker->paragraph,
             'password' => bcrypt('password'),
-            'guest_count' => $this->faker->numberBetween(2, 6),
+            'guest_count' => $this->faker->numberBetween(2, 6), // Total capacity including creator
             'creator_id' => User::factory(),
             'status' => RoomStatus::Active,
         ];

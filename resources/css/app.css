@@ -182,4 +182,55 @@
 @import '@uppy/dashboard/dist/style.min.css';
 */
 
+/* Dice Roll Result Animations */
+@keyframes slide-in-right {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes dice-bounce {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0, 0, 0);
+    }
+    40%, 43% {
+        transform: translate3d(0, -10px, 0);
+    }
+    70% {
+        transform: translate3d(0, -5px, 0);
+    }
+    90% {
+        transform: translate3d(0, -2px, 0);
+    }
+}
+
+.animate-slide-in-right {
+    animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-dice-bounce {
+    animation: dice-bounce 0.6s ease-in-out;
+}
+
+/* Dice Icon Pulse Animation */
+@keyframes dice-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 15px 35px rgba(245, 158, 11, 0.4);
+    }
+}
+
+.dice-icon-pulse {
+    animation: dice-pulse 2s ease-in-out infinite;
+}
+
 

@@ -19,6 +19,8 @@ class RoomRecordingSettingsData extends Data implements Wireable
         public bool $stt_enabled,
         public ?string $storage_provider,
         public ?int $storage_account_id,
+        public ?string $stt_provider,
+        public ?int $stt_account_id,
         public string $stt_consent_requirement = 'optional',
         public string $recording_consent_requirement = 'optional',
         public ?string $created_at,

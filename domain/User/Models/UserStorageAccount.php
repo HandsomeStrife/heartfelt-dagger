@@ -41,6 +41,14 @@ class UserStorageAccount extends Model
     }
 
     /**
+     * Check if this is an AssemblyAI account
+     */
+    public function isAssemblyAI(): bool
+    {
+        return $this->provider === 'assemblyai';
+    }
+
+    /**
      * Get the decrypted credentials as an array
      */
     public function getCredentials(): array

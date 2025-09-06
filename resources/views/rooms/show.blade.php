@@ -25,7 +25,7 @@
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                     </svg>
-                                    Max Guests: {{ $room->guest_count }}
+                                    Max Participants: {{ $room->guest_count }}
                                 </div>
                                 <div class="flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,83 +110,6 @@
                     </div>
                 @endif
 
-                <!-- Participants -->
-                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
-                    <div class="flex items-center mb-6">
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-blue-500/30 mr-3">
-                            <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h2 class="font-outfit text-xl font-bold text-white">Participants</h2>
-                            <p class="text-slate-400 text-sm">{{ $participants->count() }} of {{ $room->getTotalCapacity() }} slots filled</p>
-                        </div>
-                    </div>
-
-                    @if($participants->isEmpty())
-                        <div class="text-center py-8">
-                            <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center border border-slate-600 mb-4 mx-auto">
-                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                            </div>
-                            <h3 class="text-white font-semibold mb-2">No participants yet</h3>
-                            <p class="text-slate-400 text-sm">Share the invite link to get people to join!</p>
-                        </div>
-                    @else
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach($participants as $participant)
-                                <div class="bg-slate-800/50 border border-slate-600/50 rounded-xl p-4">
-                                    <div class="flex items-center">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-violet-500/30 mr-3">
-                                            <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
-                                        </div>
-                                        <div class="flex-1">
-                                            <h3 class="font-semibold text-white">
-                                                @if($participant->character)
-                                                    {{ $participant->character->name }}
-                                                @elseif($participant->character_name)
-                                                    {{ $participant->character_name }}
-                                                @else
-                                                    {{ $participant->user ? $participant->user->username : 'Anonymous' }}
-                                                @endif
-                                            </h3>
-                                            <div class="text-sm text-slate-400">
-                                                @if($participant->character)
-                                                    <span class="text-emerald-400">{{ $participant->character->class }}</span>
-                                                    @if($participant->character->subclass)
-                                                        ({{ $participant->character->subclass }})
-                                                    @endif
-                                                    <br>
-                                                    <span>{{ $participant->character->ancestry }} {{ $participant->character->community }}</span>
-                                                @elseif($participant->character_class)
-                                                    <span class="text-emerald-400">{{ $participant->character_class }}</span> (Temporary)
-                                                @else
-                                                    <span class="text-slate-500">No character</span>
-                                                @endif
-                                                                                            <div class="text-xs text-slate-500 mt-1 flex items-center justify-between">
-                                                <span>Player: {{ $participant->user ? $participant->user->username : 'Anonymous' }}</span>
-                                                @if($user_is_creator && $participant->user_id !== $room->creator_id)
-                                                    <form action="{{ route('rooms.kick', [$room, $participant->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this participant?')" class="inline">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="text-red-400 hover:text-red-300 text-xs font-medium transition-colors">
-                                                            Remove
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                            </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
             </div>
         </div>
     </div>

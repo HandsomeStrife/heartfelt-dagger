@@ -19,17 +19,23 @@
                     <div pest="weapon-range" class="text-xs text-slate-400">Trait: {{ ucfirst($primary['data']['range'] ?? 'Melee') }}</div>
                 </div>
                 <div class="flex items-end gap-3">
-                    <div pest="weapon-trait-stat" class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60">
+                    <div pest="weapon-trait-stat" class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60 cursor-pointer hover:bg-slate-700/60 transition-colors duration-200"
+                         onclick="rollWeaponAttack('{{ $primary['key'] ?? 'primary' }}')"
+                         title="Click to roll attack">
                         <div class="text-[10px] uppercase text-slate-400">{{ ucfirst($primary['data']['trait'] ?? 'Strength') }}</div>
                         <div class="font-bold">
                             {{ $character->assigned_traits[$primary['data']['trait'] ?? 'strength'] ?? 0 > 0 ? '+' : '' }}{{ $character->assigned_traits[$primary['data']['trait'] ?? 'strength'] ?? 0 }}
                         </div>
+                        <div class="text-[8px] text-slate-500 mt-1">Click to Attack</div>
                     </div>
-                    <div pest="weapon-damage-stat" class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60">
+                    <div pest="weapon-damage-stat" class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60 cursor-pointer hover:bg-slate-700/60 transition-colors duration-200"
+                         onclick="rollWeaponDamage('{{ $primary['key'] ?? 'primary' }}')"
+                         title="Click to roll damage">
                         <div class="text-[10px] uppercase text-slate-400">Damage</div>
                         <div class="font-bold">
                             {{ $primary['data']['damage']['dice'] ?? 'd6' }}{{ isset($primary['data']['damage']['modifier']) && $primary['data']['damage']['modifier'] > 0 ? ' + ' . $primary['data']['damage']['modifier'] : '' }} ({{ $primary['data']['damage']['type'] ?? 'physical' }})
                         </div>
+                        <div class="text-[8px] text-slate-500 mt-1">Click to Damage</div>
                     </div>
                 </div>
                 <div class="md:text-right text-sm text-slate-300">

@@ -5,13 +5,14 @@ import './editor';
 
 // Import room functionality for video conferencing
 import RoomUppy from './room-uppy';
-import RoomWebRTC from './room-webrtc';
+// Temporarily comment out RoomWebRTC to isolate dice functionality
+// import RoomWebRTC from './room-webrtc';
 
 // Make room classes globally available for room sessions
-console.log('🎬 Loading RoomUppy and RoomWebRTC...');
+console.log('🎬 Loading RoomUppy...');
 window.RoomUppy = RoomUppy;
-window.RoomWebRTC = RoomWebRTC;
-console.log('✅ RoomWebRTC available:', typeof window.RoomWebRTC);
+// window.RoomWebRTC = RoomWebRTC;
+console.log('✅ RoomUppy available:', typeof window.RoomUppy);
 
 // Character Viewer state module (Alpine)
 import { characterViewerState } from './character';
@@ -24,6 +25,10 @@ window.characterBuilderComponent = characterBuilderComponent;
 // Character Image Uppy (for profile image uploads)
 import SimpleImageUploader from './character-image-simple';
 window.SimpleImageUploader = SimpleImageUploader;
+
+// DaggerHeart Dice Rolling System
+// Import dice system
+import './dice';
 
 // Last Saved Timestamp component (Alpine)
 import { lastSavedTimestampComponent } from './last-saved-timestamp';

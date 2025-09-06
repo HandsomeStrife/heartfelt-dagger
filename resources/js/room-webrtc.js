@@ -10,6 +10,23 @@
  * - Backpressure handling for upload queues
  * - Audio-only fallback support
  */
+import { DiagnosticsRunner } from './room/utils/DiagnosticsRunner';
+import { PageProtection } from './room/utils/PageProtection';
+import { ICEConfigManager } from './room/webrtc/ICEConfigManager';
+import { PeerConnectionManager } from './room/webrtc/PeerConnectionManager';
+import { MediaManager } from './room/webrtc/MediaManager';
+import { AblyManager } from './room/messaging/AblyManager';
+import { MessageHandler } from './room/messaging/MessageHandler';
+import { VideoRecorder } from './room/recording/VideoRecorder';
+import { StreamingDownloader } from './room/recording/StreamingDownloader';
+import { CloudUploader } from './room/recording/CloudUploader';
+import { SpeechManager } from './room/speech/SpeechManager';
+import { StatusBarManager } from './room/ui/StatusBarManager';
+import { SlotManager } from './room/ui/SlotManager';
+import { UIStateManager } from './room/ui/UIStateManager';
+import { ConsentManager } from './room/consent/ConsentManager';
+import { ConsentDialog } from './room/consent/ConsentDialog';
+
 export default class RoomWebRTC {
     constructor(roomData) {
         this.roomData = roomData;
@@ -34,6 +51,10 @@ export default class RoomWebRTC {
         this.recordedChunks = [];
         this.recordingStartTime = null;
         this.isRecording = false;
+        this.downloadLink = null; // For streaming download
+        this.recordingBlob = null; // Current recording blob
+        this.recordingTimer = null; // For status bar timer
+        
 
         // Unified consent management
         this.consentManager = {
@@ -47,60 +68,35 @@ export default class RoomWebRTC {
         // Recording MIME type (chosen once, used everywhere)
         this.recMime = null;
         
-        // ICE configuration management
-        this.iceConfig = {
-            iceServers: [
-                { urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302'] }
-            ]
-        };
-        this.iceReady = false;
+        // Initialize core managers
+        this.iceManager = new ICEConfigManager();
+        this.peerConnectionManager = new PeerConnectionManager(this);
+        this.mediaManager = new MediaManager(this);
+        this.ablyManager = new AblyManager(this);
+        this.messageHandler = new MessageHandler(this);
+        
+        // Initialize recording managers
+        this.videoRecorder = new VideoRecorder(this);
+        this.streamingDownloader = new StreamingDownloader(this);
+        this.cloudUploader = new CloudUploader(this);
+        
+        // Initialize speech managers
+        this.speechManager = new SpeechManager(this);
+        
+        // Initialize UI managers
+        this.pageProtection = new PageProtection();
+        this.statusBarManager = new StatusBarManager(this);
+        this.slotManager = new SlotManager(this);
+        this.uiStateManager = new UIStateManager(this);
+        this.consentManagerUI = new ConsentManager(this);
+        this.consentDialog = new ConsentDialog();
+        
+        // Setup page refresh protection
+        this.pageProtection.setEmergencySaveCallback((chunks, mimeType) => {
+            this.emergencySaveRecording(chunks, mimeType);
+        });
 
         this.init();
-    }
-
-    /**
-     * Loads ICE configuration from backend API with Cloudflare STUN/TURN support
-     */
-    async loadIceServers() {
-        try {
-            console.log('🧊 Loading ICE configuration from backend...');
-            
-            const response = await fetch('/api/webrtc/ice-config', { 
-                cache: 'no-store',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            if (response.ok) {
-                const config = await response.json();
-                
-                if (config && Array.isArray(config.iceServers) && config.iceServers.length > 0) {
-                    this.iceConfig = config;
-                    this.iceReady = true;
-                    
-                    console.log('🧊 ICE configuration loaded successfully:', {
-                        serversCount: config.iceServers.length,
-                        hasSTUN: config.iceServers.some(s => 
-                            s.urls && s.urls.some(url => url.startsWith('stun:'))
-                        ),
-                        hasTURN: config.iceServers.some(s => 
-                            s.urls && s.urls.some(url => url.startsWith('turn:'))
-                        )
-                    });
-                    
-                    // Update any existing peer connections with new configuration
-                    this.updateExistingPeerConnections();
-                } else {
-                    console.warn('🧊 Invalid ICE configuration received, using fallback');
-                }
-            } else {
-                console.warn('🧊 Failed to load ICE configuration, using fallback STUN-only');
-            }
-        } catch (error) {
-            console.warn('🧊 Error loading ICE configuration, using fallback STUN-only:', error);
-        }
     }
 
     /**
@@ -112,12 +108,7 @@ export default class RoomWebRTC {
         console.log('🧊 Updating existing peer connections with new ICE configuration');
         
         this.peerConnections.forEach((connection, peerId) => {
-            try {
-                connection.setConfiguration(this.iceConfig);
-                console.log(`🧊 Updated ICE config for peer: ${peerId}`);
-            } catch (error) {
-                console.warn(`🧊 Failed to update ICE config for peer ${peerId}:`, error);
-            }
+            this.iceManager.updatePeerConnection(connection, peerId);
         });
     }
 
@@ -125,12 +116,19 @@ export default class RoomWebRTC {
         console.log('🎬 Initializing Room WebRTC for room:', this.roomData.name);
         
         // Load ICE configuration early (don't await to avoid blocking UI)
-        this.loadIceServers().catch(error => {
+        this.iceManager.loadIceServers().catch(error => {
             console.warn('🧊 Non-blocking ICE config load failed:', error);
         });
         
+        // Set up ICE config update callback for existing connections
+        this.iceManager.onConfigUpdate(() => {
+            this.updateExistingPeerConnections();
+        });
+        
         // Initialize speech recognition
-        this.initializeSpeechRecognition();
+        this.initializeSpeechRecognition().catch(error => {
+            console.warn('🎤 Non-blocking speech initialization failed:', error);
+        });
         
         // Initialize video recording
         this.initializeVideoRecording();
@@ -406,8 +404,15 @@ export default class RoomWebRTC {
                 participantData: participantData,
                 isLocal: true
             });
+            
+            // Update slot display
+            this.slotManager.updateSlotOccupied(slotId, participantData, this.localStream);
+            this.slotManager.highlightCurrentUserSlot(slotId);
 
             this.isJoined = true;
+
+            // Start features that have consent now that we have media access
+            this.startConsentedFeatures();
 
             // Announce our presence to the room
             this.publishToAbly('user-joined', {
@@ -548,7 +553,12 @@ export default class RoomWebRTC {
         this.peerConnections.clear();
 
         // Clear slot occupancy
+        const leavingSlotId = this.currentSlotId;
         this.slotOccupants.delete(this.currentSlotId);
+        
+        // Update slot display
+        this.slotManager.updateSlotEmpty(leavingSlotId);
+        this.slotManager.removeCurrentUserHighlight();
 
         // Reset state
         const slotContainer = document.querySelector(`[data-slot-id="${this.currentSlotId}"]`);
@@ -649,6 +659,9 @@ export default class RoomWebRTC {
             participantData: data.participantData,
             isLocal: false
         });
+        
+        // Update slot display
+        this.slotManager.updateSlotOccupied(data.slotId, data.participantData);
 
         // If we're also in a slot, initiate WebRTC connection
         // Fix #2: Prevent offer "glare" - only lower peerId initiates
@@ -664,6 +677,9 @@ export default class RoomWebRTC {
         
         // Remove from slot occupancy
         this.slotOccupants.delete(data.slotId);
+        
+        // Update slot display
+        this.slotManager.updateSlotEmpty(data.slotId);
         
         // Close peer connection if exists
         if (this.peerConnections.has(senderId)) {
@@ -741,7 +757,7 @@ export default class RoomWebRTC {
     createPeerConnection(peerId) {
         // Use loaded ICE configuration, with fallback update if not ready yet
         const peerConnection = new RTCPeerConnection({
-            ...this.iceConfig,
+            ...this.iceManager.getConfig(),
             // IMPORTANT: Do NOT set iceTransportPolicy:'relay' to allow natural candidate preference
             // iceCandidatePoolSize: 1, // Optional: pre-gather candidates
         });
@@ -749,16 +765,9 @@ export default class RoomWebRTC {
         this.peerConnections.set(peerId, peerConnection);
         
         // If ICE config isn't ready yet, update this connection when it arrives
-        if (!this.iceReady) {
-            this.loadIceServers().then(() => {
-                try {
-                    peerConnection.setConfiguration(this.iceConfig);
-                    console.log(`🧊 Updated late-arriving ICE config for peer: ${peerId}`);
-                } catch (error) {
-                    console.warn(`🧊 Failed to update late-arriving ICE config for peer ${peerId}:`, error);
-                }
-            }).catch(() => {
-                // Silently fail - connection will work with fallback STUN
+        if (!this.iceManager.isReady()) {
+            this.iceManager.onConfigUpdate((config) => {
+                this.iceManager.updatePeerConnection(peerConnection, peerId);
             });
         }
 
@@ -791,7 +800,7 @@ export default class RoomWebRTC {
             
             // Log candidate pair information when connected for telemetry
             if (state === 'connected' || state === 'completed') {
-                this.logCandidatePairStats(peerConnection, peerId);
+                this.iceManager.logCandidatePairStats(peerConnection, peerId);
             }
             
             // Fix #6: Be less aggressive on transient "disconnected"
@@ -817,86 +826,6 @@ export default class RoomWebRTC {
         return peerConnection;
     }
 
-    /**
-     * Logs candidate pair statistics for telemetry and monitoring
-     */
-    async logCandidatePairStats(peerConnection, peerId) {
-        try {
-            const stats = await peerConnection.getStats();
-            
-            stats.forEach(report => {
-                if (report.type === 'candidate-pair' && report.selected) {
-                    // Find the local and remote candidate details
-                    let localCandidate = null;
-                    let remoteCandidate = null;
-                    
-                    stats.forEach(candidateReport => {
-                        if (candidateReport.id === report.localCandidateId) {
-                            localCandidate = candidateReport;
-                        }
-                        if (candidateReport.id === report.remoteCandidateId) {
-                            remoteCandidate = candidateReport;
-                        }
-                    });
-                    
-                    const connectionType = {
-                        local: localCandidate?.candidateType || 'unknown',
-                        remote: remoteCandidate?.candidateType || 'unknown',
-                        localProtocol: localCandidate?.protocol || 'unknown',
-                        remoteProtocol: remoteCandidate?.protocol || 'unknown'
-                    };
-                    
-                    // Determine if TURN is being used
-                    const usingTURN = localCandidate?.candidateType === 'relay' || 
-                                     remoteCandidate?.candidateType === 'relay';
-                    
-                    console.log(`🔗 Connection established for ${peerId}:`, {
-                        usingTURN,
-                        connectionType,
-                        localAddress: localCandidate?.address,
-                        remoteAddress: remoteCandidate?.address,
-                        bytesReceived: report.bytesReceived,
-                        bytesSent: report.bytesSent
-                    });
-                    
-                    // Send telemetry beacon (optional - can be used for analytics)
-                    this.sendConnectionTelemetry({
-                        peerId,
-                        roomId: this.roomData.id,
-                        usingTURN,
-                        localType: connectionType.local,
-                        remoteType: connectionType.remote,
-                        protocol: connectionType.localProtocol
-                    });
-                }
-            });
-        } catch (error) {
-            console.warn(`🔗 Failed to get candidate pair stats for ${peerId}:`, error);
-        }
-    }
-
-    /**
-     * Sends connection telemetry for monitoring TURN usage
-     */
-    sendConnectionTelemetry(data) {
-        // Optional: Send tiny beacon to analytics endpoint
-        // This helps track when TURN is actually being used vs STUN-only connections
-        try {
-            // Use sendBeacon for non-blocking telemetry
-            if (navigator.sendBeacon) {
-                const payload = JSON.stringify({
-                    type: 'webrtc_connection',
-                    data: data,
-                    timestamp: Date.now()
-                });
-                
-                navigator.sendBeacon('/api/telemetry/webrtc', payload);
-            }
-        } catch (error) {
-            // Silently fail - telemetry is optional
-            console.debug('📊 Telemetry beacon failed (non-critical):', error);
-        }
-    }
 
     /**
      * Cleans up a peer connection and associated resources
@@ -1121,6 +1050,47 @@ export default class RoomWebRTC {
         });
     }
 
+    /**
+     * Starts features that have consent after user joins a slot and has media access
+     */
+    startConsentedFeatures() {
+        console.log('🎤 === Starting Consented Features ===');
+        
+        const sttStatus = this.consentManager.stt.status;
+        const recordingStatus = this.consentManager.recording.status;
+        
+        console.log('🎤 Consent Status:');
+        console.log(`  - STT enabled in room: ${this.consentManager.stt.enabled}`);
+        console.log(`  - STT consent given: ${sttStatus?.consent_given || false}`);
+        console.log(`  - Recording enabled: ${this.consentManager.recording.enabled}`);
+        console.log(`  - Recording consent given: ${recordingStatus?.consent_given || false}`);
+        
+        console.log('🎤 Media Status:');
+        console.log(`  - Has local stream: ${!!this.localStream}`);
+        console.log(`  - Audio tracks: ${this.localStream?.getAudioTracks()?.length || 0}`);
+        console.log(`  - Video tracks: ${this.localStream?.getVideoTracks()?.length || 0}`);
+
+        // Start STT if consent was given and we have audio
+        if (sttStatus?.consent_given && this.localStream && this.localStream.getAudioTracks().length > 0) {
+            console.log('🎤 ✅ All conditions met for STT - attempting to start...');
+            setTimeout(() => {
+                console.log('🎤 Delayed STT start (1s delay for media stability)...');
+                this.startSpeechRecognition();
+            }, 1000);
+        } else {
+            console.log('🎤 ❌ STT cannot start:');
+            console.log(`  - STT consent given: ${sttStatus?.consent_given || false}`);
+            console.log(`  - Has local stream: ${!!this.localStream}`);
+            console.log(`  - Audio tracks available: ${this.localStream?.getAudioTracks()?.length || 0}`);
+        }
+
+        // Start video recording if consent was given and we have video
+        if (recordingStatus?.consent_given && this.localStream) {
+            console.log('🎥 Starting video recording - consent granted and stream available');
+            this.startVideoRecording();
+        }
+    }
+
     // ===========================================
     // UNIFIED CONSENT MANAGEMENT SYSTEM
     // ===========================================
@@ -1240,16 +1210,11 @@ export default class RoomWebRTC {
             return;
         }
 
-        // Start features that have consent
-        if (sttStatus?.consent_given) {
-            this.startSpeechRecognition();
-        }
-        
-        if (recordingStatus?.consent_given) {
-            this.startVideoRecording();
-        }
+        // Don't start features automatically after consent - wait for user to join a slot
+        // Features will be started when the user actually joins a slot and has media access
+        console.log('🔒 Consent resolved - features will start when user joins a slot');
 
-        // Enable UI
+        // Enable UI so user can join
         this.enableJoinUI();
     }
 
@@ -1366,12 +1331,8 @@ export default class RoomWebRTC {
                 backdrop.remove();
 
                 if (consentGiven) {
-                    // Start the appropriate feature
-                    if (type === 'stt') {
-                        this.startSpeechRecognition();
-                    } else if (type === 'recording') {
-                        this.startVideoRecording();
-                    }
+                    // Don't start features immediately - they will start when user joins a slot
+                    console.log(`🔒 ${type.toUpperCase()} consent granted - feature will start when user joins a slot`);
                     
                     // Complete this consent flow
                     onComplete();
@@ -1463,32 +1424,110 @@ export default class RoomWebRTC {
     }
 
     // ===========================================
-    // SPEECH-TO-TEXT SYSTEM
+    // SPEECH-TO-TEXT SYSTEM (Modular)
     // ===========================================
 
     /**
-     * Initializes speech recognition with browser compatibility checks
+     * Initializes speech recognition using the modular SpeechManager
      */
-    initializeSpeechRecognition() {
+    async initializeSpeechRecognition() {
+        try {
+            await this.speechManager.initializeSpeechRecognition();
+        } catch (error) {
+            console.error('🎤 Failed to initialize speech recognition:', error);
+        }
+    }
+
+    /**
+     * Starts speech recognition using the modular SpeechManager
+     */
+    async startSpeechRecognition() {
+        try {
+            await this.speechManager.startSpeechRecognition();
+        } catch (error) {
+            console.error('🎤 Failed to start speech recognition:', error);
+        }
+    }
+
+    /**
+     * Stops speech recognition using the modular SpeechManager
+     */
+    async stopSpeechRecognition() {
+        try {
+            await this.speechManager.stopSpeechRecognition();
+        } catch (error) {
+            console.error('🎤 Failed to stop speech recognition:', error);
+        }
+    }
+
+    // ===========================================
+        console.log('🎤 === Browser Speech Recognition Initialization ===');
+        
+        // Comprehensive browser support detection
+        const hasWebSpeechAPI = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+        const userAgent = navigator.userAgent;
+        const isChrome = /Chrome/.test(userAgent);
+        const isFirefox = /Firefox/.test(userAgent);
+        const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
+        const isEdge = /Edg/.test(userAgent);
+        
+        console.log('🎤 Browser Support Analysis:');
+        console.log(`  - User Agent: ${userAgent}`);
+        console.log(`  - Chrome: ${isChrome}`);
+        console.log(`  - Firefox: ${isFirefox}`);
+        console.log(`  - Safari: ${isSafari}`);
+        console.log(`  - Edge: ${isEdge}`);
+        console.log(`  - webkitSpeechRecognition: ${'webkitSpeechRecognition' in window}`);
+        console.log(`  - SpeechRecognition: ${'SpeechRecognition' in window}`);
+        console.log(`  - Overall Support: ${hasWebSpeechAPI}`);
+        
         // Check if speech recognition is supported
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         
         if (!SpeechRecognition) {
-            console.warn('🎤 Speech recognition not supported in this browser');
+            console.error('🎤 ❌ Speech recognition not supported in this browser');
+            console.error('🎤 Web Speech API requires Chrome, Edge, or Safari');
+            console.error('🎤 Firefox does not support Web Speech API');
+            this.speechRecognition = null;
             return;
         }
 
-        // Check if STT is enabled for this room
-        if (!this.roomData.stt_enabled) {
-            console.log('🎤 Speech-to-text disabled for this room');
+        console.log('🎤 ✅ Speech Recognition API available');
+
+        try {
+            this.speechRecognition = new SpeechRecognition();
+            console.log('🎤 ✅ SpeechRecognition instance created successfully');
+        } catch (error) {
+            console.error('🎤 ❌ Failed to create SpeechRecognition instance:', error);
+            this.speechRecognition = null;
             return;
         }
-
-        this.speechRecognition = new SpeechRecognition();
-        this.speechRecognition.lang = this.roomData.stt_lang || navigator.language || 'en-GB';
+        // Configure speech recognition parameters
+        const targetLang = this.roomData.stt_lang || navigator.language || 'en-GB';
+        this.speechRecognition.lang = targetLang;
         this.speechRecognition.continuous = true;
         this.speechRecognition.interimResults = false;
         this.speechRecognition.maxAlternatives = 1;
+        
+        console.log('🎤 Configuration:');
+        console.log(`  - Language: ${targetLang}`);
+        console.log(`  - Continuous: ${this.speechRecognition.continuous}`);
+        console.log(`  - Interim Results: ${this.speechRecognition.interimResults}`);
+        console.log(`  - Max Alternatives: ${this.speechRecognition.maxAlternatives}`);
+        console.log(`  - Room STT Lang: ${this.roomData.stt_lang || 'not set'}`);
+        console.log(`  - Navigator Language: ${navigator.language || 'not available'}`);
+        
+        // Check for permission requirements
+        console.log('🎤 Permission Status:');
+        if (navigator.permissions) {
+            navigator.permissions.query({name: 'microphone'}).then(result => {
+                console.log(`  - Microphone Permission: ${result.state}`);
+            }).catch(err => {
+                console.log(`  - Microphone Permission: Unable to check (${err.message})`);
+            });
+        } else {
+            console.log('  - Permissions API not available');
+        }
 
         let lastErrorAt = 0;
 
@@ -1513,66 +1552,392 @@ export default class RoomWebRTC {
         };
 
         this.speechRecognition.onerror = (event) => {
-            console.error('🎤 STT error:', event.error);
             const now = Date.now();
+            const readyState = this.speechRecognition ? this.speechRecognition.readyState : 'unknown';
+            
+            console.error('🎤 === Speech Recognition Error ===');
+            console.error(`  - Error Type: ${event.error}`);
+            console.error(`  - ReadyState: ${readyState}`);
+            console.error(`  - Time: ${new Date().toISOString()}`);
+            console.error(`  - Speech Enabled: ${this.isSpeechEnabled}`);
+            console.error(`  - Last Error: ${now - lastErrorAt}ms ago`);
+            
+            // Detailed error explanations based on Web Speech API spec
+            switch (event.error) {
+                case 'network':
+                    console.error('🎤 NETWORK ERROR: Unable to reach speech recognition service');
+                    console.error('  - Possible causes: No internet, service outage, blocked by firewall');
+                    console.error('  - This is the most common cause of STT failures');
+                    console.error('  - Google Speech API may be blocked or unavailable');
+                    console.error('  - Try using HTTPS or check network connectivity');
+                    
+                    // Try to diagnose the specific network issue
+                    DiagnosticsRunner.diagnoseSpeechNetworkIssue();
+                    
+                    this.isSpeechEnabled = false;
+                    return;
+                    
+                case 'not-allowed':
+                    console.error('🎤 PERMISSION ERROR: Microphone access denied');
+                    console.error('  - User denied microphone permission');
+                    console.error('  - Check browser settings or reload page to re-prompt');
+                    this.isSpeechEnabled = false;
+                    return;
+                    
+                case 'service-not-allowed':
+                    console.error('🎤 SERVICE ERROR: Speech recognition service denied');
+                    console.error('  - Speech service blocked by browser or system');
+                    this.isSpeechEnabled = false;
+                    return;
+                    
+                case 'aborted':
+                    console.warn('🎤 ABORTED: Speech recognition was stopped');
+                    break;
+                    
+                case 'audio-capture':
+                    console.error('🎤 AUDIO ERROR: Cannot capture audio');
+                    console.error('  - Microphone hardware issue or in use by another app');
+                    break;
+                    
+                case 'no-speech':
+                    console.warn('🎤 NO SPEECH: No speech detected');
+                    console.warn('  - Microphone working but no speech heard');
+                    break;
+                    
+                case 'language-not-supported':
+                    console.error('🎤 LANGUAGE ERROR: Language not supported');
+                    console.error(`  - Requested language: ${this.speechRecognition.lang}`);
+                    console.error('  - Try switching to en-US or en-GB');
+                    break;
+                    
+                default:
+                    console.error(`🎤 UNKNOWN ERROR: ${event.error}`);
+                    console.error('  - This error type is not documented in the Web Speech API');
+            }
             
             // Guard against restart loops with time-based throttling
-            if (this.isSpeechEnabled && 
-                !['not-allowed', 'service-not-allowed'].includes(event.error) && 
-                (now - lastErrorAt) > 1000) {
+            const shouldRestart = this.isSpeechEnabled && 
+                !['not-allowed', 'service-not-allowed', 'network'].includes(event.error) && 
+                (now - lastErrorAt) > 2000;
+                
+            console.log(`🎤 Restart Decision: ${shouldRestart ? 'Will attempt restart' : 'Will NOT restart'}`);
+            
+            if (shouldRestart) {
                 lastErrorAt = now;
+                console.log('🎤 Scheduling restart in 1.5 seconds...');
                 setTimeout(() => {
-                    if (this.speechRecognition && this.isSpeechEnabled) {
+                    if (this.speechRecognition && this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
                         try {
+                            console.log('🎤 Attempting to restart speech recognition...');
                             this.speechRecognition.start();
+                            console.log('🎤 ✅ Restart successful');
                         } catch (e) {
-                            console.warn('🎤 Failed to restart STT:', e);
+                            console.error('🎤 ❌ Restart failed:', e);
                         }
+                    } else {
+                        console.log('🎤 ⚠️ Restart skipped - conditions not met');
+                        console.log(`  - Has instance: ${!!this.speechRecognition}`);
+                        console.log(`  - Speech enabled: ${this.isSpeechEnabled}`);
+                        console.log(`  - Ready state: ${this.speechRecognition ? this.speechRecognition.readyState : 'N/A'}`);
                     }
-                }, 800);
+                }, 1500);
             }
         };
 
         this.speechRecognition.onend = () => {
-            console.log('🎤 Speech recognition ended');
+            const readyState = this.speechRecognition ? this.speechRecognition.readyState : 'unknown';
             
-            // Restart if we're still supposed to be listening
-            if (this.isSpeechEnabled) {
+            console.log('🎤 === Speech Recognition Ended ===');
+            console.log(`  - Time: ${new Date().toISOString()}`);
+            console.log(`  - ReadyState: ${readyState}`);
+            console.log(`  - Speech Enabled: ${this.isSpeechEnabled}`);
+            console.log(`  - Should restart: ${this.isSpeechEnabled && this.speechRecognition.readyState !== 1}`);
+            
+            // Only restart if we're still supposed to be listening and not already running
+            if (this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
+                console.log('🎤 Scheduling restart after end in 500ms...');
                 setTimeout(() => {
-                    if (this.speechRecognition) {
+                    if (this.speechRecognition && this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
                         try {
+                            console.log('🎤 Attempting restart after end...');
                             this.speechRecognition.start();
+                            console.log('🎤 ✅ Restart after end successful');
                         } catch (e) {
-                            console.warn('🎤 Failed to restart STT after end:', e);
+                            console.error('🎤 ❌ Failed to restart STT after end:', e);
                         }
+                    } else {
+                        console.log('🎤 ⚠️ Restart after end skipped - conditions not met');
                     }
-                }, 100);
+                }, 500);
+            } else {
+                console.log('🎤 No restart needed after end');
             }
         };
 
+        // Add onstart handler for completion
+        this.speechRecognition.onstart = () => {
+            console.log('🎤 === Speech Recognition Started ===');
+            console.log(`  - Time: ${new Date().toISOString()}`);
+            console.log(`  - ReadyState: ${this.speechRecognition.readyState}`);
+            console.log(`  - Language: ${this.speechRecognition.lang}`);
+            console.log(`  - Continuous: ${this.speechRecognition.continuous}`);
+        };
+
         console.log(`🎤 Speech recognition initialized with locale: ${this.speechRecognition.lang}`);
+        console.log('🎤 === Initialization Complete ===');
+        
+        // Run initial diagnostics
+        DiagnosticsRunner.runSpeechDiagnostics();
     }
 
-    startSpeechRecognition() {
-        if (!this.speechRecognition || this.isSpeechEnabled) {
+    /**
+     * Initializes AssemblyAI-based speech recognition
+     */
+    async initializeAssemblyAISpeechRecognition() {
+        console.log('🎤 === AssemblyAI Speech Recognition Initialization ===');
+        
+        try {
+            // Get STT configuration from the server
+            const response = await fetch(`/api/rooms/${this.roomData.id}/stt-config`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to get STT config: ${response.status} ${response.statusText}`);
+            }
+
+            const config = await response.json();
+            console.log('🎤 ✅ STT config retrieved');
+
+            if (config.provider !== 'assemblyai') {
+                throw new Error(`Unexpected provider: ${config.provider}`);
+            }
+
+            // Initialize AssemblyAI streaming transcriber
+            await this.initializeAssemblyAIStreaming(config.config.api_key);
+
+        } catch (error) {
+            console.error('🎤 ❌ Failed to initialize AssemblyAI:', error);
+            console.error('🎤 Falling back to browser speech recognition');
+            this.initializeBrowserSpeechRecognition();
+        }
+    }
+
+    /**
+     * Sets up AssemblyAI streaming transcription
+     */
+    async initializeAssemblyAIStreaming(apiKey) {
+        console.log('🎤 === Setting up AssemblyAI Streaming ===');
+
+        // Check if AssemblyAI SDK is available
+        if (typeof window.assemblyai === 'undefined') {
+            throw new Error('AssemblyAI SDK not loaded. Please include the AssemblyAI SDK script.');
+        }
+
+        // Get temporary token from our backend for security
+        const token = await this.getAssemblyAIToken(apiKey);
+        
+        // Create streaming client with token
+        const { StreamingClient, StreamingClientOptions } = window.assemblyai;
+        
+        const client = new StreamingClient(
+            new StreamingClientOptions({
+                token: token,
+                api_host: "streaming.assemblyai.com"
+            })
+        );
+
+        // Create transcriber from client
+        this.assemblyAITranscriber = client.transcriber({
+            sample_rate: 16000
+        });
+
+        console.log('🎤 ✅ AssemblyAI StreamingClient and transcriber created');
+
+        // Set up event handlers
+        this.assemblyAITranscriber.on('open', ({ session_id, expires_at }) => {
+            console.log(`🎤 ✅ AssemblyAI session opened with ID: ${session_id}, expires: ${expires_at}`);
+        });
+
+        this.assemblyAITranscriber.on('error', (error) => {
+            console.error('🎤 ❌ AssemblyAI error:', error);
+            // Try to restart or fallback to browser STT
+            setTimeout(() => {
+                if (this.isSpeechEnabled) {
+                    console.log('🎤 Attempting to restart AssemblyAI...');
+                    this.restartAssemblyAISpeech();
+                }
+            }, 1000);
+        });
+
+        this.assemblyAITranscriber.on('close', ({ code, reason }) => {
+            console.log(`🎤 AssemblyAI session closed: ${code} - ${reason}`);
+        });
+
+        this.assemblyAITranscriber.on('transcript', (transcript) => {
+            console.log('🎤 AssemblyAI transcript received:', transcript);
+            
+            if (transcript.text && transcript.text.trim()) {
+                // Add to speech buffer
+                this.speechBuffer.push({
+                    text: transcript.text,
+                    confidence: transcript.confidence || 1.0,
+                    timestamp: Date.now()
+                });
+
+                // Display transcript
+                this.displayTranscript(transcript.text);
+            }
+        });
+
+        // Mark as ready
+        this.speechRecognition = this.assemblyAITranscriber;
+        console.log('🎤 ✅ AssemblyAI speech recognition ready');
+    }
+
+    /**
+     * Get a temporary AssemblyAI token from our backend
+     */
+    async getAssemblyAIToken(apiKey) {
+        try {
+            const response = await fetch('/api/assemblyai/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ api_key: apiKey })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to get AssemblyAI token: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.token;
+        } catch (error) {
+            console.error('🎤 ❌ Failed to get AssemblyAI token:', error);
+            throw error;
+        }
+    }
+
+
+    async startSpeechRecognition() {
+        console.log('🎤 === Starting Speech Recognition ===');
+        
+        try {
+            await this.speechManager.startSpeechRecognition();
+            console.log('🎤 ✅ Speech recognition started via SpeechManager');
+        } catch (error) {
+            console.error('🎤 ❌ Failed to start speech recognition:', error);
+        }
+    }
+
+    startBrowserSpeechRecognition() {
+        console.log('🎤 === Starting Browser Speech Recognition ===');
+
+        // Check if speech recognition is supported and available
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            console.error('🎤 ❌ Speech recognition not supported in this browser');
+            return;
+        }
+
+        // Check microphone access
+        if (!this.localStream) {
+            console.warn('🎤 ⚠️ No local media stream available - microphone may not be accessible');
+        } else {
+            const audioTracks = this.localStream.getAudioTracks();
+            console.log(`🎤 Audio tracks available: ${audioTracks.length}`);
+            audioTracks.forEach((track, index) => {
+                console.log(`  - Track ${index}: ${track.label} (enabled: ${track.enabled}, muted: ${track.muted})`);
+            });
+        }
+
+        // Check current ready state before starting
+        const currentState = this.speechRecognition.readyState;
+        console.log(`🎤 Current ReadyState: ${currentState}`);
+        
+        if (currentState === 1) {
+            console.warn('🎤 ⚠️ Speech recognition already running (readyState: 1)');
             return;
         }
 
         try {
+            console.log('🎤 Setting speech enabled flag...');
             this.isSpeechEnabled = true;
             this.speechBuffer = [];
             this.speechChunkStartedAt = Date.now();
             
+            console.log('🎤 Calling speechRecognition.start()...');
             this.speechRecognition.start();
-            console.log('🎤 Speech recognition started');
+            console.log('🎤 ✅ speechRecognition.start() called successfully');
 
             // Set up 30-second upload interval
+            console.log('🎤 Setting up 30-second upload interval...');
             this.speechUploadInterval = setInterval(() => {
+                console.log('🎤 Triggered 30-second upload interval');
                 this.uploadTranscriptChunk();
             }, 30000);
+            console.log('🎤 ✅ Upload interval configured');
 
         } catch (error) {
-            console.error('🎤 Failed to start speech recognition:', error);
+            console.error('🎤 ❌ Failed to start speech recognition:', error);
+            console.error(`  - Error name: ${error.name}`);
+            console.error(`  - Error message: ${error.message}`);
+            console.error(`  - Error stack: ${error.stack}`);
+            this.isSpeechEnabled = false;
+        }
+    }
+
+    async startAssemblyAISpeechRecognition() {
+        console.log('🎤 === Starting AssemblyAI Speech Recognition ===');
+
+        // Check microphone access
+        if (!this.localStream) {
+            console.error('🎤 ❌ No local media stream available for AssemblyAI');
+            return;
+        }
+
+        const audioTracks = this.localStream.getAudioTracks();
+        if (audioTracks.length === 0) {
+            console.error('🎤 ❌ No audio tracks available for AssemblyAI');
+            return;
+        }
+
+        console.log(`🎤 Audio tracks available: ${audioTracks.length}`);
+        audioTracks.forEach((track, index) => {
+            console.log(`  - Track ${index}: ${track.label} (enabled: ${track.enabled}, muted: ${track.muted})`);
+        });
+
+        try {
+            console.log('🎤 Setting speech enabled flag...');
+            this.isSpeechEnabled = true;
+            this.speechBuffer = [];
+            this.speechChunkStartedAt = Date.now();
+
+            // Connect to AssemblyAI and start streaming
+            await this.assemblyAITranscriber.connect();
+            console.log('🎤 ✅ Connected to AssemblyAI');
+
+            // Stream audio directly from the media stream
+            await this.assemblyAITranscriber.stream(this.localStream);
+            console.log('🎤 ✅ Started streaming audio to AssemblyAI');
+
+            // Set up periodic transcript upload (every 10 seconds)
+            this.speechUploadInterval = setInterval(() => {
+                this.uploadTranscriptChunk();
+            }, 10000);
+
+            console.log('🎤 ✅ AssemblyAI speech recognition started successfully');
+
+        } catch (error) {
+            console.error('🎤 ❌ Failed to start AssemblyAI speech recognition:', error);
+            console.error(`  - Error message: ${error.message}`);
+            console.error(`  - Error stack: ${error.stack}`);
             this.isSpeechEnabled = false;
         }
     }
@@ -1584,10 +1949,12 @@ export default class RoomWebRTC {
 
         this.isSpeechEnabled = false;
         
-        try {
-            this.speechRecognition.stop();
-        } catch (error) {
-            console.warn('🎤 Error stopping speech recognition:', error);
+        const provider = this.roomData.stt_provider || 'browser';
+        
+        if (provider === 'assemblyai') {
+            this.stopAssemblyAISpeechRecognition();
+        } else {
+            this.stopBrowserSpeechRecognition();
         }
 
         // Clear upload interval
@@ -1600,6 +1967,61 @@ export default class RoomWebRTC {
         this.uploadTranscriptChunk();
 
         console.log('🎤 Speech recognition stopped');
+    }
+
+    stopBrowserSpeechRecognition() {
+        try {
+            this.speechRecognition.stop();
+        } catch (error) {
+            console.warn('🎤 Error stopping browser speech recognition:', error);
+        }
+    }
+
+    async stopAssemblyAISpeechRecognition() {
+        try {
+            // Disconnect audio processing
+            if (this.audioProcessor) {
+                this.audioProcessor.disconnect();
+                this.audioProcessor = null;
+            }
+            
+            if (this.audioSource) {
+                this.audioSource.disconnect();
+                this.audioSource = null;
+            }
+            
+            if (this.audioContext) {
+                await this.audioContext.close();
+                this.audioContext = null;
+            }
+
+            // Close AssemblyAI connection
+            if (this.assemblyAITranscriber) {
+                await this.assemblyAITranscriber.close();
+            }
+        } catch (error) {
+            console.warn('🎤 Error stopping AssemblyAI speech recognition:', error);
+        }
+    }
+
+    async restartAssemblyAISpeech() {
+        console.log('🎤 === Restarting AssemblyAI Speech Recognition ===');
+        
+        try {
+            // Stop current session
+            await this.stopAssemblyAISpeechRecognition();
+            
+            // Wait a moment before restarting
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Restart
+            await this.startAssemblyAISpeechRecognition();
+            
+        } catch (error) {
+            console.error('🎤 ❌ Failed to restart AssemblyAI:', error);
+            console.log('🎤 Falling back to browser speech recognition');
+            this.initializeBrowserSpeechRecognition();
+        }
     }
 
     async uploadTranscriptChunk() {
@@ -1727,10 +2149,30 @@ export default class RoomWebRTC {
         }
 
         try {
+            // Determine storage provider once for the entire function
+            const storageProvider = this.roomData.recording_settings?.storage_provider || 'local_device';
+            
             this.mediaRecorder = new MediaRecorder(this.localStream, { mimeType: this.recMime });
             this.recordingStartTime = Date.now();
             this.isRecording = true;
             this.recordedChunks = [];
+            
+            // Update page protection with recording state
+            this.pageProtection.updateRecordingState(this.isRecording, this.recordedChunks, this.recMime);
+
+            // Handle recording stop event
+            this.mediaRecorder.onstop = () => {
+                console.log('🎥 MediaRecorder stopped event triggered');
+                console.log('🎥 Storage provider on stop:', storageProvider);
+                
+                if (storageProvider === 'local_device') {
+                    console.log('🎥 Local device storage - finalizing streaming download');
+                    // Finalize and trigger the streaming download
+                    this.finalizeStreamingDownload();
+                } else {
+                    console.log('🎥 Cloud storage - no download needed');
+                }
+            };
 
             // Handle data available with each timeslice (every 30s)
             this.mediaRecorder.ondataavailable = async (event) => {
@@ -1751,43 +2193,115 @@ export default class RoomWebRTC {
                 };
 
                 try {
-                    // Wait until upload queue clears to avoid memory buildup
-                    while (this.tooManyQueuedUploads()) {
-                        console.warn('📦 Upload backlog; waiting...');
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                    }
+                    // Check storage provider to determine how to handle the recording
                     
-                    await this.uploadVideoChunk(blob, recordingData);
-                    console.log('🎥 Video chunk uploaded successfully');
+                    if (storageProvider === 'local_device') {
+                        // For local device recording, update streaming download with new chunk
+                        this.updateStreamingDownload(blob);
+                    } else {
+                        // Upload to cloud storage (Wasabi, Google Drive, etc.)
+                        while (this.tooManyQueuedUploads()) {
+                            console.warn('📦 Upload backlog; waiting...');
+                            await new Promise(resolve => setTimeout(resolve, 1500));
+                        }
+                        
+                        await this.uploadVideoChunk(blob, recordingData);
+                        console.log('🎥 Video chunk uploaded successfully');
+                    }
                 } catch (error) {
-                    console.error('🎥 Upload error:', error);
+                    console.error('🎥 Recording error:', error);
                 }
                 
-                // Reset start time for next segment
-                this.recordingStartTime = Date.now();
+                // Reset start time for next segment (only for cloud storage with timeslices)
+                if (storageProvider !== 'local_device') {
+                    this.recordingStartTime = Date.now();
+                }
             };
 
-            // Start recording with 30-second timeslices
-            this.mediaRecorder.start(30000); // 30 seconds
+            // For local device recording, use small timeslices for streaming download
+            // (storageProvider already declared above)
+            
+            if (storageProvider === 'local_device') {
+                // Use small timeslices (5 seconds) for streaming download to prevent data loss
+                this.mediaRecorder.start(5000); // 5 seconds - frequent enough to prevent loss
+                console.log('🎥 Video recording started (streaming for local device)');
+                this.initializeStreamingDownload();
+            } else {
+                // Start recording with 30-second timeslices for cloud upload
+                this.mediaRecorder.start(30000); // 30 seconds
+                console.log('🎥 Video recording started with timeslices for cloud upload');
+            }
+            
+            // Show status bar for ALL recording types
+            console.log('🎥 About to call showRecordingStatusBar()...');
+            this.statusBarManager.showRecordingStatusBar();
+            console.log('🎥 showRecordingStatusBar() called');
             this.updateRecordingUI(true);
-            console.log('🎥 Video recording started with timeslices');
 
         } catch (error) {
             console.error('🎥 Error starting MediaRecorder:', error);
             this.isRecording = false;
+            // Update page protection with recording state
+            this.pageProtection.updateRecordingState(this.isRecording, this.recordedChunks, this.recMime);
         }
     }
 
     stopVideoRecording() {
         if (this.mediaRecorder && this.isRecording) {
             this.isRecording = false;
+            // Update page protection with recording state
+            this.pageProtection.updateRecordingState(this.isRecording, this.recordedChunks, this.recMime);
             try {
-                this.mediaRecorder.stop();
+                this.mediaRecorder.stop(); // This will trigger onstop event which handles download for local device
             } catch (error) {
                 console.warn('🎥 Error stopping MediaRecorder:', error);
+                
+                // If stop fails but we have streaming download data, still try to download
+                const stopStorageProvider = this.roomData.recording_settings?.storage_provider || 'local_device';
+                if (stopStorageProvider === 'local_device' && this.downloadLink) {
+                    console.log('🎥 MediaRecorder stop failed, but finalizing streaming download anyway');
+                    this.finalizeStreamingDownload();
+                }
             }
+            
             this.updateRecordingUI(false);
+            this.statusBarManager.hideRecordingStatusBar();
             console.log('🎥 Video recording stopped');
+            
+            // Leave the room after stopping recording
+            console.log('🎥 Leaving room after stopping recording...');
+            this.leaveRoom();
+        }
+    }
+
+    /**
+     * Allows user to download current recording without stopping (for local device recording)
+     */
+    downloadCurrentRecording() {
+        const currentStorageProvider = this.roomData.recording_settings?.storage_provider || 'local_device';
+        if (currentStorageProvider === 'local_device' && this.recordedChunks && this.recordedChunks.length > 0) {
+            // Create a partial recording download with current chunks
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const ext = this.recMime.includes('webm') ? 'webm' : 'mp4';
+            const filename = `room-recording-partial-${timestamp}.${ext}`;
+            
+            const combinedBlob = new Blob(this.recordedChunks, { type: this.recMime });
+            const url = URL.createObjectURL(combinedBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+            
+            console.log(`💾 Partial recording downloaded: ${filename} (${(combinedBlob.size / 1024 / 1024).toFixed(2)} MB)`);
+            console.log(`💾 Contains ${this.recordedChunks.length} chunks so far`);
+        } else {
+            console.warn('💾 No current recording available for download');
         }
     }
 
@@ -1805,6 +2319,187 @@ export default class RoomWebRTC {
     }
 
 
+
+    /**
+     * Initializes single streaming download for local device recording
+     */
+    initializeStreamingDownload() {
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const ext = this.recMime.includes('webm') ? 'webm' : 'mp4';
+        this.recordingFilename = `room-recording-${timestamp}.${ext}`;
+        this.recordedChunks = []; // Collect chunks for single download
+        this.isStreamingDownloadActive = true;
+        
+        console.log(`🎥 Streaming download initialized: ${this.recordingFilename}`);
+        console.log(`🎥 Recording will be saved as single continuous file`);
+    }
+
+    /**
+     * Collects chunks for single streaming download
+     */
+    updateStreamingDownload(newChunk) {
+        if (!this.isStreamingDownloadActive) return;
+        
+        // Store chunk for continuous recording
+        this.recordedChunks.push(newChunk);
+        
+        // Update page protection with new chunks
+        this.pageProtection.updateRecordingState(this.isRecording, this.recordedChunks, this.recMime);
+        
+        const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
+        console.log(`📊 Recording chunk collected: ${(newChunk.size / 1024 / 1024).toFixed(2)} MB`);
+        console.log(`🎥 Total recording size: ${(totalSize / 1024 / 1024).toFixed(2)} MB (${this.recordedChunks.length} chunks)`);
+        
+        // Update status bar if it exists
+        this.statusBarManager.updateRecordingStatus({
+            totalSize: totalSize,
+            chunkCount: this.recordedChunks.length
+        });
+    }
+
+    /**
+     * Finalizes streaming download by creating single combined file
+     */
+    finalizeStreamingDownload() {
+        if (!this.recordingFilename || this.recordedChunks.length === 0) {
+            console.warn('💾 No recording data to finalize');
+            return;
+        }
+        
+        // Create single combined file from all chunks
+        const combinedBlob = new Blob(this.recordedChunks, { type: this.recMime });
+        
+        const url = URL.createObjectURL(combinedBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.recordingFilename;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        URL.revokeObjectURL(url);
+        
+        console.log(`💾 Recording downloaded: ${this.recordingFilename} (${(combinedBlob.size / 1024 / 1024).toFixed(2)} MB)`);
+        console.log(`💾 Combined from ${this.recordedChunks.length} chunks`);
+        
+        // Clean up
+        this.recordedChunks = [];
+        this.recordingFilename = null;
+        this.isStreamingDownloadActive = false;
+        
+        // Update status bar
+        const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
+        this.statusBarManager.updateRecordingStatus({
+            totalSize: totalSize,
+            chunkCount: this.recordedChunks.length
+        });
+    }
+
+    /**
+     * Emergency save when page is being closed (delegated to PageProtection utility)
+     */
+    emergencySaveRecording(chunks, mimeType) {
+        try {
+            if (!chunks || chunks.length === 0) return;
+            
+            console.warn('🚨 Emergency save: Page closing with active recording');
+            
+            // Create emergency download
+            const combinedBlob = new Blob(chunks, { type: mimeType });
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const ext = mimeType && mimeType.includes('webm') ? 'webm' : 'mp4';
+            const emergencyFilename = `room-recording-EMERGENCY-${timestamp}.${ext}`;
+            
+            // Use Navigator.sendBeacon if available for more reliable delivery
+            if (navigator.sendBeacon) {
+                // Can't use sendBeacon for downloads, but we can at least log the attempt
+                console.warn('🚨 Recording data exists but cannot be saved during page unload');
+                console.warn('🚨 Please stop recording properly before leaving the page');
+            } else {
+                // Fallback: try immediate download (may not work)
+                const url = URL.createObjectURL(combinedBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = emergencyFilename;
+                link.click();
+                console.warn(`🚨 Emergency download attempted: ${emergencyFilename}`);
+            }
+        } catch (error) {
+            console.error('🚨 Emergency save failed:', error);
+        }
+    }
+
+    /**
+     * Downloads the complete recording as a single file to user's computer (fallback method)
+     */
+    downloadCompleteRecording() {
+        try {
+            console.log('💾 Attempting to download complete recording...');
+            console.log('💾 Storage provider:', this.roomData.recording_settings?.storage_provider);
+            console.log('💾 Recorded chunks:', this.recordedChunks.length);
+            
+            if (this.recordedChunks.length === 0) {
+                console.warn('💾 No recorded chunks to download');
+                return;
+            }
+
+            // Combine all chunks into a single blob
+            const completeBlob = new Blob(this.recordedChunks, { type: this.recMime });
+            
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const ext = this.recMime.includes('webm') ? 'webm' : 'mp4';
+            const filename = `room-recording-${timestamp}.${ext}`;
+            
+            // Create download link
+            const url = URL.createObjectURL(completeBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up
+            URL.revokeObjectURL(url);
+            this.recordedChunks = []; // Clear chunks after download
+            
+            console.log(`💾 Complete recording downloaded: ${filename} (${(completeBlob.size / 1024 / 1024).toFixed(2)} MB)`);
+        } catch (error) {
+            console.error('💾 Error downloading complete recording:', error);
+        }
+    }
+
+    /**
+     * Saves video chunk directly to user's computer as a download (legacy method - not used for local device)
+     */
+    async saveVideoChunkLocally(blob, recordingData) {
+        try {
+            // Create a download link for the video chunk
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = recordingData.filename;
+            
+            // Add to document, click, and remove
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Clean up the object URL
+            URL.revokeObjectURL(url);
+            
+            console.log(`💾 Video chunk saved locally: ${recordingData.filename}`);
+        } catch (error) {
+            console.error('💾 Error saving video chunk locally:', error);
+            throw error;
+        }
+    }
 
     async uploadVideoChunk(blob, recordingData) {
         try {
@@ -1850,7 +2545,7 @@ export default class RoomWebRTC {
         recordingIndicators.forEach(indicator => {
             if (isRecording) {
                 indicator.classList.add('recording');
-                indicator.textContent = '🔴 Recording';
+                 indicator.textContent = '🔴 Recording';
             } else {
                 indicator.classList.remove('recording');
                 indicator.textContent = '';

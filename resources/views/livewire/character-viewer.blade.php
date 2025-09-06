@@ -75,4 +75,93 @@
 
         <button pest="refresh-button" wire:click='$refresh'>Refresh</button>
     </main>
+
+    <!-- DICE CONTAINER -->
+    <div id="dice-container" class="fixed inset-0" style="pointer-events: none; width: 100vw; height: 100vh; z-index: 9999;" wire:ignore>
+        <!-- Canvas will be inserted here by dice-box -->
+    </div>
+    
+    <style>
+        #dice-container canvas {
+            width: 100vw !important;
+            height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            pointer-events: none !important; /* No pointer events on dice canvas */
+            z-index: 9999 !important;
+        }
+    </style>
+
+    <!-- DICE INITIALIZATION SCRIPT -->
+    <script>
+        // Wait for both DOM and Livewire to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Character viewer DOM loaded');
+            
+            // Wait for Livewire to be fully loaded
+            document.addEventListener('livewire:navigated', function() {
+                console.log('Livewire navigated - initializing dice');
+                initializeDiceSystem();
+            });
+            
+            // Also try after a delay in case livewire:navigated doesn't fire
+            setTimeout(() => {
+                console.log('Fallback dice initialization');
+                initializeDiceSystem();
+            }, 3000);
+            
+            function initializeDiceSystem() {
+                // Check if dice container exists
+                const container = document.getElementById('dice-container');
+                if (!container) {
+                    console.error('Dice container not found!');
+                    return;
+                }
+                console.log('Dice container found:', container);
+                
+                // Wait for dice functions to be available
+                const initDice = () => {
+                    console.log('Checking for dice functions...');
+                    console.log('initDiceBox available:', typeof window.initDiceBox);
+                    console.log('setupDiceCallbacks available:', typeof window.setupDiceCallbacks);
+                    
+                    if (typeof window.initDiceBox !== 'undefined') {
+                        console.log('Initializing DiceBox for character viewer...');
+                        console.log('Viewport:', window.innerWidth + 'x' + window.innerHeight);
+                        
+                        // Initialize dice box
+                        let diceBox = window.initDiceBox('#dice-container');
+                        console.log('DiceBox instance:', diceBox);
+                        
+                        // Set up roll completion callback
+                        if (typeof window.setupDiceCallbacks === 'function') {
+                            window.setupDiceCallbacks((rollResult) => {
+                                console.log('Roll completed:', rollResult);
+                            });
+                        }
+                        
+                        // Check for canvas creation after a delay
+                        setTimeout(() => {
+                            const canvas = document.querySelector('#dice-container canvas');
+                            if (canvas) {
+                                console.log('Canvas found in character viewer:', canvas.width + 'x' + canvas.height);
+                            } else {
+                                console.error('No canvas found in character viewer dice container!');
+                                console.log('Dice container contents:', document.getElementById('dice-container').innerHTML);
+                                console.log('All canvas elements on page:', document.querySelectorAll('canvas'));
+                            }
+                        }, 3000);
+                        
+                        console.log('Character viewer dice system ready');
+                    } else {
+                        console.log('Dice functions not ready, retrying...');
+                        setTimeout(initDice, 200);
+                    }
+                };
+                
+                initDice();
+            }
+        });
+    </script>
 </div>

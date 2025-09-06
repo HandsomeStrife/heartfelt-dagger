@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use Domain\Campaign\Models\Campaign;
 use Domain\Character\Models\Character;
 use Domain\Character\Repositories\CharacterRepository;
+use Domain\CampaignPage\Repositories\CampaignPageRepository;
 use Domain\Room\Actions\CreateRoomAction;
 use Domain\Room\Actions\DeleteRoomAction;
 use Domain\Room\Actions\JoinRoomAction;
@@ -25,6 +26,7 @@ class RoomController extends Controller
     public function __construct(
         private RoomRepository $room_repository,
         private CharacterRepository $character_repository,
+        private CampaignPageRepository $campaign_page_repository,
         private CreateRoomAction $create_room_action,
         private DeleteRoomAction $delete_room_action,
         private JoinRoomAction $join_room_action,
@@ -535,11 +537,42 @@ class RoomController extends Controller
 
         $participants = $this->room_repository->getRoomParticipants($room);
         
+        // Determine user role and load additional data for campaign rooms
+        $user_is_creator = $room->isCreator($user);
+        $current_participant = null;
+        $campaign_pages = collect();
+        $campaign = null;
+        
+        // Find current user's participant record
+        if ($user) {
+            $current_participant = $participants->first(fn($p) => $p->user_id === $user->id);
+        } else {
+            // Anonymous user - find by session
+            $anonymousParticipantId = session('anonymous_room_participant_' . $room->id);
+            if ($anonymousParticipantId) {
+                $current_participant = $participants->first(fn($p) => $p->id === $anonymousParticipantId);
+            }
+        }
+        
+        // Load campaign data if this is a campaign room
+        if ($room->campaign_id) {
+            $campaign = Campaign::with(['creator', 'members'])->find($room->campaign_id);
+            
+            // Load campaign pages for GM
+            if ($user_is_creator && $campaign) {
+                $campaign_pages = $this->campaign_page_repository->getRootPagesForCampaign($campaign, $user);
+            }
+        }
+        
         Log::info('Room session - Rendering session page', [
             'room_id' => $room->id,
             'user_id' => $userId,
             'participant_count' => $participants->count(),
             'room_capacity' => $room->getActiveParticipantCount() . '/' . $room->getTotalCapacity(),
+            'is_campaign_room' => !!$room->campaign_id,
+            'user_is_creator' => $user_is_creator,
+            'has_current_participant' => !!$current_participant,
+            'campaign_pages_count' => $campaign_pages->count(),
             'participants' => $participants->map(fn($p) => [
                 'id' => $p->id,
                 'user_id' => $p->user_id,
@@ -551,7 +584,14 @@ class RoomController extends Controller
         // Load recording settings for this room
         $room->load('recordingSettings');
         
-        return view('rooms.session', compact('room', 'participants'));
+        return view('rooms.session', compact(
+            'room', 
+            'participants', 
+            'user_is_creator', 
+            'current_participant', 
+            'campaign', 
+            'campaign_pages'
+        ));
     }
 
     /**

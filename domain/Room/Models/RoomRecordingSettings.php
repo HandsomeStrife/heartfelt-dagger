@@ -30,6 +30,11 @@ class RoomRecordingSettings extends Model
         return $this->belongsTo(UserStorageAccount::class, 'storage_account_id');
     }
 
+    public function sttAccount(): BelongsTo
+    {
+        return $this->belongsTo(UserStorageAccount::class, 'stt_account_id');
+    }
+
     /**
      * Check if recording is enabled for this room
      */
@@ -68,6 +73,30 @@ class RoomRecordingSettings extends Model
     public function isUsingGoogleDrive(): bool
     {
         return $this->storage_provider === 'google_drive';
+    }
+
+    /**
+     * Check if using browser-based STT
+     */
+    public function isUsingBrowserStt(): bool
+    {
+        return $this->stt_provider === 'browser' || $this->stt_provider === null;
+    }
+
+    /**
+     * Check if using AssemblyAI STT
+     */
+    public function isUsingAssemblyAI(): bool
+    {
+        return $this->stt_provider === 'assemblyai';
+    }
+
+    /**
+     * Check if the room has an STT provider configured
+     */
+    public function hasSttProvider(): bool
+    {
+        return !empty($this->stt_provider) && !empty($this->stt_account_id);
     }
 
     /**

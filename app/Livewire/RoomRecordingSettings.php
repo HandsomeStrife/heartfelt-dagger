@@ -23,6 +23,7 @@ class RoomRecordingSettings extends Component
     
     public Collection $wasabiAccounts;
     public Collection $googleDriveAccounts;
+    public Collection $assemblyAIAccounts;
     public bool $canManageSettings = false;
 
     public function mount(Room $room): void
@@ -62,6 +63,11 @@ class RoomRecordingSettings extends Component
             ->where('provider', 'google_drive')
             ->where('is_active', true)
             ->get();
+            
+        $this->assemblyAIAccounts = $user->storageAccounts()
+            ->where('provider', 'assemblyai')
+            ->where('is_active', true)
+            ->get();
     }
 
     public function rules(): array
@@ -71,6 +77,8 @@ class RoomRecordingSettings extends Component
             'form.stt_enabled' => 'boolean',
             'form.storage_provider' => 'nullable|in:local_device,wasabi,google_drive',
             'form.storage_account_id' => 'nullable|integer',
+            'form.stt_provider' => 'nullable|in:browser,assemblyai',
+            'form.stt_account_id' => 'nullable|integer',
             'form.stt_consent_requirement' => 'in:optional,required',
             'form.recording_consent_requirement' => 'in:optional,required',
         ];
@@ -85,6 +93,18 @@ class RoomRecordingSettings extends Component
         } else if (!$this->form->storage_provider) {
             // If recording is enabled but no storage provider, default to local_device
             $this->form->storage_provider = 'local_device';
+        }
+    }
+
+    public function updatedFormSttEnabled(): void
+    {
+        // If STT is disabled, clear STT settings
+        if (!$this->form->stt_enabled) {
+            $this->form->stt_provider = null;
+            $this->form->stt_account_id = null;
+        } else if (!$this->form->stt_provider) {
+            // If STT is enabled but no provider, default to browser
+            $this->form->stt_provider = 'browser';
         }
     }
 
@@ -105,11 +125,36 @@ class RoomRecordingSettings extends Component
         }
     }
 
+    public function updatedFormSttProvider(): void
+    {
+        // Clear STT account when switching providers
+        $this->form->stt_account_id = null;
+        
+        // If switching to browser, no account needed
+        if ($this->form->stt_provider === 'browser') {
+            return;
+        }
+        
+        // Auto-select account if only one available
+        $accounts = $this->getSttAccountsForProvider($this->form->stt_provider);
+        if ($accounts->count() === 1) {
+            $this->form->stt_account_id = $accounts->first()->id;
+        }
+    }
+
     public function getAccountsForProvider(?string $provider): Collection
     {
         return match ($provider) {
             'wasabi' => $this->wasabiAccounts,
             'google_drive' => $this->googleDriveAccounts,
+            default => collect(),
+        };
+    }
+
+    public function getSttAccountsForProvider(?string $provider): Collection
+    {
+        return match ($provider) {
+            'assemblyai' => $this->assemblyAIAccounts,
             default => collect(),
         };
     }
@@ -136,6 +181,8 @@ class RoomRecordingSettings extends Component
                 $this->form->stt_enabled,
                 $this->form->storage_provider,
                 $this->form->storage_account_id,
+                $this->form->stt_provider,
+                $this->form->stt_account_id,
                 $this->form->stt_consent_requirement,
                 $this->form->recording_consent_requirement
             );

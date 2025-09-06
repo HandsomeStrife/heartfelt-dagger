@@ -26,6 +26,13 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
         #[Nullable]
         public ?int $storage_account_id,
         
+        #[Nullable]
+        #[In(['browser', 'assemblyai'])]
+        public ?string $stt_provider,
+        
+        #[Nullable]
+        public ?int $stt_account_id,
+        
         #[In(['optional', 'required'])]
         public string $stt_consent_requirement = 'optional',
         
@@ -41,6 +48,8 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
                 stt_enabled: false,
                 storage_provider: null,
                 storage_account_id: null,
+                stt_provider: null,
+                stt_account_id: null,
                 stt_consent_requirement: 'optional',
                 recording_consent_requirement: 'optional',
             );
@@ -51,6 +60,8 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
             stt_enabled: $settings->stt_enabled,
             storage_provider: $settings->storage_provider,
             storage_account_id: $settings->storage_account_id,
+            stt_provider: $settings->stt_provider,
+            stt_account_id: $settings->stt_account_id,
             stt_consent_requirement: $settings->stt_consent_requirement,
             recording_consent_requirement: $settings->recording_consent_requirement,
         );
@@ -71,6 +82,20 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
         return in_array($this->storage_provider, ['wasabi', 'google_drive']);
     }
 
+    public function getSttProviderDisplayName(): string
+    {
+        return match ($this->stt_provider) {
+            'browser' => 'Browser Speech Recognition',
+            'assemblyai' => 'AssemblyAI',
+            default => 'Browser Speech Recognition (Default)',
+        };
+    }
+
+    public function requiresSttAccount(): bool
+    {
+        return $this->stt_provider === 'assemblyai';
+    }
+
     public function isValid(): bool
     {
         // If recording is enabled, must have a storage provider
@@ -80,6 +105,11 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
 
         // If storage provider requires an account, must have one selected
         if ($this->recording_enabled && $this->requiresStorageAccount() && !$this->storage_account_id) {
+            return false;
+        }
+
+        // If STT is enabled and requires an account, must have one selected
+        if ($this->stt_enabled && $this->requiresSttAccount() && !$this->stt_account_id) {
             return false;
         }
 
@@ -98,6 +128,10 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
                 'google_drive' => 'Please select a Google Drive account or connect one.',
                 default => 'Please select a storage account.',
             };
+        }
+
+        if ($this->stt_enabled && $this->requiresSttAccount() && !$this->stt_account_id) {
+            return 'Please select an AssemblyAI account or create one.';
         }
 
         return null;

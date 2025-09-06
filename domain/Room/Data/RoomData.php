@@ -42,7 +42,8 @@ class RoomData extends Data implements Wireable
     }
 
     /**
-     * Get the total capacity (guest count)
+     * Get the total capacity (includes creator)
+     * guest_count represents total capacity, not additional guests
      */
     public function getTotalCapacity(): int
     {

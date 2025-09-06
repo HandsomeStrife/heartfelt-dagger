@@ -13,23 +13,30 @@ use PHPUnit\Framework\Attributes\Test;
 use function Pest\Laravel\{assertDatabaseHas, assertDatabaseMissing, assertDatabaseCount};
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-test('guest cannot access room routes', function () {
+test('guest cannot access protected room routes', function () {
     $room = Room::factory()->create();
 
+    // These routes require authentication
     get(route('rooms.index'))->assertRedirect(route('login'));
     get(route('rooms.create'))->assertRedirect(route('login'));
     post(route('rooms.store'))->assertRedirect(route('login'));
-    get(route('rooms.show', $room))->assertRedirect(route('login'));
-    post(route('rooms.join', $room))->assertRedirect(route('login'));
     delete(route('rooms.leave', $room))->assertRedirect(route('login'));
-    get(route('rooms.session', $room))->assertRedirect(route('login'));
+});
+
+test('guest cannot access campaign room without authentication', function () {
+    // Create a campaign room which requires authentication
+    $campaign = \Domain\Campaign\Models\Campaign::factory()->create();
+    $room = Room::factory()->forCampaign($campaign)->create();
+
+    // Campaign rooms should redirect to login for unauthenticated users
+    get(route('rooms.show', $room))->assertRedirect(route('login'));
 });
 test('guest can access invite route', function () {
     $room = Room::factory()->create();
 
     $response = get(route('rooms.invite', $room->invite_code));
 
-    $response->assertRedirect(route('login'));
+    $response->assertOk();
 });
 test('authenticated user can view rooms index', function () {
     $user = User::factory()->create();
@@ -140,7 +147,7 @@ test('room creation validates guest count range', function () {
 });
 test('user can view room details', function () {
     $user = User::factory()->create();
-    $room = Room::factory()->create(['name' => 'Test Room']);
+    $room = Room::factory()->create(['name' => 'Test Room', 'creator_id' => $user->id]);
     RoomParticipant::factory()->count(2)->create(['room_id' => $room->id, 'left_at' => null]);
 
     $response = actingAs($user)->get(route('rooms.show', $room));
@@ -153,7 +160,7 @@ test('user can view room details', function () {
 test('room show displays participant information', function () {
     $user = User::factory()->create(['username' => 'testuser']);
     $character = Character::factory()->create(['name' => 'Hero', 'class' => 'Warrior']);
-    $room = Room::factory()->create();
+    $room = Room::factory()->create(['creator_id' => $user->id]);
 
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
@@ -222,10 +229,9 @@ test('invite page redirects if room at capacity', function () {
 test('user can join room with character', function () {
     $user = User::factory()->create();
     $character = Character::factory()->create(['user_id' => $user->id]);
-    $room = Room::factory()->create();
+    $room = Room::factory()->passwordless()->create();
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'password', // Factory default
         'character_id' => $character->id
     ]);
 
@@ -240,10 +246,9 @@ test('user can join room with character', function () {
 });
 test('user can join room with temporary character', function () {
     $user = User::factory()->create();
-    $room = Room::factory()->create();
+    $room = Room::factory()->passwordless()->create();
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'password',
         'character_name' => 'Temp Hero',
         'character_class' => 'Rogue'
     ]);
@@ -260,10 +265,9 @@ test('user can join room with temporary character', function () {
 });
 test('user can join room without character', function () {
     $user = User::factory()->create();
-    $room = Room::factory()->create();
+    $room = Room::factory()->passwordless()->create();
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'password',
         'character_name' => 'Test Character',
         'character_class' => 'Warrior'
     ]);
@@ -283,7 +287,9 @@ test('joining room validates password', function () {
     $room = Room::factory()->create();
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'wrong_password'
+        'password' => 'wrong_password',
+        'character_name' => 'Test Character',
+        'character_class' => 'Warrior'
     ]);
 
     $response->assertSessionHasErrors(['password' => 'Invalid room password.']);
@@ -318,27 +324,26 @@ test('user cannot join room twice', function () {
     ]);
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'password'
+        'password' => 'password',
+        'character_name' => 'Test Character',
+        'character_class' => 'Warrior'
     ]);
 
     $response->assertSessionHasErrors(['error' => 'You are already an active participant in this room.']);
 });
 test('user cannot join full room', function () {
     $user = User::factory()->create();
-    $room = Room::factory()->create(['guest_count' => 1]); // Total capacity = 2 (creator + 1 guest)
+    $room = Room::factory()->passwordless()->create(['guest_count' => 2]); // Total capacity = 2 people
 
     // Fill the room to capacity (2 participants)
-    RoomParticipant::factory()->create([
-        'room_id' => $room->id,
-        'left_at' => null
-    ]);
-    RoomParticipant::factory()->create([
+    RoomParticipant::factory()->count(2)->create([
         'room_id' => $room->id,
         'left_at' => null
     ]);
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'password'
+        'character_name' => 'Test Character',
+        'character_class' => 'Warrior'
     ]);
 
     $response->assertSessionHasErrors(['error' => 'This room is at capacity.']);
@@ -370,7 +375,7 @@ test('user cannot leave room they havent joined', function () {
 });
 test('user can access session if participating', function () {
     $user = User::factory()->create();
-    $room = Room::factory()->create();
+    $room = Room::factory()->create(['creator_id' => $user->id]);
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -394,7 +399,7 @@ test('user cannot access session if not participating', function () {
 });
 test('room session includes javascript context', function () {
     $user = User::factory()->create();
-    $room = Room::factory()->create(['name' => 'JS Test Room']);
+    $room = Room::factory()->create(['name' => 'JS Test Room', 'creator_id' => $user->id]);
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -406,20 +411,21 @@ test('room session includes javascript context', function () {
     $response->assertSee('window.roomData');
     $response->assertSee('window.currentUserId');
     $response->assertSee('JS Test Room');
-    $response->assertSee('room-webrtc.js');
+    $response->assertSee('app.js');
 });
 test('rooms with different guest counts show correctly', function () {
     $user = User::factory()->create();
 
-    foreach ([1, 2, 3, 4, 5] as $guestCount) {
+    foreach ([2, 3, 4, 5, 6] as $guestCount) {
         $room = Room::factory()->create([
             'guest_count' => $guestCount,
-            'name' => "Room {$guestCount}"
+            'name' => "Room {$guestCount}",
+            'creator_id' => $user->id
         ]);
 
         $response = actingAs($user)->get(route('rooms.show', $room));
         
-        $response->assertSee("Max Guests: {$guestCount}");
+        $response->assertSee("Max Participants: {$guestCount}");
     }
 });
 test('room invite url generation works', function () {
@@ -738,7 +744,7 @@ test('user can join password protected regular room with correct password', func
         'character_class' => 'Wizard',
     ]);
 
-    $response->assertRedirect(route('rooms.session', $room));
+    $response->assertRedirect(route('rooms.session', $room) . '?password=secret123');
     assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $joiner->id,

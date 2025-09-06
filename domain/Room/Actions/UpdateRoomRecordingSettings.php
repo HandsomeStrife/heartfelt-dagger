@@ -19,6 +19,8 @@ class UpdateRoomRecordingSettings
         bool $sttEnabled,
         ?string $storageProvider = null,
         ?int $storageAccountId = null,
+        ?string $sttProvider = null,
+        ?int $sttAccountId = null,
         string $sttConsentRequirement = 'optional',
         string $recordingConsentRequirement = 'optional'
     ): RoomRecordingSettings {
@@ -46,16 +48,47 @@ class UpdateRoomRecordingSettings
             $storageProvider = $storageAccount->provider;
         }
 
+        // Validate STT account if provided
+        if ($sttAccountId) {
+            $sttAccount = UserStorageAccount::where('id', $sttAccountId)
+                ->where('user_id', $user->id)
+                ->where('is_active', true)
+                ->first();
+
+            if (!$sttAccount) {
+                throw new \Exception('STT account not found or not accessible');
+            }
+
+            // Ensure STT provider matches account provider
+            if ($sttProvider && $sttAccount->provider !== $sttProvider) {
+                throw new \Exception('STT provider mismatch with selected account');
+            }
+
+            $sttProvider = $sttAccount->provider;
+        }
+
         // If recording is disabled, clear storage settings
         if (!$recordingEnabled) {
             $storageProvider = null;
             $storageAccountId = null;
         }
 
+        // If STT is disabled, clear STT settings
+        if (!$sttEnabled) {
+            $sttProvider = null;
+            $sttAccountId = null;
+        }
+
         // If recording is enabled but no storage provider specified, default to local_device
         if ($recordingEnabled && !$storageProvider) {
             $storageProvider = 'local_device';
             $storageAccountId = null;
+        }
+
+        // If STT is enabled but no provider specified, default to browser
+        if ($sttEnabled && !$sttProvider) {
+            $sttProvider = 'browser';
+            $sttAccountId = null;
         }
 
         try {
@@ -66,6 +99,8 @@ class UpdateRoomRecordingSettings
             $settings->stt_enabled = $sttEnabled;
             $settings->storage_provider = $storageProvider;
             $settings->storage_account_id = $storageAccountId;
+            $settings->stt_provider = $sttProvider;
+            $settings->stt_account_id = $sttAccountId;
             $settings->stt_consent_requirement = $sttConsentRequirement;
             $settings->recording_consent_requirement = $recordingConsentRequirement;
             
@@ -86,6 +121,8 @@ class UpdateRoomRecordingSettings
                 'stt_enabled' => $sttEnabled,
                 'storage_provider' => $storageProvider,
                 'storage_account_id' => $storageAccountId,
+                'stt_provider' => $sttProvider,
+                'stt_account_id' => $sttAccountId,
             ]);
 
             return $settings;

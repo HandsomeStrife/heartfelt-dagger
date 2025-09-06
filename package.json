@@ -23,6 +23,8 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
+        "@3d-dice/dice-box": "^1.1.4",
+        "@3d-dice/dice-themes": "^0.2.1",
         "@tailwindcss/typography": "^0.5.16",
         "@tiptap/core": "^3.3.0",
         "@tiptap/extension-color": "^3.3.0",

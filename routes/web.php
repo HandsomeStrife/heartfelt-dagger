@@ -163,19 +163,31 @@ Route::get('/storage-accounts', App\Livewire\StorageAccountDashboard::class)->na
 
 Route::get('/video-library', App\Livewire\VideoLibrary::class)->name('video-library')->middleware('auth');
 
-// API routes for recording downloads
+// API routes for recording downloads and STT config
 Route::prefix('api')->name('api.')->group(function () {
     Route::get('/rooms/{room}/recordings/{recording}/download', [App\Http\Controllers\Api\RecordingDownloadController::class, 'download'])
         ->name('rooms.recordings.download')
         ->middleware('auth');
+    Route::get('/rooms/{room}/stt-config', [App\Http\Controllers\Api\SttConfigController::class, 'getConfig'])
+        ->name('rooms.stt-config')
+        ->middleware('auth');
+    Route::post('/assemblyai/token', [App\Http\Controllers\AssemblyAIController::class, 'generateToken'])
+        ->name('assemblyai.token')
+        ->middleware('auth');
 });
 
-// Wasabi storage account setup
+// Storage account setup
 Route::get('/wasabi/connect', App\Livewire\WasabiAccountSetup::class)->name('wasabi.connect')->middleware('auth');
+Route::get('/assemblyai/connect', App\Livewire\AssemblyAIAccountSetup::class)->name('assemblyai.connect')->middleware('auth');
 
 // Simple test route for debugging Livewire
 Route::get('/simple-test', function () {
     return view('simple-test-page');
+});
+
+// Dice test route
+Route::get('/test-dice', function () {
+    return view('test-dice');
 });
 
 // Character image upload routes

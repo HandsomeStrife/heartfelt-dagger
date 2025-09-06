@@ -76,7 +76,13 @@
                     <span class="text-slate-500/80 select-none">|</span>
                     <div pest="trait-stats" class="flex items-center gap-1 flex-nowrap">
                         @foreach ($traitInfo as $trait => $label)
-                            <x-icons.stat-frame pest="trait-{{ $trait }}" :number="$traitValues[$trait] ?? '+0'" :label="$label" class="size-20" />
+                            <div class="cursor-pointer hover:scale-105 transition-transform duration-200" 
+                                 data-trait="{{ $trait }}" 
+                                 data-trait-value="{{ $traitValues[$trait] ?? '+0' }}"
+                                 onclick="rollTraitCheck('{{ $trait }}', {{ str_replace('+', '', $traitValues[$trait] ?? '0') }})"
+                                 title="Click to roll {{ $label }} check">
+                                <x-icons.stat-frame pest="trait-{{ $trait }}" :number="$traitValues[$trait] ?? '+0'" :label="$label" class="size-20" />
+                            </div>
                         @endforeach
                     </div>
                 </div>

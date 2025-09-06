@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Box Test</title>
+    <script type="module" src="http://localhost:5173/@vite/client"></script>
+    <script type="module" src="http://localhost:5173/resources/js/app.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #dice-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        #controls {
+            position: relative;
+            z-index: 1001;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 10px;
+            margin: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #log {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <h1>Dice Box Test</h1>
+        <button onclick="testRoll()">Roll 2d12</button>
+        <button onclick="testSingleDie()">Roll 1d6</button>
+        <button onclick="clearLog()">Clear Log</button>
+        <div id="log"></div>
+    </div>
+    
+    <div id="dice-container"></div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        window.testRoll = function() {
+            log('Rolling 2d12...');
+            window.rollDualityDice(0, 'test', { test: true });
+        };
+        
+        window.testSingleDie = function() {
+            log('Rolling 1d6...');
+            window.rollDice('1d6');
+        };
+        
+        window.clearLog = function() {
+            document.getElementById('log').innerHTML = '';
+        };
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const initTest = () => {
+                if (typeof window.initDiceBox !== 'undefined') {
+                    log('Initializing DiceBox...');
+                    
+                    let diceBox = window.initDiceBox('#dice-container');
+                    
+                    window.setupDiceCallbacks((rollResult) => {
+                        log(`Roll complete: ${JSON.stringify(rollResult)}`);
+                    });
+                    
+                    log('DiceBox initialized successfully!');
+                } else {
+                    setTimeout(initTest, 100);
+                }
+            };
+            
+            initTest();
+        });
+    </script>
+</body>
+</html>
