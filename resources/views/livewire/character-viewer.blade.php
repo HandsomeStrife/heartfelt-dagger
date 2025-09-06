@@ -7,8 +7,24 @@
     armor_score: @js($computed_stats['armor_score'] ?? 0),
     hope: @js($computed_stats['hope'] ?? 2),
     initialStatus: @js($character_status ? $character_status->toAlpineState() : null)
-})" class="bg-slate-950 text-slate-100/95 antialiased min-h-screen"
+})" class="bg-slate-950 text-slate-100/95 antialiased min-h-screen relative"
     style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';">
+
+    <!-- LOADING SCREEN -->
+    <div id="character-loading-screen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="mb-6">
+                <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-amber-500"></div>
+            </div>
+            <h2 class="text-2xl font-outfit font-bold text-slate-100 mb-2">Loading Character</h2>
+            <p class="text-slate-400 mb-4">Initializing dice system and character data...</p>
+            <div class="flex items-center justify-center space-x-2">
+                <div class="w-2 h-2 bg-amber-500 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                <div class="w-2 h-2 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+            </div>
+        </div>
+    </div>
 
     <main class="max-w-7xl mx-auto p-6 md:p-8 space-y-6">
 
@@ -95,6 +111,19 @@
 
     <!-- DICE INITIALIZATION SCRIPT -->
     <script>
+        // Function to hide loading screen with smooth animation
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('character-loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.transition = 'opacity 0.5s ease-out';
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                }, 500);
+                console.log('Loading screen hidden');
+            }
+        }
+
         // Wait for both DOM and Livewire to be ready
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Character viewer DOM loaded');
@@ -109,18 +138,22 @@
             setTimeout(() => {
                 console.log('Fallback dice initialization');
                 initializeDiceSystem();
-            }, 3000);
+            }, 1000);
             
             function initializeDiceSystem() {
                 // Check if dice container exists
                 const container = document.getElementById('dice-container');
                 if (!container) {
                     console.error('Dice container not found!');
+                    hideLoadingScreen(); // Hide loading screen even if dice fails
                     return;
                 }
                 console.log('Dice container found:', container);
                 
                 // Wait for dice functions to be available
+                let retryCount = 0;
+                const maxRetries = 50; // 10 seconds max
+                
                 const initDice = () => {
                     console.log('Checking for dice functions...');
                     console.log('initDiceBox available:', typeof window.initDiceBox);
@@ -130,33 +163,48 @@
                         console.log('Initializing DiceBox for character viewer...');
                         console.log('Viewport:', window.innerWidth + 'x' + window.innerHeight);
                         
-                        // Initialize dice box
-                        let diceBox = window.initDiceBox('#dice-container');
-                        console.log('DiceBox instance:', diceBox);
-                        
-                        // Set up roll completion callback
-                        if (typeof window.setupDiceCallbacks === 'function') {
-                            window.setupDiceCallbacks((rollResult) => {
-                                console.log('Roll completed:', rollResult);
-                            });
-                        }
-                        
-                        // Check for canvas creation after a delay
-                        setTimeout(() => {
-                            const canvas = document.querySelector('#dice-container canvas');
-                            if (canvas) {
-                                console.log('Canvas found in character viewer:', canvas.width + 'x' + canvas.height);
-                            } else {
-                                console.error('No canvas found in character viewer dice container!');
-                                console.log('Dice container contents:', document.getElementById('dice-container').innerHTML);
-                                console.log('All canvas elements on page:', document.querySelectorAll('canvas'));
+                        try {
+                            // Initialize dice box
+                            let diceBox = window.initDiceBox('#dice-container');
+                            console.log('DiceBox instance:', diceBox);
+                            
+                            // Set up roll completion callback
+                            if (typeof window.setupDiceCallbacks === 'function') {
+                                window.setupDiceCallbacks((rollResult) => {
+                                    console.log('Roll completed:', rollResult);
+                                });
                             }
-                        }, 3000);
-                        
-                        console.log('Character viewer dice system ready');
+                            
+                            // Check for canvas creation after a delay
+                            setTimeout(() => {
+                                const canvas = document.querySelector('#dice-container canvas');
+                                if (canvas) {
+                                    console.log('Canvas found in character viewer:', canvas.width + 'x' + canvas.height);
+                                } else {
+                                    console.error('No canvas found in character viewer dice container!');
+                                    console.log('Dice container contents:', document.getElementById('dice-container').innerHTML);
+                                    console.log('All canvas elements on page:', document.querySelectorAll('canvas'));
+                                }
+                                
+                                // Hide loading screen once dice system is ready
+                                hideLoadingScreen();
+                            }, 1000);
+                            
+                            console.log('Character viewer dice system ready');
+                            
+                        } catch (error) {
+                            console.error('Error initializing dice system:', error);
+                            hideLoadingScreen(); // Hide loading screen even if dice fails
+                        }
                     } else {
-                        console.log('Dice functions not ready, retrying...');
-                        setTimeout(initDice, 200);
+                        retryCount++;
+                        if (retryCount >= maxRetries) {
+                            console.warn('Dice functions not available after maximum retries, hiding loading screen');
+                            hideLoadingScreen();
+                        } else {
+                            console.log(`Dice functions not ready, retrying... (${retryCount}/${maxRetries})`);
+                            setTimeout(initDice, 200);
+                        }
                     }
                 };
                 

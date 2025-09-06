@@ -10,22 +10,22 @@
  * - Backpressure handling for upload queues
  * - Audio-only fallback support
  */
-import { DiagnosticsRunner } from './room/utils/DiagnosticsRunner';
-import { PageProtection } from './room/utils/PageProtection';
-import { ICEConfigManager } from './room/webrtc/ICEConfigManager';
-import { PeerConnectionManager } from './room/webrtc/PeerConnectionManager';
-import { MediaManager } from './room/webrtc/MediaManager';
-import { AblyManager } from './room/messaging/AblyManager';
-import { MessageHandler } from './room/messaging/MessageHandler';
-import { VideoRecorder } from './room/recording/VideoRecorder';
-import { StreamingDownloader } from './room/recording/StreamingDownloader';
-import { CloudUploader } from './room/recording/CloudUploader';
-import { SpeechManager } from './room/speech/SpeechManager';
-import { StatusBarManager } from './room/ui/StatusBarManager';
-import { SlotManager } from './room/ui/SlotManager';
-import { UIStateManager } from './room/ui/UIStateManager';
-import { ConsentManager } from './room/consent/ConsentManager';
-import { ConsentDialog } from './room/consent/ConsentDialog';
+import { DiagnosticsRunner } from './room/utils/DiagnosticsRunner.js';
+import { PageProtection } from './room/utils/PageProtection.js';
+import { ICEConfigManager } from './room/webrtc/ICEConfigManager.js';
+import { PeerConnectionManager } from './room/webrtc/PeerConnectionManager.js';
+import { MediaManager } from './room/webrtc/MediaManager.js';
+import { AblyManager } from './room/messaging/AblyManager.js';
+import { MessageHandler } from './room/messaging/MessageHandler.js';
+import { VideoRecorder } from './room/recording/VideoRecorder.js';
+import { StreamingDownloader } from './room/recording/StreamingDownloader.js';
+import { CloudUploader } from './room/recording/CloudUploader.js';
+import { SpeechManager } from './room/speech/SpeechManager.js';
+import { StatusBarManager } from './room/ui/StatusBarManager.js';
+import { SlotManager } from './room/ui/SlotManager.js';
+import { UIStateManager } from './room/ui/UIStateManager.js';
+import { ConsentManager } from './room/consent/ConsentManager.js';
+import { ConsentDialog } from './room/consent/ConsentDialog.js';
 
 export default class RoomWebRTC {
     constructor(roomData) {
@@ -39,34 +39,8 @@ export default class RoomWebRTC {
         this.isJoined = false;
         this.currentUserId = window.currentUserId; // Should be set by Blade template
         
-        // Speech recognition properties
-        this.speechRecognition = null;
-        this.speechBuffer = [];
-        this.speechChunkStartedAt = null;
-        this.speechUploadInterval = null;
-        this.isSpeechEnabled = false;
-
-        // Video recording properties
-        this.mediaRecorder = null;
-        this.recordedChunks = [];
-        this.recordingStartTime = null;
-        this.isRecording = false;
-        this.downloadLink = null; // For streaming download
-        this.recordingBlob = null; // Current recording blob
-        this.recordingTimer = null; // For status bar timer
-        
-
-        // Unified consent management
-        this.consentManager = {
-            stt: { status: null, enabled: this.roomData.stt_enabled },
-            recording: { status: null, enabled: this.roomData.recording_enabled }
-        };
-        
-        // ICE candidate queuing for reliable signaling
+        // Core WebRTC properties (kept for backward compatibility)
         this.pendingIce = new Map(); // Map<peerId, RTCIceCandidateInit[]>
-        
-        // Recording MIME type (chosen once, used everywhere)
-        this.recMime = null;
         
         // Initialize core managers
         this.iceManager = new ICEConfigManager();
@@ -163,72 +137,8 @@ export default class RoomWebRTC {
     async checkInitialConsentRequirements() {
         console.log('🔒 Checking initial consent requirements...');
         
-        const needsSttConsent = this.consentManager.stt.enabled;
-        const needsRecordingConsent = this.consentManager.recording.enabled;
-
-        if (!needsSttConsent && !needsRecordingConsent) {
-            console.log('🔒 No consent requirements for this room');
-            return;
-        }
-
-        // Disable UI until consent is resolved
-        this.disableJoinUI();
-
-        try {
-            // Check consent statuses in parallel
-            const consentChecks = [];
-            
-            if (needsSttConsent) {
-                consentChecks.push(this.checkConsentStatus('stt'));
-            }
-            
-            if (needsRecordingConsent) {
-                consentChecks.push(this.checkConsentStatus('recording'));
-            }
-
-            await Promise.all(consentChecks);
-
-            // Process consent results and show dialogs if needed
-            await this.processInitialConsentResults();
-
-        } catch (error) {
-            console.error('❌ Error checking initial consent requirements:', error);
-        }
-    }
-
-    /**
-     * Processes initial consent results and shows dialogs if needed
-     */
-    async processInitialConsentResults() {
-        const sttStatus = this.consentManager.stt.status;
-        const recordingStatus = this.consentManager.recording.status;
-
-        // Collect consent dialogs needed
-        const dialogsNeeded = [];
-        
-        if (sttStatus?.requires_consent) {
-            dialogsNeeded.push('stt');
-        }
-        
-        if (recordingStatus?.requires_consent) {
-            dialogsNeeded.push('recording');
-        }
-
-        // Show consent dialogs sequentially if needed
-        if (dialogsNeeded.length > 0) {
-            console.log('🔒 Showing initial consent dialogs for:', dialogsNeeded);
-            await this.showConsentDialogs(dialogsNeeded);
-        } else {
-            // Check for any denials that require redirection (only for required consent)
-            if (sttStatus?.consent_denied && sttStatus?.consent_required) {
-                this.handleConsentDenied();
-            } else if (recordingStatus?.consent_denied && recordingStatus?.consent_required) {
-                this.handleConsentDenied();
-            } else {
-                // All consents resolved (either given or optionally denied)
-                this.enableJoinUI();
-            }
-        }
+        // Delegate to the modular ConsentManager
+        return this.consentManagerUI.checkInitialConsent();
     }
 
     // ===========================================
@@ -238,10 +148,31 @@ export default class RoomWebRTC {
     /**
      * Connects to the room-specific Ably channel when client is ready
      */
-    connectToAblyChannel() {
-        const connectWhenReady = () => {
-            if (window.AblyClient) {
-                this.setupAblyChannel();
+    async connectToAblyChannel() {
+        // Generate peer ID if we don't have one
+        if (!this.currentPeerId) {
+            this.currentPeerId = this.generatePeerId();
+            console.log(`🆔 Generated viewer peer ID: ${this.currentPeerId}`);
+        }
+        
+        // Wait for Ably to be available and connect
+        const connectWhenReady = async () => {
+            if (window.ably) {
+                try {
+                    console.log('🔗 Connecting to Ably via AblyManager...');
+                    await this.ablyManager.connectToChannel();
+                    
+                    // Request current room state after connection is established
+                    setTimeout(() => {
+                        console.log('📡 Requesting current room state...');
+                        this.ablyManager.publishMessage('request-state', {
+                            requesterId: this.currentPeerId,
+                            userId: this.currentUserId
+                        });
+                    }, 500);
+                } catch (error) {
+                    console.error('🔗 Failed to connect to Ably:', error);
+                }
             } else {
                 // Wait for Ably client to be initialized
                 setTimeout(connectWhenReady, 100);
@@ -249,71 +180,6 @@ export default class RoomWebRTC {
         };
         
         connectWhenReady();
-    }
-
-    /**
-     * Sets up Ably channel subscriptions and requests current room state
-     */
-    setupAblyChannel() {
-        // Use room-specific channel
-        const channelName = `room-${this.roomData.id}`;
-        this.ablyChannel = window.AblyClient.channels.get(channelName);
-        
-        // Subscribe to signaling messages only (filter out other app messages)
-        this.ablyChannel.subscribe((message) => {
-            // Fix #1: Gate Ably to signaling messages only
-            if (message.name && message.name !== 'webrtc-signal') return;
-
-            const payload = message.data;
-            if (!payload) return;
-
-            // Ignore if message is targeted to a different peer
-            if (payload.targetPeerId && payload.targetPeerId !== this.currentPeerId) return;
-
-            // Filter out our own messages
-            if (payload.senderId === this.currentPeerId) return;
-            
-            console.log('📨 Room message type:', payload.type, 'from:', payload.senderId);
-            this.handleAblyMessage(message);
-        });
-        
-        console.log('✅ Connected to room Ably channel:', channelName);
-        
-        // Request current state from other users in this room
-        setTimeout(() => {
-            console.log('📡 Requesting current room state...');
-            if (!this.currentPeerId) {
-                this.currentPeerId = this.generatePeerId();
-                console.log(`🆔 Generated viewer peer ID: ${this.currentPeerId}`);
-            }
-            this.publishToAbly('request-state', {
-                requesterId: this.currentPeerId,
-                userId: this.currentUserId
-            });
-        }, 500);
-    }
-
-    /**
-     * Publishes a message to the Ably channel with proper structure
-     */
-    publishToAbly(type, data, targetPeerId = null) {
-        if (!this.ablyChannel) {
-            console.warn('❌ Ably channel not ready');
-            return;
-        }
-
-        const message = {
-            type: type,
-            data: data,
-            senderId: this.currentPeerId || 'anonymous',
-            userId: this.currentUserId,
-            roomId: this.roomData.id,
-            targetPeerId: targetPeerId,
-            timestamp: Date.now()
-        };
-
-        this.ablyChannel.publish('webrtc-signal', message);
-        console.log(`📤 Published ${type} to room channel`);
     }
 
     /**
@@ -424,8 +290,8 @@ export default class RoomWebRTC {
             this.hideLoadingState(slotContainer);
             this.showVideoControls(slotContainer);
 
-            // Handle consent requirements
-            await this.handleConsentRequirements();
+            // Consent requirements are already handled by checkInitialConsentRequirements
+            console.log('🔒 Consent requirements already handled during initialization');
 
         } catch (error) {
             console.error('❌ Error joining slot:', error);
@@ -1056,373 +922,79 @@ export default class RoomWebRTC {
     startConsentedFeatures() {
         console.log('🎤 === Starting Consented Features ===');
         
-        const sttStatus = this.consentManager.stt.status;
-        const recordingStatus = this.consentManager.recording.status;
-        
-        console.log('🎤 Consent Status:');
-        console.log(`  - STT enabled in room: ${this.consentManager.stt.enabled}`);
-        console.log(`  - STT consent given: ${sttStatus?.consent_given || false}`);
-        console.log(`  - Recording enabled: ${this.consentManager.recording.enabled}`);
-        console.log(`  - Recording consent given: ${recordingStatus?.consent_given || false}`);
-        
-        console.log('🎤 Media Status:');
-        console.log(`  - Has local stream: ${!!this.localStream}`);
-        console.log(`  - Audio tracks: ${this.localStream?.getAudioTracks()?.length || 0}`);
-        console.log(`  - Video tracks: ${this.localStream?.getVideoTracks()?.length || 0}`);
-
-        // Start STT if consent was given and we have audio
-        if (sttStatus?.consent_given && this.localStream && this.localStream.getAudioTracks().length > 0) {
-            console.log('🎤 ✅ All conditions met for STT - attempting to start...');
+        // Check if STT is enabled and has consent, then start it
+        if (this.roomData.stt_enabled && this.localStream && this.localStream.getAudioTracks().length > 0) {
+            console.log('🎤 Starting speech recognition - STT enabled and audio available');
             setTimeout(() => {
-                console.log('🎤 Delayed STT start (1s delay for media stability)...');
                 this.startSpeechRecognition();
             }, 1000);
-        } else {
-            console.log('🎤 ❌ STT cannot start:');
-            console.log(`  - STT consent given: ${sttStatus?.consent_given || false}`);
-            console.log(`  - Has local stream: ${!!this.localStream}`);
-            console.log(`  - Audio tracks available: ${this.localStream?.getAudioTracks()?.length || 0}`);
         }
-
-        // Start video recording if consent was given and we have video
-        if (recordingStatus?.consent_given && this.localStream) {
-            console.log('🎥 Starting video recording - consent granted and stream available');
+        
+        // Check if recording is enabled and has consent, then start it
+        if (this.roomData.recording_enabled && this.localStream) {
+            console.log('🎥 Starting video recording - recording enabled and stream available');
             this.startVideoRecording();
         }
     }
 
     // ===========================================
-    // UNIFIED CONSENT MANAGEMENT SYSTEM
+    // UNIFIED CONSENT MANAGEMENT SYSTEM (Modular)
     // ===========================================
 
     /**
-     * Handles all consent requirements (STT and Recording) in a unified flow
+     * Handles all consent requirements - delegated to checkInitialConsentRequirements
      */
     async handleConsentRequirements() {
-        const needsSttConsent = this.consentManager.stt.enabled;
-        const needsRecordingConsent = this.consentManager.recording.enabled;
-
-        if (!needsSttConsent && !needsRecordingConsent) {
-            // No consent needed, enable UI immediately
-            this.enableJoinUI();
-            return;
-        }
-
-        // Disable UI until consent is resolved
-        this.disableJoinUI();
-
-        try {
-            // Check consent statuses in parallel
-            const consentChecks = [];
-            
-            if (needsSttConsent) {
-                consentChecks.push(this.checkConsentStatus('stt'));
-            }
-            
-            if (needsRecordingConsent) {
-                consentChecks.push(this.checkConsentStatus('recording'));
-            }
-
-            await Promise.all(consentChecks);
-
-            // Process consent results
-            await this.processConsentResults();
-
-        } catch (error) {
-            console.error('❌ Error handling consent requirements:', error);
-            this.enableJoinUI(); // Enable UI on error to prevent deadlock
-        }
+        // This is handled by checkInitialConsentRequirements during initialization
+        console.log('🔒 Consent requirements handled during initialization');
+        return Promise.resolve();
     }
 
     /**
-     * Checks consent status for a specific feature type
+     * Checks consent status using the modular ConsentManager
      */
     async checkConsentStatus(type) {
-        const endpoint = type === 'stt' ? 'stt-consent' : 'recording-consent';
-        
-        try {
-            const response = await fetch(`/api/rooms/${this.roomData.id}/${endpoint}`, {
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                }
-            });
-
-            if (response.ok) {
-                this.consentManager[type].status = await response.json();
-                console.log(`🔒 ${type.toUpperCase()} consent status:`, this.consentManager[type].status);
-            } else {
-                console.warn(`🔒 Failed to check ${type} consent status:`, response.status);
-            }
-        } catch (error) {
-            console.error(`🔒 Error checking ${type} consent:`, error);
-        }
+        return this.consentManagerUI.checkConsentStatus(type);
     }
 
     /**
-     * Processes consent results and shows dialogs or starts features as needed
+     * Disables join UI using the modular UIStateManager
      */
-    async processConsentResults() {
-        const sttStatus = this.consentManager.stt.status;
-        const recordingStatus = this.consentManager.recording.status;
-
-        // Collect consent dialogs needed
-        const dialogsNeeded = [];
+    disableJoinUI(message = 'Please wait...') {
+        // Use the UIStateManager's state system to disable join buttons
+        this.uiStateManager.setLoadingState('join', true, message);
         
-        if (sttStatus?.requires_consent) {
-            dialogsNeeded.push('stt');
-        }
-        
-        if (recordingStatus?.requires_consent) {
-            dialogsNeeded.push('recording');
-        }
-
-        // Show consent dialogs sequentially if needed
-        if (dialogsNeeded.length > 0) {
-            await this.showConsentDialogs(dialogsNeeded);
-        } else {
-            // No dialogs needed, check for auto-start or redirect
-            this.handleAutoConsentActions();
-        }
-    }
-
-    /**
-     * Shows consent dialogs sequentially for multiple consent types
-     */
-    async showConsentDialogs(types) {
-        for (const type of types) {
-            await new Promise((resolve) => {
-                this.showConsentDialog(type, resolve);
-            });
-        }
-    }
-
-    /**
-     * Handles actions when no consent dialogs are needed
-     */
-    handleAutoConsentActions() {
-        const sttStatus = this.consentManager.stt.status;
-        const recordingStatus = this.consentManager.recording.status;
-
-        // Check for any denials that require redirection
-        if (sttStatus?.consent_denied || recordingStatus?.consent_denied) {
-            this.handleConsentDenied();
-            return;
-        }
-
-        // Don't start features automatically after consent - wait for user to join a slot
-        // Features will be started when the user actually joins a slot and has media access
-        console.log('🔒 Consent resolved - features will start when user joins a slot');
-
-        // Enable UI so user can join
-        this.enableJoinUI();
-    }
-
-    /**
-     * Shows a unified consent dialog for any feature type
-     */
-    showConsentDialog(type, onComplete) {
-        const config = this.getConsentConfig(type);
-        
-        // Create modal backdrop
-        const backdrop = document.createElement('div');
-        backdrop.id = `${type}-consent-backdrop`;
-        backdrop.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 consent-dialog';
-        
-        backdrop.innerHTML = `
-            <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md mx-4 shadow-2xl">
-                <div class="text-center mb-6">
-                    <div class="w-16 h-16 ${config.iconBg} rounded-full flex items-center justify-center mx-auto mb-4">
-                        ${config.icon}
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">${config.title}</h3>
-                    <p class="text-slate-300 text-sm leading-relaxed">${config.description}</p>
-                </div>
-                
-                <div class="flex space-x-3">
-                    <button id="${type}-consent-deny" 
-                            class="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-semibold py-3 px-4 rounded-lg transition-all duration-300">
-                        No, Leave Room
-                    </button>
-                    <button id="${type}-consent-accept" 
-                            class="flex-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 font-semibold py-3 px-4 rounded-lg transition-all duration-300">
-                        Yes, I Consent
-                    </button>
-                </div>
-                
-                <div class="mt-4 text-xs text-slate-400 text-center">
-                    <p>Your decision will be saved for this room session</p>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(backdrop);
-
-        // Add event listeners
-        const acceptButton = document.getElementById(`${type}-consent-accept`);
-        const declineButton = document.getElementById(`${type}-consent-deny`);
-        acceptButton.addEventListener('click', () => {
-            this.handleConsentDecision(type, true, backdrop, onComplete);
-        });
-
-        declineButton.addEventListener('click', () => {
-            this.handleConsentDecision(type, false, backdrop, onComplete);
-        });
-
-        // Prevent closing by clicking backdrop
-        backdrop.addEventListener('click', (e) => {
-            if (e.target === backdrop) {
-                e.preventDefault();
-            }
+        // Also directly disable join buttons for immediate feedback
+        document.querySelectorAll('.join-btn').forEach(button => {
+            button.disabled = true;
+            button.style.opacity = '0.5';
+            button.style.cursor = 'not-allowed';
+            const originalText = button.textContent;
+            button.dataset.originalText = originalText;
+            button.textContent = message;
         });
     }
 
     /**
-     * Gets configuration for consent dialog based on type
+     * Enables join UI using the modular UIStateManager
      */
-    getConsentConfig(type) {
-        const configs = {
-            stt: {
-                title: 'Speech Recording Consent',
-                description: 'This room has speech-to-text recording enabled. Your voice will be transcribed and saved. Do you consent to having your speech recorded and transcribed?',
-                iconBg: 'bg-amber-500/20',
-                icon: `<svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>`
-            },
-            recording: {
-                title: 'Video Recording Consent',
-                description: 'This room has video recording enabled. Your video will be recorded and saved to the room owner\'s chosen storage service. Do you consent to having your video recorded?',
-                iconBg: 'bg-red-500/20',
-                icon: `<svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>`
-            }
-        };
+    enableJoinUI() {
+        // Use the UIStateManager's state system to enable join buttons
+        this.uiStateManager.setLoadingState('join', false);
         
-        return configs[type];
-    }
-
-    /**
-     * Handles consent decision for any feature type
-     */
-    async handleConsentDecision(type, consentGiven, backdrop, onComplete) {
-        const endpoint = type === 'stt' ? 'stt-consent' : 'recording-consent';
-        
-        try {
-            const response = await fetch(`/api/rooms/${this.roomData.id}/${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                },
-                body: JSON.stringify({
-                    consent_given: consentGiven
-                })
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                console.log(`🔒 ${type.toUpperCase()} consent decision saved:`, result);
-
-                // Remove consent dialog
-                backdrop.remove();
-
-                if (consentGiven) {
-                    // Don't start features immediately - they will start when user joins a slot
-                    console.log(`🔒 ${type.toUpperCase()} consent granted - feature will start when user joins a slot`);
-                    
-                    // Complete this consent flow
-                    onComplete();
-                } else {
-                    // Handle consent denial based on requirement type
-                    this.handleConsentDenial(type);
-                }
-                
-                // Check if all consents are resolved
-                this.checkAllConsentsResolved();
-                
-            } else {
-                console.error(`🔒 Failed to save ${type} consent decision:`, response.status);
-                alert('Failed to save consent decision. Please try again.');
+        // Also directly enable join buttons for immediate feedback
+        document.querySelectorAll('.join-btn').forEach(button => {
+            button.disabled = false;
+            button.style.opacity = '';
+            button.style.cursor = '';
+            if (button.dataset.originalText) {
+                button.textContent = button.dataset.originalText;
+                delete button.dataset.originalText;
             }
-        } catch (error) {
-            console.error(`🔒 Error saving ${type} consent decision:`, error);
-            alert('Failed to save consent decision. Please try again.');
-        }
+        });
     }
 
-    /**
-     * Checks if all required consents are resolved and enables UI
-     */
-    checkAllConsentsResolved() {
-        const allResolved = Object.values(this.consentManager).every(consent => 
-            !consent.enabled || (consent.status && (consent.status.consent_given || consent.status.consent_denied))
-        );
-        
-        if (allResolved) {
-            this.enableJoinUI();
-        }
-    }
-
-    /**
-     * Handles consent denial based on whether it's required or optional
-     */
-    handleConsentDenial(type) {
-        const status = this.consentManager[type].status;
-        const isRequired = status?.consent_required;
-        
-        if (isRequired) {
-            // Required consent denied - redirect user
-            this.handleConsentDenied();
-        } else {
-            // Optional consent denied - allow user to continue
-            console.log(`🔒 ${type.toUpperCase()} consent declined (optional) - user can continue`);
-            this.checkAllConsentsResolved();
-        }
-    }
-
-    /**
-     * Handles when user denies required consent - shows unified denial message
-     */
-    handleConsentDenied() {
-        const backdrop = document.createElement('div');
-        backdrop.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
-        backdrop.innerHTML = `
-            <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md mx-4 shadow-2xl text-center">
-                <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Consent Required</h3>
-                <p class="text-slate-300 text-sm mb-4">
-                    You have declined the required permissions for this room. You will be redirected.
-                </p>
-                <p class="text-xs text-slate-400">Redirecting in <span id="consent-countdown">3</span> seconds...</p>
-            </div>
-        `;
-        document.body.appendChild(backdrop);
-
-        // Countdown and redirect
-        let countdown = 3;
-        const countdownElement = document.getElementById('consent-countdown');
-        const countdownInterval = setInterval(() => {
-            countdown--;
-            if (countdownElement) {
-                countdownElement.textContent = countdown;
-            }
-            
-            if (countdown <= 0) {
-                clearInterval(countdownInterval);
-                window.location.href = `/rooms/${this.roomData.invite_code || ''}`;
-            }
-        }, 1000);
-    }
-
+    // ===========================================
     // ===========================================
     // SPEECH-TO-TEXT SYSTEM (Modular)
     // ===========================================
@@ -1461,1116 +1033,106 @@ export default class RoomWebRTC {
     }
 
     // ===========================================
-        console.log('🎤 === Browser Speech Recognition Initialization ===');
-        
-        // Comprehensive browser support detection
-        const hasWebSpeechAPI = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-        const userAgent = navigator.userAgent;
-        const isChrome = /Chrome/.test(userAgent);
-        const isFirefox = /Firefox/.test(userAgent);
-        const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
-        const isEdge = /Edg/.test(userAgent);
-        
-        console.log('🎤 Browser Support Analysis:');
-        console.log(`  - User Agent: ${userAgent}`);
-        console.log(`  - Chrome: ${isChrome}`);
-        console.log(`  - Firefox: ${isFirefox}`);
-        console.log(`  - Safari: ${isSafari}`);
-        console.log(`  - Edge: ${isEdge}`);
-        console.log(`  - webkitSpeechRecognition: ${'webkitSpeechRecognition' in window}`);
-        console.log(`  - SpeechRecognition: ${'SpeechRecognition' in window}`);
-        console.log(`  - Overall Support: ${hasWebSpeechAPI}`);
-        
-        // Check if speech recognition is supported
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
-        if (!SpeechRecognition) {
-            console.error('🎤 ❌ Speech recognition not supported in this browser');
-            console.error('🎤 Web Speech API requires Chrome, Edge, or Safari');
-            console.error('🎤 Firefox does not support Web Speech API');
-            this.speechRecognition = null;
-            return;
-        }
-
-        console.log('🎤 ✅ Speech Recognition API available');
-
-        try {
-            this.speechRecognition = new SpeechRecognition();
-            console.log('🎤 ✅ SpeechRecognition instance created successfully');
-        } catch (error) {
-            console.error('🎤 ❌ Failed to create SpeechRecognition instance:', error);
-            this.speechRecognition = null;
-            return;
-        }
-        // Configure speech recognition parameters
-        const targetLang = this.roomData.stt_lang || navigator.language || 'en-GB';
-        this.speechRecognition.lang = targetLang;
-        this.speechRecognition.continuous = true;
-        this.speechRecognition.interimResults = false;
-        this.speechRecognition.maxAlternatives = 1;
-        
-        console.log('🎤 Configuration:');
-        console.log(`  - Language: ${targetLang}`);
-        console.log(`  - Continuous: ${this.speechRecognition.continuous}`);
-        console.log(`  - Interim Results: ${this.speechRecognition.interimResults}`);
-        console.log(`  - Max Alternatives: ${this.speechRecognition.maxAlternatives}`);
-        console.log(`  - Room STT Lang: ${this.roomData.stt_lang || 'not set'}`);
-        console.log(`  - Navigator Language: ${navigator.language || 'not available'}`);
-        
-        // Check for permission requirements
-        console.log('🎤 Permission Status:');
-        if (navigator.permissions) {
-            navigator.permissions.query({name: 'microphone'}).then(result => {
-                console.log(`  - Microphone Permission: ${result.state}`);
-            }).catch(err => {
-                console.log(`  - Microphone Permission: Unable to check (${err.message})`);
-            });
-        } else {
-            console.log('  - Permissions API not available');
-        }
-
-        let lastErrorAt = 0;
-
-        this.speechRecognition.onresult = (event) => {
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) {
-                    const transcript = event.results[i][0].transcript.trim();
-                    const confidence = event.results[i][0].confidence;
-                    
-                    if (transcript) {
-                        this.speechBuffer.push({
-                            text: transcript,
-                            confidence: confidence,
-                            timestamp: Date.now()
-                        });
-                        
-                        console.log('🎤 Speech recognized:', transcript);
-                        this.displayTranscript(transcript);
-                    }
-                }
-            }
-        };
-
-        this.speechRecognition.onerror = (event) => {
-            const now = Date.now();
-            const readyState = this.speechRecognition ? this.speechRecognition.readyState : 'unknown';
-            
-            console.error('🎤 === Speech Recognition Error ===');
-            console.error(`  - Error Type: ${event.error}`);
-            console.error(`  - ReadyState: ${readyState}`);
-            console.error(`  - Time: ${new Date().toISOString()}`);
-            console.error(`  - Speech Enabled: ${this.isSpeechEnabled}`);
-            console.error(`  - Last Error: ${now - lastErrorAt}ms ago`);
-            
-            // Detailed error explanations based on Web Speech API spec
-            switch (event.error) {
-                case 'network':
-                    console.error('🎤 NETWORK ERROR: Unable to reach speech recognition service');
-                    console.error('  - Possible causes: No internet, service outage, blocked by firewall');
-                    console.error('  - This is the most common cause of STT failures');
-                    console.error('  - Google Speech API may be blocked or unavailable');
-                    console.error('  - Try using HTTPS or check network connectivity');
-                    
-                    // Try to diagnose the specific network issue
-                    DiagnosticsRunner.diagnoseSpeechNetworkIssue();
-                    
-                    this.isSpeechEnabled = false;
-                    return;
-                    
-                case 'not-allowed':
-                    console.error('🎤 PERMISSION ERROR: Microphone access denied');
-                    console.error('  - User denied microphone permission');
-                    console.error('  - Check browser settings or reload page to re-prompt');
-                    this.isSpeechEnabled = false;
-                    return;
-                    
-                case 'service-not-allowed':
-                    console.error('🎤 SERVICE ERROR: Speech recognition service denied');
-                    console.error('  - Speech service blocked by browser or system');
-                    this.isSpeechEnabled = false;
-                    return;
-                    
-                case 'aborted':
-                    console.warn('🎤 ABORTED: Speech recognition was stopped');
-                    break;
-                    
-                case 'audio-capture':
-                    console.error('🎤 AUDIO ERROR: Cannot capture audio');
-                    console.error('  - Microphone hardware issue or in use by another app');
-                    break;
-                    
-                case 'no-speech':
-                    console.warn('🎤 NO SPEECH: No speech detected');
-                    console.warn('  - Microphone working but no speech heard');
-                    break;
-                    
-                case 'language-not-supported':
-                    console.error('🎤 LANGUAGE ERROR: Language not supported');
-                    console.error(`  - Requested language: ${this.speechRecognition.lang}`);
-                    console.error('  - Try switching to en-US or en-GB');
-                    break;
-                    
-                default:
-                    console.error(`🎤 UNKNOWN ERROR: ${event.error}`);
-                    console.error('  - This error type is not documented in the Web Speech API');
-            }
-            
-            // Guard against restart loops with time-based throttling
-            const shouldRestart = this.isSpeechEnabled && 
-                !['not-allowed', 'service-not-allowed', 'network'].includes(event.error) && 
-                (now - lastErrorAt) > 2000;
-                
-            console.log(`🎤 Restart Decision: ${shouldRestart ? 'Will attempt restart' : 'Will NOT restart'}`);
-            
-            if (shouldRestart) {
-                lastErrorAt = now;
-                console.log('🎤 Scheduling restart in 1.5 seconds...');
-                setTimeout(() => {
-                    if (this.speechRecognition && this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
-                        try {
-                            console.log('🎤 Attempting to restart speech recognition...');
-                            this.speechRecognition.start();
-                            console.log('🎤 ✅ Restart successful');
-                        } catch (e) {
-                            console.error('🎤 ❌ Restart failed:', e);
-                        }
-                    } else {
-                        console.log('🎤 ⚠️ Restart skipped - conditions not met');
-                        console.log(`  - Has instance: ${!!this.speechRecognition}`);
-                        console.log(`  - Speech enabled: ${this.isSpeechEnabled}`);
-                        console.log(`  - Ready state: ${this.speechRecognition ? this.speechRecognition.readyState : 'N/A'}`);
-                    }
-                }, 1500);
-            }
-        };
-
-        this.speechRecognition.onend = () => {
-            const readyState = this.speechRecognition ? this.speechRecognition.readyState : 'unknown';
-            
-            console.log('🎤 === Speech Recognition Ended ===');
-            console.log(`  - Time: ${new Date().toISOString()}`);
-            console.log(`  - ReadyState: ${readyState}`);
-            console.log(`  - Speech Enabled: ${this.isSpeechEnabled}`);
-            console.log(`  - Should restart: ${this.isSpeechEnabled && this.speechRecognition.readyState !== 1}`);
-            
-            // Only restart if we're still supposed to be listening and not already running
-            if (this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
-                console.log('🎤 Scheduling restart after end in 500ms...');
-                setTimeout(() => {
-                    if (this.speechRecognition && this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
-                        try {
-                            console.log('🎤 Attempting restart after end...');
-                            this.speechRecognition.start();
-                            console.log('🎤 ✅ Restart after end successful');
-                        } catch (e) {
-                            console.error('🎤 ❌ Failed to restart STT after end:', e);
-                        }
-                    } else {
-                        console.log('🎤 ⚠️ Restart after end skipped - conditions not met');
-                    }
-                }, 500);
-            } else {
-                console.log('🎤 No restart needed after end');
-            }
-        };
-
-        // Add onstart handler for completion
-        this.speechRecognition.onstart = () => {
-            console.log('🎤 === Speech Recognition Started ===');
-            console.log(`  - Time: ${new Date().toISOString()}`);
-            console.log(`  - ReadyState: ${this.speechRecognition.readyState}`);
-            console.log(`  - Language: ${this.speechRecognition.lang}`);
-            console.log(`  - Continuous: ${this.speechRecognition.continuous}`);
-        };
-
-        console.log(`🎤 Speech recognition initialized with locale: ${this.speechRecognition.lang}`);
-        console.log('🎤 === Initialization Complete ===');
-        
-        // Run initial diagnostics
-        DiagnosticsRunner.runSpeechDiagnostics();
-    }
-
-    /**
-     * Initializes AssemblyAI-based speech recognition
-     */
-    async initializeAssemblyAISpeechRecognition() {
-        console.log('🎤 === AssemblyAI Speech Recognition Initialization ===');
-        
-        try {
-            // Get STT configuration from the server
-            const response = await fetch(`/api/rooms/${this.roomData.id}/stt-config`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to get STT config: ${response.status} ${response.statusText}`);
-            }
-
-            const config = await response.json();
-            console.log('🎤 ✅ STT config retrieved');
-
-            if (config.provider !== 'assemblyai') {
-                throw new Error(`Unexpected provider: ${config.provider}`);
-            }
-
-            // Initialize AssemblyAI streaming transcriber
-            await this.initializeAssemblyAIStreaming(config.config.api_key);
-
-        } catch (error) {
-            console.error('🎤 ❌ Failed to initialize AssemblyAI:', error);
-            console.error('🎤 Falling back to browser speech recognition');
-            this.initializeBrowserSpeechRecognition();
-        }
-    }
-
-    /**
-     * Sets up AssemblyAI streaming transcription
-     */
-    async initializeAssemblyAIStreaming(apiKey) {
-        console.log('🎤 === Setting up AssemblyAI Streaming ===');
-
-        // Check if AssemblyAI SDK is available
-        if (typeof window.assemblyai === 'undefined') {
-            throw new Error('AssemblyAI SDK not loaded. Please include the AssemblyAI SDK script.');
-        }
-
-        // Get temporary token from our backend for security
-        const token = await this.getAssemblyAIToken(apiKey);
-        
-        // Create streaming client with token
-        const { StreamingClient, StreamingClientOptions } = window.assemblyai;
-        
-        const client = new StreamingClient(
-            new StreamingClientOptions({
-                token: token,
-                api_host: "streaming.assemblyai.com"
-            })
-        );
-
-        // Create transcriber from client
-        this.assemblyAITranscriber = client.transcriber({
-            sample_rate: 16000
-        });
-
-        console.log('🎤 ✅ AssemblyAI StreamingClient and transcriber created');
-
-        // Set up event handlers
-        this.assemblyAITranscriber.on('open', ({ session_id, expires_at }) => {
-            console.log(`🎤 ✅ AssemblyAI session opened with ID: ${session_id}, expires: ${expires_at}`);
-        });
-
-        this.assemblyAITranscriber.on('error', (error) => {
-            console.error('🎤 ❌ AssemblyAI error:', error);
-            // Try to restart or fallback to browser STT
-            setTimeout(() => {
-                if (this.isSpeechEnabled) {
-                    console.log('🎤 Attempting to restart AssemblyAI...');
-                    this.restartAssemblyAISpeech();
-                }
-            }, 1000);
-        });
-
-        this.assemblyAITranscriber.on('close', ({ code, reason }) => {
-            console.log(`🎤 AssemblyAI session closed: ${code} - ${reason}`);
-        });
-
-        this.assemblyAITranscriber.on('transcript', (transcript) => {
-            console.log('🎤 AssemblyAI transcript received:', transcript);
-            
-            if (transcript.text && transcript.text.trim()) {
-                // Add to speech buffer
-                this.speechBuffer.push({
-                    text: transcript.text,
-                    confidence: transcript.confidence || 1.0,
-                    timestamp: Date.now()
-                });
-
-                // Display transcript
-                this.displayTranscript(transcript.text);
-            }
-        });
-
-        // Mark as ready
-        this.speechRecognition = this.assemblyAITranscriber;
-        console.log('🎤 ✅ AssemblyAI speech recognition ready');
-    }
-
-    /**
-     * Get a temporary AssemblyAI token from our backend
-     */
-    async getAssemblyAIToken(apiKey) {
-        try {
-            const response = await fetch('/api/assemblyai/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ api_key: apiKey })
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to get AssemblyAI token: ${response.status}`);
-            }
-
-            const data = await response.json();
-            return data.token;
-        } catch (error) {
-            console.error('🎤 ❌ Failed to get AssemblyAI token:', error);
-            throw error;
-        }
-    }
-
-
-    async startSpeechRecognition() {
-        console.log('🎤 === Starting Speech Recognition ===');
-        
-        try {
-            await this.speechManager.startSpeechRecognition();
-            console.log('🎤 ✅ Speech recognition started via SpeechManager');
-        } catch (error) {
-            console.error('🎤 ❌ Failed to start speech recognition:', error);
-        }
-    }
-
-    startBrowserSpeechRecognition() {
-        console.log('🎤 === Starting Browser Speech Recognition ===');
-
-        // Check if speech recognition is supported and available
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            console.error('🎤 ❌ Speech recognition not supported in this browser');
-            return;
-        }
-
-        // Check microphone access
-        if (!this.localStream) {
-            console.warn('🎤 ⚠️ No local media stream available - microphone may not be accessible');
-        } else {
-            const audioTracks = this.localStream.getAudioTracks();
-            console.log(`🎤 Audio tracks available: ${audioTracks.length}`);
-            audioTracks.forEach((track, index) => {
-                console.log(`  - Track ${index}: ${track.label} (enabled: ${track.enabled}, muted: ${track.muted})`);
-            });
-        }
-
-        // Check current ready state before starting
-        const currentState = this.speechRecognition.readyState;
-        console.log(`🎤 Current ReadyState: ${currentState}`);
-        
-        if (currentState === 1) {
-            console.warn('🎤 ⚠️ Speech recognition already running (readyState: 1)');
-            return;
-        }
-
-        try {
-            console.log('🎤 Setting speech enabled flag...');
-            this.isSpeechEnabled = true;
-            this.speechBuffer = [];
-            this.speechChunkStartedAt = Date.now();
-            
-            console.log('🎤 Calling speechRecognition.start()...');
-            this.speechRecognition.start();
-            console.log('🎤 ✅ speechRecognition.start() called successfully');
-
-            // Set up 30-second upload interval
-            console.log('🎤 Setting up 30-second upload interval...');
-            this.speechUploadInterval = setInterval(() => {
-                console.log('🎤 Triggered 30-second upload interval');
-                this.uploadTranscriptChunk();
-            }, 30000);
-            console.log('🎤 ✅ Upload interval configured');
-
-        } catch (error) {
-            console.error('🎤 ❌ Failed to start speech recognition:', error);
-            console.error(`  - Error name: ${error.name}`);
-            console.error(`  - Error message: ${error.message}`);
-            console.error(`  - Error stack: ${error.stack}`);
-            this.isSpeechEnabled = false;
-        }
-    }
-
-    async startAssemblyAISpeechRecognition() {
-        console.log('🎤 === Starting AssemblyAI Speech Recognition ===');
-
-        // Check microphone access
-        if (!this.localStream) {
-            console.error('🎤 ❌ No local media stream available for AssemblyAI');
-            return;
-        }
-
-        const audioTracks = this.localStream.getAudioTracks();
-        if (audioTracks.length === 0) {
-            console.error('🎤 ❌ No audio tracks available for AssemblyAI');
-            return;
-        }
-
-        console.log(`🎤 Audio tracks available: ${audioTracks.length}`);
-        audioTracks.forEach((track, index) => {
-            console.log(`  - Track ${index}: ${track.label} (enabled: ${track.enabled}, muted: ${track.muted})`);
-        });
-
-        try {
-            console.log('🎤 Setting speech enabled flag...');
-            this.isSpeechEnabled = true;
-            this.speechBuffer = [];
-            this.speechChunkStartedAt = Date.now();
-
-            // Connect to AssemblyAI and start streaming
-            await this.assemblyAITranscriber.connect();
-            console.log('🎤 ✅ Connected to AssemblyAI');
-
-            // Stream audio directly from the media stream
-            await this.assemblyAITranscriber.stream(this.localStream);
-            console.log('🎤 ✅ Started streaming audio to AssemblyAI');
-
-            // Set up periodic transcript upload (every 10 seconds)
-            this.speechUploadInterval = setInterval(() => {
-                this.uploadTranscriptChunk();
-            }, 10000);
-
-            console.log('🎤 ✅ AssemblyAI speech recognition started successfully');
-
-        } catch (error) {
-            console.error('🎤 ❌ Failed to start AssemblyAI speech recognition:', error);
-            console.error(`  - Error message: ${error.message}`);
-            console.error(`  - Error stack: ${error.stack}`);
-            this.isSpeechEnabled = false;
-        }
-    }
-
-    stopSpeechRecognition() {
-        if (!this.speechRecognition || !this.isSpeechEnabled) {
-            return;
-        }
-
-        this.isSpeechEnabled = false;
-        
-        const provider = this.roomData.stt_provider || 'browser';
-        
-        if (provider === 'assemblyai') {
-            this.stopAssemblyAISpeechRecognition();
-        } else {
-            this.stopBrowserSpeechRecognition();
-        }
-
-        // Clear upload interval
-        if (this.speechUploadInterval) {
-            clearInterval(this.speechUploadInterval);
-            this.speechUploadInterval = null;
-        }
-
-        // Upload any remaining buffer
-        this.uploadTranscriptChunk();
-
-        console.log('🎤 Speech recognition stopped');
-    }
-
-    stopBrowserSpeechRecognition() {
-        try {
-            this.speechRecognition.stop();
-        } catch (error) {
-            console.warn('🎤 Error stopping browser speech recognition:', error);
-        }
-    }
-
-    async stopAssemblyAISpeechRecognition() {
-        try {
-            // Disconnect audio processing
-            if (this.audioProcessor) {
-                this.audioProcessor.disconnect();
-                this.audioProcessor = null;
-            }
-            
-            if (this.audioSource) {
-                this.audioSource.disconnect();
-                this.audioSource = null;
-            }
-            
-            if (this.audioContext) {
-                await this.audioContext.close();
-                this.audioContext = null;
-            }
-
-            // Close AssemblyAI connection
-            if (this.assemblyAITranscriber) {
-                await this.assemblyAITranscriber.close();
-            }
-        } catch (error) {
-            console.warn('🎤 Error stopping AssemblyAI speech recognition:', error);
-        }
-    }
-
-    async restartAssemblyAISpeech() {
-        console.log('🎤 === Restarting AssemblyAI Speech Recognition ===');
-        
-        try {
-            // Stop current session
-            await this.stopAssemblyAISpeechRecognition();
-            
-            // Wait a moment before restarting
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Restart
-            await this.startAssemblyAISpeechRecognition();
-            
-        } catch (error) {
-            console.error('🎤 ❌ Failed to restart AssemblyAI:', error);
-            console.log('🎤 Falling back to browser speech recognition');
-            this.initializeBrowserSpeechRecognition();
-        }
-    }
-
-    async uploadTranscriptChunk() {
-        if (!this.speechBuffer.length || !this.currentUserId) {
-            return;
-        }
-
-        const chunkEndedAt = Date.now();
-        const combinedText = this.speechBuffer.map(item => item.text).join(' ');
-        const averageConfidence = this.speechBuffer.reduce((sum, item) => sum + (item.confidence || 0), 0) / this.speechBuffer.length;
-
-        const payload = {
-            room_id: this.roomData.id,
-            user_id: this.currentUserId,
-            started_at_ms: this.speechChunkStartedAt,
-            ended_at_ms: chunkEndedAt,
-            text: combinedText,
-            language: this.speechRecognition?.lang || this.roomData.stt_lang || 'en-GB',
-            confidence: averageConfidence || null
-        };
-
-        try {
-            const response = await fetch(`/api/rooms/${this.roomData.id}/transcripts`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                console.log('📤 Transcript chunk uploaded successfully');
-            } else {
-                console.error('❌ Failed to upload transcript chunk:', response.status);
-            }
-        } catch (error) {
-            console.error('❌ Error uploading transcript chunk:', error);
-        }
-
-        // Reset buffer for next chunk
-        this.speechBuffer = [];
-        this.speechChunkStartedAt = Date.now();
-    }
-
-    displayTranscript(text) {
-        // Find or create transcript display area
-        let transcriptDisplay = document.querySelector('.transcript-display');
-        
-        if (!transcriptDisplay) {
-            transcriptDisplay = document.createElement('div');
-            transcriptDisplay.className = 'transcript-display fixed bottom-4 left-4 bg-black bg-opacity-75 text-white p-3 rounded-lg max-w-md z-50';
-            transcriptDisplay.innerHTML = `
-                <div class="text-xs text-gray-300 mb-1">Live Transcript</div>
-                <div class="transcript-content text-sm"></div>
-            `;
-            document.body.appendChild(transcriptDisplay);
-        }
-
-        const content = transcriptDisplay.querySelector('.transcript-content');
-        const timestamp = new Date().toLocaleTimeString();
-        
-        // Add new transcript line
-        const transcriptLine = document.createElement('div');
-        transcriptLine.className = 'mb-1 opacity-75';
-        transcriptLine.innerHTML = `<span class="text-xs text-gray-400">[${timestamp}]</span> ${text}`;
-        content.appendChild(transcriptLine);
-
-        // Keep only last 5 lines
-        const lines = content.querySelectorAll('div');
-        if (lines.length > 5) {
-            lines[0].remove();
-        }
-
-        // Auto-hide after no speech for 10 seconds
-        clearTimeout(this.transcriptHideTimeout);
-        transcriptDisplay.style.display = 'block';
-        
-        this.transcriptHideTimeout = setTimeout(() => {
-            transcriptDisplay.style.display = 'none';
-        }, 10000);
-    }
-
-    // ===========================================
-    // VIDEO RECORDING SYSTEM
+    // VIDEO RECORDING SYSTEM (Modular)
     // ===========================================
 
     /**
-     * Initializes video recording capabilities
+     * Initializes video recording using the modular VideoRecorder
      */
-    initializeVideoRecording() {
-        if (!this.roomData.recording_enabled) {
-            console.log('🎥 Video recording disabled for this room');
-            return;
+    async initializeVideoRecording() {
+        try {
+            await this.videoRecorder.initializeRecording();
+        } catch (error) {
+            console.error('🎬 Failed to initialize video recording:', error);
         }
-
-        // Fix #4: Choose MIME type once and use everywhere
-        const pickType = (...types) => types.find(t => MediaRecorder.isTypeSupported(t));
-        this.recMime = pickType(
-            'video/webm;codecs=vp9,opus',
-            'video/webm;codecs=vp8,opus',
-            'video/webm',
-            'video/mp4;codecs=h264,aac',
-            'video/mp4'
-        );
-
-        if (!this.recMime) {
-            console.warn('🎥 MediaRecorder supported types not found');
-            return;
-        }
-
-        console.log('🎥 Video recording initialized with', this.recMime);
     }
 
+    /**
+     * Starts video recording using the modular VideoRecorder
+     */
     async startVideoRecording() {
-        if (!this.localStream) {
-            console.warn('🎥 No local stream available for recording');
-            return;
-        }
-
-        // Fix #4: Use the chosen MIME type consistently
-        if (!this.recMime) {
-            console.warn('🎥 No recording MIME type available');
-            return;
-        }
-
         try {
-            // Determine storage provider once for the entire function
             const storageProvider = this.roomData.recording_settings?.storage_provider || 'local_device';
-            
-            this.mediaRecorder = new MediaRecorder(this.localStream, { mimeType: this.recMime });
-            this.recordingStartTime = Date.now();
-            this.isRecording = true;
-            this.recordedChunks = [];
-            
-            // Update page protection with recording state
-            this.pageProtection.updateRecordingState(this.isRecording, this.recordedChunks, this.recMime);
-
-            // Handle recording stop event
-            this.mediaRecorder.onstop = () => {
-                console.log('🎥 MediaRecorder stopped event triggered');
-                console.log('🎥 Storage provider on stop:', storageProvider);
-                
-                if (storageProvider === 'local_device') {
-                    console.log('🎥 Local device storage - finalizing streaming download');
-                    // Finalize and trigger the streaming download
-                    this.finalizeStreamingDownload();
-                } else {
-                    console.log('🎥 Cloud storage - no download needed');
-                }
-            };
-
-            // Handle data available with each timeslice (every 30s)
-            this.mediaRecorder.ondataavailable = async (event) => {
-                if (!event.data || !event.data.size) return;
-                
-                const endTime = Date.now();
-                const blob = event.data;
-                
-                // Fix #4: Use correct file extension based on MIME type
-                const ext = (blob.type && blob.type.includes('mp4')) ? 'mp4' : 'webm';
-                const recordingData = {
-                    user_id: this.currentUserId,
-                    started_at_ms: this.recordingStartTime,
-                    ended_at_ms: endTime,
-                    size_bytes: blob.size,
-                    mime_type: blob.type || this.recMime,
-                    filename: `recording_${this.currentUserId}_${this.recordingStartTime}.${ext}`
-                };
-
-                try {
-                    // Check storage provider to determine how to handle the recording
-                    
-                    if (storageProvider === 'local_device') {
-                        // For local device recording, update streaming download with new chunk
-                        this.updateStreamingDownload(blob);
-                    } else {
-                        // Upload to cloud storage (Wasabi, Google Drive, etc.)
-                        while (this.tooManyQueuedUploads()) {
-                            console.warn('📦 Upload backlog; waiting...');
-                            await new Promise(resolve => setTimeout(resolve, 1500));
-                        }
-                        
-                        await this.uploadVideoChunk(blob, recordingData);
-                        console.log('🎥 Video chunk uploaded successfully');
-                    }
-                } catch (error) {
-                    console.error('🎥 Recording error:', error);
-                }
-                
-                // Reset start time for next segment (only for cloud storage with timeslices)
-                if (storageProvider !== 'local_device') {
-                    this.recordingStartTime = Date.now();
-                }
-            };
-
-            // For local device recording, use small timeslices for streaming download
-            // (storageProvider already declared above)
-            
-            if (storageProvider === 'local_device') {
-                // Use small timeslices (5 seconds) for streaming download to prevent data loss
-                this.mediaRecorder.start(5000); // 5 seconds - frequent enough to prevent loss
-                console.log('🎥 Video recording started (streaming for local device)');
-                this.initializeStreamingDownload();
-            } else {
-                // Start recording with 30-second timeslices for cloud upload
-                this.mediaRecorder.start(30000); // 30 seconds
-                console.log('🎥 Video recording started with timeslices for cloud upload');
-            }
-            
-            // Show status bar for ALL recording types
-            console.log('🎥 About to call showRecordingStatusBar()...');
-            this.statusBarManager.showRecordingStatusBar();
-            console.log('🎥 showRecordingStatusBar() called');
-            this.updateRecordingUI(true);
-
+            await this.videoRecorder.startRecording(storageProvider);
         } catch (error) {
-            console.error('🎥 Error starting MediaRecorder:', error);
-            this.isRecording = false;
-            // Update page protection with recording state
-            this.pageProtection.updateRecordingState(this.isRecording, this.recordedChunks, this.recMime);
-        }
-    }
-
-    stopVideoRecording() {
-        if (this.mediaRecorder && this.isRecording) {
-            this.isRecording = false;
-            // Update page protection with recording state
-            this.pageProtection.updateRecordingState(this.isRecording, this.recordedChunks, this.recMime);
-            try {
-                this.mediaRecorder.stop(); // This will trigger onstop event which handles download for local device
-            } catch (error) {
-                console.warn('🎥 Error stopping MediaRecorder:', error);
-                
-                // If stop fails but we have streaming download data, still try to download
-                const stopStorageProvider = this.roomData.recording_settings?.storage_provider || 'local_device';
-                if (stopStorageProvider === 'local_device' && this.downloadLink) {
-                    console.log('🎥 MediaRecorder stop failed, but finalizing streaming download anyway');
-                    this.finalizeStreamingDownload();
-                }
-            }
-            
-            this.updateRecordingUI(false);
-            this.statusBarManager.hideRecordingStatusBar();
-            console.log('🎥 Video recording stopped');
-            
-            // Leave the room after stopping recording
-            console.log('🎥 Leaving room after stopping recording...');
-            this.leaveRoom();
+            console.error('🎬 Failed to start video recording:', error);
         }
     }
 
     /**
-     * Allows user to download current recording without stopping (for local device recording)
+     * Stops video recording using the modular VideoRecorder
      */
-    downloadCurrentRecording() {
-        const currentStorageProvider = this.roomData.recording_settings?.storage_provider || 'local_device';
-        if (currentStorageProvider === 'local_device' && this.recordedChunks && this.recordedChunks.length > 0) {
-            // Create a partial recording download with current chunks
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const ext = this.recMime.includes('webm') ? 'webm' : 'mp4';
-            const filename = `room-recording-partial-${timestamp}.${ext}`;
-            
-            const combinedBlob = new Blob(this.recordedChunks, { type: this.recMime });
-            const url = URL.createObjectURL(combinedBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            link.style.display = 'none';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            URL.revokeObjectURL(url);
-            
-            console.log(`💾 Partial recording downloaded: ${filename} (${(combinedBlob.size / 1024 / 1024).toFixed(2)} MB)`);
-            console.log(`💾 Contains ${this.recordedChunks.length} chunks so far`);
-        } else {
-            console.warn('💾 No current recording available for download');
+    async stopVideoRecording() {
+        try {
+            await this.videoRecorder.stopRecording();
+            // Also leave the room after stopping recording
+            await this.leaveRoom();
+        } catch (error) {
+            console.error('🎬 Failed to stop video recording:', error);
         }
     }
 
-    // Helper method to check for upload backpressure
-    tooManyQueuedUploads() {
-        if (!window.roomUppy) return false;
-        
-        const state = window.roomUppy.getState();
-        const files = Object.values(state.files || {});
-        const inflight = files.filter(file => 
-            file.progress?.uploadStarted && !file.progress?.uploadComplete
-        ).length;
-        
-        return inflight >= 4; // Allow 4 concurrent segments
-    }
-
-
+    // ===========================================
+    // WEBRTC PEER CONNECTION MANAGEMENT (Modular)
+    // ===========================================
 
     /**
-     * Initializes single streaming download for local device recording
+     * Creates a new peer connection using the modular PeerConnectionManager
      */
-    initializeStreamingDownload() {
-        // Generate filename with timestamp
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const ext = this.recMime.includes('webm') ? 'webm' : 'mp4';
-        this.recordingFilename = `room-recording-${timestamp}.${ext}`;
-        this.recordedChunks = []; // Collect chunks for single download
-        this.isStreamingDownloadActive = true;
-        
-        console.log(`🎥 Streaming download initialized: ${this.recordingFilename}`);
-        console.log(`🎥 Recording will be saved as single continuous file`);
+    createPeerConnection(peerId) {
+        return this.peerConnectionManager.createPeerConnection(peerId);
     }
 
     /**
-     * Collects chunks for single streaming download
+     * Handles WebRTC offers using the modular PeerConnectionManager
      */
-    updateStreamingDownload(newChunk) {
-        if (!this.isStreamingDownloadActive) return;
-        
-        // Store chunk for continuous recording
-        this.recordedChunks.push(newChunk);
-        
-        // Update page protection with new chunks
-        this.pageProtection.updateRecordingState(this.isRecording, this.recordedChunks, this.recMime);
-        
-        const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
-        console.log(`📊 Recording chunk collected: ${(newChunk.size / 1024 / 1024).toFixed(2)} MB`);
-        console.log(`🎥 Total recording size: ${(totalSize / 1024 / 1024).toFixed(2)} MB (${this.recordedChunks.length} chunks)`);
-        
-        // Update status bar if it exists
-        this.statusBarManager.updateRecordingStatus({
-            totalSize: totalSize,
-            chunkCount: this.recordedChunks.length
-        });
+    async handleOffer(data) {
+        return this.peerConnectionManager.handleOffer(data);
     }
 
     /**
-     * Finalizes streaming download by creating single combined file
+     * Handles WebRTC answers using the modular PeerConnectionManager
      */
-    finalizeStreamingDownload() {
-        if (!this.recordingFilename || this.recordedChunks.length === 0) {
-            console.warn('💾 No recording data to finalize');
-            return;
-        }
-        
-        // Create single combined file from all chunks
-        const combinedBlob = new Blob(this.recordedChunks, { type: this.recMime });
-        
-        const url = URL.createObjectURL(combinedBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = this.recordingFilename;
-        link.style.display = 'none';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        URL.revokeObjectURL(url);
-        
-        console.log(`💾 Recording downloaded: ${this.recordingFilename} (${(combinedBlob.size / 1024 / 1024).toFixed(2)} MB)`);
-        console.log(`💾 Combined from ${this.recordedChunks.length} chunks`);
-        
-        // Clean up
-        this.recordedChunks = [];
-        this.recordingFilename = null;
-        this.isStreamingDownloadActive = false;
-        
-        // Update status bar
-        const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
-        this.statusBarManager.updateRecordingStatus({
-            totalSize: totalSize,
-            chunkCount: this.recordedChunks.length
-        });
+    async handleAnswer(data) {
+        return this.peerConnectionManager.handleAnswer(data);
     }
 
     /**
-     * Emergency save when page is being closed (delegated to PageProtection utility)
+     * Handles ICE candidates using the modular PeerConnectionManager
+     */
+    async handleIceCandidate(data) {
+        return this.peerConnectionManager.handleIceCandidate(data);
+    }
+
+    /**
+     * Publishes messages to Ably using the modular AblyManager
+     */
+    async publishToAbly(eventName, data, targetPeerId = null) {
+        return this.ablyManager.publishMessage(eventName, data, targetPeerId);
+    }
+
+    /**
+     * Emergency save for recordings during page unload
      */
     emergencySaveRecording(chunks, mimeType) {
-        try {
-            if (!chunks || chunks.length === 0) return;
-            
-            console.warn('🚨 Emergency save: Page closing with active recording');
-            
-            // Create emergency download
-            const combinedBlob = new Blob(chunks, { type: mimeType });
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const ext = mimeType && mimeType.includes('webm') ? 'webm' : 'mp4';
-            const emergencyFilename = `room-recording-EMERGENCY-${timestamp}.${ext}`;
-            
-            // Use Navigator.sendBeacon if available for more reliable delivery
-            if (navigator.sendBeacon) {
-                // Can't use sendBeacon for downloads, but we can at least log the attempt
-                console.warn('🚨 Recording data exists but cannot be saved during page unload');
-                console.warn('🚨 Please stop recording properly before leaving the page');
-            } else {
-                // Fallback: try immediate download (may not work)
-                const url = URL.createObjectURL(combinedBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = emergencyFilename;
-                link.click();
-                console.warn(`🚨 Emergency download attempted: ${emergencyFilename}`);
-            }
-        } catch (error) {
-            console.error('🚨 Emergency save failed:', error);
-        }
-    }
-
-    /**
-     * Downloads the complete recording as a single file to user's computer (fallback method)
-     */
-    downloadCompleteRecording() {
-        try {
-            console.log('💾 Attempting to download complete recording...');
-            console.log('💾 Storage provider:', this.roomData.recording_settings?.storage_provider);
-            console.log('💾 Recorded chunks:', this.recordedChunks.length);
-            
-            if (this.recordedChunks.length === 0) {
-                console.warn('💾 No recorded chunks to download');
-                return;
-            }
-
-            // Combine all chunks into a single blob
-            const completeBlob = new Blob(this.recordedChunks, { type: this.recMime });
-            
-            // Generate filename with timestamp
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const ext = this.recMime.includes('webm') ? 'webm' : 'mp4';
-            const filename = `room-recording-${timestamp}.${ext}`;
-            
-            // Create download link
-            const url = URL.createObjectURL(completeBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            
-            // Trigger download
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Clean up
-            URL.revokeObjectURL(url);
-            this.recordedChunks = []; // Clear chunks after download
-            
-            console.log(`💾 Complete recording downloaded: ${filename} (${(completeBlob.size / 1024 / 1024).toFixed(2)} MB)`);
-        } catch (error) {
-            console.error('💾 Error downloading complete recording:', error);
-        }
-    }
-
-    /**
-     * Saves video chunk directly to user's computer as a download (legacy method - not used for local device)
-     */
-    async saveVideoChunkLocally(blob, recordingData) {
-        try {
-            // Create a download link for the video chunk
+        if (chunks && chunks.length > 0) {
+            const blob = new Blob(chunks, { type: mimeType });
             const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = recordingData.filename;
-            
-            // Add to document, click, and remove
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Clean up the object URL
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `emergency-recording-${Date.now()}.webm`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
-            console.log(`💾 Video chunk saved locally: ${recordingData.filename}`);
-        } catch (error) {
-            console.error('💾 Error saving video chunk locally:', error);
-            throw error;
         }
     }
 
-    async uploadVideoChunk(blob, recordingData) {
-        try {
-            // Use Uppy for advanced upload handling
-            if (window.roomUppy) {
-                await window.roomUppy.uploadVideoBlob(blob, recordingData);
-                console.log('🎬 Video chunk queued for upload via Uppy');
-            } else {
-                // Fallback to direct upload if Uppy not available
-                await this.directUploadVideoChunk(blob, recordingData);
-                console.log('🎬 Video chunk uploaded via direct method');
-            }
-        } catch (error) {
-            console.error('🎬 Error uploading video chunk:', error);
-            throw error;
-        }
+    /**
+     * Logs connection telemetry using the modular ICEConfigManager
+     */
+    logCandidatePairStats() {
+        return this.iceManager.logCandidatePairStats(this.peerConnections);
     }
 
-    async directUploadVideoChunk(blob, recordingData) {
-        // Fallback direct upload method
-        const formData = new FormData();
-        formData.append('video', blob, recordingData.filename);
-        formData.append('metadata', JSON.stringify(recordingData));
-
-        const response = await fetch(`/api/rooms/${this.roomData.id}/recordings`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status}`);
-        }
-
-        return await response.json();
-    }
-
-    updateRecordingUI(isRecording) {
-        // Update UI to show recording status
-        const recordingIndicators = document.querySelectorAll('.recording-indicator');
-        recordingIndicators.forEach(indicator => {
-            if (isRecording) {
-                indicator.classList.add('recording');
-                 indicator.textContent = '🔴 Recording';
-            } else {
-                indicator.classList.remove('recording');
-                indicator.textContent = '';
-            }
-        });
-
-        // Add recording indicator to current user's slot
-        if (this.currentSlotId) {
-            const slotContainer = document.querySelector(`[data-slot-id="${this.currentSlotId}"]`);
-            if (slotContainer) {
-                let indicator = slotContainer.querySelector('.recording-indicator');
-                if (!indicator) {
-                    indicator = document.createElement('div');
-                    indicator.className = 'recording-indicator absolute top-2 right-2 text-xs px-2 py-1 bg-red-500 text-white rounded';
-                    slotContainer.appendChild(indicator);
-                }
-                
-                if (isRecording) {
-                    indicator.classList.add('recording');
-                    indicator.textContent = '🔴 REC';
-                    indicator.style.display = 'block';
-                } else {
-                    indicator.style.display = 'none';
-                }
-            }
-        }
-    }
 }
