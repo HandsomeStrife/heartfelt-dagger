@@ -13,7 +13,7 @@ Route::get('/', function () {
     }
 
     return view('index');
-});
+})->name('home');
 
 // Authentication routes (guest only)
 Route::middleware('guest')->group(function () {
@@ -30,6 +30,15 @@ Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 Route::get('/discord', function () {
     return redirect('https://discord.gg/dNAkDYevGx');
 })->name('discord');
+
+// Legal pages
+Route::get('/terms-of-service', function () {
+    return view('legal.terms-of-service');
+})->name('terms-of-service');
+
+Route::get('/privacy-policy', function () {
+    return view('legal.privacy-policy');
+})->name('privacy-policy');
 
 // Protected routes
 Route::middleware('auth')->group(function () {

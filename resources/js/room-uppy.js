@@ -86,6 +86,9 @@ class RoomUppy {
      * Configures Wasabi S3-compatible upload with unified plugin (handles both single-part and multipart)
      */
     configureWasabiUpload() {
+        // Capture roomData reference for use in callbacks
+        const roomData = this.roomData;
+        
         // Use unified @uppy/aws-s3 plugin for both single and multipart uploads
         this.uppy.use(AwsS3, {
             id: 'WasabiS3Unified',
@@ -96,10 +99,10 @@ class RoomUppy {
             },
 
             // Single-part uploads (presigned PUT) - for smaller files
-            async getUploadParameters(file) {
+            getUploadParameters: async (file) => {
                 console.log('🚀 Getting Wasabi presigned PUT parameters for:', file.name);
                 
-                const response = await fetch(`/api/rooms/${this.roomData.id}/recordings/presign-wasabi`, {
+                const response = await fetch(`/api/rooms/${roomData.id}/recordings/presign-wasabi`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -150,7 +153,7 @@ class RoomUppy {
                         filename: file.name,
                         type: file.type,
                         size: file.size,
-                        room_id: this.roomData.id,
+                        room_id: roomData.id,
                         started_at_ms: file.meta.started_at_ms,
                         ended_at_ms: file.meta.ended_at_ms
                     })
@@ -205,7 +208,7 @@ class RoomUppy {
                         uploadId, 
                         key, 
                         parts, 
-                        room_id: this.roomData.id,
+                        room_id: roomData.id,
                         filename: file.name, 
                         mime: file.type,
                         started_at_ms: file.meta.started_at_ms,
@@ -303,13 +306,16 @@ class RoomUppy {
      * Configures Google Drive direct upload (bypasses server for better bandwidth efficiency)
      */
     configureGoogleDriveUpload() {
+        // Capture roomData reference for use in callbacks
+        const roomData = this.roomData;
+        
         this.uppy.use(XHRUpload, {
             id: 'GoogleDriveDirectXHR',
             // Custom endpoint configuration for direct upload
             getUploadParameters: async (file) => {
                 try {
                     // Step 1: Get direct upload URL from our server
-                    const response = await fetch(`/api/rooms/${this.roomData.id}/recordings/google-drive-upload-url`, {
+                    const response = await fetch(`/api/rooms/${roomData.id}/recordings/google-drive-upload-url`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

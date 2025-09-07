@@ -63,23 +63,22 @@ class WasabiAccountSetup extends Component
                 'endpoint' => $this->form->endpoint ?: "https://s3.{$this->form->region}.wasabisys.com",
             ];
 
-            // Test by trying to initialize the service and list bucket contents
-            $wasabiService = new WasabiS3Service(
-                // Create a temporary storage account for testing
-                new UserStorageAccount([
-                    'provider' => 'wasabi',
-                    'encrypted_credentials' => $testCredentials,
-                ])
-            );
-            $client = $wasabiService->initializeS3Client($testCredentials);
-            
-            // Try a simple operation to test credentials
-            $result = $client->listObjects([
-                'Bucket' => $this->form->bucket_name,
-                'MaxKeys' => 1,
+            // Create a temporary storage account for testing
+            $tempStorageAccount = new UserStorageAccount([
+                'provider' => 'wasabi',
+                'encrypted_credentials' => $testCredentials,
             ]);
 
-            $this->connectionResult = 'success';
+            // Test the connection using the service's built-in test method
+            $wasabiService = new WasabiS3Service($tempStorageAccount);
+            $connectionSuccess = $wasabiService->testConnection();
+
+            if ($connectionSuccess) {
+                $this->connectionResult = 'success';
+            } else {
+                $this->connectionResult = 'error';
+                $this->addError('connection', 'Connection test failed. Please check your credentials and try again.');
+            }
 
         } catch (\Exception $e) {
             $this->connectionResult = 'error';

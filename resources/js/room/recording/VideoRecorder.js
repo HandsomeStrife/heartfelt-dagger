@@ -137,8 +137,8 @@ export class VideoRecorder {
                 console.log('🎥 Video recording started (streaming for local device)');
                 this.roomWebRTC.streamingDownloader.initializeDownload(this.recMime);
             } else {
-                // Start recording with 30-second timeslices for cloud upload
-                this.mediaRecorder.start(30000); // 30 seconds
+                // Start recording with 15-second timeslices for cloud upload
+                this.mediaRecorder.start(15000); // 15 seconds - better balance of upload frequency vs overhead
                 console.log('🎥 Video recording started with timeslices for cloud upload');
             }
             

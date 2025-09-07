@@ -70,6 +70,18 @@
                             </p>
                         </div>
                         
+                        <!-- Legal Links -->
+                        <div class="mb-6">
+                            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+                                <a href="{{ route('terms-of-service') }}" class="text-slate-300 hover:text-white transition-colors font-roboto text-sm underline">
+                                    Terms of Service
+                                </a>
+                                <a href="{{ route('privacy-policy') }}" class="text-slate-300 hover:text-white transition-colors font-roboto text-sm underline">
+                                    Privacy Policy
+                                </a>
+                            </div>
+                        </div>
+                        
                         <!-- Legal Information -->
                         <div class="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-4xl mx-auto border-t border-slate-700 pt-6">
                             <p class="mb-2 md:mb-3">
