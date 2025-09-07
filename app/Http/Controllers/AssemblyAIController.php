@@ -25,12 +25,18 @@ class AssemblyAIController extends Controller
         try {
             $apiKey = $request->input('api_key');
             
-            // Make request to AssemblyAI to create temporary token
+            // Make request to AssemblyAI to create temporary token using the streaming endpoint
             $response = Http::withHeaders([
-                'Authorization' => $apiKey,
-                'Content-Type' => 'application/json'
+                'Authorization' => $apiKey
             ])->get('https://streaming.assemblyai.com/v3/token', [
                 'expires_in_seconds' => 600 // 10 minutes (max allowed)
+            ]);
+
+            Log::info('AssemblyAI token request', [
+                'api_key_length' => strlen($apiKey),
+                'api_key_prefix' => substr($apiKey, 0, 10) . '...',
+                'status' => $response->status(),
+                'response_body' => $response->body()
             ]);
 
             if (!$response->successful()) {

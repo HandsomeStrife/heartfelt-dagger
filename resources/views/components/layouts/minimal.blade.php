@@ -21,8 +21,6 @@
         
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
-        <!-- AssemblyAI SDK for speech-to-text -->
-        <script src="https://www.unpkg.com/assemblyai@4.7.1/dist/assemblyai.streaming.umd.min.js"></script>
     </head>
     <body class="bg-slate-900 text-white min-h-screen overflow-hidden">
         <div class="fixed w-full h-full bg-repeat opacity-10 pointer-events-none z-0" style="background-image: url('{{ asset('img/textures/black-marble.jpg') }}');"></div>

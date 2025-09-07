@@ -185,10 +185,5 @@ Route::get('/simple-test', function () {
     return view('simple-test-page');
 });
 
-// Dice test route
-Route::get('/test-dice', function () {
-    return view('test-dice');
-});
-
 // Character image upload routes
 require __DIR__ . '/character-image-upload.php';

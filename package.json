@@ -42,6 +42,8 @@
         "@uppy/golden-retriever": "^5.0.0",
         "@uppy/xhr-upload": "^5.0.0",
         "ably": "^2.11.0",
+        "assemblyai": "^4.16.0",
+        "node-record-lpcm16": "^1.0.1",
         "playwright": "^1.55.0"
     }
 }

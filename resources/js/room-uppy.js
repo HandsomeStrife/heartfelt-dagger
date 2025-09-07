@@ -433,24 +433,6 @@ class RoomUppy {
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
             },
-            // Add metadata to the form data
-            getUploadParameters: (file) => {
-                return {
-                    method: 'POST',
-                    url: `/api/rooms/${this.roomData.id}/recordings`,
-                    fields: {
-                        metadata: JSON.stringify({
-                            filename: file.name,
-                            size: file.size,
-                            type: file.type,
-                            room_id: this.roomData.id,
-                            participant_id: this.participantId || null,
-                            recorded_at: new Date().toISOString(),
-                            storage_provider: 'local_device'
-                        })
-                    }
-                };
-            },
             getResponseData: (responseText, response) => {
                 try {
                     return JSON.parse(responseText);
