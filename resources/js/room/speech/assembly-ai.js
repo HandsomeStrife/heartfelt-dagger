@@ -130,18 +130,45 @@ export default class AssemblyAISpeechRecognition {
             console.log("🎤 AssemblyAI turn:", turn.transcript);
             console.log("🎤 Turn details - end_of_turn:", turn.end_of_turn, "turn_is_formatted:", turn.turn_is_formatted);
             
-            // Only process complete, formatted turns to avoid duplicates
-            if (turn.end_of_turn && turn.turn_is_formatted) {
-                console.log("🎤 ✅ Complete turn received, processing:", turn.transcript);
+            // Process turns when end_of_turn is true
+            if (turn.end_of_turn) {
+                console.log("🎤 ✅ End of turn received, processing:", turn.transcript);
                 
-                // Add to speech buffer
-                this.speechBuffer.push({
-                    text: turn.transcript,
-                    confidence: turn.confidence || 1.0,
-                    timestamp: Date.now()
-                });
+                if (turn.turn_is_formatted) {
+                    // This is a formatted version - replace any existing unformatted version
+                    console.log("🎤 📝 Formatted turn - replacing previous if exists");
+                    
+                    // Find and replace the last unformatted entry if it exists
+                    const lastIndex = this.speechBuffer.length - 1;
+                    if (lastIndex >= 0 && !this.speechBuffer[lastIndex].formatted) {
+                        console.log("🎤 🔄 Replacing unformatted transcript with formatted version");
+                        this.speechBuffer[lastIndex] = {
+                            text: turn.transcript,
+                            confidence: turn.confidence || 1.0,
+                            timestamp: Date.now(),
+                            formatted: true
+                        };
+                    } else {
+                        // No unformatted version to replace, add as new
+                        this.speechBuffer.push({
+                            text: turn.transcript,
+                            confidence: turn.confidence || 1.0,
+                            timestamp: Date.now(),
+                            formatted: true
+                        });
+                    }
+                } else {
+                    // This is an unformatted version - add it but mark as such
+                    console.log("🎤 📝 Unformatted turn - adding temporarily");
+                    this.speechBuffer.push({
+                        text: turn.transcript,
+                        confidence: turn.confidence || 1.0,
+                        timestamp: Date.now(),
+                        formatted: false
+                    });
+                }
 
-                // Trigger callback
+                // Trigger callback for display
                 if (this.onTranscript) {
                     this.onTranscript(turn.transcript, turn.confidence || 1.0);
                 }
