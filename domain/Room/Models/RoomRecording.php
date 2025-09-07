@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Room\Models;
 
+use Domain\Room\Enums\RecordingStatus;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,8 @@ class RoomRecording extends Model
         'size_bytes' => 'integer',
         'started_at_ms' => 'integer',
         'ended_at_ms' => 'integer',
+        'uploaded_parts' => 'array',
+        'status' => RecordingStatus::class,
     ];
 
     public function room(): BelongsTo
@@ -115,15 +118,27 @@ class RoomRecording extends Model
      */
     public function isReady(): bool
     {
-        return $this->status === 'ready' || $this->status === 'uploaded';
+        return in_array($this->status, [
+            RecordingStatus::Completed,
+            RecordingStatus::Ready,
+            RecordingStatus::Uploaded
+        ]);
     }
 
     /**
-     * Check if the recording is still processing
+     * Check if the recording is still being recorded
      */
-    public function isProcessing(): bool
+    public function isRecording(): bool
     {
-        return $this->status === 'processing';
+        return $this->status === RecordingStatus::Recording;
+    }
+
+    /**
+     * Check if the recording is being finalized
+     */
+    public function isFinalizing(): bool
+    {
+        return $this->status === RecordingStatus::Finalizing;
     }
 
     /**
@@ -131,23 +146,31 @@ class RoomRecording extends Model
      */
     public function hasFailed(): bool
     {
-        return $this->status === 'failed';
+        return $this->status === RecordingStatus::Failed;
     }
 
     /**
-     * Mark the recording as ready
+     * Mark the recording as recording
      */
-    public function markAsReady(): void
+    public function markAsRecording(): void
     {
-        $this->update(['status' => 'ready']);
+        $this->update(['status' => RecordingStatus::Recording]);
     }
 
     /**
-     * Mark the recording as processing
+     * Mark the recording as finalizing
      */
-    public function markAsProcessing(): void
+    public function markAsFinalizing(): void
     {
-        $this->update(['status' => 'processing']);
+        $this->update(['status' => RecordingStatus::Finalizing]);
+    }
+
+    /**
+     * Mark the recording as completed
+     */
+    public function markAsCompleted(): void
+    {
+        $this->update(['status' => RecordingStatus::Completed]);
     }
 
     /**
@@ -155,7 +178,36 @@ class RoomRecording extends Model
      */
     public function markAsFailed(): void
     {
-        $this->update(['status' => 'failed']);
+        $this->update(['status' => RecordingStatus::Failed]);
+    }
+
+    /**
+     * Add an uploaded part to the tracking
+     */
+    public function addUploadedPart(int $partNumber, string $etag): void
+    {
+        $parts = $this->uploaded_parts ?? [];
+        $parts[] = [
+            'PartNumber' => $partNumber,
+            'ETag' => $etag,
+        ];
+        $this->update(['uploaded_parts' => $parts]);
+    }
+
+    /**
+     * Get uploaded parts formatted for AWS CompleteMultipartUpload
+     */
+    public function getUploadedPartsForCompletion(): array
+    {
+        return $this->uploaded_parts ?? [];
+    }
+
+    /**
+     * Check if this recording can be finalized
+     */
+    public function canBeFinalized(): bool
+    {
+        return $this->status->canBeFinalized() && !empty($this->multipart_upload_id);
     }
 
     /**
@@ -163,7 +215,21 @@ class RoomRecording extends Model
      */
     public function scopeReady($query)
     {
-        return $query->whereIn('status', ['ready', 'uploaded']);
+        return $query->whereIn('status', [
+            RecordingStatus::Completed,
+            RecordingStatus::Ready,
+            RecordingStatus::Uploaded
+        ]);
+    }
+
+    /**
+     * Scope query to recordings that need finalization
+     */
+    public function scopeNeedingFinalization($query)
+    {
+        return $query->where('status', RecordingStatus::Recording)
+            ->whereNotNull('multipart_upload_id')
+            ->where('updated_at', '<', now()->subMinute());
     }
 
     /**

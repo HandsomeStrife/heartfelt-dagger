@@ -151,6 +151,10 @@ Route::prefix('api/rooms')->name('api.rooms.')->group(function () {
     Route::post('/{room}/recordings/upload-google-drive', [App\Http\Controllers\Api\RoomRecordingController::class, 'uploadGoogleDrive'])->name('recordings.upload-google-drive');
     Route::post('/{room}/recordings/google-drive-upload-url', [App\Http\Controllers\Api\RoomRecordingController::class, 'generateGoogleDriveUploadUrl'])->name('recordings.google-drive-upload-url');
     Route::post('/{room}/recordings/confirm-google-drive', [App\Http\Controllers\Api\RoomRecordingController::class, 'confirmGoogleDriveUpload'])->name('recordings.confirm-google-drive');
+    
+    // New recording session management routes
+    Route::post('/{room}/recordings/start-session', [App\Http\Controllers\Api\RoomRecordingController::class, 'startSession'])->name('recordings.start-session');
+    Route::post('/{room}/recordings/{recording}/progress', [App\Http\Controllers\Api\RoomRecordingController::class, 'updateProgress'])->name('recordings.update-progress');
 });
 
 // S3 Multipart upload endpoints (for better resilience with large files)

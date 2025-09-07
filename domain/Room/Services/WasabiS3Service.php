@@ -164,7 +164,8 @@ class WasabiS3Service
      */
     public function generatePresignedDownloadUrl(
         string $key,
-        int $expirationMinutes = 60
+        int $expirationMinutes = 60,
+        array $responseOverrides = []
     ): array {
         try {
             $credentials = $this->storageAccount->encrypted_credentials;
@@ -173,10 +174,17 @@ class WasabiS3Service
             // Ensure bucket exists before generating presigned URL
             $this->ensureBucketExists($bucket);
 
-            $command = $this->s3Client->getCommand('GetObject', [
+            $commandParams = [
                 'Bucket' => $bucket,
                 'Key' => $key,
-            ]);
+            ];
+
+            // Add response override parameters if provided
+            if (!empty($responseOverrides)) {
+                $commandParams = array_merge($commandParams, $responseOverrides);
+            }
+
+            $command = $this->s3Client->getCommand('GetObject', $commandParams);
 
             $request = $this->s3Client->createPresignedRequest(
                 $command,
@@ -306,6 +314,90 @@ class WasabiS3Service
         $sanitizedFilename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
         
         return "recordings/{$timestamp}/room_{$roomId}/user_{$userId}/{$sanitizedFilename}";
+    }
+
+    /**
+     * Complete a multipart upload
+     */
+    public function completeMultipartUpload(string $key, string $uploadId, array $parts): array
+    {
+        try {
+            $credentials = $this->storageAccount->encrypted_credentials;
+            $bucket = $credentials['bucket_name'];
+            
+            // Sort parts by part number to ensure correct order
+            usort($parts, fn($a, $b) => $a['PartNumber'] <=> $b['PartNumber']);
+            
+            $result = $this->s3Client->completeMultipartUpload([
+                'Bucket' => $bucket,
+                'Key' => $key,
+                'UploadId' => $uploadId,
+                'MultipartUpload' => [
+                    'Parts' => $parts
+                ]
+            ]);
+            
+            Log::info('Wasabi multipart upload completed', [
+                'bucket' => $bucket,
+                'key' => $key,
+                'upload_id' => $uploadId,
+                'parts_count' => count($parts),
+                'location' => $result['Location'] ?? null,
+                'etag' => $result['ETag'] ?? null
+            ]);
+            
+            return [
+                'success' => true,
+                'location' => $result['Location'] ?? null,
+                'etag' => $result['ETag'] ?? null,
+                'bucket' => $result['Bucket'] ?? $bucket,
+                'key' => $result['Key'] ?? $key
+            ];
+        } catch (AwsException $e) {
+            Log::error('Wasabi multipart upload completion failed', [
+                'bucket' => $bucket ?? 'unknown',
+                'key' => $key,
+                'upload_id' => $uploadId,
+                'parts_count' => count($parts),
+                'error' => $e->getMessage()
+            ]);
+            
+            throw new \Exception('Failed to complete multipart upload: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Abort a multipart upload
+     */
+    public function abortMultipartUpload(string $key, string $uploadId): bool
+    {
+        try {
+            $credentials = $this->storageAccount->encrypted_credentials;
+            $bucket = $credentials['bucket_name'];
+            
+            $this->s3Client->abortMultipartUpload([
+                'Bucket' => $bucket,
+                'Key' => $key,
+                'UploadId' => $uploadId
+            ]);
+            
+            Log::info('Wasabi multipart upload aborted', [
+                'bucket' => $bucket,
+                'key' => $key,
+                'upload_id' => $uploadId
+            ]);
+            
+            return true;
+        } catch (AwsException $e) {
+            Log::error('Wasabi multipart upload abort failed', [
+                'bucket' => $bucket ?? 'unknown',
+                'key' => $key,
+                'upload_id' => $uploadId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return false;
+        }
     }
 
     /**

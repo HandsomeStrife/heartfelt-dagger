@@ -78,7 +78,7 @@
         </div>
 
         <!-- Equipment Tab -->
-        <div x-show="activeTab === 'equipment'" class="p-4 space-y-4">
+        <div x-show="activeTab === 'equipment'" class="p-4 space-y-4" x-cloak>
             <!-- Active Weapons -->
             <x-character-viewer.active-weapons :organized-equipment="$organized_equipment" :character="$character" />
             
@@ -109,7 +109,7 @@
         </div>
 
         <!-- Abilities Tab -->
-        <div x-show="activeTab === 'abilities'" class="p-4 space-y-4">
+        <div x-show="activeTab === 'abilities'" class="p-4 space-y-4" x-cloak>
             <!-- Domain Cards -->
             <div class="space-y-3">
                 <h4 class="text-white font-outfit font-semibold">Domain Cards</h4>
@@ -154,7 +154,7 @@
         </div>
 
         <!-- Notes Tab -->
-        <div x-show="activeTab === 'notes'" class="p-4">
+        <div x-show="activeTab === 'notes'" class="p-4" x-cloak>
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-outfit text-lg text-white">Character Notes</h3>
                 <button wire:click="saveCharacterNotes" 

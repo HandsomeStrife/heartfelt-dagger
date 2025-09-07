@@ -108,9 +108,17 @@ class GenerateWasabiPresignedUrl
             throw new \Exception('File size exceeds maximum allowed size of 100MB');
         }
 
-        // Check content type
-        $allowedTypes = ['video/webm', 'video/mp4', 'video/quicktime'];
-        if (!in_array($contentType, $allowedTypes)) {
+        // Check content type (allow codec information after the base type)
+        $allowedBaseTypes = ['video/webm', 'video/mp4', 'video/quicktime'];
+        $isValidType = false;
+        foreach ($allowedBaseTypes as $baseType) {
+            if (str_starts_with($contentType, $baseType)) {
+                $isValidType = true;
+                break;
+            }
+        }
+        
+        if (!$isValidType) {
             throw new \Exception('File type not allowed. Only WebM, MP4, and QuickTime videos are supported.');
         }
 

@@ -67,6 +67,7 @@
                 <div class="divide-y divide-slate-600/30">
                     @foreach($roomData['recordings']->take(5) as $recording)
                         <div class="p-4 hover:bg-slate-700/30 transition-colors duration-200 cursor-pointer"
+                             x-on:click="slideoverOpen = true"
                              wire:click="selectRecording({{ $recording->id }})">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-4 flex-1">

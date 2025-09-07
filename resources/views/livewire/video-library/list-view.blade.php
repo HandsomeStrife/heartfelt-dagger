@@ -11,7 +11,7 @@
 
     @foreach($recordings as $recording)
         <div class="bg-slate-800/50 border border-slate-600/50 rounded-lg p-4 hover:border-amber-500/30 transition-all duration-200 cursor-pointer"
-             wire:click="selectRecording({{ $recording->id }})">
+            @click="slideoverOpen = true; $wire.selectRecording({{ $recording->id }})">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4 flex-1">
                     {{-- Video Thumbnail/Icon --}}
@@ -38,7 +38,7 @@
                             </h4>
                             
                             {{-- Status Badge --}}
-                            <span class="px-2 py-1 text-xs rounded-full border
+                            <span class="px-2 py-1 text-xs rounded-full border font-medium
                                 @if(in_array($recording->status, ['ready', 'uploaded']))
                                     bg-emerald-500/20 text-emerald-400 border-emerald-500/30
                                 @elseif($recording->status === 'processing')
@@ -51,14 +51,20 @@
                                     @elseif($recording->status === 'processing') fa-spinner fa-spin
                                     @else fa-exclamation-circle
                                     @endif mr-1"></i>
-                                {{ ucfirst($recording->status) }}
+                                @if($recording->status === 'uploaded')
+                                    Ready
+                                @else
+                                    {{ ucfirst($recording->status) }}
+                                @endif
                             </span>
                         </div>
 
                         <div class="flex items-center text-sm text-slate-300 space-x-4">
-                            <div class="flex items-center">
+                            <div class="flex items-center" x-data="{ 
+                                timestamp: {{ $recording->started_at_ms }} 
+                            }">
                                 <i class="fas fa-calendar mr-1"></i>
-                                {{ \Carbon\Carbon::createFromTimestamp($recording->started_at_ms / 1000)->format('M j, Y g:i A') }}
+                                <span x-text="new Date(timestamp).toLocaleDateString() + ' ' + new Date(timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})"></span>
                             </div>
                             
                             <div class="flex items-center">
@@ -81,40 +87,32 @@
                 </div>
 
                 {{-- Provider & Actions --}}
-                <div class="flex items-center space-x-3">
-                    {{-- Provider Icon --}}
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center
-                            @if($recording->provider === 'wasabi') bg-orange-500/20
-                            @elseif($recording->provider === 'google_drive') bg-blue-500/20  
-                            @else bg-slate-500/20 @endif">
-                            @if($recording->provider === 'wasabi')
-                                <i class="fas fa-cloud text-orange-400"></i>
-                            @elseif($recording->provider === 'google_drive')
-                                <i class="fab fa-google-drive text-blue-400"></i>
-                            @else
-                                <i class="fas fa-server text-slate-400"></i>
-                            @endif
-                        </div>
+                <div class="flex items-center space-x-4">
+                    {{-- Provider Label --}}
+                    <div class="text-sm text-slate-400">
+                        @if($recording->provider === 'wasabi')
+                            Wasabi Cloud
+                        @elseif($recording->provider === 'google_drive')
+                            Google Drive
+                        @else
+                            {{ ucfirst(str_replace('_', ' ', $recording->provider)) }}
+                        @endif
                     </div>
 
-                    {{-- Action Buttons --}}
+                    {{-- Download Button --}}
                     @if(in_array($recording->status, ['ready', 'uploaded']))
-                        <div class="flex items-center space-x-2">
-                            <button onclick="event.stopPropagation()" 
-                                    wire:click="playRecording({{ $recording->id }})"
-                                    class="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors duration-200"
-                                    title="Play Recording">
-                                <i class="fas fa-play text-sm"></i>
-                            </button>
-                            
-                            <button onclick="event.stopPropagation()" 
-                                    wire:click="downloadRecording({{ $recording->id }})"
-                                    class="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors duration-200"
-                                    title="Download Recording">
-                                <i class="fas fa-download text-sm"></i>
-                            </button>
-                        </div>
+                        <button wire:click.stop="downloadRecording({{ $recording->id }})"
+                                wire:loading.attr="disabled"
+                                wire:target="downloadRecording"
+                                class="px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer flex items-center"
+                                title="Download Recording">
+                            <div wire:loading.remove wire:target="downloadRecording">
+                                <i class="fas fa-download mr-2"></i>Download
+                            </div>
+                            <div wire:loading wire:target="downloadRecording">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>Downloading...
+                            </div>
+                        </button>
                     @elseif($recording->status === 'processing')
                         <div class="flex items-center text-blue-400">
                             <i class="fas fa-spinner fa-spin mr-2"></i>

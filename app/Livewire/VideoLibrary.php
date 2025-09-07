@@ -249,39 +249,72 @@ class VideoLibrary extends Component
 
     public function playRecording(int $recordingId): void
     {
+        \Log::info('Play recording called', ['recording_id' => $recordingId]);
         // This will be handled by the modal's video player
         $this->selectRecording($recordingId);
     }
 
-    public function downloadRecording(int $recordingId): void
+    public function downloadRecording(int $recordingId)
     {
+        \Log::info('Download recording called', ['recording_id' => $recordingId]);
         $user = Auth::user();
         
         if (!$user instanceof User) {
+            \Log::error('Download failed: User not authenticated', ['recording_id' => $recordingId]);
+            session()->flash('error', 'You must be logged in to download recordings.');
             return;
         }
+
+        \Log::info('User authenticated for download', ['user_id' => $user->id, 'recording_id' => $recordingId]);
 
         $repository = new RoomRecordingRepository();
         $recording = $repository->findByIdForUser($recordingId, $user);
 
-        if (!$recording || !in_array($recording->status, ['ready', 'uploaded'])) {
+        if (!$recording) {
+            \Log::error('Download failed: Recording not found', ['recording_id' => $recordingId, 'user_id' => $user->id]);
+            session()->flash('error', 'Recording not found.');
+            return;
+        }
+
+        \Log::info('Recording found', [
+            'recording_id' => $recordingId,
+            'status' => $recording->status,
+            'provider' => $recording->provider,
+            'provider_file_id' => $recording->provider_file_id
+        ]);
+
+        if (!in_array($recording->status, ['ready', 'uploaded'])) {
+            \Log::error('Download failed: Recording not ready', ['recording_id' => $recordingId, 'status' => $recording->status]);
             session()->flash('error', 'Recording not available for download.');
             return;
         }
 
-        // Generate download URL based on provider
+        // Generate download URL based on provider and redirect
         if ($recording->provider === 'wasabi') {
-            $this->downloadFromWasabi($recording);
+            \Log::info('Attempting Wasabi download', ['recording_id' => $recordingId]);
+            $url = $this->getWasabiDownloadUrl($recording);
+            if ($url) {
+                \Log::info('Redirecting to Wasabi download URL', ['recording_id' => $recordingId]);
+                return $this->redirect($url);
+            }
         } elseif ($recording->provider === 'google_drive') {
-            $this->downloadFromGoogleDrive($recording);
+            \Log::info('Attempting Google Drive download', ['recording_id' => $recordingId]);
+            $url = $this->getGoogleDriveDownloadUrl($recording);
+            if ($url) {
+                \Log::info('Redirecting to Google Drive download URL', ['recording_id' => $recordingId]);
+                return $this->redirect($url);
+            }
         } else {
+            \Log::error('Download failed: Unsupported provider', ['recording_id' => $recordingId, 'provider' => $recording->provider]);
             session()->flash('error', 'Download not supported for this storage provider.');
         }
     }
 
-    private function downloadFromWasabi(RoomRecordingData $recording): void
+    private function getWasabiDownloadUrl(RoomRecordingData $recording): ?string
     {
         try {
+            \Log::info('Getting Wasabi download URL', ['recording_id' => $recording->id]);
+            
             // Find the user's Wasabi storage account
             $user = Auth::user();
             $storageAccount = $user->storageAccounts()
@@ -290,29 +323,72 @@ class VideoLibrary extends Component
                 ->first();
 
             if (!$storageAccount) {
+                \Log::error('No active Wasabi storage account found', ['user_id' => $user->id]);
                 session()->flash('error', 'No active Wasabi storage account found.');
-                return;
+                return null;
             }
 
-            $wasabiService = new \Domain\Room\Services\WasabiS3Service($storageAccount);
-            $downloadUrl = $wasabiService->generatePresignedDownloadUrl($recording->provider_file_id, 3600); // 1 hour expiry
+            \Log::info('Wasabi storage account found', ['storage_account_id' => $storageAccount->id]);
 
-            $this->redirect($downloadUrl);
+            $wasabiService = new \Domain\Room\Services\WasabiS3Service($storageAccount);
+            \Log::info('Wasabi service created, generating presigned URL', ['provider_file_id' => $recording->provider_file_id]);
+            
+            // Generate presigned URL with download headers
+            $filename = $recording->filename;
+            \Log::info('Using download filename', ['filename' => $filename]);
+            
+            $downloadResult = $wasabiService->generatePresignedDownloadUrl($recording->provider_file_id, 3600, [
+                'ResponseContentDisposition' => 'attachment; filename="' . $filename . '"'
+            ]); // 1 hour expiry
+            
+            \Log::info('Wasabi presigned URL result', [
+                'url_generated' => !empty($downloadResult),
+                'url_is_string' => is_string($downloadResult),
+                'url_type' => gettype($downloadResult),
+                'url_value' => $downloadResult,
+            ]);
+
+            // Handle both string and array responses
+            if (is_string($downloadResult)) {
+                $downloadUrl = $downloadResult;
+            } elseif (is_array($downloadResult) && isset($downloadResult['download_url'])) {
+                $downloadUrl = $downloadResult['download_url'];
+            } else {
+                \Log::error('Failed to generate Wasabi download URL', ['downloadResult' => $downloadResult]);
+                session()->flash('error', 'Failed to generate download URL.');
+                return null;
+            }
+
+            if (!$downloadUrl || !is_string($downloadUrl)) {
+                \Log::error('Invalid Wasabi download URL format', ['downloadUrl' => $downloadUrl]);
+                session()->flash('error', 'Invalid download URL format.');
+                return null;
+            }
+
+            \Log::info('Wasabi download URL successfully generated', ['recording_id' => $recording->id, 'url_length' => strlen($downloadUrl)]);
+            return $downloadUrl;
         } catch (\Exception $e) {
+            \Log::error('Exception in getWasabiDownloadUrl', [
+                'recording_id' => $recording->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             session()->flash('error', 'Failed to generate download link: ' . $e->getMessage());
+            return null;
         }
     }
 
-    private function downloadFromGoogleDrive(RoomRecordingData $recording): void
+    private function getGoogleDriveDownloadUrl(RoomRecordingData $recording): ?string
     {
         try {
-            // Redirect to the download API endpoint
-            $this->redirect(route('api.rooms.recordings.download', [
+            // Return the download API endpoint URL
+            return route('api.rooms.recordings.download', [
                 'room' => $recording->room_id,
                 'recording' => $recording->id
-            ]));
+            ]);
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to download from Google Drive: ' . $e->getMessage());
+            return null;
         }
     }
 

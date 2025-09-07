@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950" x-data="{ slideoverOpen: false }">
     <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
         <div class="max-w-6xl mx-auto space-y-8">
             <!-- Header -->
@@ -305,12 +305,11 @@
                 @endif
             </div>
 
-            {{-- Recording Detail Modal --}}
-            @if($this->selectedRecording)
-                @include('livewire.video-library.recording-modal')
-            @endif
         </div>
     </div>
+
+    {{-- Recording Detail Modal - Outside main container --}}
+    @include('livewire.video-library.recording-modal')
 </div>
 
 @script

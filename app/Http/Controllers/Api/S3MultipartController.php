@@ -181,6 +181,11 @@ class S3MultipartController extends Controller
      */
     public function complete(Request $request): JsonResponse
     {
+        Log::info('S3 multipart complete request received', [
+            'user_id' => Auth::id(),
+            'request_data' => $request->all()
+        ]);
+        
         try {
             $validated = $request->validate([
                 'uploadId' => 'required|string',
@@ -213,6 +218,14 @@ class S3MultipartController extends Controller
             // Sort parts by PartNumber (AWS requirement)
             usort($validated['parts'], fn($a, $b) => $a['PartNumber'] <=> $b['PartNumber']);
 
+            Log::info('Attempting S3 multipart completion', [
+                'bucket' => $bucket,
+                'key' => $validated['key'],
+                'upload_id' => $validated['uploadId'],
+                'parts_count' => count($validated['parts']),
+                'parts' => $validated['parts']
+            ]);
+
             // Complete multipart upload
             $result = $s3Client->completeMultipartUpload([
                 'Bucket' => $bucket,
@@ -227,19 +240,47 @@ class S3MultipartController extends Controller
                 'Key' => $validated['key'],
             ]);
 
-            // Create recording record in database
-            $recording = RoomRecording::create([
-                'room_id' => $room->id,
-                'user_id' => $user->id,
-                'provider' => 'wasabi',
-                'provider_file_id' => $validated['key'],
-                'filename' => $validated['filename'] ?? basename($validated['key']),
-                'size_bytes' => (int) $head['ContentLength'],
-                'started_at_ms' => $validated['started_at_ms'] ?? 0,
-                'ended_at_ms' => $validated['ended_at_ms'] ?? 0,
-                'mime_type' => $validated['mime'] ?? ($head['ContentType'] ?? 'video/webm'),
-                'status' => 'uploaded',
-            ]);
+            // Find and update existing recording record or create new one
+            $recording = RoomRecording::where('multipart_upload_id', $validated['uploadId'])
+                ->where('room_id', $room->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($recording) {
+                // Update existing recording
+                $recording->update([
+                    'provider_file_id' => $validated['key'],
+                    'size_bytes' => (int) $head['ContentLength'],
+                    'ended_at_ms' => $validated['ended_at_ms'] ?? $recording->ended_at_ms ?? 0,
+                    'mime_type' => $validated['mime'] ?? ($head['ContentType'] ?? 'video/webm'),
+                    'status' => 'uploaded',
+                ]);
+                
+                Log::info('Updated existing recording record', [
+                    'recording_id' => $recording->id,
+                    'multipart_upload_id' => $validated['uploadId']
+                ]);
+            } else {
+                // Create new recording record (fallback)
+                $recording = RoomRecording::create([
+                    'room_id' => $room->id,
+                    'user_id' => $user->id,
+                    'provider' => 'wasabi',
+                    'provider_file_id' => $validated['key'],
+                    'multipart_upload_id' => $validated['uploadId'],
+                    'filename' => $validated['filename'] ?? basename($validated['key']),
+                    'size_bytes' => (int) $head['ContentLength'],
+                    'started_at_ms' => $validated['started_at_ms'] ?? 0,
+                    'ended_at_ms' => $validated['ended_at_ms'] ?? 0,
+                    'mime_type' => $validated['mime'] ?? ($head['ContentType'] ?? 'video/webm'),
+                    'status' => 'uploaded',
+                ]);
+                
+                Log::info('Created new recording record', [
+                    'recording_id' => $recording->id,
+                    'multipart_upload_id' => $validated['uploadId']
+                ]);
+            }
 
             Log::info('S3 Multipart upload completed', [
                 'room_id' => $room->id,
@@ -248,6 +289,8 @@ class S3MultipartController extends Controller
                 'key' => $validated['key'],
                 'recording_id' => $recording->id,
                 'size_bytes' => $head['ContentLength'],
+                'recording_status' => $recording->status,
+                'was_existing_record' => $recording->wasRecentlyCreated ? 'no' : 'yes',
             ]);
 
             return response()->json([
@@ -268,11 +311,16 @@ class S3MultipartController extends Controller
             Log::error('S3 CompleteMultipart failed', [
                 'room_id' => $request->input('room_id'),
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage()
+                'upload_id' => $request->input('uploadId'),
+                'key' => $request->input('key'),
+                'parts_count' => count($request->input('parts', [])),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             
             return response()->json([
-                'error' => 'Unable to complete multipart upload'
+                'error' => 'Unable to complete multipart upload',
+                'details' => $e->getMessage()
             ], 502);
         }
     }
@@ -379,14 +427,19 @@ class S3MultipartController extends Controller
             throw new \Exception('Video recording is not enabled for this room');
         }
 
-        // Check consent
+        // Check consent (only require STT consent if STT is enabled)
         $participant = $room->participants()
             ->where('user_id', $user->id)
             ->whereNull('left_at')
             ->first();
 
-        if (!$participant || !$participant->hasSttConsent()) {
-            throw new \Exception('Video recording consent required');
+        if (!$participant) {
+            throw new \Exception('User is not an active participant in this room');
+        }
+
+        // Only require STT consent if STT is actually enabled for this room
+        if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && !$participant->hasSttConsent()) {
+            throw new \Exception('Speech-to-text consent required for recording');
         }
     }
 

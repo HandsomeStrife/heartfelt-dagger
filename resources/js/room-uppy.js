@@ -21,6 +21,11 @@ class RoomUppy {
         this.uppy = null;
         this.uploadStrategy = this.recordingSettings?.storage_provider || 'local';
         
+        // Track multipart upload session for continuous recording
+        this.currentMultipartUploadId = null;
+        this.currentSessionKey = null;
+        this.currentRecordingId = null;
+        
         this.initializeUppy();
     }
 
@@ -83,168 +88,12 @@ class RoomUppy {
     }
 
     /**
-     * Configures Wasabi S3-compatible upload with unified plugin (handles both single-part and multipart)
+     * Configures Wasabi S3-compatible upload (now bypassing Uppy for continuous recording)
      */
     configureWasabiUpload() {
-        // Capture roomData reference for use in callbacks
-        const roomData = this.roomData;
-        
-        // Use unified @uppy/aws-s3 plugin for both single and multipart uploads
-        this.uppy.use(AwsS3, {
-            id: 'WasabiS3Unified',
-
-            // Let Uppy decide multipart automatically (100 MiB+) or set custom threshold
-            shouldUseMultipart(file) {
-                return file.size > 100 * 1024 * 1024; // 100 MiB, matches Uppy default
-            },
-
-            // Single-part uploads (presigned PUT) - for smaller files
-            getUploadParameters: async (file) => {
-                console.log('🚀 Getting Wasabi presigned PUT parameters for:', file.name);
-                
-                const response = await fetch(`/api/rooms/${roomData.id}/recordings/presign-wasabi`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        filename: file.name,
-                        content_type: file.type,
-                        size: file.size,
-                        metadata: {
-                            started_at_ms: file.meta.started_at_ms,
-                            ended_at_ms: file.meta.ended_at_ms
-                        }
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to presign Wasabi PUT: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                // Store metadata for confirmation step (PUT responses usually have empty bodies)
-                file.meta.wasabiKey = data.metadata.provider_file_id;
-                file.meta.wasabiMetadata = data.metadata;
-
-                console.log('✅ Got Wasabi direct upload URL (presigned PUT)');
-
-                return {
-                    method: 'PUT',
-                    url: data.presigned_url,
-                    fields: {},
-                    headers: { 'Content-Type': file.type } // Required for signature validation
-                };
-            },
-
-            // Multipart upload callbacks - for larger files (>100MB)
-            createMultipartUpload: async (file) => {
-                console.log('🚀 Creating Wasabi multipart upload for:', file.name);
-                
-                const response = await fetch('/api/uploads/s3/multipart/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        filename: file.name,
-                        type: file.type,
-                        size: file.size,
-                        room_id: roomData.id,
-                        started_at_ms: file.meta.started_at_ms,
-                        ended_at_ms: file.meta.ended_at_ms
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to create multipart upload: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('✅ Created Wasabi multipart upload session:', data.uploadId);
-                
-                return data; // { uploadId, key }
-            },
-
-            // Sign individual parts for multipart upload
-            signPart: async (file, { uploadId, key, partNumber }) => {
-                console.log(`🔏 Signing Wasabi part ${partNumber} for upload ${uploadId}`);
-                
-                const response = await fetch('/api/uploads/s3/multipart/sign', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                    },
-                    body: JSON.stringify({ 
-                        uploadId, 
-                        key, 
-                        partNumber, 
-                        room_id: this.roomData.id 
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to sign part ${partNumber}: ${response.status}`);
-                }
-
-                return response.json(); // { url, headers }
-            },
-
-            // Complete multipart upload - server creates database record here
-            completeMultipartUpload: async (file, { uploadId, key, parts }) => {
-                console.log('✅ Completing Wasabi multipart upload:', uploadId);
-                
-                const response = await fetch('/api/uploads/s3/multipart/complete', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        uploadId, 
-                        key, 
-                        parts, 
-                        room_id: roomData.id,
-                        filename: file.name, 
-                        mime: file.type,
-                        started_at_ms: file.meta.started_at_ms,
-                        ended_at_ms: file.meta.ended_at_ms
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to complete multipart upload: ${response.status}`);
-                }
-
-                return response.json(); // { location?, key, bucket, etag, size, recording_id }
-            },
-
-            // Abort multipart upload if needed (cleanup)
-            abortMultipartUpload: async (file, { uploadId, key }) => {
-                console.log('🗑️ Aborting Wasabi multipart upload:', uploadId);
-                
-                await fetch('/api/uploads/s3/multipart/abort', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                    },
-                    body: JSON.stringify({ 
-                        uploadId, 
-                        key, 
-                        room_id: this.roomData.id 
-                    })
-                });
-            },
-
-            // Optional: tune multipart performance
-            limit: 4, // 4 concurrent parts
-            getChunkSize: (file) => 10 * 1024 * 1024, // 10 MiB parts
-        });
+        // For continuous recording, we handle multipart uploads directly
+        // Uppy is only used for single file uploads (if needed)
+        console.log('🎯 Wasabi upload configured for direct multipart handling');
     }
 
     /**
@@ -261,13 +110,12 @@ class RoomUppy {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
                 },
                 body: JSON.stringify({
-                    key: file.meta.wasabiKey,
+                    provider_file_id: file.meta.wasabiKey,
                     filename: file.name,
-                    size: file.size,
-                    metadata: file.meta.wasabiMetadata || {
-                        started_at_ms: file.meta.started_at_ms,
-                        ended_at_ms: file.meta.ended_at_ms,
-                    }
+                    size_bytes: file.size,
+                    started_at_ms: file.meta.started_at_ms,
+                    ended_at_ms: file.meta.ended_at_ms,
+                    mime_type: file.type
                 })
             });
 
@@ -459,17 +307,29 @@ class RoomUppy {
      */
     setupEventHandlers() {
         this.uppy.on('file-added', (file) => {
-            console.log('📁 File added to upload queue:', file.name);
+            console.log('🎯 FILE ADDED TO QUEUE:', file.name, 'Size:', file.size, 'ID:', file.id);
+            console.log('🎯 CURRENT QUEUE SIZE:', this.uppy.getFiles().length);
         });
 
         this.uppy.on('upload-progress', (file, progress) => {
             const percentage = Math.round((progress.bytesUploaded / progress.bytesTotal) * 100);
-            console.log(`📤 Upload progress for ${file.name}: ${percentage}%`);
             this.updateUploadProgress(file.id, percentage);
         });
 
         this.uppy.on('upload-success', (file, response) => {
-            console.log('✅ Upload successful for:', file.name);
+            console.log('🎯 S3 UPLOAD SUCCESS:', file.name);
+            console.log('🎯 S3 Response Body:', JSON.stringify(response.body, null, 2));
+            console.log('🎯 S3 Response Status:', response.status);
+            console.log('🎯 S3 Upload URL:', response.uploadURL);
+            
+            // Track successful upload in VideoRecorder
+            if (window.roomWebRTC?.videoRecorder?.trackSuccessfulUpload) {
+                window.roomWebRTC.videoRecorder.trackSuccessfulUpload(file.size);
+            }
+            
+            // Update recording progress in database
+            this.updateRecordingProgress(file, response);
+            
             this.handleUploadSuccess(file, response);
         });
 
@@ -489,38 +349,232 @@ class RoomUppy {
     // ===========================================
 
     /**
-     * Uploads a video blob with metadata through Uppy queue
+     * Uploads a video blob using direct multipart upload (bypassing Uppy's file queue)
+     * This maintains a single continuous multipart upload session
      */
-    uploadVideoBlob(blob, metadata) {
-        // Create a File object from the blob
-        const file = new File([blob], metadata.filename, {
-            type: blob.type,
-            lastModified: Date.now(),
+    async uploadVideoBlob(blob, metadata) {
+        console.log('🎯 UPLOADING VIDEO CHUNK:', blob.size, 'bytes');
+        
+        try {
+            // Initialize multipart upload session if this is the first chunk
+            if (!this.currentMultipartUploadId) {
+                console.log('🎯 INITIALIZING MULTIPART UPLOAD SESSION');
+                await this.initializeMultipartSession(metadata, blob);
+            }
+            
+            // Upload this chunk as the next part
+            await this.uploadChunkAsPart(blob);
+            
+        } catch (error) {
+            console.error('🎯 ERROR uploading video chunk:', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * Initialize a multipart upload session for continuous recording
+     */
+    async initializeMultipartSession(metadata, firstBlob) {
+        const response = await fetch('/api/uploads/s3/multipart/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            },
+            body: JSON.stringify({
+                filename: metadata.filename,
+                type: firstBlob.type,
+                size: firstBlob.size, // Initial size estimate
+                room_id: this.roomData.id,
+                started_at_ms: metadata.started_at_ms,
+                ended_at_ms: metadata.ended_at_ms
+            })
         });
 
-        // Add metadata to file
-        const fileWithMeta = {
-            ...file,
-            meta: {
-                ...metadata,
-                room_id: this.roomData.id,
-                user_id: window.currentUserId,
-            }
-        };
+        if (!response.ok) {
+            throw new Error(`Failed to create multipart upload: ${response.status}`);
+        }
 
+        const data = await response.json();
+        this.currentMultipartUploadId = data.uploadId;
+        this.currentSessionKey = data.key;
+        this.currentPartNumber = 0;
+        this.uploadedParts = [];
+        this.partSizes = [];
+        this.currentRecordingFilename = metadata.filename;
+        this.recordingStartedAt = metadata.started_at_ms || Date.now();
+        
+        console.log('🎯 MULTIPART SESSION INITIALIZED:', data.uploadId);
+        console.log('🎯 SESSION KEY:', data.key);
+        
+        // Start recording session in database
         try {
-            // Add file to Uppy (auto-proceed will start upload automatically)
-            this.uppy.addFile({
-                name: metadata.filename,
-                type: blob.type,
-                data: blob,
-                size: blob.size,
-                meta: fileWithMeta.meta,
+            await this.startRecordingSession(
+                metadata.filename,
+                data.uploadId,
+                data.key,
+                metadata.started_at_ms || Date.now(),
+                firstBlob.type
+            );
+        } catch (error) {
+            console.error('🎯 DB SESSION FAILED:', error);
+        }
+    }
+    
+    /**
+     * Upload a chunk as a part of the ongoing multipart upload
+     */
+    async uploadChunkAsPart(blob) {
+        this.currentPartNumber++;
+        const partNumber = this.currentPartNumber;
+        
+        console.log(`🎯 UPLOADING PART ${partNumber}:`, blob.size, 'bytes');
+        
+        // Get signed URL for this part
+        const signResponse = await fetch('/api/uploads/s3/multipart/sign', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            },
+            body: JSON.stringify({ 
+                uploadId: this.currentMultipartUploadId, 
+                key: this.currentSessionKey, 
+                partNumber, 
+                room_id: this.roomData.id 
+            })
+        });
+
+        if (!signResponse.ok) {
+            throw new Error(`Failed to sign part ${partNumber}: ${signResponse.status}`);
+        }
+
+        const { url, headers } = await signResponse.json();
+        console.log(`🎯 SIGNED URL FOR PART ${partNumber}:`, url);
+        
+        // Upload the part directly to S3
+        const uploadResponse = await fetch(url, {
+            method: 'PUT',
+            body: blob,
+            headers: headers || {}
+        });
+
+        if (!uploadResponse.ok) {
+            throw new Error(`Failed to upload part ${partNumber}: ${uploadResponse.status}`);
+        }
+
+        // Extract ETag from response
+        const etag = uploadResponse.headers.get('ETag') || uploadResponse.headers.get('etag');
+        console.log(`🎯 PART ${partNumber} UPLOADED, ETAG:`, etag);
+        
+        // Store the part info for later completion
+        this.uploadedParts.push({
+            PartNumber: partNumber,
+            ETag: etag
+        });
+        this.partSizes.push(blob.size);
+        
+        // Update recording progress in database
+        if (etag && this.currentRecordingId) {
+            await this.updateRecordingProgress({
+                meta: { partNumber },
+                size: blob.size
+            }, {
+                body: { etag }
+            });
+        }
+        
+        console.log(`🎯 TOTAL PARTS UPLOADED: ${this.uploadedParts.length}`);
+    }
+
+    /**
+     * Finalizes the multipart upload when recording stops
+     */
+    async finalizeMultipartUpload() {
+        if (!this.currentMultipartUploadId || !this.uploadedParts || this.uploadedParts.length === 0) {
+            console.log('🎯 NO MULTIPART UPLOAD TO FINALIZE');
+            return;
+        }
+        
+        console.log('🎯 FINALIZING MULTIPART UPLOAD:', this.currentMultipartUploadId);
+        console.log('🎯 PARTS TO COMPLETE:', this.uploadedParts.length);
+        const payload = {
+            uploadId: this.currentMultipartUploadId,
+            key: this.currentSessionKey,
+            parts: this.uploadedParts,
+            room_id: this.roomData.id,
+            filename: this.currentRecordingFilename || 'recording.webm',
+            size_bytes: this.uploadedParts.reduce((total, part, index) => total + (this.partSizes?.[index] || 0), 0),
+            started_at_ms: this.recordingStartedAt || Date.now(),
+            ended_at_ms: Date.now(),
+            mime: 'video/webm'
+        };
+        
+        console.log('🎯 COMPLETION REQUEST PAYLOAD:', payload);
+        console.log('🎯 PARTS DETAIL:', this.uploadedParts);
+        
+        try {
+            // Complete the multipart upload
+            const response = await fetch('/api/uploads/s3/multipart/complete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                },
+                body: JSON.stringify(payload)
             });
 
+            console.log('🎯 COMPLETION RESPONSE STATUS:', response.status);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('🎯 COMPLETION RESPONSE ERROR:', errorText);
+                throw new Error(`Failed to complete multipart upload: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('🎯 MULTIPART UPLOAD COMPLETED:', result);
+            console.log('🎯 RECORDING MARKED AS COMPLETED IN DATABASE');
+            
+            // Reset recording state
+            this.currentMultipartUploadId = null;
+            this.currentSessionKey = null;
+            this.currentPartNumber = 0;
+            this.uploadedParts = [];
+            this.currentRecordingId = null;
+            this.partSizes = [];
+            
+            console.log('🎯 RECORDING SESSION FINALIZED');
+            
         } catch (error) {
-            console.error('Error adding file to Uppy:', error);
-            throw error;
+            console.error('🎯 ERROR finalizing multipart upload:', error);
+            
+            // Try to abort the upload to clean up
+            try {
+                await fetch('/api/uploads/s3/multipart/abort', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        uploadId: this.currentMultipartUploadId,
+                        key: this.currentSessionKey,
+                        room_id: this.roomData.id
+                    })
+                });
+                console.log('🎯 ABORTED FAILED MULTIPART UPLOAD');
+            } catch (abortError) {
+                console.error('🎯 ERROR aborting multipart upload:', abortError);
+            }
+            
+            // Reset state anyway
+            this.currentMultipartUploadId = null;
+            this.currentSessionKey = null;
+            this.currentPartNumber = 0;
+            this.uploadedParts = [];
+            this.currentRecordingId = null;
+            this.partSizes = [];
         }
     }
 
@@ -530,6 +584,96 @@ class RoomUppy {
             detail: { fileId, percentage }
         });
         document.dispatchEvent(progressEvent);
+    }
+
+    /**
+     * Start a new recording session in the database
+     */
+    async startRecordingSession(filename, multipartUploadId, providerFileId, startedAtMs, mimeType) {
+        try {
+            const response = await fetch(`/api/rooms/${this.roomData.id}/recordings/start-session`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    filename,
+                    multipart_upload_id: multipartUploadId,
+                    provider_file_id: providerFileId,
+                    started_at_ms: startedAtMs,
+                    mime_type: mimeType
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            this.currentRecordingId = data.recording_id;
+            
+            console.log('🎥 Recording session started:', {
+                recording_id: this.currentRecordingId,
+                filename,
+                multipart_upload_id: multipartUploadId
+            });
+
+            return data;
+        } catch (error) {
+            console.error('❌ Failed to start recording session:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Update recording progress in the database
+     */
+    async updateRecordingProgress(file, response) {
+        if (!this.currentRecordingId) {
+            console.warn('⚠️ No current recording ID to update progress');
+            return;
+        }
+
+        try {
+            // Extract part number and ETag from the response
+            const partNumber = file.meta.partNumber || 1;
+            const etag = response.body?.etag || response.body?.ETag;
+            
+            // Don't update progress if we don't have a valid ETag
+            if (!etag || etag === 'unknown' || etag === 'pending-completion') {
+                console.log(`🎯 SKIPPING PROGRESS UPDATE - no valid ETag for part ${partNumber}:`, etag);
+                return;
+            }
+            
+            console.log(`🎯 UPDATING PROGRESS for part ${partNumber} with ETag:`, etag);
+            
+            const updateResponse = await fetch(`/api/rooms/${this.roomData.id}/recordings/${this.currentRecordingId}/progress`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    part_number: partNumber,
+                    etag: etag,
+                    part_size_bytes: file.size,
+                    ended_at_ms: file.meta.ended_at_ms || Date.now()
+                })
+            });
+
+            if (!updateResponse.ok) {
+                console.warn('⚠️ Failed to update recording progress:', updateResponse.status);
+            } else {
+                console.log('📊 Recording progress updated:', {
+                    recording_id: this.currentRecordingId,
+                    part_number: partNumber,
+                    size_bytes: file.size
+                });
+            }
+        } catch (error) {
+            console.error('❌ Failed to update recording progress:', error);
+        }
     }
 
     /**

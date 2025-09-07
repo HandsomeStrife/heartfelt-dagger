@@ -37,9 +37,16 @@ class RoomRecordingController extends Controller
     public function presignWasabi(Request $request, Room $room): JsonResponse
     {
         try {
+            // Log the incoming request data for debugging
+            \Log::info('Wasabi presign request received', [
+                'room_id' => $room->id,
+                'user_id' => $request->user()?->id,
+                'request_data' => $request->all()
+            ]);
+
             $validated = $request->validate([
                 'filename' => 'required|string|max:255',
-                'content_type' => 'required|string|in:video/webm,video/mp4,video/quicktime',
+                'content_type' => 'required|string|starts_with:video/webm,video/mp4,video/quicktime',
                 'size' => 'required|integer|min:1|max:104857600', // 100MB max
                 'metadata' => 'nullable|array',
             ]);
@@ -55,15 +62,24 @@ class RoomRecordingController extends Controller
                 return response()->json(['error' => 'Only room participants can upload recordings'], 403);
             }
 
-            // Validate recording consent for the user
+            // Validate recording consent for the user (only check STT consent if STT is enabled)
             $participant = $room->participants()
                 ->where('user_id', $user->id)
                 ->whereNull('left_at')
                 ->first();
 
-            if (!$participant || !$participant->hasSttConsent()) { // Using same consent field for now
+            if (!$participant) {
                 return response()->json([
-                    'error' => 'Video recording consent required',
+                    'error' => 'User is not an active participant in this room',
+                    'requires_consent' => false
+                ], 403);
+            }
+
+            // Only require STT consent if STT is actually enabled for this room
+            $room->load('recordingSettings');
+            if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && !$participant->hasSttConsent()) {
+                return response()->json([
+                    'error' => 'Speech-to-text consent required for recording',
                     'requires_consent' => true
                 ], 403);
             }
@@ -268,7 +284,7 @@ class RoomRecordingController extends Controller
         try {
             $validated = $request->validate([
                 'filename' => 'required|string|max:255',
-                'content_type' => 'required|string|in:video/webm,video/mp4,video/quicktime',
+                'content_type' => 'required|string|starts_with:video/webm,video/mp4,video/quicktime',
                 'size' => 'required|integer|min:1|max:2147483648', // 2GB max
                 'metadata' => 'nullable|array',
             ]);
@@ -628,6 +644,169 @@ class RoomRecordingController extends Controller
             return response()->json([
                 'error' => 'Failed to prepare download'
             ], 500);
+        }
+    }
+
+    /**
+     * Start a new recording session
+     */
+    public function startSession(Request $request, Room $room)
+    {
+        try {
+            $validated = $request->validate([
+                'filename' => 'required|string|max:255',
+                'multipart_upload_id' => 'required|string|max:255',
+                'provider_file_id' => 'required|string|max:255',
+                'started_at_ms' => 'required|integer|min:0',
+                'mime_type' => 'required|string|max:100'
+            ]);
+
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['error' => 'Authentication required'], 401);
+            }
+
+            // Validate recording permissions (same as existing methods)
+            $this->validateRecordingPermissions($room, $user);
+
+            $startAction = new \Domain\Room\Actions\StartRecordingSession();
+            $recording = $startAction->execute(
+                $room,
+                $user,
+                $validated['filename'],
+                $validated['multipart_upload_id'],
+                $validated['provider_file_id'],
+                $validated['started_at_ms'],
+                $validated['mime_type']
+            );
+
+            \Log::info('Recording session started', [
+                'recording_id' => $recording->id,
+                'room_id' => $room->id,
+                'user_id' => $user->id,
+                'multipart_upload_id' => $validated['multipart_upload_id']
+            ]);
+
+            return response()->json([
+                'recording_id' => $recording->id,
+                'status' => $recording->status->value,
+                'message' => 'Recording session started successfully'
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'messages' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Failed to start recording session', [
+                'room_id' => $room->id,
+                'user_id' => $request->user()?->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to start recording session'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update recording progress with a new uploaded part
+     */
+    public function updateProgress(Request $request, Room $room, RoomRecording $recording)
+    {
+        try {
+            $validated = $request->validate([
+                'part_number' => 'required|integer|min:1',
+                'etag' => 'required|string|max:255',
+                'part_size_bytes' => 'required|integer|min:1',
+                'ended_at_ms' => 'required|integer|min:0'
+            ]);
+
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['error' => 'Authentication required'], 401);
+            }
+
+            // Verify the recording belongs to this room and user
+            if ($recording->room_id !== $room->id || $recording->user_id !== $user->id) {
+                return response()->json(['error' => 'Recording not found'], 404);
+            }
+
+            // Only update if recording is still active
+            if (!$recording->isRecording()) {
+                return response()->json(['error' => 'Recording is not active'], 400);
+            }
+
+            $updateAction = new \Domain\Room\Actions\UpdateRecordingProgress();
+            $updatedRecording = $updateAction->execute(
+                $recording,
+                $validated['part_number'],
+                $validated['etag'],
+                $validated['part_size_bytes'],
+                $validated['ended_at_ms']
+            );
+
+            \Log::info('Recording progress updated', [
+                'recording_id' => $recording->id,
+                'room_id' => $room->id,
+                'user_id' => $user->id,
+                'part_number' => $validated['part_number'],
+                'total_size' => $updatedRecording->size_bytes
+            ]);
+
+            return response()->json([
+                'recording_id' => $updatedRecording->id,
+                'status' => $updatedRecording->status->value,
+                'total_size_bytes' => $updatedRecording->size_bytes,
+                'parts_count' => count($updatedRecording->uploaded_parts ?? []),
+                'message' => 'Recording progress updated successfully'
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'messages' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Failed to update recording progress', [
+                'recording_id' => $recording->id,
+                'room_id' => $room->id,
+                'user_id' => $request->user()?->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to update recording progress'
+            ], 500);
+        }
+    }
+
+    /**
+     * Validate recording permissions for a user in a room
+     */
+    private function validateRecordingPermissions(Room $room, $user): void
+    {
+        // Check if recording is enabled
+        $room->load('recordingSettings');
+        if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
+            throw new \Exception('Video recording is not enabled for this room');
+        }
+
+        // Check consent (only require STT consent if STT is enabled)
+        $participant = $room->participants()
+            ->where('user_id', $user->id)
+            ->whereNull('left_at')
+            ->first();
+
+        if (!$participant) {
+            throw new \Exception('User is not an active participant in this room');
+        }
+
+        // Only require STT consent if STT is actually enabled for this room
+        if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && !$participant->hasSttConsent()) {
+            throw new \Exception('Speech-to-text consent required for recording');
         }
     }
 }

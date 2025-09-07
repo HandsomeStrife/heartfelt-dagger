@@ -12,6 +12,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         @foreach($recordings as $recording)
             <div class="bg-slate-800/50 border border-slate-600/50 rounded-xl overflow-hidden hover:border-amber-500/30 transition-all duration-200 cursor-pointer group"
+                 x-on:click="slideoverOpen = true"
                  wire:click="selectRecording({{ $recording->id }})">
                 
                 {{-- Video Thumbnail --}}

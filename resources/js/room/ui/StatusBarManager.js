@@ -141,19 +141,34 @@ export class StatusBarManager {
      * Updates the recording status display
      */
     updateRecordingStatus() {
-        const recordingStartTime = this.roomWebRTC.videoRecorder.getRecordingStartTime();
-        const recordedChunks = this.roomWebRTC.videoRecorder.getRecordedChunks();
+        const originalStartTime = this.roomWebRTC.videoRecorder.getOriginalRecordingStartTime();
         
-        if (!this.roomWebRTC.videoRecorder.isCurrentlyRecording() || !recordingStartTime) return;
+        if (!this.roomWebRTC.videoRecorder.isCurrentlyRecording() || !originalStartTime) return;
 
-        const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+        // Calculate total recording duration (from original start time, never reset)
+        const duration = Math.floor((Date.now() - originalStartTime) / 1000);
         const minutes = Math.floor(duration / 60);
         const seconds = duration % 60;
         const durationText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-        const totalSize = recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
-        const sizeText = `${(totalSize / 1024 / 1024).toFixed(1)} MB`;
-        const chunksText = `${recordedChunks.length || 0} segments`;
+        // Get storage provider to determine what to show
+        const storageProvider = this.roomWebRTC.roomData.recording_settings?.storage_provider || 'local_device';
+        
+        // Get cumulative statistics
+        const totalSize = this.roomWebRTC.videoRecorder.getTotalRecordedSize();
+        const totalChunks = this.roomWebRTC.videoRecorder.getTotalChunks();
+        const cumulativeStats = this.roomWebRTC.videoRecorder.getCumulativeStats();
+        
+        // Estimate current recording size based on duration and bitrate
+        const estimatedCurrentSize = this.estimateCurrentRecordingSize(duration, totalSize);
+        const sizeText = `${(estimatedCurrentSize / 1024 / 1024).toFixed(1)} MB`;
+        
+        // For cloud storage, show upload progress; for local storage, show nothing extra
+        let displayText = '';
+        if (storageProvider !== 'local_device') {
+            const uploadedSize = cumulativeStats.totalUploadedBytes;
+            displayText = `${(uploadedSize / 1024 / 1024).toFixed(1)} MB uploaded`;
+        }
 
         // Update DOM elements (try both campaign and normal layout IDs)
         const durationEl = document.getElementById('recording-duration') || document.getElementById('recording-duration-normal');
@@ -162,7 +177,27 @@ export class StatusBarManager {
 
         if (durationEl) durationEl.textContent = durationText;
         if (sizeEl) sizeEl.textContent = sizeText;
-        if (chunksEl) chunksEl.textContent = chunksText;
+        if (chunksEl) chunksEl.textContent = displayText;
+    }
+
+    /**
+     * Estimates current recording size based on duration and existing data
+     */
+    estimateCurrentRecordingSize(currentDurationSeconds, recordedSize) {
+        if (currentDurationSeconds === 0) return 0;
+        
+        // If we have recorded data, calculate average bitrate
+        if (recordedSize > 0) {
+            const recordedDuration = this.roomWebRTC.videoRecorder.getCumulativeStats().totalChunks * 15; // 15 seconds per chunk
+            if (recordedDuration > 0) {
+                const avgBytesPerSecond = recordedSize / recordedDuration;
+                return recordedSize + (avgBytesPerSecond * (currentDurationSeconds - recordedDuration));
+            }
+        }
+        
+        // Fallback: estimate based on typical WebM bitrate (1-2 Mbps for video + audio)
+        const estimatedBytesPerSecond = 200000; // ~1.6 Mbps average
+        return currentDurationSeconds * estimatedBytesPerSecond;
     }
 
     /**

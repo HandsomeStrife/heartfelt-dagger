@@ -59,7 +59,7 @@
 
         <!-- Campaign Pages Tab -->
         @if($campaign && $campaign_pages->count() > 0)
-        <div x-show="activeTab === 'pages'" class="p-4 space-y-3">
+        <div x-show="activeTab === 'pages'" class="p-4 space-y-3" x-cloak>
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-outfit text-lg text-white">Campaign Pages</h3>
                 <a href="{{ route('campaigns.pages', $campaign) }}" 
@@ -93,7 +93,7 @@
         @endif
 
         <!-- Notes Tab -->
-        <div x-show="activeTab === 'notes'" class="p-4">
+        <div x-show="activeTab === 'notes'" class="p-4" x-cloak>
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-outfit text-lg text-white">Session Notes</h3>
                 <button wire:click="saveSessionNotes" 
