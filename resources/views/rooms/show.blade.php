@@ -37,28 +37,37 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-3">
                             @if($user_is_creator)
-                                <a href="{{ route('rooms.session', $room) }}" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-emerald-500/25">
-                                    <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <a href="{{ route('rooms.session', $room) }}" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-emerald-500/25 text-sm">
+                                    <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197 2.132A1 1 0 0110 13.82V10.18a1 1 0 011.555-.832l3.197 2.132a1 1 0 010 1.664z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     Join Room
                                 </a>
+                                {{-- Only show Share button for non-campaign rooms --}}
+                                @if(!$room->campaign_id)
+                                    <button onclick="showModal('roomInviteModal')" class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-blue-500/25 text-sm">
+                                        <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                                        </svg>
+                                        Share
+                                    </button>
+                                @endif
                                 <form action="{{ route('rooms.destroy', $room) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this room? This action cannot be undone.')" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button data-testid="delete-room-button" type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-semibold py-3 px-6 rounded-xl transition-all duration-300">
-                                        <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <button data-testid="delete-room-button" type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-semibold py-2 px-4 rounded-lg transition-all duration-300 text-sm">
+                                        <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
-                                        Delete Room
+                                        Delete
                                     </button>
                                 </form>
                             @elseif($user_is_participant)
-                                <a href="{{ route('rooms.session', $room) }}" class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/25">
-                                    <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <a href="{{ route('rooms.session', $room) }}" class="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-blue-500/25 text-sm">
+                                    <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197 2.132A1 1 0 0110 13.82V10.18a1 1 0 011.555-.832l3.197 2.132a1 1 0 010 1.664z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -67,13 +76,13 @@
                                 <form action="{{ route('rooms.leave', $room) }}" method="POST" onsubmit="return confirm('Are you sure you want to leave this room?')" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-semibold py-3 px-6 rounded-xl transition-all duration-300">
+                                    <button type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-semibold py-2 px-4 rounded-lg transition-all duration-300 text-sm">
                                         Leave Room
                                     </button>
                                 </form>
                             @else
-                                <a href="{{ route('rooms.invite', $room->invite_code) }}" class="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-purple-500/25">
-                                    <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <a href="{{ route('rooms.invite', $room->invite_code) }}" class="bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-purple-500/25 text-sm">
+                                    <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM12 14c-1.49 0-2.92.6-4 1.67V19h8v-3.33c-1.08-1.07-2.51-1.67-4-1.67z" />
                                     </svg>
                                     Join Room
@@ -82,25 +91,6 @@
                         </div>
                     </div>
 
-                    @if($user_is_creator)
-                        <!-- Invite Code Section -->
-                        <div class="mt-6 pt-6 border-t border-slate-700">
-                            <div class="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl">
-                                <div>
-                                    <h3 class="text-white font-semibold mb-1">Invite Link</h3>
-                                    <p class="text-slate-400 text-sm">Share this link for others to join your room</p>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <code class="bg-slate-700 text-emerald-400 px-3 py-2 rounded-lg font-mono text-sm">
-                                        {{ $room->invite_code }}
-                                    </code>
-                                    <button onclick="showModal('roomInviteModal')" class="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
-                                        Share Room
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                 </div>
 
                 @if($user_is_creator)
@@ -114,7 +104,7 @@
         </div>
     </div>
 
-    @if($user_is_creator)
+    @if($user_is_creator && !$room->campaign_id)
         <!-- Room Invite Modal with Viewer URL -->
         <div id="roomInviteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
             <div class="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-lg w-full mx-4">

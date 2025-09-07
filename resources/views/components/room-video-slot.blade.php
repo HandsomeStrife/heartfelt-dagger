@@ -59,6 +59,8 @@
                                             {{ $participant->character->class }}
                                         @elseif($participant->character_class)
                                             {{ $participant->character_class }}
+                                        @elseif($isHost)
+                                            GM
                                         @else
                                             NO CLASS
                                         @endif
@@ -99,10 +101,6 @@
             </div>
         @endif
         
-        <!-- Leave button (hidden by default) -->
-        <button class="leave-btn hidden absolute top-4 right-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all duration-300 shadow-lg z-10" style="display: none;">
-            Retreat
-        </button>
         
         <div class="loading-spinner hidden absolute inset-0 items-center justify-center bg-black bg-opacity-75">
             <div class="flex flex-col items-center">

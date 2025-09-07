@@ -10,6 +10,7 @@ use Domain\Room\Models\Room;
 use Domain\Room\Repositories\RoomTranscriptRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class RoomTranscriptController extends Controller
@@ -27,11 +28,15 @@ class RoomTranscriptController extends Controller
         try {
             $validated = $request->validate([
                 'user_id' => 'nullable|integer|exists:users,id',
+                'character_id' => 'nullable|integer|exists:characters,id',
+                'character_name' => 'nullable|string|max:100',
+                'character_class' => 'nullable|string|max:50',
                 'started_at_ms' => 'required|integer|min:0',
                 'ended_at_ms' => 'required|integer|min:0|gt:started_at_ms',
                 'text' => 'required|string|max:5000',
                 'language' => 'nullable|string|max:10',
                 'confidence' => 'nullable|numeric|min:0|max:1',
+                'provider' => 'nullable|string|max:20|in:browser,assemblyai',
             ]);
 
             // Additional validation
@@ -77,11 +82,15 @@ class RoomTranscriptController extends Controller
             $transcriptData = (new CreateRoomTranscript())->execute(
                 room_id: $room->id,
                 user_id: $validated['user_id'] ?? $user?->id,
+                character_id: $validated['character_id'] ?? null,
+                character_name: $validated['character_name'] ?? null,
+                character_class: $validated['character_class'] ?? null,
                 started_at_ms: $validated['started_at_ms'],
                 ended_at_ms: $validated['ended_at_ms'],
                 text: $validated['text'],
                 language: $validated['language'] ?? 'en-US',
-                confidence: $validated['confidence']
+                confidence: $validated['confidence'],
+                provider: $validated['provider'] ?? 'browser'
             );
 
             return response()->json([
@@ -96,7 +105,7 @@ class RoomTranscriptController extends Controller
                 'messages' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to save room transcript', [
+            Log::error('Failed to save room transcript', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage()
@@ -167,7 +176,7 @@ class RoomTranscriptController extends Controller
                 'messages' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to get room transcripts', [
+            Log::error('Failed to get room transcripts', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage()

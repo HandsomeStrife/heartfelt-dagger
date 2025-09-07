@@ -38,6 +38,9 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
         
         #[In(['optional', 'required'])]
         public string $recording_consent_requirement = 'optional',
+        
+        #[Nullable]
+        public ?string $viewer_password,
     ) {}
 
     public static function fromRoomRecordingSettings(?RoomRecordingSettingsData $settings): self
@@ -52,6 +55,7 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
                 stt_account_id: null,
                 stt_consent_requirement: 'optional',
                 recording_consent_requirement: 'optional',
+                viewer_password: null,
             );
         }
 
@@ -64,6 +68,7 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
             stt_account_id: $settings->stt_account_id,
             stt_consent_requirement: $settings->stt_consent_requirement,
             recording_consent_requirement: $settings->recording_consent_requirement,
+            viewer_password: $settings->viewer_password,
         );
     }
 

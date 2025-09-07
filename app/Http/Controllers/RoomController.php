@@ -643,16 +643,50 @@ class RoomController extends Controller
     /**
      * Show the viewer interface for a room (read-only access)
      */
-    public function viewer(string $viewer_code)
+    public function viewer(Request $request, string $viewer_code)
     {
-        $room = Room::byViewerCode($viewer_code)->first();
+        $room = Room::byViewerCode($viewer_code)->with('recordingSettings')->first();
 
         if (!$room) {
             abort(404, 'Room not found');
         }
 
+        // Check if viewer password is required
+        if ($room->recordingSettings && $room->recordingSettings->hasViewerPassword()) {
+            $passwordFromUrl = $request->query('password');
+            
+            if (!$passwordFromUrl || !$room->recordingSettings->verifyViewerPassword($passwordFromUrl)) {
+                // Show password form or redirect to password entry
+                return view('rooms.viewer-password', compact('room'));
+            }
+        }
+
         $participants = $this->room_repository->getRoomParticipants($room);
 
         return view('rooms.viewer', compact('room', 'participants'));
+    }
+
+    /**
+     * Handle viewer password submission
+     */
+    public function viewerPassword(Request $request, string $viewer_code)
+    {
+        $room = Room::byViewerCode($viewer_code)->with('recordingSettings')->first();
+
+        if (!$room) {
+            abort(404, 'Room not found');
+        }
+
+        $validated = $request->validate([
+            'password' => 'required|string',
+        ]);
+
+        // Check if password is correct
+        if ($room->recordingSettings && $room->recordingSettings->verifyViewerPassword($validated['password'])) {
+            // Redirect to viewer with password in URL
+            return redirect(route('rooms.viewer', $viewer_code) . '?password=' . urlencode($validated['password']));
+        }
+
+        return back()->withErrors(['password' => 'Invalid viewer password.']);
     }
 }

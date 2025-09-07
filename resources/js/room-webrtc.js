@@ -65,6 +65,11 @@ export default class RoomWebRTC {
         };
         this.iceReady = false;
 
+        // Media control state
+        this.isMicrophoneMuted = false;
+        this.isVideoHidden = false;
+        this.sttPausedForMute = false; // Track if STT was paused due to microphone mute
+
         this.init();
     }
 
@@ -570,6 +575,11 @@ export default class RoomWebRTC {
         this.currentSlotId = null;
         this.isJoined = false;
 
+        // Reset media control state
+        this.isMicrophoneMuted = false;
+        this.isVideoHidden = false;
+        this.sttPausedForMute = false;
+
         // Stop speech recognition
         this.stopSpeechRecognition();
         
@@ -645,6 +655,13 @@ export default class RoomWebRTC {
 
         // Hide loading state
         this.hideLoadingState(slotContainer);
+
+        // Clean up media control indicators
+        const micIndicator = slotContainer.querySelector('.microphone-indicator');
+        const videoOffIndicator = slotContainer.querySelector('.video-off-indicator');
+        
+        if (micIndicator) micIndicator.remove();
+        if (videoOffIndicator) videoOffIndicator.remove();
     }
 
     handleAblyMessage(message) {
@@ -2165,6 +2182,26 @@ export default class RoomWebRTC {
         }
     }
 
+    /**
+     * Get current user's character information from room participants
+     */
+    getCurrentUserCharacterInfo() {
+        if (!this.currentUserId || !this.roomData.participants) {
+            return { character_id: null, character_name: null, character_class: null };
+        }
+
+        const participant = this.roomData.participants.find(p => p.user_id === this.currentUserId);
+        if (!participant) {
+            return { character_id: null, character_name: null, character_class: null };
+        }
+
+        return {
+            character_id: participant.character_id || null,
+            character_name: participant.character_name || null,
+            character_class: participant.character_class || (participant.is_host ? 'GM' : null)
+        };
+    }
+
     async uploadTranscriptChunk() {
         if (!this.speechBuffer.length || !this.currentUserId) {
             return;
@@ -2174,14 +2211,21 @@ export default class RoomWebRTC {
         const combinedText = this.speechBuffer.map(item => item.text).join(' ');
         const averageConfidence = this.speechBuffer.reduce((sum, item) => sum + (item.confidence || 0), 0) / this.speechBuffer.length;
 
+        // Get character information for the current user
+        const characterInfo = this.getCurrentUserCharacterInfo();
+
         const payload = {
             room_id: this.roomData.id,
             user_id: this.currentUserId,
+            character_id: characterInfo.character_id,
+            character_name: characterInfo.character_name,
+            character_class: characterInfo.character_class,
             started_at_ms: this.speechChunkStartedAt,
             ended_at_ms: chunkEndedAt,
             text: combinedText,
             language: this.speechRecognition?.lang || this.roomData.stt_lang || 'en-GB',
-            confidence: averageConfidence || null
+            confidence: averageConfidence || null,
+            provider: 'browser'
         };
 
         try {
@@ -2886,5 +2930,330 @@ export default class RoomWebRTC {
                 }
             }
         }
+    }
+
+    // ===========================================
+    // MEDIA CONTROL METHODS
+    // ===========================================
+
+    /**
+     * Toggles microphone mute/unmute state
+     * @returns {boolean} - true if muted, false if unmuted
+     */
+    toggleMicrophone() {
+        console.log('🎤 === Toggling Microphone ===');
+        console.log(`  - Current state: ${this.isMicrophoneMuted ? 'muted' : 'unmuted'}`);
+        console.log(`  - Has local stream: ${!!this.localStream}`);
+
+        if (!this.localStream) {
+            console.warn('🎤 ⚠️ No local stream available for microphone toggle');
+            return this.isMicrophoneMuted;
+        }
+
+        const audioTracks = this.localStream.getAudioTracks();
+        console.log(`🎤 Audio tracks found: ${audioTracks.length}`);
+
+        if (audioTracks.length === 0) {
+            console.warn('🎤 ⚠️ No audio tracks available for microphone toggle');
+            return this.isMicrophoneMuted;
+        }
+
+        // Toggle the mute state
+        this.isMicrophoneMuted = !this.isMicrophoneMuted;
+
+        // Apply the mute state to all audio tracks
+        audioTracks.forEach((track, index) => {
+            track.enabled = !this.isMicrophoneMuted;
+            console.log(`🎤 Track ${index}: ${track.label} - enabled: ${track.enabled}`);
+        });
+
+        console.log(`🎤 ✅ Microphone ${this.isMicrophoneMuted ? 'muted' : 'unmuted'}`);
+        
+        // Handle STT integration based on microphone state
+        this.handleSTTMicrophoneIntegration();
+        
+        // Update visual indicators
+        this.updateMicrophoneIndicators();
+
+        return this.isMicrophoneMuted;
+    }
+
+    /**
+     * Toggles video show/hide state
+     * @returns {boolean} - true if hidden, false if visible
+     */
+    toggleVideo() {
+        console.log('📹 === Toggling Video ===');
+        console.log(`  - Current state: ${this.isVideoHidden ? 'hidden' : 'visible'}`);
+        console.log(`  - Has local stream: ${!!this.localStream}`);
+
+        if (!this.localStream) {
+            console.warn('📹 ⚠️ No local stream available for video toggle');
+            return this.isVideoHidden;
+        }
+
+        const videoTracks = this.localStream.getVideoTracks();
+        console.log(`📹 Video tracks found: ${videoTracks.length}`);
+
+        if (videoTracks.length === 0) {
+            console.warn('📹 ⚠️ No video tracks available for video toggle');
+            return this.isVideoHidden;
+        }
+
+        // Toggle the video state
+        this.isVideoHidden = !this.isVideoHidden;
+
+        // Apply the video state to all video tracks
+        videoTracks.forEach((track, index) => {
+            track.enabled = !this.isVideoHidden;
+            console.log(`📹 Track ${index}: ${track.label} - enabled: ${track.enabled}`);
+        });
+
+        console.log(`📹 ✅ Video ${this.isVideoHidden ? 'hidden' : 'visible'}`);
+        
+        // Update visual indicators
+        this.updateVideoIndicators();
+
+        return this.isVideoHidden;
+    }
+
+    /**
+     * Updates visual indicators for microphone state
+     */
+    updateMicrophoneIndicators() {
+        if (!this.currentSlotId) return;
+
+        const slotContainer = document.querySelector(`[data-slot-id="${this.currentSlotId}"]`);
+        if (!slotContainer) return;
+
+        // Find or create microphone indicator
+        let micIndicator = slotContainer.querySelector('.microphone-indicator');
+        if (!micIndicator) {
+            micIndicator = document.createElement('div');
+            micIndicator.className = 'microphone-indicator absolute top-2 left-2 text-xs px-2 py-1 rounded z-10';
+            slotContainer.appendChild(micIndicator);
+        }
+
+        if (this.isMicrophoneMuted) {
+            micIndicator.classList.add('bg-red-500', 'text-white');
+            micIndicator.classList.remove('bg-green-500');
+            micIndicator.innerHTML = '🔇 MUTED';
+            micIndicator.style.display = 'block';
+        } else {
+            micIndicator.style.display = 'none';
+        }
+    }
+
+    /**
+     * Updates visual indicators for video state
+     */
+    updateVideoIndicators() {
+        if (!this.currentSlotId) return;
+
+        const slotContainer = document.querySelector(`[data-slot-id="${this.currentSlotId}"]`);
+        if (!slotContainer) return;
+
+        const videoElement = slotContainer.querySelector('.local-video');
+        
+        if (this.isVideoHidden) {
+            // Hide video element and show placeholder
+            if (videoElement) {
+                videoElement.style.display = 'none';
+            }
+
+            // Find or create video-off indicator
+            let videoOffIndicator = slotContainer.querySelector('.video-off-indicator');
+            if (!videoOffIndicator) {
+                videoOffIndicator = document.createElement('div');
+                videoOffIndicator.className = 'video-off-indicator absolute inset-0 flex items-center justify-center bg-slate-800 rounded-lg';
+                videoOffIndicator.innerHTML = `
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                            </svg>
+                        </div>
+                        <p class="text-slate-400 text-sm">Video Off</p>
+                    </div>
+                `;
+                slotContainer.appendChild(videoOffIndicator);
+            }
+            videoOffIndicator.style.display = 'flex';
+        } else {
+            // Show video element and hide placeholder
+            if (videoElement) {
+                videoElement.style.display = 'block';
+            }
+
+            const videoOffIndicator = slotContainer.querySelector('.video-off-indicator');
+            if (videoOffIndicator) {
+                videoOffIndicator.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Handles Speech-to-Text integration when microphone state changes
+     */
+    handleSTTMicrophoneIntegration() {
+        console.log('🎤 === STT Microphone Integration ===');
+        console.log(`  - Microphone muted: ${this.isMicrophoneMuted}`);
+        console.log(`  - STT enabled: ${this.isSpeechEnabled}`);
+        console.log(`  - Has speech recognition: ${!!this.speechRecognition}`);
+        console.log(`  - Room STT enabled: ${this.roomData.stt_enabled}`);
+
+        // Only handle STT if it's enabled for the room and we have speech recognition
+        if (!this.roomData.stt_enabled || !this.speechRecognition) {
+            console.log('🎤 STT not available - skipping integration');
+            return;
+        }
+
+        if (this.isMicrophoneMuted) {
+            // Microphone muted - pause STT if it's currently running
+            if (this.isSpeechEnabled) {
+                console.log('🎤 🔇 Microphone muted - pausing STT');
+                this.pauseSTTForMute();
+            } else {
+                console.log('🎤 STT already stopped - no action needed');
+            }
+        } else {
+            // Microphone unmuted - resume STT if we're in a slot and have consent
+            if (this.isJoined && this.localStream) {
+                console.log('🎤 🔊 Microphone unmuted - checking if STT should resume');
+                this.resumeSTTFromMute();
+            } else {
+                console.log('🎤 Not joined or no stream - STT will start when user joins slot');
+            }
+        }
+    }
+
+    /**
+     * Pauses STT when microphone is muted
+     */
+    pauseSTTForMute() {
+        console.log('🎤 === Pausing STT for Microphone Mute ===');
+        
+        // Store that STT was paused due to mute (not user action)
+        this.sttPausedForMute = true;
+        
+        // Stop STT but don't clear the speech recognition instance
+        const provider = this.roomData.stt_provider || 'browser';
+        
+        if (provider === 'assemblyai') {
+            if (this.assemblyAISpeech && this.assemblyAISpeech.isRunning()) {
+                console.log('🎤 Pausing AssemblyAI STT for mute');
+                // For AssemblyAI, we'll stop it but remember it was running
+                this.assemblyAISpeech.stop().catch(error => {
+                    console.warn('🎤 Error stopping AssemblyAI for mute:', error);
+                });
+            }
+        } else {
+            // Browser speech recognition
+            if (this.speechRecognition && this.isSpeechEnabled) {
+                console.log('🎤 Pausing browser STT for mute');
+                this.isSpeechEnabled = false; // Stop the restart loops
+                try {
+                    this.speechRecognition.stop();
+                } catch (error) {
+                    console.warn('🎤 Error stopping browser STT for mute:', error);
+                }
+            }
+        }
+
+        // Clear upload interval but keep buffer
+        if (this.speechUploadInterval) {
+            clearInterval(this.speechUploadInterval);
+            this.speechUploadInterval = null;
+        }
+
+        console.log('🎤 ✅ STT paused for microphone mute');
+    }
+
+    /**
+     * Resumes STT when microphone is unmuted
+     */
+    resumeSTTFromMute() {
+        console.log('🎤 === Resuming STT from Microphone Unmute ===');
+        
+        // Only resume if STT was paused due to mute (not user action)
+        if (!this.sttPausedForMute) {
+            console.log('🎤 STT was not paused for mute - not resuming automatically');
+            return;
+        }
+
+        // Check if we have consent for STT
+        const sttStatus = this.consentManager.stt.status;
+        if (!sttStatus?.consent_given) {
+            console.log('🎤 No STT consent - cannot resume');
+            this.sttPausedForMute = false;
+            return;
+        }
+
+        // Check if we have audio tracks
+        if (!this.localStream || this.localStream.getAudioTracks().length === 0) {
+            console.log('🎤 No audio tracks available - cannot resume STT');
+            this.sttPausedForMute = false;
+            return;
+        }
+
+        console.log('🎤 Conditions met - resuming STT from mute');
+        
+        // Clear the mute flag
+        this.sttPausedForMute = false;
+        
+        // Resume STT based on provider
+        const provider = this.roomData.stt_provider || 'browser';
+        
+        if (provider === 'assemblyai') {
+            if (this.assemblyAISpeech) {
+                console.log('🎤 Resuming AssemblyAI STT from mute');
+                // Restart AssemblyAI with current stream
+                this.assemblyAISpeech.start(this.localStream).catch(error => {
+                    console.error('🎤 Error resuming AssemblyAI from mute:', error);
+                });
+            }
+        } else {
+            // Browser speech recognition
+            if (this.speechRecognition) {
+                console.log('🎤 Resuming browser STT from mute');
+                this.startBrowserSpeechRecognition();
+            }
+        }
+
+        console.log('🎤 ✅ STT resumed from microphone unmute');
+    }
+
+    /**
+     * Gets current microphone mute state
+     * @returns {boolean} - true if muted, false if unmuted
+     */
+    getMicrophoneMutedState() {
+        return this.isMicrophoneMuted;
+    }
+
+    /**
+     * Gets current video hidden state
+     * @returns {boolean} - true if hidden, false if visible
+     */
+    getVideoHiddenState() {
+        return this.isVideoHidden;
+    }
+
+    /**
+     * Sets microphone mute state directly
+     * @param {boolean} muted - true to mute, false to unmute
+     */
+    setMicrophoneMuted(muted) {
+        if (this.isMicrophoneMuted === muted) return;
+        this.toggleMicrophone();
+    }
+
+    /**
+     * Sets video hidden state directly
+     * @param {boolean} hidden - true to hide, false to show
+     */
+    setVideoHidden(hidden) {
+        if (this.isVideoHidden === hidden) return;
+        this.toggleVideo();
     }
 }

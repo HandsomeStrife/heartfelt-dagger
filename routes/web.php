@@ -102,6 +102,7 @@ Route::prefix('rooms')->name('rooms.')->group(function () {
 // Room invite and viewer routes (consistent pattern)
 Route::get('/rooms/join/{invite_code}', [App\Http\Controllers\RoomController::class, 'showJoin'])->name('rooms.invite');
 Route::get('/rooms/watch/{viewer_code}', [App\Http\Controllers\RoomController::class, 'viewer'])->name('rooms.viewer');
+Route::post('/rooms/watch/{viewer_code}', [App\Http\Controllers\RoomController::class, 'viewerPassword'])->name('rooms.viewer.password');
 
 // Character routes (public)
 Route::get('/characters', [App\Http\Controllers\CharacterBuilderController::class, 'index'])->name('characters');

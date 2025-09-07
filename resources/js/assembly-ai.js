@@ -369,6 +369,26 @@ export default class AssemblyAISpeechRecognition {
     }
 
     /**
+     * Get current user's character information from room participants
+     */
+    getCurrentUserCharacterInfo() {
+        if (!this.currentUserId || !this.roomData.participants) {
+            return { character_id: null, character_name: null, character_class: null };
+        }
+
+        const participant = this.roomData.participants.find(p => p.user_id === this.currentUserId);
+        if (!participant) {
+            return { character_id: null, character_name: null, character_class: null };
+        }
+
+        return {
+            character_id: participant.character_id || null,
+            character_name: participant.character_name || null,
+            character_class: participant.character_class || (participant.is_host ? 'GM' : null)
+        };
+    }
+
+    /**
      * Upload transcript chunk to server
      */
     async uploadTranscriptChunk() {
@@ -380,14 +400,21 @@ export default class AssemblyAISpeechRecognition {
         const combinedText = this.speechBuffer.map(item => item.text).join(' ');
         const averageConfidence = this.speechBuffer.reduce((sum, item) => sum + (item.confidence || 0), 0) / this.speechBuffer.length;
 
+        // Get character information for the current user
+        const characterInfo = this.getCurrentUserCharacterInfo();
+
         const payload = {
             room_id: this.roomData.id,
             user_id: this.currentUserId,
+            character_id: characterInfo.character_id,
+            character_name: characterInfo.character_name,
+            character_class: characterInfo.character_class,
             started_at_ms: this.speechChunkStartedAt,
             ended_at_ms: chunkEndedAt,
             text: combinedText,
             language: this.roomData.stt_lang || 'en-GB',
-            confidence: averageConfidence || null
+            confidence: averageConfidence || null,
+            provider: 'assemblyai'
         };
 
         try {

@@ -32,16 +32,6 @@
                 <div :class="sidebarVisible ? 'w-2/3' : 'w-full'" 
                      class="relative transition-all duration-300 p-1 flex-1">
                 
-                <!-- Sidebar Toggle Button -->
-                <button @click="sidebarVisible = !sidebarVisible"
-                        class="absolute top-4 left-4 z-50 bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-xl p-2 text-white hover:bg-slate-800/90 transition-colors">
-                    <svg x-show="sidebarVisible" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                    </svg>
-                    <svg x-show="!sidebarVisible" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                </button>
                 
                 <!-- Video Grid Layout -->
                 <div class="h-full w-full">
@@ -85,11 +75,55 @@
                     <div id="room-info" class="flex items-center space-x-3 text-slate-400 text-xs">
                         <span>{{ $room->name }}</span>
                         <span>•</span>
-                        <span>{{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants</span>
+                        @if($room->isCreator(auth()->user()))
+                            <button onclick="toggleParticipantsModal()" class="text-slate-400 hover:text-slate-300 cursor-pointer transition-colors">
+                                {{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants
+                                <svg class="w-3 h-3 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        @else
+                            <span>{{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants</span>
+                        @endif
                     </div>
 
                     <!-- Controls -->
                     <div class="flex items-center space-x-2">
+                        <!-- Sidebar Toggle Button -->
+                        <button @click="sidebarVisible = !sidebarVisible"
+                                class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors flex items-center">
+                            <svg x-show="sidebarVisible" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                            </svg>
+                            <svg x-show="!sidebarVisible" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                            </svg>
+                            <span x-show="sidebarVisible">Hide Sidebar</span>
+                            <span x-show="!sidebarVisible">Show Sidebar</span>
+                        </button>
+
+                        <!-- Microphone Toggle Button -->
+                        <button id="mic-toggle-btn" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors flex items-center">
+                            <svg id="mic-on-icon" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                            <svg id="mic-off-icon" class="w-3 h-3 mr-1 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 5.586A2 2 0 015 7v3a9 9 0 0018 0V7a2 2 0 00-2-2h-1M9 12l6 6m0 0l6 6M9 12l-6-6m6 6v3a3 3 0 01-3 3H8a3 3 0 01-3-3v-1m0 0h18" />
+                            </svg>
+                            <span id="mic-status-text">Mute</span>
+                        </button>
+
+                        <!-- Video Toggle Button -->
+                        <button id="video-toggle-btn" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors flex items-center">
+                            <svg id="video-on-icon" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <svg id="video-off-icon" class="w-3 h-3 mr-1 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                            </svg>
+                            <span id="video-status-text">Hide Video</span>
+                        </button>
+                        
                         <!-- Recording Controls (Hidden when not recording) -->
                         <div id="recording-controls" class="hidden items-center space-x-2">
                             @if($room->recordingSettings && $room->recordingSettings->isSttEnabled())
@@ -101,13 +135,15 @@
                                 </button>
                             @endif
                             
-                            <button id="stop-recording-btn" class="px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs transition-colors">
-                                <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                                </svg>
-                                Stop & Leave
-                            </button>
+                            @if($room->recordingSettings && $room->recordingSettings->storage_provider === 'local_device')
+                                <button id="stop-recording-btn" class="px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs transition-colors">
+                                    <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                                    </svg>
+                                    Stop and Save Recording
+                                </button>
+                            @endif
                         </div>
                         
                         <!-- Always Visible Leave Button -->
@@ -160,11 +196,42 @@
                     <div id="room-info-normal" class="flex items-center space-x-3 text-slate-400 text-xs">
                         <span>{{ $room->name }}</span>
                         <span>•</span>
-                        <span>{{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants</span>
+                        @if($room->isCreator(auth()->user()))
+                            <button onclick="toggleParticipantsModal()" class="text-slate-400 hover:text-slate-300 cursor-pointer transition-colors">
+                                {{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants
+                                <svg class="w-3 h-3 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                        @else
+                            <span>{{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants</span>
+                        @endif
                     </div>
 
                     <!-- Controls -->
                     <div class="flex items-center space-x-2">
+                        <!-- Microphone Toggle Button -->
+                        <button id="mic-toggle-btn-normal" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors flex items-center">
+                            <svg id="mic-on-icon-normal" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                            <svg id="mic-off-icon-normal" class="w-3 h-3 mr-1 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 5.586A2 2 0 015 7v3a9 9 0 0018 0V7a2 2 0 00-2-2h-1M9 12l6 6m0 0l6 6M9 12l-6-6m6 6v3a3 3 0 01-3 3H8a3 3 0 01-3-3v-1m0 0h18" />
+                            </svg>
+                            <span id="mic-status-text-normal">Mute</span>
+                        </button>
+
+                        <!-- Video Toggle Button -->
+                        <button id="video-toggle-btn-normal" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors flex items-center">
+                            <svg id="video-on-icon-normal" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <svg id="video-off-icon-normal" class="w-3 h-3 mr-1 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                            </svg>
+                            <span id="video-status-text-normal">Hide Video</span>
+                        </button>
+                        
                         <!-- Recording Controls (Hidden when not recording) -->
                         <div id="recording-controls-normal" class="hidden items-center space-x-2">
                             @if($room->recordingSettings && $room->recordingSettings->isSttEnabled())
@@ -176,13 +243,15 @@
                                 </button>
                             @endif
                             
-                            <button id="stop-recording-btn-normal" class="px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs transition-colors">
-                                <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                                </svg>
-                                Stop & Leave
-                            </button>
+                            @if($room->recordingSettings && $room->recordingSettings->storage_provider === 'local_device')
+                                <button id="stop-recording-btn-normal" class="px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs transition-colors">
+                                    <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                                    </svg>
+                                    Stop and Save Recording
+                                </button>
+                            @endif
                         </div>
                         
                         <!-- Always Visible Leave Button -->
@@ -198,92 +267,71 @@
         </div>
     @endif
 
-    <!-- Room Controls -->
-    <div class="absolute top-4 right-4 flex items-center space-x-4">
-        <!-- Room Info -->
-        <div data-testid="room-info" class="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-xl px-4 py-2 relative">
-            <h3 data-testid="room-name" class="text-white font-semibold text-sm">{{ $room->name }}</h3>
-            @if($room->isCreator(auth()->user()))
-                <button onclick="toggleParticipantsList()" data-testid="participant-count" class="text-slate-400 hover:text-slate-300 text-xs cursor-pointer transition-colors">
-                    {{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants
-                    <svg class="w-3 h-3 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
-            @else
-                <p data-testid="participant-count" class="text-slate-400 text-xs">{{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants</p>
-            @endif
-            
-            @if($room->isCreator(auth()->user()))
-                <!-- Participants List Dropdown -->
-                <div id="participantsList" class="hidden absolute top-full right-0 mt-2 w-80 bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-xl z-50">
-                    <div class="p-4">
-                        <h4 class="text-white font-semibold text-sm mb-3 flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    @if($room->isCreator(auth()->user()))
+        <!-- Participants Management Modal -->
+        <div id="participantsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-xl shadow-xl w-96 max-w-full mx-4">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-white font-semibold text-lg flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                             </svg>
                             Manage Participants
                         </h4>
-                        <div class="space-y-2 max-h-64 overflow-y-auto">
-                            @foreach($participants as $participant)
-                                <div class="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg">
-                                    <div class="flex-1">
-                                        <div class="text-white text-sm font-medium">
-                                            @if($participant->character)
-                                                {{ $participant->character->name }}
-                                            @elseif($participant->character_name)
-                                                {{ $participant->character_name }}
-                                            @else
-                                                {{ $participant->user ? $participant->user->username : 'Anonymous' }}
-                                            @endif
-                                            @if($participant->user_id === $room->creator_id)
-                                                <span class="text-amber-400 text-xs ml-1">(Host)</span>
-                                            @endif
-                                        </div>
-                                        <div class="text-slate-400 text-xs">
-                                            @if($participant->character_class)
-                                                {{ $participant->character_class }}
-                                            @elseif($participant->character)
-                                                {{ $participant->character->class }}
-                                            @endif
-                                            • {{ $participant->user ? $participant->user->username : 'Anonymous' }}
-                                        </div>
+                        <button onclick="toggleParticipantsModal()" class="text-slate-400 hover:text-slate-300 p-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="space-y-3 max-h-80 overflow-y-auto">
+                        @foreach($participants as $participant)
+                            <div class="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+                                <div class="flex-1">
+                                    <div class="text-white text-sm font-medium">
+                                        @if($participant->character)
+                                            {{ $participant->character->name }}
+                                        @elseif($participant->character_name)
+                                            {{ $participant->character_name }}
+                                        @else
+                                            {{ $participant->user ? $participant->user->username : 'Anonymous' }}
+                                        @endif
+                                        @if($participant->user_id === $room->creator_id)
+                                            <span class="text-amber-400 text-xs ml-1">(Host)</span>
+                                        @endif
                                     </div>
-                                    @if($participant->user_id !== $room->creator_id)
-                                        <form action="{{ route('rooms.kick', [$room, $participant->id]) }}" method="POST" onsubmit="return confirm('Remove {{ $participant->character_name ?: ($participant->user ? $participant->user->username : 'this participant') }} from the room?')" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 rounded transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    @endif
+                                    <div class="text-slate-400 text-xs">
+                                        @if($participant->character_class)
+                                            {{ $participant->character_class }}
+                                        @elseif($participant->character)
+                                            {{ $participant->character->class }}
+                                        @elseif($participant->user_id === $room->creator_id)
+                                            GM
+                                        @endif
+                                        • {{ $participant->user ? $participant->user->username : 'Anonymous' }}
+                                    </div>
                                 </div>
-                            @endforeach
-                        </div>
+                                @if($participant->user_id !== $room->creator_id)
+                                    <form action="{{ route('rooms.kick', [$room, $participant->id]) }}" method="POST" onsubmit="return confirm('Remove {{ $participant->character_name ?: ($participant->user ? $participant->user->username : 'this participant') }} from the room?')" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded transition-colors">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
                 </div>
-            @endif
+            </div>
+            </div>
         </div>
-
-        <!-- Room Actions -->
-        @if(false)
-            <!-- Leave Button for Authenticated Users -->
-            <form action="{{ route('rooms.leave', $room) }}" method="POST" onsubmit="return confirm('Are you sure you want to leave this room?')" class="inline">
-                @csrf
-                @method('DELETE')
-                <button data-testid="leave-room-button" type="submit" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 font-semibold py-2 px-4 rounded-xl transition-all duration-300">
-                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Leave Session
-                </button>
-            </form>
-        @endif
-    </div>
-
+    @endif
 
     <!-- Include our Room WebRTC JavaScript with room context -->
     <script>
@@ -318,19 +366,149 @@
         // Pass current user ID for participant identification
         window.currentUserId = {{ auth()->id() ?? 'null' }};
         
-        function toggleParticipantsList() {
-            const list = document.getElementById('participantsList');
-            list.classList.toggle('hidden');
+        function toggleParticipantsModal() {
+            const modal = document.getElementById('participantsModal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'block';
+            } else {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
         }
         
-        // Close participants list when clicking outside
+        // Close participants modal when clicking outside
         document.addEventListener('click', function(event) {
-            const list = document.getElementById('participantsList');
-            const button = event.target.closest('[onclick="toggleParticipantsList()"]');
-            const dropdown = event.target.closest('#participantsList');
+            const modal = document.getElementById('participantsModal');
+            const modalContent = event.target.closest('.bg-slate-900\\/95');
+            const button = event.target.closest('[onclick="toggleParticipantsModal()"]');
             
-            if (!button && !dropdown && !list.classList.contains('hidden')) {
-                list.classList.add('hidden');
+            if (modal && !modal.classList.contains('hidden') && !modalContent && !button) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+        });
+        
+        // Microphone and Video Toggle Functions
+        function toggleMicrophone() {
+            if (window.roomWebRTC) {
+                const isMuted = window.roomWebRTC.toggleMicrophone();
+                updateMicrophoneUI(isMuted);
+            }
+        }
+        
+        function toggleVideo() {
+            if (window.roomWebRTC) {
+                const isVideoHidden = window.roomWebRTC.toggleVideo();
+                updateVideoUI(isVideoHidden);
+            }
+        }
+        
+        function updateMicrophoneUI(isMuted) {
+            // Update campaign layout buttons
+            const micOnIcon = document.getElementById('mic-on-icon');
+            const micOffIcon = document.getElementById('mic-off-icon');
+            const micStatusText = document.getElementById('mic-status-text');
+            const micToggleBtn = document.getElementById('mic-toggle-btn');
+            
+            // Update normal layout buttons
+            const micOnIconNormal = document.getElementById('mic-on-icon-normal');
+            const micOffIconNormal = document.getElementById('mic-off-icon-normal');
+            const micStatusTextNormal = document.getElementById('mic-status-text-normal');
+            const micToggleBtnNormal = document.getElementById('mic-toggle-btn-normal');
+            
+            if (isMuted) {
+                // Show muted state
+                if (micOnIcon) micOnIcon.classList.add('hidden');
+                if (micOffIcon) micOffIcon.classList.remove('hidden');
+                if (micStatusText) micStatusText.textContent = 'Unmute';
+                if (micToggleBtn) micToggleBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+                if (micToggleBtn) micToggleBtn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                
+                if (micOnIconNormal) micOnIconNormal.classList.add('hidden');
+                if (micOffIconNormal) micOffIconNormal.classList.remove('hidden');
+                if (micStatusTextNormal) micStatusTextNormal.textContent = 'Unmute';
+                if (micToggleBtnNormal) micToggleBtnNormal.classList.add('bg-red-600', 'hover:bg-red-500');
+                if (micToggleBtnNormal) micToggleBtnNormal.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+            } else {
+                // Show unmuted state
+                if (micOnIcon) micOnIcon.classList.remove('hidden');
+                if (micOffIcon) micOffIcon.classList.add('hidden');
+                if (micStatusText) micStatusText.textContent = 'Mute';
+                if (micToggleBtn) micToggleBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
+                if (micToggleBtn) micToggleBtn.classList.add('bg-slate-700', 'hover:bg-slate-600');
+                
+                if (micOnIconNormal) micOnIconNormal.classList.remove('hidden');
+                if (micOffIconNormal) micOffIconNormal.classList.add('hidden');
+                if (micStatusTextNormal) micStatusTextNormal.textContent = 'Mute';
+                if (micToggleBtnNormal) micToggleBtnNormal.classList.remove('bg-red-600', 'hover:bg-red-500');
+                if (micToggleBtnNormal) micToggleBtnNormal.classList.add('bg-slate-700', 'hover:bg-slate-600');
+            }
+        }
+        
+        function updateVideoUI(isVideoHidden) {
+            // Update campaign layout buttons
+            const videoOnIcon = document.getElementById('video-on-icon');
+            const videoOffIcon = document.getElementById('video-off-icon');
+            const videoStatusText = document.getElementById('video-status-text');
+            const videoToggleBtn = document.getElementById('video-toggle-btn');
+            
+            // Update normal layout buttons
+            const videoOnIconNormal = document.getElementById('video-on-icon-normal');
+            const videoOffIconNormal = document.getElementById('video-off-icon-normal');
+            const videoStatusTextNormal = document.getElementById('video-status-text-normal');
+            const videoToggleBtnNormal = document.getElementById('video-toggle-btn-normal');
+            
+            if (isVideoHidden) {
+                // Show video hidden state
+                if (videoOnIcon) videoOnIcon.classList.add('hidden');
+                if (videoOffIcon) videoOffIcon.classList.remove('hidden');
+                if (videoStatusText) videoStatusText.textContent = 'Show Video';
+                if (videoToggleBtn) videoToggleBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+                if (videoToggleBtn) videoToggleBtn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+                
+                if (videoOnIconNormal) videoOnIconNormal.classList.add('hidden');
+                if (videoOffIconNormal) videoOffIconNormal.classList.remove('hidden');
+                if (videoStatusTextNormal) videoStatusTextNormal.textContent = 'Show Video';
+                if (videoToggleBtnNormal) videoToggleBtnNormal.classList.add('bg-red-600', 'hover:bg-red-500');
+                if (videoToggleBtnNormal) videoToggleBtnNormal.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+            } else {
+                // Show video visible state
+                if (videoOnIcon) videoOnIcon.classList.remove('hidden');
+                if (videoOffIcon) videoOffIcon.classList.add('hidden');
+                if (videoStatusText) videoStatusText.textContent = 'Hide Video';
+                if (videoToggleBtn) videoToggleBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
+                if (videoToggleBtn) videoToggleBtn.classList.add('bg-slate-700', 'hover:bg-slate-600');
+                
+                if (videoOnIconNormal) videoOnIconNormal.classList.remove('hidden');
+                if (videoOffIconNormal) videoOffIconNormal.classList.add('hidden');
+                if (videoStatusTextNormal) videoStatusTextNormal.textContent = 'Hide Video';
+                if (videoToggleBtnNormal) videoToggleBtnNormal.classList.remove('bg-red-600', 'hover:bg-red-500');
+                if (videoToggleBtnNormal) videoToggleBtnNormal.classList.add('bg-slate-700', 'hover:bg-slate-600');
+            }
+        }
+        
+        // Add event listeners for the toggle buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Campaign layout buttons
+            const micToggleBtn = document.getElementById('mic-toggle-btn');
+            const videoToggleBtn = document.getElementById('video-toggle-btn');
+            
+            // Normal layout buttons  
+            const micToggleBtnNormal = document.getElementById('mic-toggle-btn-normal');
+            const videoToggleBtnNormal = document.getElementById('video-toggle-btn-normal');
+            
+            if (micToggleBtn) {
+                micToggleBtn.addEventListener('click', toggleMicrophone);
+            }
+            if (videoToggleBtn) {
+                videoToggleBtn.addEventListener('click', toggleVideo);
+            }
+            if (micToggleBtnNormal) {
+                micToggleBtnNormal.addEventListener('click', toggleMicrophone);
+            }
+            if (videoToggleBtnNormal) {
+                videoToggleBtnNormal.addEventListener('click', toggleVideo);
             }
         });
         

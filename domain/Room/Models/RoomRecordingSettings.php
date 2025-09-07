@@ -153,6 +153,26 @@ class RoomRecordingSettings extends Model
         return $this->recording_consent_requirement === 'required';
     }
 
+    /**
+     * Check if viewer access requires a password
+     */
+    public function hasViewerPassword(): bool
+    {
+        return !empty($this->viewer_password);
+    }
+
+    /**
+     * Verify viewer password
+     */
+    public function verifyViewerPassword(string $password): bool
+    {
+        if (!$this->hasViewerPassword()) {
+            return true; // No password required
+        }
+        
+        return \Hash::check($password, $this->viewer_password);
+    }
+
     protected static function newFactory()
     {
         return \Database\Factories\RoomRecordingSettingsFactory::new();

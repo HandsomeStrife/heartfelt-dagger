@@ -22,7 +22,8 @@ class UpdateRoomRecordingSettings
         ?string $sttProvider = null,
         ?int $sttAccountId = null,
         string $sttConsentRequirement = 'optional',
-        string $recordingConsentRequirement = 'optional'
+        string $recordingConsentRequirement = 'optional',
+        ?string $viewerPassword = null
     ): RoomRecordingSettings {
         // Verify user is the room creator
         if ($room->creator_id !== $user->id) {
@@ -103,6 +104,13 @@ class UpdateRoomRecordingSettings
             $settings->stt_account_id = $sttAccountId;
             $settings->stt_consent_requirement = $sttConsentRequirement;
             $settings->recording_consent_requirement = $recordingConsentRequirement;
+            
+            // Handle viewer password - hash if provided, null if empty
+            if ($viewerPassword) {
+                $settings->viewer_password = \Hash::make($viewerPassword);
+            } else {
+                $settings->viewer_password = null;
+            }
             
             $settings->save();
 

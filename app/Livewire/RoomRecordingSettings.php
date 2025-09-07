@@ -81,6 +81,7 @@ class RoomRecordingSettings extends Component
             'form.stt_account_id' => 'nullable|integer',
             'form.stt_consent_requirement' => 'in:optional,required',
             'form.recording_consent_requirement' => 'in:optional,required',
+            'form.viewer_password' => 'nullable|string|min:3|max:255',
         ];
     }
 
@@ -184,7 +185,8 @@ class RoomRecordingSettings extends Component
                 $this->form->stt_provider,
                 $this->form->stt_account_id,
                 $this->form->stt_consent_requirement,
-                $this->form->recording_consent_requirement
+                $this->form->recording_consent_requirement,
+                $this->form->viewer_password
             );
 
             session()->flash('success', 'Recording settings updated successfully!');
