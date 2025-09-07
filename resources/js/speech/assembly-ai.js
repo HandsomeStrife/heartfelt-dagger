@@ -5,6 +5,8 @@
  * with proper browser-compatible implementation.
  */
 
+import TranscriptUploader from './transcript-uploader.js';
+
 export default class AssemblyAISpeechRecognition {
     constructor(roomData, currentUserId) {
         this.roomData = roomData;
@@ -17,6 +19,9 @@ export default class AssemblyAISpeechRecognition {
         this.audioContext = null;
         this.audioProcessor = null;
         this.audioSource = null;
+        
+        // Create transcript uploader instance
+        this.transcriptUploader = new TranscriptUploader(roomData, currentUserId);
         
         // Event callbacks
         this.onTranscript = null;
@@ -369,76 +374,25 @@ export default class AssemblyAISpeechRecognition {
     }
 
     /**
-     * Get current user's character information from room participants
-     */
-    getCurrentUserCharacterInfo() {
-        if (!this.currentUserId || !this.roomData.participants) {
-            return { character_id: null, character_name: null, character_class: null };
-        }
-
-        const participant = this.roomData.participants.find(p => p.user_id === this.currentUserId);
-        if (!participant) {
-            return { character_id: null, character_name: null, character_class: null };
-        }
-
-        return {
-            character_id: participant.character_id || null,
-            character_name: participant.character_name || null,
-            character_class: participant.character_class || (participant.is_host ? 'GM' : null)
-        };
-    }
-
-    /**
-     * Upload transcript chunk to server
+     * Upload transcript chunk using the common uploader
      */
     async uploadTranscriptChunk() {
-        if (!this.speechBuffer.length || !this.currentUserId) {
+        if (!this.speechBuffer.length) {
             return;
         }
 
-        const chunkEndedAt = Date.now();
-        const combinedText = this.speechBuffer.map(item => item.text).join(' ');
-        const averageConfidence = this.speechBuffer.reduce((sum, item) => sum + (item.confidence || 0), 0) / this.speechBuffer.length;
+        const success = await this.transcriptUploader.uploadTranscriptChunk({
+            speechBuffer: this.speechBuffer,
+            chunkStartedAt: this.speechChunkStartedAt,
+            provider: 'assemblyai',
+            language: this.roomData.stt_lang
+        });
 
-        // Get character information for the current user
-        const characterInfo = this.getCurrentUserCharacterInfo();
-
-        const payload = {
-            room_id: this.roomData.id,
-            user_id: this.currentUserId,
-            character_id: characterInfo.character_id,
-            character_name: characterInfo.character_name,
-            character_class: characterInfo.character_class,
-            started_at_ms: this.speechChunkStartedAt,
-            ended_at_ms: chunkEndedAt,
-            text: combinedText,
-            language: this.roomData.stt_lang || 'en-GB',
-            confidence: averageConfidence || null,
-            provider: 'assemblyai'
-        };
-
-        try {
-            const response = await fetch(`/api/rooms/${this.roomData.id}/transcripts`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                console.log('📤 Transcript chunk uploaded successfully');
-            } else {
-                console.error('❌ Failed to upload transcript chunk:', response.status);
-            }
-        } catch (error) {
-            console.error('❌ Error uploading transcript chunk:', error);
+        if (success) {
+            // Reset buffer for next chunk
+            this.speechBuffer = [];
+            this.speechChunkStartedAt = Date.now();
         }
-
-        // Reset buffer for next chunk
-        this.speechBuffer = [];
-        this.speechChunkStartedAt = Date.now();
     }
 
     /**

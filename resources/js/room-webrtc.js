@@ -10,6 +10,10 @@
  * - Backpressure handling for upload queues
  * - Audio-only fallback support
  */
+
+import BrowserSpeechRecognition from './speech/browser-speech.js';
+import AssemblyAISpeechRecognition from './speech/assembly-ai.js';
+
 export default class RoomWebRTC {
     constructor(roomData) {
         this.roomData = roomData;
@@ -22,13 +26,11 @@ export default class RoomWebRTC {
         this.isJoined = false;
         this.currentUserId = window.currentUserId; // Should be set by Blade template
         
-        // Speech recognition properties
-        this.speechRecognition = null;
-        this.speechBuffer = [];
-        this.speechChunkStartedAt = null;
-        this.speechUploadInterval = null;
-        this.isSpeechEnabled = false;
+        // Speech recognition modules
+        this.browserSpeech = null;
         this.assemblyAISpeech = null;
+        this.currentSpeechModule = null;
+        this.isSpeechEnabled = false;
 
         // Video recording properties
         this.mediaRecorder = null;
@@ -1569,13 +1571,12 @@ export default class RoomWebRTC {
     /**
      * Initializes speech recognition with provider-specific setup
      */
-    initializeSpeechRecognition() {
+    async initializeSpeechRecognition() {
         console.log('🎤 === Speech Recognition Initialization Starting ===');
         
         // Check if STT is enabled for this room
         if (!this.roomData.stt_enabled) {
             console.log('🎤 Speech-to-text disabled for this room');
-            this.speechRecognition = null;
             return;
         }
 
@@ -1586,243 +1587,51 @@ export default class RoomWebRTC {
         const provider = this.roomData.stt_provider || 'browser';
         
         if (provider === 'assemblyai') {
-            this.initializeAssemblyAISpeechRecognition();
+            await this.initializeAssemblyAISpeechRecognition();
         } else {
-            this.initializeBrowserSpeechRecognition();
+            await this.initializeBrowserSpeechRecognition();
         }
     }
 
     /**
      * Initializes browser-based speech recognition (Web Speech API)
      */
-    initializeBrowserSpeechRecognition() {
+    async initializeBrowserSpeechRecognition() {
         console.log('🎤 === Browser Speech Recognition Initialization ===');
         
-        // Comprehensive browser support detection
-        const hasWebSpeechAPI = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-        const userAgent = navigator.userAgent;
-        const isChrome = /Chrome/.test(userAgent);
-        const isFirefox = /Firefox/.test(userAgent);
-        const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
-        const isEdge = /Edg/.test(userAgent);
-        
-        console.log('🎤 Browser Support Analysis:');
-        console.log(`  - User Agent: ${userAgent}`);
-        console.log(`  - Chrome: ${isChrome}`);
-        console.log(`  - Firefox: ${isFirefox}`);
-        console.log(`  - Safari: ${isSafari}`);
-        console.log(`  - Edge: ${isEdge}`);
-        console.log(`  - webkitSpeechRecognition: ${'webkitSpeechRecognition' in window}`);
-        console.log(`  - SpeechRecognition: ${'SpeechRecognition' in window}`);
-        console.log(`  - Overall Support: ${hasWebSpeechAPI}`);
-        
-        // Check if speech recognition is supported
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        
-        if (!SpeechRecognition) {
-            console.error('🎤 ❌ Speech recognition not supported in this browser');
-            console.error('🎤 Web Speech API requires Chrome, Edge, or Safari');
-            console.error('🎤 Firefox does not support Web Speech API');
-            this.speechRecognition = null;
-            return;
-        }
-
-        console.log('🎤 ✅ Speech Recognition API available');
-
         try {
-            this.speechRecognition = new SpeechRecognition();
-            console.log('🎤 ✅ SpeechRecognition instance created successfully');
-        } catch (error) {
-            console.error('🎤 ❌ Failed to create SpeechRecognition instance:', error);
-            this.speechRecognition = null;
-            return;
-        }
-        // Configure speech recognition parameters
-        const targetLang = this.roomData.stt_lang || navigator.language || 'en-GB';
-        this.speechRecognition.lang = targetLang;
-        this.speechRecognition.continuous = true;
-        this.speechRecognition.interimResults = false;
-        this.speechRecognition.maxAlternatives = 1;
-        
-        console.log('🎤 Configuration:');
-        console.log(`  - Language: ${targetLang}`);
-        console.log(`  - Continuous: ${this.speechRecognition.continuous}`);
-        console.log(`  - Interim Results: ${this.speechRecognition.interimResults}`);
-        console.log(`  - Max Alternatives: ${this.speechRecognition.maxAlternatives}`);
-        console.log(`  - Room STT Lang: ${this.roomData.stt_lang || 'not set'}`);
-        console.log(`  - Navigator Language: ${navigator.language || 'not available'}`);
-        
-        // Check for permission requirements
-        console.log('🎤 Permission Status:');
-        if (navigator.permissions) {
-            navigator.permissions.query({name: 'microphone'}).then(result => {
-                console.log(`  - Microphone Permission: ${result.state}`);
-            }).catch(err => {
-                console.log(`  - Microphone Permission: Unable to check (${err.message})`);
-            });
-        } else {
-            console.log('  - Permissions API not available');
-        }
-
-        let lastErrorAt = 0;
-
-        this.speechRecognition.onresult = (event) => {
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) {
-                    const transcript = event.results[i][0].transcript.trim();
-                    const confidence = event.results[i][0].confidence;
-                    
-                    if (transcript) {
-                        this.speechBuffer.push({
-                            text: transcript,
-                            confidence: confidence,
-                            timestamp: Date.now()
-                        });
-                        
-                        console.log('🎤 Speech recognized:', transcript);
-                        this.displayTranscript(transcript);
-                    }
+            // Create browser speech recognition instance
+            this.browserSpeech = new BrowserSpeechRecognition(this.roomData, this.currentUserId);
+            
+            // Set up event callbacks
+            this.browserSpeech.setCallbacks({
+                onTranscript: (text, confidence) => {
+                    console.log('🎤 Browser speech transcript:', text);
+                    this.displayTranscript(text);
+                },
+                onError: (error) => {
+                    console.error('🎤 ❌ Browser speech error:', error);
+                },
+                onStatusChange: (status) => {
+                    console.log(`🎤 Browser speech status: ${status}`);
                 }
-            }
-        };
-
-        this.speechRecognition.onerror = (event) => {
-            const now = Date.now();
-            const readyState = this.speechRecognition ? this.speechRecognition.readyState : 'unknown';
+            });
             
-            console.error('🎤 === Speech Recognition Error ===');
-            console.error(`  - Error Type: ${event.error}`);
-            console.error(`  - ReadyState: ${readyState}`);
-            console.error(`  - Time: ${new Date().toISOString()}`);
-            console.error(`  - Speech Enabled: ${this.isSpeechEnabled}`);
-            console.error(`  - Last Error: ${now - lastErrorAt}ms ago`);
+            // Initialize the module
+            const success = await this.browserSpeech.initialize();
             
-            // Detailed error explanations based on Web Speech API spec
-            switch (event.error) {
-                case 'network':
-                    console.error('🎤 NETWORK ERROR: Unable to reach speech recognition service');
-                    console.error('  - Possible causes: No internet, service outage, blocked by firewall');
-                    console.error('  - This is the most common cause of STT failures');
-                    console.error('  - Google Speech API may be blocked or unavailable');
-                    console.error('  - Try using HTTPS or check network connectivity');
-                    
-                    // Try to diagnose the specific network issue
-                    this.diagnoseSpeechNetworkIssue();
-                    
-                    this.isSpeechEnabled = false;
-                    return;
-                    
-                case 'not-allowed':
-                    console.error('🎤 PERMISSION ERROR: Microphone access denied');
-                    console.error('  - User denied microphone permission');
-                    console.error('  - Check browser settings or reload page to re-prompt');
-                    this.isSpeechEnabled = false;
-                    return;
-                    
-                case 'service-not-allowed':
-                    console.error('🎤 SERVICE ERROR: Speech recognition service denied');
-                    console.error('  - Speech service blocked by browser or system');
-                    this.isSpeechEnabled = false;
-                    return;
-                    
-                case 'aborted':
-                    console.warn('🎤 ABORTED: Speech recognition was stopped');
-                    break;
-                    
-                case 'audio-capture':
-                    console.error('🎤 AUDIO ERROR: Cannot capture audio');
-                    console.error('  - Microphone hardware issue or in use by another app');
-                    break;
-                    
-                case 'no-speech':
-                    console.warn('🎤 NO SPEECH: No speech detected');
-                    console.warn('  - Microphone working but no speech heard');
-                    break;
-                    
-                case 'language-not-supported':
-                    console.error('🎤 LANGUAGE ERROR: Language not supported');
-                    console.error(`  - Requested language: ${this.speechRecognition.lang}`);
-                    console.error('  - Try switching to en-US or en-GB');
-                    break;
-                    
-                default:
-                    console.error(`🎤 UNKNOWN ERROR: ${event.error}`);
-                    console.error('  - This error type is not documented in the Web Speech API');
-            }
-            
-            // Guard against restart loops with time-based throttling
-            const shouldRestart = this.isSpeechEnabled && 
-                !['not-allowed', 'service-not-allowed', 'network'].includes(event.error) && 
-                (now - lastErrorAt) > 2000;
-                
-            console.log(`🎤 Restart Decision: ${shouldRestart ? 'Will attempt restart' : 'Will NOT restart'}`);
-            
-            if (shouldRestart) {
-                lastErrorAt = now;
-                console.log('🎤 Scheduling restart in 1.5 seconds...');
-                setTimeout(() => {
-                    if (this.speechRecognition && this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
-                        try {
-                            console.log('🎤 Attempting to restart speech recognition...');
-                            this.speechRecognition.start();
-                            console.log('🎤 ✅ Restart successful');
-                        } catch (e) {
-                            console.error('🎤 ❌ Restart failed:', e);
-                        }
-                    } else {
-                        console.log('🎤 ⚠️ Restart skipped - conditions not met');
-                        console.log(`  - Has instance: ${!!this.speechRecognition}`);
-                        console.log(`  - Speech enabled: ${this.isSpeechEnabled}`);
-                        console.log(`  - Ready state: ${this.speechRecognition ? this.speechRecognition.readyState : 'N/A'}`);
-                    }
-                }, 1500);
-            }
-        };
-
-        this.speechRecognition.onend = () => {
-            const readyState = this.speechRecognition ? this.speechRecognition.readyState : 'unknown';
-            
-            console.log('🎤 === Speech Recognition Ended ===');
-            console.log(`  - Time: ${new Date().toISOString()}`);
-            console.log(`  - ReadyState: ${readyState}`);
-            console.log(`  - Speech Enabled: ${this.isSpeechEnabled}`);
-            console.log(`  - Should restart: ${this.isSpeechEnabled && this.speechRecognition.readyState !== 1}`);
-            
-            // Only restart if we're still supposed to be listening and not already running
-            if (this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
-                console.log('🎤 Scheduling restart after end in 500ms...');
-                setTimeout(() => {
-                    if (this.speechRecognition && this.isSpeechEnabled && this.speechRecognition.readyState !== 1) {
-                        try {
-                            console.log('🎤 Attempting restart after end...');
-                            this.speechRecognition.start();
-                            console.log('🎤 ✅ Restart after end successful');
-                        } catch (e) {
-                            console.error('🎤 ❌ Failed to restart STT after end:', e);
-                        }
-                    } else {
-                        console.log('🎤 ⚠️ Restart after end skipped - conditions not met');
-                    }
-                }, 500);
+            if (success) {
+                this.currentSpeechModule = this.browserSpeech;
+                console.log('🎤 ✅ Browser speech recognition initialized successfully');
             } else {
-                console.log('🎤 No restart needed after end');
+                console.error('🎤 ❌ Failed to initialize browser speech recognition');
+                this.browserSpeech = null;
             }
-        };
-
-        // Add onstart handler for completion
-        this.speechRecognition.onstart = () => {
-            console.log('🎤 === Speech Recognition Started ===');
-            console.log(`  - Time: ${new Date().toISOString()}`);
-            console.log(`  - ReadyState: ${this.speechRecognition.readyState}`);
-            console.log(`  - Language: ${this.speechRecognition.lang}`);
-            console.log(`  - Continuous: ${this.speechRecognition.continuous}`);
-        };
-
-        console.log(`🎤 Speech recognition initialized with locale: ${this.speechRecognition.lang}`);
-        console.log('🎤 === Initialization Complete ===');
-        
-        // Run initial diagnostics
-        this.runSpeechDiagnostics();
+            
+        } catch (error) {
+            console.error('🎤 ❌ Error initializing browser speech recognition:', error);
+            this.browserSpeech = null;
+        }
     }
 
     /**
@@ -1832,20 +1641,13 @@ export default class RoomWebRTC {
         console.log('🎤 === AssemblyAI Speech Recognition Initialization ===');
         
         try {
-            // Import AssemblyAI module dynamically
-            const { default: AssemblyAISpeechRecognition } = await import('./assembly-ai.js');
-            
             // Create AssemblyAI speech recognition instance
             this.assemblyAISpeech = new AssemblyAISpeechRecognition(this.roomData, this.currentUserId);
             
             // Set up callbacks
             this.assemblyAISpeech.setCallbacks({
                 onTranscript: (transcript, confidence) => {
-                    this.speechBuffer.push({
-                        text: transcript,
-                        confidence: confidence,
-                        timestamp: Date.now()
-                    });
+                    console.log('🎤 AssemblyAI transcript:', transcript);
                     this.displayTranscript(transcript);
                 },
                 onError: (error) => {
@@ -1862,7 +1664,7 @@ export default class RoomWebRTC {
             const initialized = await this.assemblyAISpeech.initialize();
             
             if (initialized) {
-                this.speechRecognition = this.assemblyAISpeech;
+                this.currentSpeechModule = this.assemblyAISpeech;
                 console.log('🎤 ✅ AssemblyAI speech recognition ready');
             } else {
                 throw new Error('Failed to initialize AssemblyAI module');
@@ -1876,7 +1678,7 @@ export default class RoomWebRTC {
             this.assemblyAISpeech = null;
             
             // Initialize browser speech recognition as fallback
-            this.initializeBrowserSpeechRecognition();
+            await this.initializeBrowserSpeechRecognition();
         }
     }
 
