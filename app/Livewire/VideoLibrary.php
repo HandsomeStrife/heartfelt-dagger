@@ -254,6 +254,76 @@ class VideoLibrary extends Component
         $this->selectRecording($recordingId);
     }
 
+    public function generateStreamUrl(int $recordingId)
+    {
+        \Log::info('Generate stream URL called', ['recording_id' => $recordingId]);
+        $user = Auth::user();
+        
+        if (!$user instanceof User) {
+            session()->flash('error', 'You must be logged in to stream recordings.');
+            return null;
+        }
+
+        $repository = new RoomRecordingRepository();
+        $recording = $repository->findByIdForUser($recordingId, $user);
+
+        if (!$recording || !in_array($recording->status, ['ready', 'uploaded'])) {
+            session()->flash('error', 'Recording not available for streaming.');
+            return null;
+        }
+
+        if ($recording->provider === 'wasabi') {
+            $url = $this->getWasabiStreamUrl($recording);
+            \Log::info('Stream URL generated', ['recording_id' => $recordingId, 'url_length' => $url ? strlen($url) : 0]);
+            return $url;
+        } else {
+            session()->flash('error', 'Streaming not supported for this storage provider.');
+            return null;
+        }
+    }
+
+    private function getWasabiStreamUrl(RoomRecordingData $recording): ?string
+    {
+        try {
+            $user = Auth::user();
+            $storageAccount = $user->storageAccounts()
+                ->where('provider', 'wasabi')
+                ->where('is_active', true)
+                ->first();
+
+            if (!$storageAccount) {
+                session()->flash('error', 'No active Wasabi storage account found.');
+                return null;
+            }
+
+            $wasabiService = new \Domain\Room\Services\WasabiS3Service($storageAccount);
+            
+            // Generate a presigned URL for streaming (4 hours)
+            $streamResult = $wasabiService->generatePresignedDownloadUrl($recording->provider_file_id, 60 * 4);
+            
+            if (is_array($streamResult) && isset($streamResult['download_url'])) {
+                return $streamResult['download_url'];
+            }
+
+            return null;
+
+        } catch (\Exception $e) {
+            \Log::error('Stream URL generation failed', [
+                'recording_id' => $recording->id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    public function generateThumbnailForRecording(int $recordingId)
+    {
+        \Log::info('Generate thumbnail called', ['recording_id' => $recordingId]);
+        
+        // This will be handled by JavaScript - just return the stream URL
+        return $this->generateStreamUrl($recordingId);
+    }
+
     public function downloadRecording(int $recordingId)
     {
         \Log::info('Download recording called', ['recording_id' => $recordingId]);

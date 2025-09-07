@@ -305,6 +305,22 @@ class WasabiS3Service
     }
 
     /**
+     * Get the S3 client instance
+     */
+    public function getS3Client(): S3Client
+    {
+        return $this->s3Client;
+    }
+
+    /**
+     * Get the storage account instance
+     */
+    public function getStorageAccount(): UserStorageAccount
+    {
+        return $this->storageAccount;
+    }
+
+    /**
      * Generate a unique key for a room recording
      */
     public static function generateRecordingKey(Room $room, int $userId, string $filename): string
@@ -400,11 +416,4 @@ class WasabiS3Service
         }
     }
 
-    /**
-     * Get the storage account being used
-     */
-    public function getStorageAccount(): UserStorageAccount
-    {
-        return $this->storageAccount;
-    }
 }

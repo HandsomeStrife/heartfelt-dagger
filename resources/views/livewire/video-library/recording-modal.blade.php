@@ -2,34 +2,77 @@
 <x-slideover :show="!!$selectedRecordingId" 
     x-model="slideoverOpen"
     x-modelable="show"
-    maxWidth="4xl" :title="$this->selectedRecording->room['name'] ?? 'Loading...'" subtitle="Recording Details"
+    maxWidth="4xl" :title="$this->selectedRecording->filename ?? 'Loading...'" subtitle="Recording Details"
     onClose="$wire.selectRecording(null)">
     <div class="p-6 space-y-6">
         @if ($this->selectedRecording)
             {{-- Video Player Section --}}
             @if (in_array($this->selectedRecording->status, ['ready', 'uploaded']))
-                <div class="aspect-video bg-black rounded-xl overflow-hidden relative">
-                    @if ($this->selectedRecording->stream_url)
-                        <video id="recordingPlayer" controls class="w-full h-full"
-                            poster="{{ $this->selectedRecording->thumbnail_url }}" preload="metadata">
-                            <source src="{{ $this->selectedRecording->stream_url }}" type="video/webm">
-                            <source src="{{ $this->selectedRecording->stream_url }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                    @else
-                        {{-- Placeholder for video not yet available --}}
-                        <div class="flex items-center justify-center h-full">
-                            <div class="text-center">
-                                <i class="fas fa-video text-slate-400 text-6xl mb-4"></i>
-                                <h4 class="text-white font-medium mb-2">Video Not Available</h4>
-                                <p class="text-slate-400 text-sm">The video file is not ready for streaming yet.</p>
-                            </div>
+                <div class="aspect-video bg-black rounded-xl overflow-hidden relative" 
+                     x-data="videoPlayer({{ $this->selectedRecording->id }})">
+                    
+                    {{-- Loading State --}}
+                    <div x-show="loading" class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <i class="fas fa-spinner fa-spin text-white text-4xl mb-4"></i>
+                            <h4 class="text-white font-medium mb-2">Loading Video...</h4>
+                            <p class="text-slate-400 text-sm">Preparing video for playback</p>
                         </div>
-                    @endif
+                    </div>
+
+                    {{-- Video Player --}}
+                    <video x-show="!loading && streamUrl" 
+                           x-ref="videoPlayer"
+                           controls 
+                           class="w-full h-full"
+                           :poster="thumbnailUrl"
+                           preload="metadata"
+                           @loadedmetadata="onVideoLoaded()"
+                           @error="onVideoError()">
+                        <source :src="streamUrl" type="video/webm">
+                        <source :src="streamUrl" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+
+                    {{-- Error State --}}
+                    <div x-show="error" class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <i class="fas fa-exclamation-triangle text-red-400 text-4xl mb-4"></i>
+                            <h4 class="text-white font-medium mb-2">Video Error</h4>
+                            <p class="text-slate-400 text-sm" x-text="errorMessage"></p>
+                            <button @click="loadVideo()" 
+                                    class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">
+                                Retry
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Placeholder for video not yet available --}}
+                    <div x-show="!loading && !streamUrl && !error" class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <i class="fas fa-video text-slate-400 text-6xl mb-4"></i>
+                            <h4 class="text-white font-medium mb-2">Video Not Available</h4>
+                            <p class="text-slate-400 text-sm">The video file is not ready for streaming yet.</p>
+                            <button @click="loadVideo()" 
+                                    class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg">
+                                Load Video
+                            </button>
+                        </div>
+                    </div>
 
                     {{-- Duration Overlay --}}
                     <div class="absolute bottom-4 right-4 bg-black/80 text-white px-3 py-1 rounded">
                         {{ $this->formatDuration($this->selectedRecording->ended_at_ms - $this->selectedRecording->started_at_ms) }}
+                    </div>
+
+                    {{-- Thumbnail Generation Button --}}
+                    <div x-show="streamUrl && !thumbnailUrl" class="absolute top-4 right-4">
+                        <button @click="generateThumbnail()" 
+                                :disabled="generatingThumbnail"
+                                class="px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white text-sm rounded-lg flex items-center">
+                            <i :class="generatingThumbnail ? 'fas fa-spinner fa-spin mr-2' : 'fas fa-camera mr-2'"></i>
+                            <span x-text="generatingThumbnail ? 'Generating...' : 'Generate Thumbnail'"></span>
+                        </button>
                     </div>
                 </div>
             @endif
@@ -290,5 +333,137 @@
                 </div>
             </div>
         @endif
-    </x-slot>
+    </div>
+    @endif
 </x-slideover>
+
+@script
+<script>
+    function videoPlayer(recordingId) {
+        return {
+            recordingId: recordingId,
+            streamUrl: null,
+            thumbnailUrl: null,
+            loading: false,
+            error: false,
+            errorMessage: '',
+            generatingThumbnail: false,
+
+            init() {
+                // Check if we already have a stream URL from the server
+                const selectedRecording = @js($this->selectedRecording ?? null);
+                
+                if (selectedRecording && typeof selectedRecording === 'object') {
+                    const existingStreamUrl = selectedRecording.stream_url || null;
+                    const existingThumbnailUrl = selectedRecording.thumbnail_url || null;
+                    
+                    if (existingStreamUrl) {
+                        this.streamUrl = existingStreamUrl;
+                    }
+                    
+                    if (existingThumbnailUrl) {
+                        this.thumbnailUrl = existingThumbnailUrl;
+                    }
+
+                    // Auto-load video if we don't have a stream URL
+                    if (!this.streamUrl) {
+                        this.loadVideo();
+                    }
+                }
+            },
+
+            async loadVideo() {
+                this.loading = true;
+                this.error = false;
+                this.errorMessage = '';
+
+                try {
+                    console.log('Loading video for recording:', this.recordingId);
+                    
+                    // Get stream URL from Livewire component
+                    const streamUrl = await $wire.generateStreamUrl(this.recordingId);
+                    
+                    if (streamUrl) {
+                        this.streamUrl = streamUrl;
+                        console.log('Stream URL loaded:', streamUrl);
+                        
+                        // Generate thumbnail if we don't have one
+                        if (!this.thumbnailUrl) {
+                            this.generateThumbnail();
+                        }
+                    } else {
+                        throw new Error('Failed to generate stream URL');
+                    }
+                } catch (error) {
+                    console.error('Failed to load video:', error);
+                    this.error = true;
+                    this.errorMessage = error.message || 'Failed to load video';
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async generateThumbnail() {
+                if (!this.streamUrl || this.generatingThumbnail) {
+                    return;
+                }
+
+                this.generatingThumbnail = true;
+
+                try {
+                    console.log('Generating thumbnail for recording:', this.recordingId);
+                    
+                    // Use the global video thumbnail generator
+                    if (window.videoThumbnailGenerator) {
+                        const thumbnailBase64 = await window.videoThumbnailGenerator.generateThumbnail(this.streamUrl);
+                        
+                        // Upload thumbnail to server
+                        const response = await fetch('/api/recordings/thumbnail', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({
+                                recording_id: this.recordingId,
+                                thumbnail: thumbnailBase64
+                            })
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            this.thumbnailUrl = result.thumbnail_url;
+                            console.log('Thumbnail generated and uploaded:', result.thumbnail_url);
+                            
+                            // Update the video poster
+                            if (this.$refs.videoPlayer) {
+                                this.$refs.videoPlayer.poster = this.thumbnailUrl;
+                            }
+                        } else {
+                            throw new Error('Failed to upload thumbnail');
+                        }
+                    } else {
+                        throw new Error('Video thumbnail generator not available');
+                    }
+                } catch (error) {
+                    console.error('Failed to generate thumbnail:', error);
+                    // Don't show error to user for thumbnail generation failure
+                } finally {
+                    this.generatingThumbnail = false;
+                }
+            },
+
+            onVideoLoaded() {
+                console.log('Video loaded successfully');
+                this.error = false;
+            },
+
+            onVideoError() {
+                console.error('Video playback error');
+                this.error = true;
+                this.errorMessage = 'Failed to load video for playback';
+            }
+        };
+    }
+</script>
+@endscript

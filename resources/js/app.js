@@ -7,11 +7,21 @@ import './editor';
 import RoomUppy from './room-uppy';
 import RoomWebRTC from './room-webrtc';
 
+// Import video thumbnail generator
+import VideoThumbnailGenerator from './video-thumbnail-generator';
+
 // Make room classes globally available for room sessions
 console.log('🎬 Loading RoomUppy and RoomWebRTC...');
 window.RoomUppy = RoomUppy;
 window.RoomWebRTC = RoomWebRTC;
+window.VideoThumbnailGenerator = VideoThumbnailGenerator;
+
+// Create global video thumbnail generator instance
+window.videoThumbnailGenerator = new VideoThumbnailGenerator();
+
 console.log('✅ RoomWebRTC available:', typeof window.RoomWebRTC);
+console.log('✅ VideoThumbnailGenerator available:', typeof window.VideoThumbnailGenerator);
+console.log('✅ videoThumbnailGenerator instance available:', typeof window.videoThumbnailGenerator);
 
 // Character Viewer state module (Alpine)
 import { characterViewerState } from './character';

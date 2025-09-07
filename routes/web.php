@@ -185,6 +185,14 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('/rooms/{room}/stt-config', [App\Http\Controllers\Api\SttConfigController::class, 'getConfig'])
         ->name('rooms.stt-config')
         ->middleware('auth');
+    
+    // Recording thumbnail and streaming routes
+    Route::post('/recordings/thumbnail', [App\Http\Controllers\Api\RecordingThumbnailController::class, 'store'])
+        ->name('recordings.thumbnail.store')
+        ->middleware('auth');
+    Route::get('/recordings/{recording}/stream', [App\Http\Controllers\Api\RecordingThumbnailController::class, 'generateStreamUrl'])
+        ->name('recordings.stream')
+        ->middleware('auth');
     Route::post('/assemblyai/token', [App\Http\Controllers\AssemblyAIController::class, 'generateToken'])
         ->name('assemblyai.token')
         ->middleware('auth');
