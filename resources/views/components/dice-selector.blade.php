@@ -186,12 +186,12 @@
         <!-- Special Duality Dice -->
         <div class="relative mt-2 group/duality">
             <button @click="rollDuality()"
-                    class="w-16 h-16 relative bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-2 border-blue-500 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center group">
+                    class="w-16 h-16 relative cursor-pointer bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-2 border-blue-500 rounded-full shadow-lg transition-all duration-200 flex items-center justify-center group">
                 <div>
-                    <div class="w-16 h-16 text-white absolute left-2 top-0">
+                    <div class="w-16 h-16 text-white absolute left-2 -top-0.5">
                         <x-icons.dice.d12 class="w-full h-full" />
                     </div>
-                    <div class="w-16 h-16 text-black absolute right-2 top-0">
+                    <div class="w-16 h-16 text-black absolute right-2 -top-0.5">
                         <x-icons.dice.d12 class="w-full h-full" />
                     </div>
                 </div>

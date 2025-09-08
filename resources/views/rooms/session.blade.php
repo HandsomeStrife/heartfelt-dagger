@@ -1,4 +1,24 @@
 <x-layout.minimal>
+    <!-- Loading Screen -->
+    <div id="room-loading-screen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="mb-6">
+                <div class="w-16 h-16 mx-auto text-amber-500 animate-pulse">
+                    <x-icons.door class="w-full h-full" />
+                </div>
+            </div>
+            <h2 class="text-2xl font-outfit font-bold text-slate-100 mb-2">Loading Room</h2>
+            <p class="text-slate-400 mb-4">Initializing dice system and WebRTC...</p>
+            <div class="flex items-center justify-center space-x-2">
+                <div class="w-2 h-2 bg-amber-500 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                <div class="w-2 h-2 bg-amber-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Room Content (hidden during loading) -->
+    <div id="room-main-content" class="opacity-0 transition-opacity duration-500">
     @if($room->campaign_id)
         <!-- Campaign Room Layout with Sidebar -->
         <div x-data="{ sidebarVisible: true }" class="h-screen w-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 flex flex-col">
@@ -56,8 +76,8 @@
             </div>
             
             <!-- Status Bar (Campaign Layout) - Always Visible -->
-            <div id="status-bar" class="bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 p-3">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-sm">
+            <div id="status-bar" class="bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 p-3 w-full">
+                <div class="flex items-center justify-between text-sm px-4">
                     <!-- Recording Status (Hidden when not recording) -->
                     <div id="recording-status" class="hidden items-center space-x-3">
                         <div class="flex items-center space-x-2">
@@ -146,14 +166,6 @@
                             @endif
                         </div>
                         
-                        <!-- Dice Roll Button -->
-                        <button onclick="window.rollDualityDice && window.rollDualityDice(0)" class="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs transition-colors" title="Roll 2d12 (Hope & Fear)">
-                            <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                            </svg>
-                            Dice
-                        </button>
-
                         <!-- Always Visible Leave Button -->
                         <button id="leave-room-btn" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors">
                             <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,8 +197,8 @@
             </div>
             
             <!-- Status Bar (Normal Layout) - Always Visible -->
-            <div id="status-bar-normal" class="bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 p-3">
-                <div class="max-w-7xl mx-auto flex items-center justify-between text-sm">
+            <div id="status-bar-normal" class="bg-slate-900/95 backdrop-blur-sm border-t border-slate-700 p-3 w-full">
+                <div class="flex items-center justify-between text-sm px-4">
                     <!-- Recording Status (Hidden when not recording) -->
                     <div id="recording-status-normal" class="hidden items-center space-x-3">
                         <div class="flex items-center space-x-2">
@@ -274,6 +286,7 @@
             </div>
         </div>
     @endif
+    </div> <!-- End of room-main-content -->
 
     @if($room->isCreator(auth()->user()))
         <!-- Participants Management Modal -->
@@ -520,6 +533,30 @@
             }
         });
         
+        // Track initialization status
+        let diceInitialized = false;
+        let webrtcInitialized = false;
+        
+        function hideLoadingScreen() {
+            console.log('hideLoadingScreen called - dice:', diceInitialized, 'webrtc:', webrtcInitialized);
+            if (diceInitialized && webrtcInitialized) {
+                const loadingScreen = document.getElementById('room-loading-screen');
+                const mainContent = document.getElementById('room-main-content');
+                
+                console.log('Both systems ready, hiding loading screen');
+                if (loadingScreen && mainContent) {
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        mainContent.style.opacity = '1';
+                        
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                        }, 500);
+                    }, 500); // Small delay to ensure everything is ready
+                }
+            }
+        }
+        
         // Initialize RoomWebRTC when DOM and modules are ready
         let webrtcInitAttempts = 0;
         const maxWebrtcInitAttempts = 50; // Max 5 seconds of retries
@@ -531,6 +568,9 @@
                 
                 // Check consent requirements immediately upon entering the room
                 window.roomWebRTC.checkInitialConsentRequirements();
+                
+                webrtcInitialized = true;
+                hideLoadingScreen();
             } else if (window.roomData && !window.RoomWebRTC && webrtcInitAttempts < maxWebrtcInitAttempts) {
                 webrtcInitAttempts++;
                 console.warn(`🎬 RoomWebRTC not available - attempt ${webrtcInitAttempts}/${maxWebrtcInitAttempts}`);
@@ -538,10 +578,24 @@
                 setTimeout(initializeRoomWebRTC, 100);
             } else if (webrtcInitAttempts >= maxWebrtcInitAttempts) {
                 console.error('❌ Failed to initialize RoomWebRTC after maximum attempts. Please refresh the page.');
+                webrtcInitialized = true; // Mark as "initialized" to allow page to show
+                hideLoadingScreen();
             } else {
                 console.warn('⚠️ No room data found, WebRTC not initialized');
+                webrtcInitialized = true; // Mark as "initialized" to allow page to show
+                hideLoadingScreen();
             }
         }
+        
+        // Fallback timer to ensure page shows even if initialization fails
+        setTimeout(() => {
+            if (!diceInitialized || !webrtcInitialized) {
+                console.warn('⚠️ Forcing page display after timeout');
+                diceInitialized = true;
+                webrtcInitialized = true;
+                hideLoadingScreen();
+            }
+        }, 5000); // 5 second maximum loading time
         
         // Wait for DOM and give modules time to load
         if (document.readyState === 'loading') {
@@ -590,6 +644,9 @@
         }
     </style>
 
+    <!-- FLOATING DICE SELECTOR -->
+    <x-dice-selector />
+
     <!-- DICE INITIALIZATION SCRIPT -->
     <script>
         // Initialize dice system for room
@@ -605,13 +662,20 @@
                             });
                         }
                         console.log('Room dice system initialized');
+                        diceInitialized = true;
+                        hideLoadingScreen();
                     } catch (error) {
                         console.error('Error initializing room dice system:', error);
+                        diceInitialized = true; // Mark as initialized even on error
+                        hideLoadingScreen();
                     }
                 } else {
                     console.warn('Dice functions not available in room');
+                    diceInitialized = true; // Mark as initialized even if not available
+                    hideLoadingScreen();
                 }
             }, 1000);
         });
     </script>
 </x-layout.minimal>
+
