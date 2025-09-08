@@ -28,12 +28,22 @@ class FinalizeRecording
             $recording->markAsFinalizing();
 
             // Get the storage account for this recording
-            $storageAccount = UserStorageAccount::where('user_id', $recording->user_id)
-                ->where('provider', $recording->provider)
-                ->first();
-
+            // The storage account is associated with the room creator through recording settings
+            $recording->load('room.recordingSettings');
+            
+            if (!$recording->room->recordingSettings) {
+                throw new \Exception('Room recording settings not found for recording finalization');
+            }
+            
+            $storageAccount = UserStorageAccount::find($recording->room->recordingSettings->storage_account_id);
+            
             if (!$storageAccount) {
                 throw new \Exception('Storage account not found for recording finalization');
+            }
+            
+            // Verify the storage account provider matches the recording provider
+            if ($storageAccount->provider !== $recording->provider) {
+                throw new \Exception("Storage account provider ({$storageAccount->provider}) does not match recording provider ({$recording->provider})");
             }
 
             // Complete the multipart upload based on provider
@@ -101,43 +111,67 @@ class FinalizeRecording
     {
         $googleDriveService = new GoogleDriveService($storageAccount);
         
-        // For Google Drive, the recording should already be completed during the upload process
-        // The multipart_upload_id contains the session URI, but the upload is likely already finished
-        // We just need to verify the file exists and update our records
+        // For Google Drive, we need to finalize the resumable upload session
+        // The multipart_upload_id contains the session URI
+        $sessionUri = $recording->multipart_upload_id;
+        
+        if (empty($sessionUri)) {
+            throw new \Exception('No session URI found for Google Drive recording');
+        }
         
         try {
-            // Try to get file info to verify it exists
-            $fileInfo = $googleDriveService->getFileInfo($recording->provider_file_id);
-            
-            if (!$fileInfo) {
-                throw new \Exception('Google Drive file not found or upload incomplete');
+            // Check if we already have a real Google Drive file ID (not empty and not a session URI)
+            if (!empty($recording->provider_file_id) && !str_contains($recording->provider_file_id, 'uploadType=resumable')) {
+                Log::info('Google Drive recording already has file ID, verifying completion', [
+                    'recording_id' => $recording->id,
+                    'file_id' => $recording->provider_file_id
+                ]);
+                
+                // Just verify the file exists
+                $fileInfo = $googleDriveService->getFileInfo($recording->provider_file_id);
+                if ($fileInfo && isset($fileInfo['size'])) {
+                    $recording->update(['size_bytes' => (int) $fileInfo['size']]);
+                }
+                return;
             }
             
-            // Update recording with final file size if available
-            if (isset($fileInfo['size']) && $fileInfo['size'] > 0) {
-                $recording->update(['size_bytes' => (int) $fileInfo['size']]);
-            }
-            
-            Log::info('Google Drive recording finalized', [
+            // Attempt to finalize the resumable session
+            Log::info('Attempting to finalize Google Drive resumable session', [
                 'recording_id' => $recording->id,
-                'file_id' => $recording->provider_file_id,
-                'file_size' => $fileInfo['size'] ?? 'unknown',
-                'file_name' => $fileInfo['name'] ?? 'unknown'
+                'session_uri_length' => strlen($sessionUri),
+                'current_size_bytes' => $recording->size_bytes
             ]);
             
-        } catch (\Exception $e) {
-            // If we can't verify the file, the upload is likely still in progress or failed
-            // Don't mark as completed - let it remain in "recording" status for retry
+            $result = $googleDriveService->finalizeResumableSession($sessionUri, $recording->size_bytes ?? 0);
             
-            Log::warning('Could not verify Google Drive file during finalization, upload may still be in progress', [
+            if ($result['success']) {
+                // Update recording with file information
+                $recording->update([
+                    'provider_file_id' => $result['file_id'],
+                    'size_bytes' => (int) ($result['size'] ?? $recording->size_bytes ?? 0),
+                ]);
+                
+                Log::info('Google Drive recording finalized successfully', [
+                    'recording_id' => $recording->id,
+                    'file_id' => $result['file_id'],
+                    'file_size' => $result['size'],
+                    'file_name' => $result['filename']
+                ]);
+            } else {
+                throw new \Exception('Google Drive finalization returned failure');
+            }
+            
+        } catch (\Exception $e) {
+            Log::warning('Failed to finalize Google Drive recording', [
                 'recording_id' => $recording->id,
-                'provider_file_id' => $recording->provider_file_id,
-                'session_uri' => $recording->multipart_upload_id,
+                'session_uri' => $sessionUri,
+                'current_size_bytes' => $recording->size_bytes,
                 'error' => $e->getMessage()
             ]);
             
-            // Throw exception to prevent marking as completed
-            throw new \Exception('Google Drive file verification failed, upload may still be in progress: ' . $e->getMessage());
+            // If finalization fails, the session might be expired or corrupted
+            // Mark as failed so it doesn't keep retrying indefinitely
+            throw new \Exception('Google Drive recording finalization failed: ' . $e->getMessage());
         }
     }
 }

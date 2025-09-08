@@ -14,14 +14,11 @@
 }" class="h-full flex flex-col">
     
     <!-- Header -->
-    <div class="p-4 border-b border-slate-700/50 relative">
+    <div class="border-b border-slate-700/50 relative">
         <!-- Hope in Very Top Right (Interactive) -->
-        <div class="absolute top-2 right-2">
-            <div class="flex items-center gap-2 mb-1">
-                <span class="text-slate-400 text-xs font-bold">Hope</span>
-                <span class="text-slate-400 text-xs" x-text="`${hope.filter(Boolean).length} / 6`">{{ $computed_stats['hope'] ?? 2 }} / 6</span>
-            </div>
-            <div class="flex gap-1 justify-end">
+        <div class="absolute top-3 right-3">
+            <div class="flex gap-1 justify-end items-center">
+                <span class="text-xs mr-2 text-zinc-400">Hope</span>
                 <template x-for="(filled, index) in hope" :key="index">
                     <label>
                         <input type="checkbox" class="sr-only peer" :checked="filled" @change="toggleHope(index)">
@@ -31,12 +28,14 @@
             </div>
         </div>
         
-        @if($character->class)
-            <x-class-banner :class-name="$character->class" size="xs" class="absolute bottom-2 right-2" />
+        @if ($character->class)
+            <div class="absolute -left-2 top-2">
+                <x-class-banner :className="$character->class" size="xs" />
+            </div>
         @endif
         
-        <div class="pr-24">
-            <h2 class="font-outfit text-xl text-white mb-2">{{ $character->name }}</h2>
+        <div class="pr-24 py-6 {{ $character->class ? 'pl-16' : '' }}">
+            <h2 class="font-outfit text-xl text-white">{{ $character->name }}</h2>
             <p class="text-slate-300 text-sm capitalize">{{ $character->class }} • {{ $character->ancestry }}</p>
         </div>
     </div>
@@ -145,6 +144,9 @@
             <style>
                 .damage-health-sidebar h2 {
                     display: none;
+                }
+                .damage-health-sidebar > div > div{
+                    gap: 0 !important;
                 }
                 .damage-health-sidebar [pest="damage-thresholds"] {
                     width: 100% !important;

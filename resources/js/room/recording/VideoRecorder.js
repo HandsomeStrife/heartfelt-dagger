@@ -188,9 +188,9 @@ export class VideoRecorder {
                 this.mediaRecorder.start(30000); // 30 seconds - ensures chunks meet S3 5MB minimum requirement
                 console.log('🎥 Video recording started with timeslices for Wasabi S3 upload');
             } else if (storageProvider === 'google_drive') {
-                // Start recording with 30-second timeslices for Google Drive multipart upload (same as Wasabi)
-                this.mediaRecorder.start(30000); // 30 seconds - matches S3 multipart upload pattern
-                console.log('🎥 Video recording started with timeslices for Google Drive multipart upload');
+                // Use smaller timeslices for Google Drive to reduce per-chunk size and timeouts
+                this.mediaRecorder.start(10000); // 10 seconds
+                console.log('🎥 Video recording started with 10s timeslices for Google Drive upload');
             } else {
                 // Default for other cloud providers
                 this.mediaRecorder.start(30000);
@@ -307,26 +307,6 @@ export class VideoRecorder {
             }
         });
 
-        // Add recording indicator to current user's slot
-        if (this.roomWebRTC.currentSlotId) {
-            const slotContainer = document.querySelector(`[data-slot-id="${this.roomWebRTC.currentSlotId}"]`);
-            if (slotContainer) {
-                let indicator = slotContainer.querySelector('.recording-indicator');
-                if (!indicator) {
-                    indicator = document.createElement('div');
-                    indicator.className = 'recording-indicator absolute top-2 right-2 text-xs px-2 py-1 bg-red-500 text-white rounded';
-                    slotContainer.appendChild(indicator);
-                }
-                
-                if (isRecording) {
-                    indicator.classList.add('recording');
-                    indicator.textContent = '🔴 REC';
-                    indicator.style.display = 'block';
-                } else {
-                    indicator.style.display = 'none';
-                }
-            }
-        }
     }
 
     /**

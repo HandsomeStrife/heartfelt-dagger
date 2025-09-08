@@ -16,7 +16,7 @@ class StartRecordingSession
         User $user,
         string $filename,
         string $multipartUploadId,
-        string $providerFileId,
+        ?string $providerFileId,
         int $startedAtMs,
         string $mimeType = 'video/webm'
     ): RoomRecording {

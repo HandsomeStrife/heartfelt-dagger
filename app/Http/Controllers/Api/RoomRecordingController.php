@@ -468,7 +468,7 @@ class RoomRecordingController extends Controller
             $validated = $request->validate([
                 'filename' => 'required|string|max:255',
                 'multipart_upload_id' => 'required|string|max:2000', // Increased for Google Drive session URIs
-                'provider_file_id' => 'required|string|max:2000',    // Increased for Google Drive session URIs
+                'provider_file_id' => 'nullable|string|max:2000',    // Nullable for Google Drive (set after finalization)
                 'started_at_ms' => 'required|integer|min:0',
                 'mime_type' => 'required|string|max:100'
             ]);
@@ -487,7 +487,7 @@ class RoomRecordingController extends Controller
                 $user,
                 $validated['filename'],
                 $validated['multipart_upload_id'],
-                $validated['provider_file_id'],
+                $validated['provider_file_id'] ?? null,
                 $validated['started_at_ms'],
                 $validated['mime_type']
             );

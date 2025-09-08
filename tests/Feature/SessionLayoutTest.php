@@ -43,13 +43,13 @@ test('session page shows correct number of slots for 5-capacity room', function 
     // Check for empty slots being rendered
     $content = $response->getContent();
     
-    // Should see multiple empty slots
-    $emptySlotCount = substr_count($content, 'Empty Slot');
-    expect($emptySlotCount)->toBeGreaterThanOrEqual(4); // At least 4 empty slots since only creator is present
+    // Should see multiple waiting for participant slots
+    $waitingSlotCount = substr_count($content, 'Waiting for participant');
+    expect($waitingSlotCount)->toBeGreaterThanOrEqual(4); // At least 4 empty slots since only creator is present
     
-    // Should see the "Reserved for the Void" decorative slot
+    // Should see the "Reserved" GM slot
     expect($content)->toContain('Reserved');
-    expect($content)->toContain('For the Void');
+    expect($content)->toContain('GM Slot');
 });
 
 test('session page shows correct number of slots for 4-capacity room', function () {
@@ -77,13 +77,13 @@ test('session page shows correct number of slots for 4-capacity room', function 
     // Should use 2x2 grid layout, not the 5+ layout
     $content = $response->getContent();
     
-    // Should see 3 empty slots (since only creator is present in 4-slot room)
-    $emptySlotCount = substr_count($content, 'Empty Slot');
-    expect($emptySlotCount)->toBe(3);
+    // Should see 3 waiting slots (since only creator is present in 4-slot room)
+    $waitingSlotCount = substr_count($content, 'Waiting for participant');
+    expect($waitingSlotCount)->toBe(3);
     
-    // Should NOT see the "Reserved for the Void" decorative slot (that's only for 5+ layout)
-    expect($content)->not()->toContain('Reserved');
-    expect($content)->not()->toContain('For the Void');
+    // Should see the "Reserved" GM slot for slot 1
+    expect($content)->toContain('Reserved');
+    expect($content)->toContain('GM Slot');
 });
 
 test('session page shows correct slots with multiple participants in 5-capacity room', function () {
@@ -123,13 +123,13 @@ test('session page shows correct slots with multiple participants in 5-capacity 
     
     $content = $response->getContent();
     
-    // Should see 2 empty slots (5 total - 3 participants = 2 empty)
-    $emptySlotCount = substr_count($content, 'Empty Slot');
-    expect($emptySlotCount)->toBe(2);
+    // Should see 2 waiting slots (5 total - 3 participants = 2 empty)
+    $waitingSlotCount = substr_count($content, 'Waiting for participant');
+    expect($waitingSlotCount)->toBe(2);
     
     // Should still see the reserved slot
     expect($content)->toContain('Reserved');
-    expect($content)->toContain('For the Void');
+    expect($content)->toContain('GM Slot');
 });
 
 test('session page participant count matches total capacity', function () {

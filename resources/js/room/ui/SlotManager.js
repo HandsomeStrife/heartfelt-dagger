@@ -140,21 +140,9 @@ export class SlotManager {
     }
 
     /**
-     * Sets up slot event listeners
+     * Sets up slot event listeners (leave buttons only - join buttons handled by UIStateManager)
      */
     setupSlotEventListeners() {
-        // Add click handlers to all join buttons
-        document.querySelectorAll('.join-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const slotContainer = e.target.closest('.video-slot');
-                const slotId = parseInt(slotContainer.dataset.slotId);
-                
-                if (!this.roomWebRTC.isJoined) {
-                    this.roomWebRTC.joinSlot(slotId, slotContainer);
-                }
-            });
-        });
-
         // Add click handlers to all leave buttons
         document.querySelectorAll('.leave-btn').forEach(button => {
             button.addEventListener('click', (e) => {

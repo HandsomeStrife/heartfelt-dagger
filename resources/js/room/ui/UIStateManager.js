@@ -8,6 +8,7 @@
 export class UIStateManager {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
+        this.setupSlotEventListeners();
     }
 
     /**
@@ -192,5 +193,394 @@ export class UIStateManager {
      */
     hideLoading() {
         console.log('🔄 Loading complete');
+    }
+
+    // ===========================================
+    // SLOT STATE MANAGEMENT
+    // ===========================================
+
+    /**
+     * Sets up event listeners for slot interactions
+     */
+    setupSlotEventListeners() {
+        // This will be called after DOM is ready, so we need to wait
+        document.addEventListener('DOMContentLoaded', () => {
+            this.attachSlotEventListeners();
+        });
+        
+        // If DOM is already ready
+        if (document.readyState !== 'loading') {
+            this.attachSlotEventListeners();
+        }
+    }
+
+    /**
+     * Attaches click event listeners to slot buttons
+     */
+    attachSlotEventListeners() {
+        // Attach GM join button listeners
+        document.querySelectorAll('.slot-gm-join').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const slotId = e.target.closest('[data-slot-id]')?.getAttribute('data-slot-id');
+                if (slotId) {
+                    this.handleGmJoin(parseInt(slotId));
+                }
+            });
+        });
+
+        // Attach player join button listeners
+        document.querySelectorAll('.slot-player-join').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const slotId = e.target.closest('[data-slot-id]')?.getAttribute('data-slot-id');
+                if (slotId) {
+                    this.handlePlayerJoin(parseInt(slotId));
+                }
+            });
+        });
+    }
+
+    /**
+     * Sets the state of a specific slot
+     */
+    setSlotState(slotId, state) {
+        const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        if (!slot) return;
+        
+        // Hide all slot states
+        const allStates = slot.querySelectorAll('.slot-state');
+        allStates.forEach(stateEl => stateEl.classList.add('hidden'));
+        
+        // Show the requested state
+        const targetState = slot.querySelector(`.slot-${state}`);
+        if (targetState) {
+            targetState.classList.remove('hidden');
+        }
+    }
+
+    /**
+     * Shows loading state for a slot
+     */
+    showSlotLoadingState(slotId) {
+        const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        if (!slot) return;
+        
+        // Hide all slot states
+        const allStates = slot.querySelectorAll('.slot-state');
+        allStates.forEach(stateEl => stateEl.classList.add('hidden'));
+        
+        // Show loading spinner
+        const loadingSpinner = slot.querySelector('.loading-spinner');
+        if (loadingSpinner) {
+            loadingSpinner.classList.remove('hidden');
+            loadingSpinner.classList.add('flex');
+        }
+    }
+
+    /**
+     * Hides loading state for a slot
+     */
+    hideSlotLoadingState(slotId) {
+        const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        if (!slot) return;
+        
+        const loadingSpinner = slot.querySelector('.loading-spinner');
+        if (loadingSpinner) {
+            loadingSpinner.classList.add('hidden');
+            loadingSpinner.classList.remove('flex');
+        }
+    }
+
+    /**
+     * Handles GM joining a slot
+     */
+    handleGmJoin(slotId) {
+        this.showSlotLoadingState(slotId);
+        
+        // Hide all player join buttons and show "Waiting for Player" instead
+        const allSlots = document.querySelectorAll('[data-slot-id]');
+        allSlots.forEach(slot => {
+            const slotIdValue = slot.getAttribute('data-slot-id');
+            const playerJoinBtn = slot.querySelector('.slot-player-join');
+            
+            // If this is a player join button, hide it and show waiting
+            if (playerJoinBtn && !playerJoinBtn.classList.contains('hidden')) {
+                this.setSlotState(slotIdValue, 'waiting');
+            }
+        });
+        
+        // Simulate joining process
+        setTimeout(() => {
+            this.hideSlotLoadingState(slotId);
+            
+            // Get GM participant data
+            const currentParticipant = window.roomData?.participants?.find(p => p.user_id === window.currentUserId);
+            const participantData = {
+                user_id: window.currentUserId,
+                username: currentParticipant?.username || 'Game Master',
+                character_name: 'GAME MASTER',
+                character_class: 'NARRATOR OF TALES',
+                character_subclass: '',
+                character_ancestry: '',
+                character_community: '',
+                is_host: true
+            };
+            
+            this.setSlotToOccupied(slotId, participantData);
+            
+            // Integrate with WebRTC system
+            if (this.roomWebRTC && this.roomWebRTC.joinSlot) {
+                const slotContainer = document.querySelector(`[data-slot-id="${slotId}"]`);
+                this.roomWebRTC.joinSlot(slotId, slotContainer);
+            }
+        }, 1000);
+        
+        console.log(`GM attempting to join slot ${slotId}`);
+    }
+
+    /**
+     * Handles player joining a slot
+     */
+    handlePlayerJoin(slotId) {
+        this.showSlotLoadingState(slotId);
+        
+        // Hide all player join buttons and show "Waiting for Player" instead
+        const allSlots = document.querySelectorAll('[data-slot-id]');
+        allSlots.forEach(slot => {
+            const slotIdValue = slot.getAttribute('data-slot-id');
+            const playerJoinBtn = slot.querySelector('.slot-player-join');
+            
+            // If this is a player join button (not the slot being joined), hide it and show waiting
+            if (playerJoinBtn && !playerJoinBtn.classList.contains('hidden') && slotIdValue !== slotId.toString()) {
+                this.setSlotState(slotIdValue, 'waiting');
+            }
+        });
+        
+        // Simulate joining process
+        setTimeout(() => {
+            this.hideSlotLoadingState(slotId);
+            
+            // Get participant data from roomData for current user
+            const currentParticipant = window.roomData?.participants?.find(p => p.user_id === window.currentUserId);
+            const participantData = {
+                user_id: window.currentUserId,
+                username: currentParticipant?.username || 'Unknown Player',
+                character_name: currentParticipant?.character_name || 'Unknown Character',
+                character_class: currentParticipant?.character_class || 'Unknown',
+                character_subclass: currentParticipant?.character_subclass || '',
+                character_ancestry: currentParticipant?.character_ancestry || '',
+                character_community: currentParticipant?.character_community || '',
+                is_host: false
+            };
+            
+            this.setSlotToOccupied(slotId, participantData);
+            
+            // Integrate with WebRTC system
+            if (this.roomWebRTC && this.roomWebRTC.joinSlot) {
+                const slotContainer = document.querySelector(`[data-slot-id="${slotId}"]`);
+                this.roomWebRTC.joinSlot(slotId, slotContainer);
+            }
+        }, 1000);
+        
+        console.log(`Player attempting to join slot ${slotId}`);
+    }
+
+    /**
+     * Sets a slot to occupied state with participant data
+     */
+    setSlotToOccupied(slotId, participantData) {
+        const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        if (!slot) return;
+        
+        // Hide all slot states (join buttons, waiting text, etc.)
+        const allStates = slot.querySelectorAll('.slot-state');
+        allStates.forEach(stateEl => stateEl.classList.add('hidden'));
+        
+        // Add class banner if not host and has class
+        if (!participantData.is_host && participantData.character_class && participantData.character_class !== 'Unknown') {
+            this.addClassBannerToSlot(slot, participantData.character_class);
+        }
+        
+        // Show nameplate overlay with participant data
+        this.showNameplateForSlot(slotId, participantData);
+    }
+
+    /**
+     * Shows nameplate when user joins a video slot
+     */
+    showNameplateForSlot(slotId, participantData) {
+        const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        if (slot) {
+            const overlay = slot.querySelector('.character-overlay');
+            if (overlay && participantData) {
+                // Update nameplate content with actual participant data
+                const nameElement = overlay.querySelector('.character-name');
+                const classElement = overlay.querySelector('.character-class');
+                const subclassElement = overlay.querySelector('.character-subclass');
+                
+                // Update character name
+                if (nameElement) {
+                    if (participantData.is_host) {
+                        nameElement.textContent = 'GAME MASTER';
+                    } else {
+                        nameElement.textContent = participantData.character_name || participantData.username || 'Unknown Player';
+                    }
+                }
+                
+                // Update character class
+                if (classElement) {
+                    if (participantData.is_host) {
+                        classElement.textContent = 'NARRATOR OF TALES';
+                    } else {
+                        classElement.textContent = participantData.character_class || 'NO CLASS';
+                    }
+                }
+                
+                // Update subclass if exists
+                if (participantData.character_subclass && !participantData.is_host) {
+                    const subclassElement = overlay.querySelector('.character-subclass');
+                    const subclassSeparator = overlay.querySelector('.character-subclass-separator');
+                    
+                    if (subclassElement) {
+                        subclassElement.textContent = participantData.character_subclass;
+                        subclassElement.classList.remove('hidden');
+                    }
+                    if (subclassSeparator) {
+                        subclassSeparator.classList.remove('hidden');
+                    }
+                }
+                
+                // Add class banner if not host and has class
+                if (!participantData.is_host && participantData.character_class && participantData.character_class !== 'Unknown') {
+                    this.addClassBannerToSlot(slot, participantData.character_class);
+                }
+                
+                overlay.classList.remove('hidden');
+            }
+            
+            // Hide the join button for this slot
+            const joinBtn = slot.querySelector('.join-btn');
+            if (joinBtn) {
+                joinBtn.style.display = 'none';
+            }
+        }
+    }
+
+    /**
+     * Hides nameplate when user leaves a video slot
+     */
+    hideNameplateForSlot(slotId) {
+        const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        if (slot) {
+            const overlay = slot.querySelector('.character-overlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                
+                // Reset nameplate content
+                const nameElement = overlay.querySelector('.character-name');
+                const classElement = overlay.querySelector('.character-class');
+                const subclassElement = overlay.querySelector('.character-subclass');
+                const subclassSeparator = overlay.querySelector('.character-subclass-separator');
+                
+                if (nameElement) nameElement.textContent = '';
+                if (classElement) classElement.textContent = '';
+                if (subclassElement) {
+                    subclassElement.textContent = '';
+                    subclassElement.classList.add('hidden');
+                }
+                if (subclassSeparator) {
+                    subclassSeparator.classList.add('hidden');
+                }
+            }
+            
+            // Remove class banner and reset padding
+            this.removeClassBannerFromSlot(slot);
+            
+            // Show the join button again if this isn't a GM slot for non-GM users
+            const joinBtn = slot.querySelector('.join-btn');
+            if (joinBtn) {
+                joinBtn.style.display = 'block';
+            }
+        }
+    }
+
+    /**
+     * Adds class banner to a slot
+     */
+    addClassBannerToSlot(slot, characterClass) {
+        const normalizedClass = characterClass.toLowerCase();
+        const hiddenBanner = document.querySelector(`#hidden-class-banners .hidden-banner-${normalizedClass}`);
+        if (hiddenBanner) {
+            // Target the banner container in the main slot area (not the nameplate overlay)
+            const bannerContainer = slot.querySelector('.character-banner-container');
+            if (bannerContainer) {
+                // Clear existing banner
+                bannerContainer.innerHTML = '';
+                
+                // Clone the hidden banner
+                const clonedBanner = hiddenBanner.cloneNode(true);
+                clonedBanner.classList.remove('hidden');
+                bannerContainer.appendChild(clonedBanner);
+                
+                // Adjust the character info padding to account for banner
+                const characterInfo = slot.querySelector('.character-info');
+                if (characterInfo) {
+                    characterInfo.classList.remove('px-4');
+                    characterInfo.classList.add('ml-9', 'pl-4');
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes class banner from a slot
+     */
+    removeClassBannerFromSlot(slot) {
+        const bannerContainer = slot.querySelector('.character-banner-container');
+        if (bannerContainer) {
+            bannerContainer.innerHTML = '';
+        }
+        
+        // Reset character info padding
+        const characterInfo = slot.querySelector('.character-info');
+        if (characterInfo) {
+            characterInfo.classList.remove('ml-9', 'pl-4');
+            characterInfo.classList.add('px-4');
+        }
+    }
+
+    /**
+     * Handles when other participants join via Ably
+     */
+    handleRemoteParticipantJoin(slotId, participantData) {
+        this.setSlotToOccupied(slotId, participantData);
+    }
+
+    /**
+     * Handles when participants leave via Ably
+     */
+    handleRemoteParticipantLeave(slotId, isGmSlot, userIsCreator) {
+        // Remove banner and reset padding
+        const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+        if (slot) {
+            this.removeClassBannerFromSlot(slot);
+        }
+        
+        // Reset to appropriate empty state
+        if (isGmSlot) {
+            if (userIsCreator) {
+                this.setSlotState(slotId, 'gm-join');
+            } else {
+                this.setSlotState(slotId, 'gm-reserved');
+            }
+        } else {
+            if (userIsCreator) {
+                this.setSlotState(slotId, 'waiting');
+            } else {
+                this.setSlotState(slotId, 'player-join');
+            }
+        }
+        
+        // Hide nameplate
+        this.hideNameplateForSlot(slotId);
     }
 }

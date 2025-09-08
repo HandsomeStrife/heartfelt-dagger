@@ -1,11 +1,11 @@
-<div {{ $attributes }} data-class-banner="{{ $className }}">
+<div {{ $attributes }} data-class-banner="{{ $name }}">
     <div class="relative class-banner-{{ $size }}">
         <!-- Banner Background -->
         <div class="absolute -top-1 left-[13.5px] z-40 w-full h-full">
             <img class="class-banner-{{ $size }}-height w-full absolute top-0 left-0" src="{{ asset('img/empty-banner.webp') }}">
-            <div class="flex flex-col items-center justify-center gap-2 w-full h-full absolute top-0 left-0 pb-3">
-                <x-dynamic-component component="icons.{{ $top_icon }}" class="fill-white {{ $size === 'lg' ? 'size-12' : ($size === 'md' ? 'size-10' : 'size-8') }}" />
-                <x-dynamic-component component="icons.{{ $bottom_icon }}" class="fill-white {{ $size === 'lg' ? 'size-12' : ($size === 'md' ? 'size-10' : 'size-8') }}" />
+            <div class="flex flex-col items-center justify-center {{ $size === 'xs' ? 'gap-1' : 'gap-2' }} w-full h-full absolute top-0 left-0 pb-3 icons-layout">
+                <x-dynamic-component component="icons.{{ $top_icon }}" class="fill-white {{ $size === 'lg' ? 'size-12' : ($size === 'md' ? 'size-10' : ($size === 'xs' ? 'size-6' : 'size-8')) }}" />
+                <x-dynamic-component component="icons.{{ $bottom_icon }}" class="fill-white {{ $size === 'lg' ? 'size-12' : ($size === 'md' ? 'size-10' : ($size === 'xs' ? 'size-6' : 'size-8')) }}" />
             </div>
         </div>
         

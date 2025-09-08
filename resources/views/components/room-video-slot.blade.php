@@ -1,4 +1,4 @@
-@props(['slotId', 'participant' => null, 'isHost' => false])
+@props(['slotId', 'participant' => null, 'isHost' => false, 'userIsCreator' => false, 'isGmReservedSlot' => false])
 
 <div class="video-slot h-full w-full bg-gradient-to-br from-slate-800 to-slate-900 border {{ $isHost ? 'border-emerald-500/30' : 'border-amber-500/30' }} overflow-hidden hover:border-{{ $isHost ? 'emerald' : 'amber' }}-400/60 transition-all duration-300" data-slot-id="{{ $slotId }}" data-testid="video-slot">
     <div class="h-full w-full bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 flex items-center justify-center relative">
@@ -15,8 +15,8 @@
             <div class="absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 border-{{ $isHost ? 'emerald' : 'amber' }}-400/50"></div>
         </div>
         
-        <!-- Character Sheet Overlay (hidden by default, shown when occupied) -->
-        <div class="character-overlay hidden absolute inset-0 pointer-events-none">
+        <!-- Character Sheet Overlay (hidden by default, shown when user joins this slot) -->
+        <div class="character-overlay hidden absolute inset-0 pointer-events-none" data-participant-id="{{ $participant ? $participant->id : '' }}" data-participant-name="{{ $participant ? ($participant->character ? $participant->character->name : ($participant->character_name ?: ($participant->user ? $participant->user->username : 'Anonymous'))) : '' }}">
             <!-- Character Name Panel (Bottom Left) -->
             <div class="absolute bottom-2 left-0 w-auto pointer-events-auto overflow-visible">
                 <div class="relative h-[54px] min-w-[45%]">
@@ -27,53 +27,24 @@
                     
                     <!-- Main Content Container -->
                     <div class="relative z-10 bg-daggerheart-blue border border-daggerheart-gold border-l-0 border-r-0 h-full flex items-center">
-                        @if($participant && $participant->character && $participant->character->class)
-                            <!-- Character Banner -->
-                            <div class="absolute -top-1 left-4 w-8 h-16 rounded overflow-hidden">
-                                <x-class-banner className="{{ $participant->character->class }}" class="w-full h-full object-cover" />
-                            </div>
-                        @endif
+                        <!-- Character Banner Container (always present for dynamic banner injection) -->
+                        <div class="character-banner-container absolute scale-80 -top-2 -left-2 w-8 h-16 rounded overflow-visible">
+                            <!-- Banner will be dynamically injected here by JavaScript -->
+                        </div>
                         
                         <!-- Character Info -->
-                        <div class="text-left {{ ($participant && $participant->character) ? 'ml-11 pl-4' : 'px-4' }} py-3">
+                        <div class="character-info text-left px-3 py-3">
                             <div class="character-name font-fantasy text-amber-300 text-lg tracking-wide leading-tight">
-                                @if($participant)
-                                    @if($participant->character)
-                                        {{ $participant->character->name }}
-                                    @elseif($participant->character_name)
-                                        {{ $participant->character_name }}
-                                    @else
-                                        {{ $participant->user ? $participant->user->username : 'Anonymous' }}
-                                    @endif
-                                @else
-                                    Empty Slot
-                                @endif
-                                @if($isHost)
-                                    <span class="text-emerald-400 text-sm ml-2">(Host)</span>
-                                @endif
+                                <!-- Name will be populated by JavaScript -->
                             </div>
                             <div class="text-xs text-gray-400 flex gap-1 flex-wrap">
-                                @if($participant)
-                                    <span class="character-class uppercase tracking-wide">
-                                        @if($participant->character)
-                                            {{ $participant->character->class }}
-                                        @elseif($participant->character_class)
-                                            {{ $participant->character_class }}
-                                        @elseif($isHost)
-                                            GM
-                                        @else
-                                            NO CLASS
-                                        @endif
-                                    </span>
-                                    @if($participant->character && $participant->character->subclass)
-                                        <span>/</span>
-                                        <span class="character-subclass uppercase tracking-wide">
-                                            {{ $participant->character->subclass }}
-                                        </span>
-                                    @endif
-                                @else
-                                    <span class="uppercase tracking-wide">WAITING FOR PARTICIPANT</span>
-                                @endif
+                                <span class="character-class uppercase tracking-wide">
+                                    <!-- Class will be populated by JavaScript -->
+                                </span>
+                                <span class="character-subclass-separator hidden">/</span>
+                                <span class="character-subclass uppercase tracking-wide hidden">
+                                    <!-- Subclass will be populated by JavaScript -->
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -81,31 +52,50 @@
             </div>
         </div>
         
-        @if($participant)
-            <!-- Join button for existing participants -->
-            <button class="join-btn bg-gradient-to-r from-{{ $isHost ? 'emerald' : 'amber' }}-500 to-{{ $isHost ? 'teal' : 'orange' }}-500 hover:from-{{ $isHost ? 'emerald' : 'amber' }}-400 hover:to-{{ $isHost ? 'teal' : 'orange' }}-400 text-black font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-{{ $isHost ? 'emerald' : 'amber' }}-500/50 transform hover:scale-105">
-                <span class="flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/>
-                    </svg>
-                    {{ $isHost ? 'Join Room' : 'Join Quest' }}
-                </span>
-            </button>
-        @else
-            <!-- Empty slot message -->
-            <div class="text-center text-slate-400">
-                <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        <!-- ALL POSSIBLE SLOT STATES (shown/hidden dynamically by JavaScript) -->
+        
+        <!-- State 1: GM Reserved Slot (for non-GM users) -->
+        <div class="slot-state slot-gm-reserved {{ $isGmReservedSlot && !$userIsCreator ? '' : 'hidden' }} text-center text-slate-500">
+            <svg class="w-12 h-12 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <p class="text-sm font-semibold opacity-75">Reserved for GM</p>
+        </div>
+
+        <!-- State 2: GM Join Button (for GM users) -->
+        <button class="slot-state slot-gm-join {{ $isGmReservedSlot && $userIsCreator ? '' : 'hidden' }} join-btn bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-emerald-500/50 transform hover:scale-105">
+            <span class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/>
                 </svg>
-                <p class="text-sm font-semibold opacity-75">Waiting for participant</p>
-            </div>
-        @endif
+                Join Room
+            </span>
+        </button>
+
+        <!-- State 3: Player Join Button (for non-GM slots, when user can join) -->
+        <button class="slot-state slot-player-join {{ !$isGmReservedSlot && !$userIsCreator ? '' : 'hidden' }} join-btn player-join-btn bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 transform hover:scale-105">
+            <span class="flex items-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/>
+                </svg>
+                Join
+            </span>
+        </button>
+
+        <!-- State 4: Waiting for Player (for empty non-GM slots, shown when no join button is available) -->
+        <div class="slot-state slot-waiting {{ !$isGmReservedSlot && $userIsCreator ? '' : 'hidden' }} text-center text-slate-400">
+            <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <p class="text-sm font-semibold opacity-75">Waiting for Player</p>
+        </div>
+
         
         
         <div class="loading-spinner hidden absolute inset-0 items-center justify-center bg-black bg-opacity-75">
             <div class="flex flex-col items-center">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-{{ $isHost ? 'emerald' : 'amber' }}-400"></div>
-                <p class="text-{{ $isHost ? 'emerald' : 'amber' }}-300 mt-3 text-sm">Entering the realm...</p>
+                <p class="text-{{ $isHost ? 'emerald' : 'amber' }}-300 mt-3 text-sm">Joining...</p>
             </div>
         </div>
     </div>

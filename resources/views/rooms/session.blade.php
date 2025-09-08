@@ -56,20 +56,20 @@
                 <!-- Video Grid Layout -->
                 <div class="h-full w-full">
                     @if($room->getTotalCapacity() == 1)
-                        <x-room-layout.single :participants="$participants" :room="$room" />
+                        <x-room-layout.single :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                     @elseif($room->getTotalCapacity() == 2)
-                        <x-room-layout.dual :participants="$participants" :room="$room" />
+                        <x-room-layout.dual :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                     @elseif($room->getTotalCapacity() == 3)
-                        <x-room-layout.triangle :participants="$participants" :room="$room" />
+                        <x-room-layout.triangle :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                     @elseif($room->getTotalCapacity() == 4)
-                        <x-room-layout.quad :participants="$participants" :room="$room" />
+                        <x-room-layout.quad :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                     @elseif($room->getTotalCapacity() == 5)
-                        <x-room-layout.penta :participants="$participants" :room="$room" />
+                        <x-room-layout.penta :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                     @elseif($room->getTotalCapacity() == 6)
-                        <x-room-layout.grid :participants="$participants" :room="$room" />
+                        <x-room-layout.grid :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                     @else
                         {{-- Fallback for 7+ participants (shouldn't happen with current validation) --}}
-                        <x-room-layout.grid :participants="$participants" :room="$room" />
+                        <x-room-layout.grid :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                     @endif
                 </div>
             </div>
@@ -184,15 +184,15 @@
             <div class="flex-1 p-1">
                 <!-- Dynamic Grid Layout Based on Total Capacity (Creator + Guests) -->
                 @if($room->getTotalCapacity() == 1)
-                    <x-room-layout.single :participants="$participants" :room="$room" />
+                    <x-room-layout.single :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                 @elseif($room->getTotalCapacity() == 2)
-                    <x-room-layout.dual :participants="$participants" :room="$room" />
+                    <x-room-layout.dual :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                 @elseif($room->getTotalCapacity() == 3)
-                    <x-room-layout.triangle :participants="$participants" :room="$room" />
+                    <x-room-layout.triangle :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                 @elseif($room->getTotalCapacity() == 4)
-                    <x-room-layout.quad :participants="$participants" :room="$room" />
+                    <x-room-layout.quad :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                 @else
-                    <x-room-layout.grid :participants="$participants" :room="$room" />
+                    <x-room-layout.grid :participants="$participants" :room="$room" :userIsCreator="$user_is_creator" />
                 @endif
             </div>
             
@@ -288,6 +288,15 @@
     @endif
     </div> <!-- End of room-main-content -->
 
+    <!-- Hidden class banners for dynamic copying -->
+    <div id="hidden-class-banners" class="hidden">
+        @foreach(\Domain\Character\Enums\ClassEnum::cases() as $className)
+            <div data-class="{{ $className }}" class="hidden-banner-{{ $className }}">
+                <x-class-banner className="{{ $className }}" size="xs" />
+            </div>
+        @endforeach
+    </div>
+
     @if($room->isCreator(auth()->user()))
         <!-- Participants Management Modal -->
         <div id="participantsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
@@ -378,6 +387,9 @@
                     username: "{{ $p->user ? $p->user->username : 'Unknown' }}",
                     character_name: "{{ $p->character ? $p->character->name : ($p->character_name ?? ($p->user ? $p->user->username : 'Unknown')) }}",
                     character_class: "{{ $p->character ? $p->character->class : ($p->character_class ?? 'Unknown') }}",
+                    character_subclass: "{{ $p->character ? $p->character->subclass : '' }}",
+                    character_ancestry: "{{ $p->character ? $p->character->ancestry : '' }}",
+                    character_community: "{{ $p->character ? $p->character->community : '' }}",
                     is_host: {{ $p->user_id === $room->creator_id ? 'true' : 'false' }}
                 }{{ !$loop->last ? ',' : '' }}
                 @endforeach
@@ -397,6 +409,45 @@
                 modal.style.display = 'none';
             }
         }
+        
+        // Make UIStateManager methods available globally for WebRTC integration
+        window.showNameplateForSlot = function(slotId, participantData) {
+            if (window.roomWebRTC && window.roomWebRTC.uiStateManager) {
+                window.roomWebRTC.uiStateManager.showNameplateForSlot(slotId, participantData);
+            }
+        };
+        
+        window.hideNameplateForSlot = function(slotId) {
+            if (window.roomWebRTC && window.roomWebRTC.uiStateManager) {
+                window.roomWebRTC.uiStateManager.hideNameplateForSlot(slotId);
+            }
+        };
+        
+        window.setSlotState = function(slotId, state) {
+            if (window.roomWebRTC && window.roomWebRTC.uiStateManager) {
+                window.roomWebRTC.uiStateManager.setSlotState(slotId, state);
+            }
+        };
+        
+        window.setSlotToOccupied = function(slotId, participantData) {
+            if (window.roomWebRTC && window.roomWebRTC.uiStateManager) {
+                window.roomWebRTC.uiStateManager.setSlotToOccupied(slotId, participantData);
+            }
+        };
+        
+        // Handle when other participants join via Ably
+        window.handleRemoteParticipantJoin = function(slotId, participantData) {
+            if (window.roomWebRTC && window.roomWebRTC.uiStateManager) {
+                window.roomWebRTC.uiStateManager.handleRemoteParticipantJoin(slotId, participantData);
+            }
+        };
+        
+        // Handle when participants leave via Ably  
+        window.handleRemoteParticipantLeave = function(slotId, isGmSlot, userIsCreator) {
+            if (window.roomWebRTC && window.roomWebRTC.uiStateManager) {
+                window.roomWebRTC.uiStateManager.handleRemoteParticipantLeave(slotId, isGmSlot, userIsCreator);
+            }
+        };
         
         // Close participants modal when clicking outside
         document.addEventListener('click', function(event) {

@@ -101,6 +101,17 @@ class GenerateGoogleDriveUploadUrl
                 'storage_account_id' => $storageAccount->id,
             ]);
 
+            // Build metadata payload ensuring folder_id is included
+            $metadataPayload = array_merge($uploadMetadata, [
+                'provider' => 'google_drive',
+                'provider_file_id' => null,
+                'storage_account_id' => $storageAccount->id,
+                'filename' => $uniqueFilename,
+                'size_bytes' => $sizeBytes,
+                'content_type' => $contentType,
+                'session_uri' => $result['session_uri'],
+            ]);
+
             return [
                 'success' => true,
                 'upload_url' => $result['upload_url'],
@@ -108,18 +119,8 @@ class GenerateGoogleDriveUploadUrl
                 'filename' => $uniqueFilename,
                 'expires_at' => $result['expires_at'],
                 'access_token' => $driveService->getValidAccessToken(),
-                'metadata' => [
-                    'provider' => 'google_drive',
-                    'provider_file_id' => null, // Will be filled after upload completion
-                    'storage_account_id' => $storageAccount->id,
-                    'room_id' => $room->id,
-                    'user_id' => $user->id,
-                    'filename' => $uniqueFilename,
-                    'size_bytes' => $sizeBytes,
-                    'content_type' => $contentType,
-                    'session_uri' => $result['session_uri'],
-                    ...$metadata,
-                ],
+                'folder_id' => $folderId,
+                'metadata' => $metadataPayload,
             ];
 
         } catch (\Exception $e) {

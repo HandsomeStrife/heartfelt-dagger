@@ -33,6 +33,20 @@
     display: none !important; 
 }
 
+.class-banner-xs {
+    width: 50px;
+    height: 90px;
+}
+.class-banner-xs-height {
+    height: 90px;
+}
+.class-banner-xs-width {
+    width: 50px;
+}
+.class-banner-xs-bg-width {
+    width: 46px;
+}
+
 .class-banner-sm {
     width: 75px;
     height: 120px;

@@ -324,6 +324,142 @@ class GoogleDriveService
     }
 
     /**
+     * Finalize a resumable upload session by sending the final commit request
+     * This handles cases where the client disconnected before finalizing
+     */
+    public function finalizeResumableSession(string $sessionUri, int $uploadedBytes): array
+    {
+        try {
+            Log::info('Finalizing Google Drive resumable session', [
+                'storage_account_id' => $this->storageAccount->id,
+                'session_uri_length' => strlen($sessionUri),
+                'uploaded_bytes' => $uploadedBytes
+            ]);
+
+            // First, check the session status to see what Google Drive thinks
+            $statusResponse = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                'Content-Range' => 'bytes */*',
+                'Content-Length' => '0',
+            ])->put($sessionUri);
+
+            Log::info('Google Drive session status check', [
+                'storage_account_id' => $this->storageAccount->id,
+                'status' => $statusResponse->status(),
+                'range_header' => $statusResponse->header('Range'),
+                'body_preview' => substr($statusResponse->body(), 0, 500)
+            ]);
+
+            // If status check returns 200/201, the upload is already complete
+            if ($statusResponse->status() === 200 || $statusResponse->status() === 201) {
+                $fileData = $statusResponse->json();
+                
+                if (!$fileData || !isset($fileData['id'])) {
+                    throw new \Exception('Upload appears complete but no file ID returned');
+                }
+
+                Log::info('Google Drive upload already completed', [
+                    'storage_account_id' => $this->storageAccount->id,
+                    'file_id' => $fileData['id'],
+                    'filename' => $fileData['name'] ?? 'unknown',
+                    'size' => $fileData['size'] ?? 0
+                ]);
+
+                return [
+                    'success' => true,
+                    'file_id' => $fileData['id'],
+                    'filename' => $fileData['name'] ?? 'unknown',
+                    'size' => $fileData['size'] ?? 0,
+                    'web_view_link' => $fileData['webViewLink'] ?? null,
+                    'web_content_link' => $fileData['webContentLink'] ?? null,
+                    'created_time' => $fileData['createdTime'] ?? null,
+                    'mime_type' => $fileData['mimeType'] ?? null,
+                ];
+            }
+
+            // If status is 308, we can try to finalize with the correct range
+            if ($statusResponse->status() === 308) {
+                $rangeHeader = $statusResponse->header('Range');
+                if ($rangeHeader) {
+                    // Parse the range to get the actual uploaded bytes
+                    if (preg_match('/bytes=0-(\d+)/', $rangeHeader, $matches)) {
+                        $actualUploadedBytes = intval($matches[1]) + 1;
+                        Log::info('Adjusting uploaded bytes based on server range', [
+                            'original_bytes' => $uploadedBytes,
+                            'actual_bytes' => $actualUploadedBytes,
+                            'range_header' => $rangeHeader
+                        ]);
+                        $uploadedBytes = $actualUploadedBytes;
+                    }
+                }
+
+                // Send the final commit request with the correct total bytes
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                    'Content-Range' => "bytes */{$uploadedBytes}",
+                    'Content-Type' => 'application/octet-stream',
+                    'Content-Length' => '0',
+                ])->put($sessionUri);
+            } else {
+                // Session might be expired or invalid
+                throw new \Exception("Session status check returned unexpected status: {$statusResponse->status()}, body: " . $statusResponse->body());
+            }
+
+            Log::info('Google Drive finalization response', [
+                'storage_account_id' => $this->storageAccount->id,
+                'status' => $response->status(),
+                'headers' => $response->headers(),
+                'body_preview' => substr($response->body(), 0, 500)
+            ]);
+
+            if ($response->status() === 200 || $response->status() === 201) {
+                $fileData = $response->json();
+                
+                if (!$fileData || !isset($fileData['id'])) {
+                    throw new \Exception('Finalization succeeded but no file ID returned');
+                }
+
+                Log::info('Successfully finalized Google Drive upload', [
+                    'storage_account_id' => $this->storageAccount->id,
+                    'file_id' => $fileData['id'],
+                    'filename' => $fileData['name'] ?? 'unknown',
+                    'size' => $fileData['size'] ?? 0
+                ]);
+
+                return [
+                    'success' => true,
+                    'file_id' => $fileData['id'],
+                    'filename' => $fileData['name'] ?? 'unknown',
+                    'size' => $fileData['size'] ?? 0,
+                    'web_view_link' => $fileData['webViewLink'] ?? null,
+                    'web_content_link' => $fileData['webContentLink'] ?? null,
+                    'created_time' => $fileData['createdTime'] ?? null,
+                    'mime_type' => $fileData['mimeType'] ?? null,
+                ];
+            }
+
+            if ($response->status() === 308) {
+                // Still incomplete - get the range
+                $rangeHeader = $response->header('Range');
+                throw new \Exception("Upload still incomplete after finalization attempt. Range: " . ($rangeHeader ?? 'unknown'));
+            }
+
+            // Other status codes indicate errors
+            throw new \Exception("Finalization failed with status: {$response->status()}, body: " . $response->body());
+
+        } catch (\Exception $e) {
+            Log::error('Failed to finalize Google Drive resumable session', [
+                'error' => $e->getMessage(),
+                'storage_account_id' => $this->storageAccount->id,
+                'session_uri' => $sessionUri,
+                'uploaded_bytes' => $uploadedBytes
+            ]);
+
+            throw new \Exception('Failed to finalize resumable session: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Verify upload completion and get file information from Google Drive
      * This should be called after a direct upload to confirm success and get file metadata
      */
