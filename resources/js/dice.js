@@ -13,7 +13,7 @@ window.initDiceBox = (containerId = '#dice-container') => {
         container: containerId,
         assetPath: "/assets/dice-box/",
         theme: 'default',
-        scale: Math.max(baseScale, 8), // Reduced minimum scale from 15 to 8
+        scale: Math.max(baseScale, 5), // Reduced minimum scale from 15 to 8
         delay: 150,
         gravity: 1.5,
         friction: 0.8,
@@ -85,6 +85,50 @@ window.rollDualityDice = (modifier = 0, rollType = 'stat', rollData = {}) => {
     }
 }
 
+// Roll custom dice selection
+window.rollCustomDice = (diceArray) => {
+    if (!diceBox) {
+        console.error('DiceBox not initialized');
+        return;
+    }
+    
+    if (!diceArray || diceArray.length === 0) {
+        console.error('No dice to roll');
+        return;
+    }
+    
+    // Store the roll context for the callback
+    currentRollContext = {
+        modifier: 0,
+        rollType: 'custom',
+        rollData: { diceArray }
+    };
+    
+    console.log('Rolling custom dice:', diceArray);
+    
+    try {
+        // Convert the dice array to the format expected by dice-box
+        const rollNotation = diceArray.map(die => {
+            return {
+                qty: 1,
+                sides: die.sides,
+                theme: die.theme || 'default'
+            };
+        });
+        
+        diceBox.roll(rollNotation);
+    } catch (e) {
+        console.error('Error rolling custom dice:', e);
+        // Fallback to simple notation
+        try {
+            const simpleNotation = diceArray.map(die => `1d${die.sides}`).join(' + ');
+            diceBox.roll(simpleNotation);
+        } catch (fallbackError) {
+            console.error('Fallback roll also failed:', fallbackError);
+        }
+    }
+}
+
 // Set up roll completion handler
 window.setupDiceCallbacks = (onRollComplete = null) => {
     if (diceBox && onRollComplete) {
@@ -92,7 +136,46 @@ window.setupDiceCallbacks = (onRollComplete = null) => {
             // Process DaggerHeart results
             console.log('Raw dice results:', results);
             
-            if (results.length === 2) {
+            // Get stored context
+            const modifier = currentRollContext ? currentRollContext.modifier : 0;
+            const rollType = currentRollContext ? currentRollContext.rollType : 'unknown';
+            const rollData = currentRollContext ? currentRollContext.rollData : {};
+            
+            // Handle different roll types
+            if (rollType === 'custom') {
+                // Custom dice roll - show all results
+                const total = results.reduce((sum, die) => sum + die.value, 0);
+                const diceList = results.map(die => `d${die.sides}: ${die.value}`).join(', ');
+                
+                const rollResult = {
+                    total,
+                    results,
+                    rollType,
+                    rollData,
+                    diceList
+                };
+                
+                console.log('Custom dice roll completed:', rollResult);
+                
+                // Show result
+                window.showDiceResult(rollResult);
+                
+                // Call external callback if provided
+                if (onRollComplete) {
+                    onRollComplete(rollResult);
+                }
+                
+                // Clear dice after delay
+                setTimeout(() => {
+                    if (diceBox && diceBox.clear) {
+                        diceBox.clear();
+                    }
+                }, 3000);
+                
+                return;
+            }
+            
+            if (results.length === 2 && rollType !== 'custom') {
                 // This is a duality dice roll - identify Hope vs Fear dice
                 let hopeDie, fearDie;
                 
@@ -244,7 +327,22 @@ window.showDiceResult = (rollResult) => {
     
     // Format the result display
     let content = '';
-    if (rollResult.hopeDie !== undefined && rollResult.fearDie !== undefined) {
+    if (rollResult.rollType === 'custom') {
+        // Custom dice roll result
+        content = `
+            <div style="text-align: center;">
+                <div style="font-size: 28px; font-weight: bold; color: #ffffff; margin-bottom: 8px;">
+                    ${rollResult.total}
+                </div>
+                <div style="font-size: 16px; color: #fbbf24; margin-bottom: 8px; font-weight: 600;">
+                    Custom Roll
+                </div>
+                <div style="margin-bottom: 5px; font-size: 13px; color: #a0a0a0;">
+                    ${rollResult.diceList}
+                </div>
+            </div>
+        `;
+    } else if (rollResult.hopeDie !== undefined && rollResult.fearDie !== undefined) {
         // DaggerHeart duality dice result
         const outcomeColor = rollResult.outcomeType === 'critical' ? '#fbbf24' : 
                            rollResult.outcomeType === 'hope' ? '#4ade80' : '#ef4444';

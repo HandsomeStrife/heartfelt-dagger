@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/join', [App\Http\Controllers\CampaignController::class, 'joinByCode'])->name('join');
         Route::get('/{campaign}', [App\Http\Controllers\CampaignController::class, 'show'])->name('show');
         Route::post('/{campaign}/join', [App\Http\Controllers\CampaignController::class, 'join'])->name('join_campaign');
+        Route::patch('/{campaign}/update-character', [App\Http\Controllers\CampaignController::class, 'updateCharacter'])->name('update_character');
         Route::delete('/{campaign}/leave', [App\Http\Controllers\CampaignController::class, 'leave'])->name('leave');
         Route::get('/{campaign}/rooms/create', [App\Http\Controllers\RoomController::class, 'createForCampaign'])->name('rooms.create');
         Route::post('/{campaign}/rooms', [App\Http\Controllers\RoomController::class, 'storeForCampaign'])->name('rooms.store');
@@ -73,6 +74,9 @@ Route::middleware('auth')->group(function () {
             }
             return view('campaigns.page-show', compact('campaign', 'page'));
         })->name('page.show');
+        
+        // Campaign invite routes (separate from auth to allow invite sharing)
+        Route::get('/join/{invite_code}', [App\Http\Controllers\CampaignController::class, 'showJoin'])->name('invite');
     });
     
     // Campaign Frame routes
@@ -86,9 +90,6 @@ Route::middleware('auth')->group(function () {
         Route::put('/{campaign_frame}', [App\Http\Controllers\CampaignFrameController::class, 'update'])->name('update');
         Route::delete('/{campaign_frame}', [App\Http\Controllers\CampaignFrameController::class, 'destroy'])->name('destroy');
     });
-    
-    // Campaign invite routes (separate from auth to allow invite sharing)
-    Route::get('/join/{invite_code}', [App\Http\Controllers\CampaignController::class, 'showJoin'])->name('campaigns.invite');
     
     // Authenticated room routes (creation, management)
     Route::prefix('rooms')->name('rooms.')->group(function () {
@@ -143,12 +144,10 @@ Route::prefix('api/rooms')->name('api.rooms.')->group(function () {
     Route::get('/{room}/stt-consent', [App\Http\Controllers\Api\RoomConsentController::class, 'getSttConsentStatus'])->name('stt-consent.status');
     Route::post('/{room}/recording-consent', [App\Http\Controllers\Api\RoomConsentController::class, 'updateRecordingConsent'])->name('recording-consent.update');
     Route::get('/{room}/recording-consent', [App\Http\Controllers\Api\RoomConsentController::class, 'getRecordingConsentStatus'])->name('recording-consent.status');
-    Route::post('/{room}/recordings', [App\Http\Controllers\Api\RoomRecordingController::class, 'store'])->name('recordings.store');
     Route::get('/{room}/recordings', [App\Http\Controllers\Api\RoomRecordingController::class, 'index'])->name('recordings.index');
     Route::get('/{room}/recordings/{recording}/download', [App\Http\Controllers\Api\RoomRecordingController::class, 'download'])->name('recordings.download');
     Route::post('/{room}/recordings/presign-wasabi', [App\Http\Controllers\Api\RoomRecordingController::class, 'presignWasabi'])->name('recordings.presign-wasabi');
     Route::post('/{room}/recordings/confirm-wasabi', [App\Http\Controllers\Api\RoomRecordingController::class, 'confirmWasabiUpload'])->name('recordings.confirm-wasabi');
-    Route::post('/{room}/recordings/upload-google-drive', [App\Http\Controllers\Api\RoomRecordingController::class, 'uploadGoogleDrive'])->name('recordings.upload-google-drive');
     Route::post('/{room}/recordings/google-drive-upload-url', [App\Http\Controllers\Api\RoomRecordingController::class, 'generateGoogleDriveUploadUrl'])->name('recordings.google-drive-upload-url');
     Route::post('/{room}/recordings/confirm-google-drive', [App\Http\Controllers\Api\RoomRecordingController::class, 'confirmGoogleDriveUpload'])->name('recordings.confirm-google-drive');
     
@@ -164,6 +163,7 @@ Route::prefix('api/uploads/s3/multipart')->name('api.uploads.s3.multipart.')->mi
     Route::post('/complete', [App\Http\Controllers\Api\S3MultipartController::class, 'complete'])->name('complete');
     Route::post('/abort', [App\Http\Controllers\Api\S3MultipartController::class, 'abort'])->name('abort');
 });
+
 
 // Google Drive OAuth routes
 Route::prefix('google-drive')->name('google-drive.')->middleware('auth')->group(function () {

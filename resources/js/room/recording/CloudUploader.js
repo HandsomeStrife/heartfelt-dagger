@@ -20,9 +20,7 @@ export class CloudUploader {
                 await window.roomUppy.uploadVideoBlob(blob, recordingData);
                 console.log('🎬 Video chunk queued for upload via Uppy');
             } else {
-                // Fallback to direct upload if Uppy not available
-                await this.directUploadVideoChunk(blob, recordingData);
-                console.log('🎬 Video chunk uploaded via direct method');
+                throw new Error('RoomUppy not available - direct uploads to storage providers required');
             }
         } catch (error) {
             console.error('🎬 Error uploading video chunk:', error);
@@ -30,29 +28,6 @@ export class CloudUploader {
         }
     }
 
-    /**
-     * Direct upload method as fallback
-     */
-    async directUploadVideoChunk(blob, recordingData) {
-        // Fallback direct upload method
-        const formData = new FormData();
-        formData.append('video', blob, recordingData.filename);
-        formData.append('metadata', JSON.stringify(recordingData));
-
-        const response = await fetch(`/api/rooms/${this.roomWebRTC.roomData.id}/recordings`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status}`);
-        }
-
-        return await response.json();
-    }
 
     /**
      * Saves video chunk directly to user's computer as a download (legacy method)

@@ -39,6 +39,9 @@ window.SimpleImageUploader = SimpleImageUploader;
 import { lastSavedTimestampComponent } from './last-saved-timestamp';
 window.lastSavedTimestampComponent = lastSavedTimestampComponent;
 
+// Import dice system to expose window.initDiceBox and related helpers
+import './dice';
+
 // Import Alpine and Livewire
 import { Alpine, Livewire } from '../../vendor/livewire/livewire/dist/livewire.esm';
 

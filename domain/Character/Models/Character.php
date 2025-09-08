@@ -233,7 +233,8 @@ class Character extends Model
      */
     public function getBanner(): string
     {
-        return asset('img/banners/'.strtolower($this->class).'.webp');
+        $class = $this->class ?: 'warrior'; // Default to warrior if class is null
+        return asset('img/banners/'.strtolower($class).'.webp');
     }
 
     /**

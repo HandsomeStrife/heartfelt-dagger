@@ -1,46 +1,70 @@
-<div x-data="{ activeTab: 'players' }" class="h-full flex flex-col">
+<div x-data="{ activeTab: 'players', dropdownOpen: false }" class="h-full flex flex-col">
     <!-- Header -->
     <div class="p-4 border-b border-slate-700/50">
         <h2 class="font-outfit text-xl text-white mb-2">GM Dashboard</h2>
         <p class="text-slate-300 text-sm">{{ $campaign?->name ?? 'Campaign Room' }}</p>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="flex border-b border-slate-700/50">
-        <button @click="activeTab = 'players'" 
-                :class="activeTab === 'players' ? 'bg-slate-800 text-white border-amber-500' : 'text-slate-400 hover:text-slate-300'"
-                class="flex-1 px-4 py-3 text-sm font-medium border-b-2 border-transparent transition-colors">
-            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-            </svg>
-            Players
-        </button>
-        
-        @if($campaign && $campaign_pages->count() > 0)
-        <button @click="activeTab = 'pages'" 
-                :class="activeTab === 'pages' ? 'bg-slate-800 text-white border-amber-500' : 'text-slate-400 hover:text-slate-300'"
-                class="flex-1 px-4 py-3 text-sm font-medium border-b-2 border-transparent transition-colors">
-            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Pages
-        </button>
-        @endif
-        
-        <button @click="activeTab = 'notes'" 
-                :class="activeTab === 'notes' ? 'bg-slate-800 text-white border-amber-500' : 'text-slate-400 hover:text-slate-300'"
-                class="flex-1 px-4 py-3 text-sm font-medium border-b-2 border-transparent transition-colors">
-            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Notes
-        </button>
+    <!-- Dropdown Navigation -->
+    <div class="p-3 border-b border-slate-700/50">
+        <div class="relative">
+            <button @click="dropdownOpen = !dropdownOpen" 
+                    class="w-full flex items-center justify-between px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors">
+                <span x-text="activeTab === 'players' ? 'Players' : 
+                            activeTab === 'pages' ? 'Pages' : 
+                            activeTab === 'notes' ? 'Notes' : 'Select Tab'"></span>
+                <svg class="w-4 h-4 transition-transform" :class="dropdownOpen ? 'rotate-180' : ''" 
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            
+            <div x-show="dropdownOpen" 
+                 x-cloak
+                 x-transition:enter="transition ease-out duration-100"
+                 x-transition:enter-start="transform opacity-0 scale-95"
+                 x-transition:enter-end="transform opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-75"
+                 x-transition:leave-start="transform opacity-100 scale-100"
+                 x-transition:leave-end="transform opacity-0 scale-95"
+                 @click.away="dropdownOpen = false"
+                 class="absolute z-10 mt-1 w-full bg-slate-800 border border-slate-600 rounded-lg shadow-lg">
+                <button @click="activeTab = 'players'; dropdownOpen = false" 
+                        :class="activeTab === 'players' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700'"
+                        class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
+                    Players
+                </button>
+                
+                @if($campaign && $campaign_pages->count() > 0)
+                <button @click="activeTab = 'pages'; dropdownOpen = false" 
+                        :class="activeTab === 'pages' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700'"
+                        class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Pages
+                </button>
+                @endif
+                
+                <button @click="activeTab = 'notes'; dropdownOpen = false" 
+                        :class="activeTab === 'notes' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700'"
+                        class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center rounded-b-lg">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Notes
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Tab Content -->
     <div class="flex-1 overflow-y-auto">
         <!-- Players Tab -->
-        <div x-show="activeTab === 'players'" class="p-4 space-y-4">
+        <div x-show="activeTab === 'players'" x-cloak class="p-4 space-y-4">
             <h3 class="font-outfit text-lg text-white mb-3">Player Characters</h3>
             
             @forelse($participants as $participant)
@@ -59,7 +83,7 @@
 
         <!-- Campaign Pages Tab -->
         @if($campaign && $campaign_pages->count() > 0)
-        <div x-show="activeTab === 'pages'" class="p-4 space-y-3" x-cloak>
+        <div x-show="activeTab === 'pages'" x-cloak class="p-4 space-y-3">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-outfit text-lg text-white">Campaign Pages</h3>
                 <a href="{{ route('campaigns.pages', $campaign) }}" 
@@ -93,7 +117,7 @@
         @endif
 
         <!-- Notes Tab -->
-        <div x-show="activeTab === 'notes'" class="p-4" x-cloak>
+        <div x-show="activeTab === 'notes'" x-cloak class="p-4">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-outfit text-lg text-white">Session Notes</h3>
                 <button wire:click="saveSessionNotes" 

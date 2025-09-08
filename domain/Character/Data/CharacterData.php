@@ -18,9 +18,10 @@ class CharacterData extends Data implements Wireable
     public function __construct(
         public ?int $id,
         public string $character_key,
+        public string $public_key,
         public ?int $user_id,
         public string $name,
-        public string $class,
+        public ?string $class,
         public ?string $pronouns,
         public ?string $subclass,
         public string $ancestry,
@@ -48,9 +49,10 @@ class CharacterData extends Data implements Wireable
         return new self(
             id: $character->id,
             character_key: $character->character_key,
+            public_key: $character->public_key,
             user_id: $character->user_id,
             name: $character->name ?: 'Unnamed Character',
-            class: $character->class ?: 'Warrior',
+            class: $character->class ?: null,
             subclass: $character->subclass,
             ancestry: $character->ancestry ?: 'Human',
             community: $character->community ?: 'Wanderborne',
@@ -72,7 +74,8 @@ class CharacterData extends Data implements Wireable
 
     public function getBanner(): string
     {
-        return asset('img/banners/'.strtolower($this->class).'.webp');
+        $class = $this->class ?: 'warrior'; // Defensive check, should not be needed since fromModel provides default
+        return asset('img/banners/'.strtolower($class).'.webp');
     }
 
     public function getProfileImage(): string

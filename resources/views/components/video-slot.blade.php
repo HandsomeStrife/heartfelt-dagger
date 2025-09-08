@@ -50,10 +50,10 @@
                         
                         <!-- Main Content Container (Above banner) -->
                         <div class="relative z-10 bg-daggerheart-blue border border-daggerheart-gold border-l-0 border-r-0 h-full flex items-center">
-                            @if(isset($character))
+                            @if(isset($character) && $character->class)
                                 <!-- Character Banner (Absolute positioned) -->
-                                <div class="absolute -top-1 left-4">
-                                    <img src="{{ $character->getBanner() }}" alt="{{ $character->class }}" class="w-8 h-16 object-cover rounded">
+                                <div class="absolute -top-1 left-4 w-8 h-16 rounded overflow-hidden">
+                                    <x-class-banner className="{{ $character->class }}" class="w-full h-full object-cover" />
                                 </div>
                             @endif
                             

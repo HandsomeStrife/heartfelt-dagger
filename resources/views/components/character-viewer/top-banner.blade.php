@@ -12,7 +12,9 @@
 <header
     pest="character-viewer-top-banner"
     class="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-indigo-900/40 to-fuchsia-900/30 px-6 md:px-8 py-6 shadow-lg relative">
-    <x-class-banner :class-name="$character->class" size="sm" class="absolute top-0 right-6" />
+    @if($character->class)
+        <x-class-banner :class-name="$character->class" size="sm" class="absolute top-0 right-6" />
+    @endif
     <div class="absolute top-4 right-6 translate-y-full sm:translate-y-0 sm:top-3">
         <div class="rounded-3xl ring-1 ring-indigo-400/40 bg-indigo-500/10 px-4 py-3 min-w-[8.5rem]">
             <div class="text-[10px] uppercase tracking-wider text-indigo-200/90">Level</div>

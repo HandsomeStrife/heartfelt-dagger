@@ -9,7 +9,6 @@ use Domain\Room\Actions\CreateWasabiRecording;
 use Domain\Room\Actions\GenerateGoogleDriveDownloadUrl;
 use Domain\Room\Actions\GenerateWasabiDownloadUrl;
 use Domain\Room\Actions\GenerateWasabiPresignedUrl;
-use Domain\Room\Actions\UploadToGoogleDrive;
 use Domain\Room\Actions\GenerateGoogleDriveUploadUrl;
 use Domain\Room\Actions\ConfirmGoogleDriveUpload;
 use Domain\Room\Models\Room;
@@ -25,7 +24,6 @@ class RoomRecordingController extends Controller
         private readonly GenerateWasabiPresignedUrl $generateWasabiPresignedUrl,
         private readonly GenerateWasabiDownloadUrl $generateWasabiDownloadUrl,
         private readonly CreateWasabiRecording $createWasabiRecording,
-        private readonly UploadToGoogleDrive $uploadToGoogleDrive,
         private readonly GenerateGoogleDriveUploadUrl $generateGoogleDriveUploadUrl,
         private readonly ConfirmGoogleDriveUpload $confirmGoogleDriveUpload,
         private readonly GenerateGoogleDriveDownloadUrl $generateGoogleDriveDownloadUrl
@@ -146,7 +144,7 @@ class RoomRecordingController extends Controller
                 ->whereNull('left_at')
                 ->first();
 
-            if (!$participant || !$participant->hasSttConsent()) { // Using same consent field for now
+            if (!$participant || !$participant->hasRecordingConsent()) {
                 return response()->json([
                     'error' => 'Video recording consent required',
                     'requires_consent' => true
@@ -189,92 +187,6 @@ class RoomRecordingController extends Controller
         }
     }
 
-    /**
-     * Upload a recording to Google Drive
-     */
-    public function uploadGoogleDrive(Request $request, Room $room): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'video' => 'required|file|mimes:webm,mp4|max:102400', // 100MB max
-                'metadata' => 'nullable|json',
-            ]);
-
-            $metadata = [];
-            if (isset($validated['metadata'])) {
-                $metadata = json_decode($validated['metadata'], true);
-            }
-
-            // Check if user has access to this room
-            $user = $request->user();
-            if (!$room->canUserAccess($user)) {
-                return response()->json(['error' => 'Access denied'], 403);
-            }
-
-            // Additional check: user must be the room creator or an active participant
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
-                return response()->json(['error' => 'Only room participants can upload recordings'], 403);
-            }
-
-            // Validate recording consent for the user
-            $participant = $room->participants()
-                ->where('user_id', $user->id)
-                ->whereNull('left_at')
-                ->first();
-
-            if (!$participant || !$participant->hasSttConsent()) { // Using same consent field for now
-                return response()->json([
-                    'error' => 'Video recording consent required',
-                    'requires_consent' => true
-                ], 403);
-            }
-
-            // Upload to Google Drive
-            $result = $this->uploadToGoogleDrive->execute(
-                $room,
-                $user,
-                $validated['video'],
-                $metadata
-            );
-
-            // Create recording record in database
-            $recording = RoomRecording::create([
-                'room_id' => $room->id,
-                'user_id' => $user->id,
-                'provider' => 'google_drive',
-                'provider_file_id' => $result['provider_file_id'],
-                'filename' => $result['filename'],
-                'size_bytes' => $result['size_bytes'],
-                'started_at_ms' => $metadata['started_at_ms'] ?? 0,
-                'ended_at_ms' => $metadata['ended_at_ms'] ?? 0,
-                'mime_type' => $validated['video']->getMimeType(),
-                'status' => 'uploaded',
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Recording uploaded to Google Drive successfully',
-                'recording_id' => $recording->id,
-                'web_view_link' => $result['web_view_link'],
-            ], 201);
-
-        } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            \Log::error('Failed to upload to Google Drive', [
-                'room_id' => $room->id,
-                'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
 
     /**
      * Generate a direct upload URL for Google Drive (recommended approach)
@@ -306,7 +218,7 @@ class RoomRecordingController extends Controller
                 ->whereNull('left_at')
                 ->first();
 
-            if (!$participant || !$participant->hasSttConsent()) {
+            if (!$participant || !$participant->hasRecordingConsent()) {
                 return response()->json([
                     'error' => 'Video recording consent required',
                     'requires_consent' => true
@@ -351,6 +263,7 @@ class RoomRecordingController extends Controller
         try {
             $validated = $request->validate([
                 'session_uri' => 'required|string|url',
+                'file_id' => 'nullable|string', // Optional file ID if upload is already complete
                 'metadata' => 'nullable|array',
             ]);
 
@@ -371,7 +284,7 @@ class RoomRecordingController extends Controller
                 ->whereNull('left_at')
                 ->first();
 
-            if (!$participant || !$participant->hasSttConsent()) {
+            if (!$participant || !$participant->hasRecordingConsent()) {
                 return response()->json([
                     'error' => 'Video recording consent required',
                     'requires_consent' => true
@@ -383,7 +296,8 @@ class RoomRecordingController extends Controller
                 $room,
                 $user,
                 $validated['session_uri'],
-                $validated['metadata'] ?? []
+                $validated['metadata'] ?? [],
+                $validated['file_id'] ?? null
             );
 
             return response()->json([
@@ -412,108 +326,6 @@ class RoomRecordingController extends Controller
         }
     }
 
-    /**
-     * Store a new recording chunk for a room
-     */
-    public function store(Request $request, Room $room): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'video' => 'required|file|mimes:webm,mp4|max:102400', // 100MB max
-                'metadata' => 'required|json',
-            ]);
-
-            $metadata = json_decode($validated['metadata'], true);
-            
-            $metadataValidated = validator($metadata, [
-                'user_id' => 'nullable|integer|exists:users,id',
-                'started_at_ms' => 'required|integer|min:0',
-                'ended_at_ms' => 'required|integer|min:0|gt:started_at_ms',
-                'size_bytes' => 'required|integer|min:0',
-                'mime_type' => 'required|string|max:100',
-                'filename' => 'required|string|max:255',
-            ])->validate();
-
-            // Check if user has access to this room
-            $user = $request->user();
-            if (!$room->canUserAccess($user)) {
-                return response()->json(['error' => 'Access denied'], 403);
-            }
-
-            // Additional check: user must be the room creator or an active participant
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
-                return response()->json(['error' => 'Only room participants can upload recordings'], 403);
-            }
-
-            // Check if recording is enabled for this room
-            $room->load('recordingSettings');
-            if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
-                return response()->json(['error' => 'Video recording is not enabled for this room'], 403);
-            }
-
-            // Validate recording consent for the user
-            $userId = $metadataValidated['user_id'] ?? $user?->id;
-            if ($userId) {
-                $participant = $room->participants()
-                    ->where('user_id', $userId)
-                    ->whereNull('left_at')
-                    ->first();
-
-                if (!$participant) {
-                    return response()->json(['error' => 'User is not an active participant in this room'], 403);
-                }
-
-                if (!$participant->hasSttConsent()) { // Using same consent field for now
-                    return response()->json([
-                        'error' => 'Video recording consent required',
-                        'requires_consent' => true
-                    ], 403);
-                }
-            }
-
-            $videoFile = $validated['video'];
-            
-            // For now, store locally as placeholder
-            // TODO: Implement Wasabi/Google Drive upload based on room settings
-            $path = $videoFile->store('recordings/' . $room->id, 'local');
-
-            // Create recording record
-            $recording = RoomRecording::create([
-                'room_id' => $room->id,
-                'user_id' => $userId,
-                'provider' => 'local', // TODO: Change based on room settings
-                'provider_file_id' => $path,
-                'filename' => $metadataValidated['filename'],
-                'size_bytes' => $metadataValidated['size_bytes'],
-                'started_at_ms' => $metadataValidated['started_at_ms'],
-                'ended_at_ms' => $metadataValidated['ended_at_ms'],
-                'mime_type' => $metadataValidated['mime_type'],
-                'status' => 'uploaded',
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Recording uploaded successfully',
-                'recording_id' => $recording->id
-            ], 201);
-
-        } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $e->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            \Log::error('Failed to save room recording', [
-                'room_id' => $room->id,
-                'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'error' => 'Failed to save recording'
-            ], 500);
-        }
-    }
 
     /**
      * Get recordings for a room
@@ -655,8 +467,8 @@ class RoomRecordingController extends Controller
         try {
             $validated = $request->validate([
                 'filename' => 'required|string|max:255',
-                'multipart_upload_id' => 'required|string|max:255',
-                'provider_file_id' => 'required|string|max:255',
+                'multipart_upload_id' => 'required|string|max:2000', // Increased for Google Drive session URIs
+                'provider_file_id' => 'required|string|max:2000',    // Increased for Google Drive session URIs
                 'started_at_ms' => 'required|integer|min:0',
                 'mime_type' => 'required|string|max:100'
             ]);
@@ -717,13 +529,6 @@ class RoomRecordingController extends Controller
     public function updateProgress(Request $request, Room $room, RoomRecording $recording)
     {
         try {
-            $validated = $request->validate([
-                'part_number' => 'required|integer|min:1',
-                'etag' => 'required|string|max:255',
-                'part_size_bytes' => 'required|integer|min:1',
-                'ended_at_ms' => 'required|integer|min:0'
-            ]);
-
             $user = $request->user();
             if (!$user) {
                 return response()->json(['error' => 'Authentication required'], 401);
@@ -739,30 +544,73 @@ class RoomRecordingController extends Controller
                 return response()->json(['error' => 'Recording is not active'], 400);
             }
 
-            $updateAction = new \Domain\Room\Actions\UpdateRecordingProgress();
-            $updatedRecording = $updateAction->execute(
-                $recording,
-                $validated['part_number'],
-                $validated['etag'],
-                $validated['part_size_bytes'],
-                $validated['ended_at_ms']
-            );
+            // Different validation rules based on provider
+            if ($recording->provider === 'wasabi') {
+                $validated = $request->validate([
+                    'part_number' => 'required|integer|min:1',
+                    'etag' => 'required|string|max:255',
+                    'part_size_bytes' => 'required|integer|min:1',
+                    'ended_at_ms' => 'required|integer|min:0'
+                ]);
 
-            \Log::info('Recording progress updated', [
-                'recording_id' => $recording->id,
-                'room_id' => $room->id,
-                'user_id' => $user->id,
-                'part_number' => $validated['part_number'],
-                'total_size' => $updatedRecording->size_bytes
-            ]);
+                $updateAction = new \Domain\Room\Actions\UpdateRecordingProgress();
+                $updatedRecording = $updateAction->execute(
+                    $recording,
+                    $validated['part_number'],
+                    $validated['etag'],
+                    $validated['part_size_bytes'],
+                    $validated['ended_at_ms']
+                );
 
-            return response()->json([
-                'recording_id' => $updatedRecording->id,
-                'status' => $updatedRecording->status->value,
-                'total_size_bytes' => $updatedRecording->size_bytes,
-                'parts_count' => count($updatedRecording->uploaded_parts ?? []),
-                'message' => 'Recording progress updated successfully'
-            ]);
+                \Log::info('Wasabi recording progress updated', [
+                    'recording_id' => $recording->id,
+                    'room_id' => $room->id,
+                    'user_id' => $user->id,
+                    'part_number' => $validated['part_number'],
+                    'total_size' => $updatedRecording->size_bytes
+                ]);
+
+                return response()->json([
+                    'recording_id' => $updatedRecording->id,
+                    'status' => $updatedRecording->status->value,
+                    'total_size_bytes' => $updatedRecording->size_bytes,
+                    'parts_count' => count($updatedRecording->uploaded_parts ?? []),
+                    'message' => 'Wasabi recording progress updated successfully'
+                ]);
+
+            } elseif ($recording->provider === 'google_drive') {
+                $validated = $request->validate([
+                    'chunk_size_bytes' => 'required|integer|min:1',
+                    'total_uploaded_bytes' => 'required|integer|min:1',
+                    'ended_at_ms' => 'required|integer|min:0'
+                ]);
+
+                // For Google Drive, just update the total size and timestamp
+                $recording->update([
+                    'size_bytes' => $validated['total_uploaded_bytes'],
+                    'ended_at_ms' => $validated['ended_at_ms'],
+                ]);
+
+                \Log::info('Google Drive recording progress updated', [
+                    'recording_id' => $recording->id,
+                    'room_id' => $room->id,
+                    'user_id' => $user->id,
+                    'chunk_size' => $validated['chunk_size_bytes'],
+                    'total_uploaded' => $validated['total_uploaded_bytes']
+                ]);
+
+                return response()->json([
+                    'recording_id' => $recording->id,
+                    'status' => $recording->status->value,
+                    'total_size_bytes' => $recording->size_bytes,
+                    'message' => 'Google Drive recording progress updated successfully'
+                ]);
+
+            } else {
+                return response()->json([
+                    'error' => 'Unsupported provider for progress updates: ' . $recording->provider
+                ], 400);
+            }
 
         } catch (ValidationException $e) {
             return response()->json([

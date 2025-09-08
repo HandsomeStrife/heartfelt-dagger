@@ -30,7 +30,7 @@
 
                 <!-- Character Selection Form -->
                 <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
-                    <form action="{{ route('campaigns.join', $campaign->campaign_code) }}" method="POST" class="space-y-6">
+                    <form action="{{ route('campaigns.join_campaign', $campaign->campaign_code) }}" method="POST" class="space-y-6">
                         @csrf
 
                         <div>
@@ -79,11 +79,13 @@
                                                 <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
                                             </div>
                                             <div class="flex items-center flex-1">
-                                                @if(method_exists($character, 'getBanner'))
-                                                    <img src="{{ $character->getBanner() }}" alt="{{ $character->class }}" class="w-10 h-10 rounded-lg mr-4">
+                                                @if($character->class)
+                                                    <div class="w-10 h-10 rounded-lg mr-4 relative overflow-hidden">
+                                                        <x-class-banner className="{{ $character->class }}" class="absolute inset-0 w-full h-full object-cover" />
+                                                    </div>
                                                 @else
-                                                    <div class="w-10 h-10 bg-amber-500/20 rounded-lg mr-4 flex items-center justify-center">
-                                                        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <div class="w-10 h-10 bg-slate-700 rounded-lg mr-4 flex items-center justify-center">
+                                                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                         </svg>
                                                     </div>
@@ -91,8 +93,8 @@
                                                 <div>
                                                     <h3 class="font-outfit font-semibold text-white">{{ $character->name }}</h3>
                                                     <p class="text-slate-400 text-sm">
-                                                        {{ $character->class }} / {{ $character->subclass ?? 'Unknown' }} • 
-                                                        {{ $character->ancestry ?? 'Unknown' }} • {{ $character->community ?? 'Unknown' }}
+                                                        {{ $character->class ?: 'Unknown' }} / {{ $character->subclass ?: 'Unknown' }} • 
+                                                        {{ $character->ancestry ?: 'Unknown' }} • {{ $character->community ?: 'Unknown' }}
                                                     </p>
                                                 </div>
                                             </div>

@@ -41,12 +41,12 @@ beforeEach(function () {
     // Link storage account to room settings
     $this->recordingSettings->update(['storage_account_id' => $this->storageAccount->id]);
     
-    // Create participant with consent
+    // Create participant with recording consent
     RoomParticipant::factory()->create([
         'room_id' => $this->room->id,
         'user_id' => $this->user->id,
-        'stt_consent_given' => true,
-        'stt_consent_at' => now(),
+        'recording_consent_given' => true,
+        'recording_consent_at' => now(),
         'left_at' => null,
     ]);
 });
@@ -209,7 +209,7 @@ describe('ConfirmGoogleDriveUpload Action', function () {
         expect($recording->provider_file_id)->toBe('drive_file_123');
         expect($recording->room_id)->toBe($this->room->id);
         expect($recording->user_id)->toBe($this->user->id);
-        expect($recording->status)->toBe('uploaded');
+        expect($recording->status->value)->toBe('uploaded');
     });
 
     test('validates recording is enabled', function () {

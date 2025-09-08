@@ -19,7 +19,7 @@ class WebRTCController extends Controller
     public function iceConfig(): JsonResponse
     {
         // Check if TURN is disabled via environment flag
-        if (Config::get('CF_TURN_DISABLED', false)) {
+        if (Config::get('services.cloudflare.turn_disabled', false)) {
             return response()->json($this->getFallbackIceConfig());
         }
 
@@ -39,9 +39,9 @@ class WebRTCController extends Controller
     private function fetchCloudflareIceConfig(): array
     {
         try {
-            $keyId = Config::get('CF_TURN_KEY_ID');
-            $token = Config::get('CF_TURN_API_TOKEN');
-            $ttl = (int) Config::get('CF_TURN_TTL', 7200);
+            $keyId = Config::get('services.cloudflare.turn_key_id');
+            $token = Config::get('services.cloudflare.turn_api_token');
+            $ttl = (int) Config::get('services.cloudflare.turn_ttl', 7200);
 
             if (!$keyId || !$token) {
                 Log::warning('Cloudflare TURN credentials not configured, falling back to STUN-only');

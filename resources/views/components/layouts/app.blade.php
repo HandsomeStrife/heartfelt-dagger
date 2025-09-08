@@ -103,5 +103,16 @@
         </div>
         
         @livewireScriptConfig
+
+        <script>
+            // Fallback stubs so pages don't stall if dice bundle isn't present in built assets
+            window.initDiceBox = window.initDiceBox || function () {
+                console.warn('initDiceBox is not available (fallback stub).');
+                return null;
+            };
+            window.setupDiceCallbacks = window.setupDiceCallbacks || function () {
+                console.warn('setupDiceCallbacks is not available (fallback stub).');
+            };
+        </script>
     </body>
 </html>

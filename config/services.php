@@ -50,4 +50,10 @@ return [
         'secret_key' => env('WASABI_SECRET_KEY')
     ],
 
+    'cloudflare' => [
+        'turn_key_id' => env('CF_TURN_KEY_ID'),
+        'turn_api_token' => env('CF_TURN_API_TOKEN'),
+        'turn_ttl' => env('CF_TURN_TTL', 7200),
+        'turn_disabled' => env('CF_TURN_DISABLED', false),
+    ],
 ];

@@ -140,8 +140,9 @@ export class VideoRecorder {
                     
                     // Check storage provider to determine how to handle the recording
                     if (storageProvider === 'local_device') {
-                        // For local device recording, update streaming download with new chunk
-                        this.roomWebRTC.streamingDownloader.updateDownload(blob);
+                        // For local device recording, pass to uploader which handles streaming download
+                        await this.roomWebRTC.cloudUploader.uploadChunk(blob, recordingData);
+                        console.log('🎥 Local device chunk processed successfully');
                     } else {
                         // Upload to cloud storage (Wasabi, Google Drive, etc.)
                         while (this.tooManyQueuedUploads()) {
@@ -153,12 +154,15 @@ export class VideoRecorder {
                         console.log('🎥 Video chunk uploaded successfully');
                         
                         // Track uploaded bytes for cloud storage (only on success)
-                        // Note: This will be updated by the upload success handler
+                        this.cumulativeStats.totalUploadedBytes += blob.size;
                         
-                        // Update session with multipart upload ID if this was the first chunk
-                        if (!this.recordingSession.multipartUploadId && window.roomUppy?.currentMultipartUploadId) {
-                            this.recordingSession.multipartUploadId = window.roomUppy.currentMultipartUploadId;
-                            console.log('🎥 Stored multipart upload ID for session:', this.recordingSession.multipartUploadId);
+                        // Update session with upload ID if this was the first chunk
+                        if (!this.recordingSession.multipartUploadId && window.roomUppy?.getCurrentUploader) {
+                            const uploaderStats = window.roomUppy.getUploadStats();
+                            if (uploaderStats.multipartUploadId || uploaderStats.sessionUri) {
+                                this.recordingSession.multipartUploadId = uploaderStats.multipartUploadId || uploaderStats.sessionUri;
+                                console.log('🎥 Stored upload session ID:', this.recordingSession.multipartUploadId);
+                            }
                         }
                     }
                 } catch (error) {
@@ -179,9 +183,17 @@ export class VideoRecorder {
                 this.mediaRecorder.start(5000); // 5 seconds - frequent enough to prevent loss
                 console.log('🎥 Video recording started (streaming for local device)');
                 this.roomWebRTC.streamingDownloader.initializeDownload(this.recMime);
-            } else {
-                // Start recording with 30-second timeslices for cloud upload (S3 requires 5MB minimum part size)
+            } else if (storageProvider === 'wasabi') {
+                // Start recording with 30-second timeslices for Wasabi S3 upload (S3 requires 5MB minimum part size)
                 this.mediaRecorder.start(30000); // 30 seconds - ensures chunks meet S3 5MB minimum requirement
+                console.log('🎥 Video recording started with timeslices for Wasabi S3 upload');
+            } else if (storageProvider === 'google_drive') {
+                // Start recording with 30-second timeslices for Google Drive multipart upload (same as Wasabi)
+                this.mediaRecorder.start(30000); // 30 seconds - matches S3 multipart upload pattern
+                console.log('🎥 Video recording started with timeslices for Google Drive multipart upload');
+            } else {
+                // Default for other cloud providers
+                this.mediaRecorder.start(30000);
                 console.log('🎥 Video recording started with timeslices for cloud upload');
             }
             

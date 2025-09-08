@@ -49,11 +49,19 @@ class GenerateGoogleDriveUploadUrl
             // Initialize Google Drive service
             $driveService = new GoogleDriveService($storageAccount);
 
-            // Generate filename with timestamp and user info
-            $originalName = pathinfo($filename, PATHINFO_FILENAME);
+            // Generate user-friendly filename with user name and timestamp
             $extension = pathinfo($filename, PATHINFO_EXTENSION);
             $timestamp = now()->format('Y-m-d_H-i-s');
-            $uniqueFilename = "room_{$room->id}_user_{$user->id}_{$timestamp}_{$originalName}.{$extension}";
+            
+            // Get user name from room participant or user name
+            $participant = \Domain\Room\Models\RoomParticipant::where('room_id', $room->id)
+                ->where('user_id', $user->id)
+                ->first();
+            
+            $userName = $participant?->character_name ?? $user->name ?? "User{$user->id}";
+            // Clean up username for filename (remove special characters)
+            $cleanUserName = preg_replace('/[^a-zA-Z0-9\-_]/', '', $userName);
+            $uniqueFilename = "{$cleanUserName}_{$timestamp}.{$extension}";
 
             // Add metadata for the upload
             $uploadMetadata = [
@@ -70,12 +78,19 @@ class GenerateGoogleDriveUploadUrl
                 $uploadMetadata['folder_id'] = $folderId;
             }
 
-            // Generate direct upload URL
+            // Generate direct upload URL with correct origin for CORS
+            $origin = request()->header('origin') ?: request()->header('referer') ?: config('app.url');
+            if ($origin && parse_url($origin, PHP_URL_HOST) === null) {
+                // If origin is malformed, fall back to app.url
+                $origin = config('app.url');
+            }
+            
             $result = $driveService->generateDirectUploadUrl(
                 $uniqueFilename,
                 $contentType,
                 $sizeBytes,
-                $uploadMetadata
+                $uploadMetadata,
+                $origin
             );
 
             Log::info('Generated Google Drive direct upload URL', [
@@ -92,6 +107,7 @@ class GenerateGoogleDriveUploadUrl
                 'session_uri' => $result['session_uri'],
                 'filename' => $uniqueFilename,
                 'expires_at' => $result['expires_at'],
+                'access_token' => $driveService->getValidAccessToken(),
                 'metadata' => [
                     'provider' => 'google_drive',
                     'provider_file_id' => null, // Will be filled after upload completion
@@ -147,15 +163,17 @@ class GenerateGoogleDriveUploadUrl
     private function getRoomFolder(GoogleDriveService $driveService, Room $room): ?string
     {
         try {
-            // Try to find existing folder structure
-            $parentFolderName = 'DaggerHeart Recordings';
+            // Create organized folder structure: "Heartfelt Dagger" > "Room: {room_name}"
+            $heartfeltDaggerFolderId = $driveService->findOrCreateFolder('Heartfelt Dagger', null);
+            if (!$heartfeltDaggerFolderId) {
+                Log::warning('Failed to create Heartfelt Dagger main folder');
+                return null;
+            }
+
             $roomFolderName = "Room: {$room->name}";
-
-            // For now, we'll just return null and let files go to root
-            // In a full implementation, you'd search for/create the folder hierarchy
-            // This requires additional Google Drive API calls that we'll skip for this demo
-
-            return null;
+            $roomFolderId = $driveService->findOrCreateFolder($roomFolderName, $heartfeltDaggerFolderId);
+            
+            return $roomFolderId;
 
         } catch (\Exception $e) {
             Log::warning('Failed to get/create room folder in Google Drive', [
@@ -163,7 +181,7 @@ class GenerateGoogleDriveUploadUrl
                 'error' => $e->getMessage(),
             ]);
             
-            // Return null to upload to root directory
+            // Return null to upload to root directory as fallback
             return null;
         }
     }

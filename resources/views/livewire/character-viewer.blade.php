@@ -96,6 +96,9 @@
     <div id="dice-container" class="fixed inset-0" style="pointer-events: none; width: 100vw; height: 100vh; z-index: 9999;" wire:ignore>
         <!-- Canvas will be inserted here by dice-box -->
     </div>
+
+    <!-- FLOATING DICE SELECTOR -->
+    <x-dice-selector />
     
     <style>
         #dice-container canvas {
@@ -111,6 +114,16 @@
 
     <!-- DICE INITIALIZATION SCRIPT -->
     <script>
+        // Provide graceful fallbacks so UI doesn't stall if dice bundle loads late
+        window.initDiceBox = window.initDiceBox || function() {
+            console.warn('Dice library not loaded yet; initDiceBox stub invoked.');
+            return null;
+        };
+        window.setupDiceCallbacks = window.setupDiceCallbacks || function() {
+            console.warn('Dice library not loaded yet; setupDiceCallbacks stub invoked.');
+        };
+        
+
         // Function to hide loading screen with smooth animation
         function hideLoadingScreen() {
             const loadingScreen = document.getElementById('character-loading-screen');
@@ -127,6 +140,10 @@
         // Wait for both DOM and Livewire to be ready
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Character viewer DOM loaded');
+            // Early safety: never block UI for long if dice libs are late/missing
+            setTimeout(() => {
+                hideLoadingScreen();
+            }, 2000);
             
             // Wait for Livewire to be fully loaded
             document.addEventListener('livewire:navigated', function() {

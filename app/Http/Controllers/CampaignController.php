@@ -183,6 +183,38 @@ class CampaignController extends Controller
     }
 
     /**
+     * Update a campaign member's character
+     */
+    public function updateCharacter(Request $request, Campaign $campaign)
+    {
+        $validated = $request->validate([
+            'member_id' => 'required|exists:campaign_members,id',
+            'character_id' => 'required|exists:characters,id',
+        ]);
+
+        $user = Auth::user();
+        $member = $campaign->members()->where('id', $validated['member_id'])->first();
+
+        // Ensure the member belongs to the current user
+        if (!$member || $member->user_id !== $user->id) {
+            return back()->withErrors(['error' => 'You can only update your own character.']);
+        }
+
+        // Ensure the character belongs to the current user
+        $character = $user->characters()->where('id', $validated['character_id'])->first();
+        if (!$character) {
+            return back()->withErrors(['error' => 'Character not found or does not belong to you.']);
+        }
+
+        // Update the member's character
+        $member->update(['character_id' => $character->id]);
+
+        return redirect()
+            ->route('campaigns.show', ['campaign' => $campaign])
+            ->with('success', 'Character updated successfully!');
+    }
+
+    /**
      * Leave a campaign
      */
     public function leave(Campaign $campaign)

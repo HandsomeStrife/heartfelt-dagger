@@ -17,7 +17,8 @@ class ConfirmGoogleDriveUpload
         Room $room,
         User $user,
         string $sessionUri,
-        array $metadata = []
+        array $metadata = [],
+        ?string $fileId = null
     ): array {
         // Validate that recording is enabled for this room
         $room->load('recordingSettings');
@@ -45,11 +46,30 @@ class ConfirmGoogleDriveUpload
             // Initialize Google Drive service
             $driveService = new GoogleDriveService($storageAccount);
 
-            // Verify upload completion and get file information
-            $fileInfo = $driveService->verifyUploadCompletion($sessionUri);
+            // If we have a file ID, use it directly; otherwise verify upload completion
+            if ($fileId) {
+                // File ID provided, get file info directly
+                $fileInfo = $driveService->getFileInfo($fileId);
+                if (!$fileInfo) {
+                    throw new \Exception('Failed to get file information from Google Drive');
+                }
+                
+                // Convert to expected format
+                $fileInfo = [
+                    'success' => true,
+                    'file_id' => $fileInfo['id'],
+                    'filename' => $fileInfo['name'],
+                    'size' => $fileInfo['size'],
+                    'mime_type' => $fileInfo['mime_type'],
+                    'created_time' => $fileInfo['created_time'],
+                ];
+            } else {
+                // Verify upload completion and get file information using session URI
+                $fileInfo = $driveService->verifyUploadCompletion($sessionUri);
 
-            if (!$fileInfo['success']) {
-                throw new \Exception('Upload verification failed');
+                if (!$fileInfo['success']) {
+                    throw new \Exception('Upload verification failed');
+                }
             }
 
             // Create recording record in database

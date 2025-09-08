@@ -198,7 +198,7 @@ test('user can join campaign with character', function () {
     $response->assertRedirect(route('campaigns.show', $campaign->campaign_code));
     $response->assertSessionHas('success', 'Successfully joined the campaign!');
 });
-test('user can join campaign without character', function () {
+test('user can join campaign without character and gets new character created', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create();
 
@@ -206,11 +206,12 @@ test('user can join campaign without character', function () {
         'character_id' => null,
     ]);
 
-    assertDatabaseHas('campaign_members', [
-        'campaign_id' => $campaign->id,
-        'user_id' => $user->id,
-        'character_id' => null,
-    ]);
+    $campaignMember = $campaign->members()->where('user_id', $user->id)->first();
+    
+    expect($campaignMember)->not->toBeNull();
+    expect($campaignMember->character_id)->not->toBeNull();
+    expect($campaignMember->character->name)->toBe('New Character');
+    expect($campaignMember->character->user_id)->toBe($user->id);
 
     $response->assertRedirect(route('campaigns.show', $campaign->campaign_code));
 });

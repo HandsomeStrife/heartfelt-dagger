@@ -141,6 +141,64 @@ class RoomController extends Controller
             abort(403, 'You do not have access to this room.');
         }
 
+        // Auto-join campaign members (non-GMs) using their campaign character
+        if ($room->campaign_id && $user) {
+            $campaign = Campaign::find($room->campaign_id);
+            if ($campaign) {
+                $campaignMember = $campaign->members()->where('user_id', $user->id)->first();
+                
+                // If user is a campaign member but not the GM/creator, and has a character, auto-join them
+                if ($campaignMember && $campaignMember->user_id !== $campaign->creator_id && $campaignMember->character) {
+                    
+                    Log::info('Auto-joining campaign member to room', [
+                        'room_id' => $room->id,
+                        'user_id' => $user->id,
+                        'campaign_id' => $campaign->id,
+                        'character_id' => $campaignMember->character_id
+                    ]);
+                    
+                    // Check if user is already participating
+                    if (!$room->hasActiveParticipant($user)) {
+                        // Auto-join with their campaign character
+                        try {
+                            $this->join_room_action->execute(
+                                room: $room,
+                                user: $user,
+                                character: $campaignMember->character,
+                                temporaryCharacterName: null,
+                                temporaryCharacterClass: null
+                            );
+                            
+                            Log::info('Successfully auto-joined campaign member', [
+                                'room_id' => $room->id,
+                                'user_id' => $user->id,
+                                'character_id' => $campaignMember->character_id
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to auto-join campaign member', [
+                                'room_id' => $room->id,
+                                'user_id' => $user->id,
+                                'error' => $e->getMessage()
+                            ]);
+                            
+                            // Fall back to showing join form
+                            $characters = $this->character_repository->getByUser($user);
+                            return view('rooms.join', compact('room', 'characters'));
+                        }
+                    }
+                    
+                    // Redirect directly to the room session
+                    $redirectUrl = route('rooms.session', $room);
+                    if ($room->password && $request->query('password')) {
+                        $redirectUrl .= '?password=' . urlencode($request->query('password'));
+                    }
+                    
+                    return redirect($redirectUrl)
+                        ->with('success', 'Joined room with your campaign character!');
+                }
+            }
+        }
+
         // Check if user is already a participant
         $isAlreadyParticipating = false;
         $participantCheckDetails = [];

@@ -5,7 +5,7 @@
             
             <!-- Main Content Area (Sidebar + Video) -->
             <div class="flex-1 flex overflow-hidden">
-                <!-- Left Sidebar (1/3 width when visible) -->
+                <!-- Left Sidebar (1/3 width on smaller screens, 1/4 width on xl screens when visible) -->
                 <div x-show="sidebarVisible" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="-translate-x-full"
@@ -13,7 +13,7 @@
                      x-transition:leave="transition ease-in duration-300"
                      x-transition:leave-start="translate-x-0"
                      x-transition:leave-end="-translate-x-full"
-                     class="w-1/3 bg-slate-950/90 backdrop-blur-xl border-r border-slate-700/50 overflow-y-auto">
+                     class="w-1/3 xl:w-1/4 bg-slate-950/90 backdrop-blur-xl border-r border-slate-700/50 overflow-y-auto">
                     
                     @if($user_is_creator)
                         <!-- GM Sidebar -->
@@ -28,8 +28,8 @@
                     @endif
                 </div>
                 
-                <!-- Right Video Area (2/3 width when sidebar visible, full width when hidden) -->
-                <div :class="sidebarVisible ? 'w-2/3' : 'w-full'" 
+                <!-- Right Video Area (2/3 width when sidebar visible on smaller screens, 3/4 on xl screens, full width when hidden) -->
+                <div :class="sidebarVisible ? 'w-2/3 xl:w-3/4' : 'w-full'" 
                      class="relative transition-all duration-300 p-1 flex-1">
                 
                 
@@ -146,6 +146,14 @@
                             @endif
                         </div>
                         
+                        <!-- Dice Roll Button -->
+                        <button onclick="window.rollDualityDice && window.rollDualityDice(0)" class="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs transition-colors" title="Roll 2d12 (Hope & Fear)">
+                            <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                            Dice
+                        </button>
+
                         <!-- Always Visible Leave Button -->
                         <button id="leave-room-btn" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors">
                             <svg class="w-3 h-3 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -562,6 +570,48 @@
             } else if (window.roomData && window.roomData.recording_enabled && !window.RoomUppy) {
                 console.warn('🎬 RoomUppy not available - ensure it\'s included in the main bundle');
             }
+        });
+    </script>
+
+    <!-- DICE CONTAINER -->
+    <div id="dice-container" class="fixed inset-0" style="pointer-events: none; width: 100vw; height: 100vh; z-index: 9999;">
+        <!-- Canvas will be inserted here by dice-box -->
+    </div>
+    
+    <style>
+        #dice-container canvas {
+            width: 100vw !important;
+            height: 100vh !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            pointer-events: none !important;
+            z-index: 9999 !important;
+        }
+    </style>
+
+    <!-- DICE INITIALIZATION SCRIPT -->
+    <script>
+        // Initialize dice system for room
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a moment for other systems to load
+            setTimeout(() => {
+                if (typeof window.initDiceBox !== 'undefined') {
+                    try {
+                        window.initDiceBox('#dice-container');
+                        if (typeof window.setupDiceCallbacks === 'function') {
+                            window.setupDiceCallbacks((rollResult) => {
+                                console.log('Room dice roll completed:', rollResult);
+                            });
+                        }
+                        console.log('Room dice system initialized');
+                    } catch (error) {
+                        console.error('Error initializing room dice system:', error);
+                    }
+                } else {
+                    console.warn('Dice functions not available in room');
+                }
+            }, 1000);
         });
     </script>
 </x-layout.minimal>

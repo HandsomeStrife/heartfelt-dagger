@@ -27,10 +27,10 @@
                     
                     <!-- Main Content Container -->
                     <div class="relative z-10 bg-daggerheart-blue border border-daggerheart-gold border-l-0 border-r-0 h-full flex items-center">
-                        @if($participant && $participant->character)
+                        @if($participant && $participant->character && $participant->character->class)
                             <!-- Character Banner -->
-                            <div class="absolute -top-1 left-4">
-                                <img src="{{ asset('images/banners/' . strtolower($participant->character->class) . '.png') }}" alt="{{ $participant->character->class }}" class="w-8 h-16 object-cover rounded">
+                            <div class="absolute -top-1 left-4 w-8 h-16 rounded overflow-hidden">
+                                <x-class-banner className="{{ $participant->character->class }}" class="w-full h-full object-cover" />
                             </div>
                         @endif
                         

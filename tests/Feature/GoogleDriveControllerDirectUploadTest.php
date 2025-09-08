@@ -36,12 +36,12 @@ beforeEach(function () {
     
     $this->recordingSettings->update(['storage_account_id' => $this->storageAccount->id]);
     
-    // Create participant with consent
+    // Create participant with recording consent
     RoomParticipant::factory()->create([
         'room_id' => $this->room->id,
         'user_id' => $this->user->id,
-        'stt_consent_given' => true,
-        'stt_consent_at' => now(),
+        'recording_consent_given' => true,
+        'recording_consent_at' => now(),
         'left_at' => null,
     ]);
 });
@@ -168,8 +168,8 @@ describe('Google Drive Upload URL Generation API', function () {
         RoomParticipant::factory()->create([
             'room_id' => $this->room->id,
             'user_id' => $userWithoutConsent->id,
-            'stt_consent_given' => false,
-            'stt_consent_at' => null,
+            'recording_consent_given' => false,
+            'recording_consent_at' => null,
             'left_at' => null,
         ]);
 
@@ -339,8 +339,8 @@ describe('Google Drive Upload Confirmation API', function () {
         RoomParticipant::factory()->create([
             'room_id' => $this->room->id,
             'user_id' => $userWithoutConsent->id,
-            'stt_consent_given' => false,
-            'stt_consent_at' => null,
+            'recording_consent_given' => false,
+            'recording_consent_at' => null,
             'left_at' => null,
         ]);
 

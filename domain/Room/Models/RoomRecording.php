@@ -229,7 +229,17 @@ class RoomRecording extends Model
     {
         return $query->where('status', RecordingStatus::Recording)
             ->whereNotNull('multipart_upload_id')
-            ->where('updated_at', '<', now()->subMinute());
+            ->where(function ($q) {
+                // For Wasabi, finalize after 1 minute of inactivity
+                $q->where('provider', 'wasabi')
+                  ->where('updated_at', '<', now()->subMinute());
+            })
+            ->orWhere(function ($q) {
+                // For Google Drive, be more conservative - wait 5 minutes
+                // since resumable uploads can take longer
+                $q->where('provider', 'google_drive')
+                  ->where('updated_at', '<', now()->subMinutes(5));
+            });
     }
 
     /**

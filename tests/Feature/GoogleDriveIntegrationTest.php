@@ -113,10 +113,10 @@ test('google drive oauth callback requires authentication', function () {
         ->assertRedirect('/login');
 });
 
+// DEPRECATED: This test was for the server-side upload endpoint which has been removed
+// The system now uses direct uploads to Google Drive via resumable upload sessions
 test('can upload to google drive via api endpoint', function () {
-    // Create test user and room
-    $user = User::factory()->create();
-    $room = Room::factory()->create(['creator_id' => $user->id]);
+    $this->markTestSkipped('Server-side upload endpoint removed - system now uses direct uploads');
     
     // Create Google Drive storage account
     $storageAccount = UserStorageAccount::create([
@@ -139,15 +139,15 @@ test('can upload to google drive via api endpoint', function () {
         'storage_account_id' => $storageAccount->id,
     ]);
 
-    // Create participant with consent
+    // Create participant with recording consent
     RoomParticipant::create([
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_id' => null,
         'character_name' => 'Test Character',
         'character_class' => 'Warrior',
-        'stt_consent_given' => true,
-        'stt_consent_at' => now(),
+        'recording_consent_given' => true,
+        'recording_consent_at' => now(),
     ]);
 
     // Create a fake video file for testing
@@ -170,10 +170,9 @@ test('can upload to google drive via api endpoint', function () {
     expect($response->status())->toBeIn([201, 500]); // Either success or Google API failure
 });
 
+// DEPRECATED: This test was for the server-side upload endpoint which has been removed
 test('google drive upload requires consent', function () {
-    // Create test user and room
-    $user = User::factory()->create();
-    $room = Room::factory()->create(['creator_id' => $user->id]);
+    $this->markTestSkipped('Server-side upload endpoint removed - system now uses direct uploads');
     
     // Create Google Drive storage account
     $storageAccount = UserStorageAccount::create([
@@ -202,7 +201,7 @@ test('google drive upload requires consent', function () {
         'character_id' => null,
         'character_name' => 'Test Character',
         'character_class' => 'Warrior',
-        'stt_consent_given' => null, // No consent
+        'recording_consent_given' => null, // No recording consent
         'stt_consent_at' => null,
     ]);
 
@@ -222,11 +221,9 @@ test('google drive upload requires consent', function () {
         ]);
 });
 
+// DEPRECATED: This test was for the server-side upload endpoint which has been removed
 test('non-participants cannot upload to google drive', function () {
-    // Create users and room
-    $gm = User::factory()->create();
-    $outsider = User::factory()->create();
-    $room = Room::factory()->create(['creator_id' => $gm->id]);
+    $this->markTestSkipped('Server-side upload endpoint removed - system now uses direct uploads');
     
     // Create Google Drive storage account
     $storageAccount = UserStorageAccount::create([

@@ -10,7 +10,6 @@ use Domain\User\Models\UserStorageAccount;
 use Google\Client as GoogleClient;
 use Google\Service\Drive as GoogleDrive;
 use Google\Service\Drive\DriveFile;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 
@@ -117,9 +116,22 @@ class GoogleDriveService
      */
     private function getAuthenticatedClient(): \GuzzleHttp\Client
     {
+        $accessToken = $this->getAccessToken();
+        
         return new \GuzzleHttp\Client([
             'timeout' => 30,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $accessToken,
+            ],
         ]);
+    }
+
+    /**
+     * Get a valid access token for frontend use
+     */
+    public function getValidAccessToken(): string
+    {
+        return $this->getAccessToken();
     }
 
     /**
@@ -165,8 +177,9 @@ class GoogleDriveService
 
         $newToken = $client->getAccessToken();
         
-        if (isset($newToken['error'])) {
-            throw new \Exception('Failed to refresh access token: ' . $newToken['error_description']);
+        if (!$newToken || isset($newToken['error'])) {
+            $error = $newToken['error_description'] ?? 'Unknown error refreshing token';
+            throw new \Exception('Failed to refresh access token: ' . $error);
         }
 
         // Update stored credentials with new token
@@ -189,77 +202,125 @@ class GoogleDriveService
     }
 
     /**
-     * Generate a direct upload URL for Google Drive using Resumable Upload API
-     * This allows clients to upload directly to Google Drive without going through our server
+     * Generate direct upload URL for Google Drive resumable uploads
      */
     public function generateDirectUploadUrl(
         string $filename,
         string $contentType,
-        int $fileSize,
-        array $metadata = []
+        int $estimatedSize,
+        array $metadata = [],
+        ?string $origin = null
     ): array {
         try {
-            // Create file metadata for Google Drive
+            // Prepare file metadata
             $fileMetadata = [
                 'name' => $filename,
             ];
             
-            // Set parent folder if specified in metadata
-            if (isset($metadata['folder_id'])) {
+            // Add parent folder if specified
+            if (!empty($metadata['folder_id'])) {
                 $fileMetadata['parents'] = [$metadata['folder_id']];
             }
             
-            // Add description with room and user info
-            if (isset($metadata['room_id'], $metadata['user_id'])) {
-                $description = "DaggerHeart recording from Room {$metadata['room_id']} by User {$metadata['user_id']}";
-                if (isset($metadata['started_at_ms'])) {
-                    $startTime = date('Y-m-d H:i:s', $metadata['started_at_ms'] / 1000);
-                    $description .= " recorded at {$startTime}";
-                }
-                $fileMetadata['description'] = $description;
+            // Get authenticated HTTP client
+            $httpClient = $this->getAuthenticatedClient();
+            
+            // Create resumable upload session with Origin header for CORS
+            $origin = $origin ?: config('app.url', 'http://localhost:8090');
+            
+            Log::info('Creating Google Drive resumable session with origin', [
+                'origin' => $origin,
+                'filename' => $filename,
+                'storage_account_id' => $this->storageAccount->id
+            ]);
+            
+            $response = $httpClient->post('https://www.googleapis.com/upload/drive/v3/files', [
+                'query' => ['uploadType' => 'resumable'],
+                'headers' => [
+                    'X-Upload-Content-Type' => $contentType,
+                    'X-Upload-Content-Length' => $estimatedSize,
+                    'Content-Type' => 'application/json',
+                    'Origin' => $origin,
+                ],
+                'json' => $fileMetadata,
+            ]);
+
+            if ($response->getStatusCode() !== 200) {
+                throw new \Exception('Failed to create resumable upload session: ' . $response->getBody());
             }
 
-            // Initialize resumable upload session
-            $uploadUrl = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable';
+            $sessionUri = $response->getHeader('Location')[0] ?? null;
             
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->getAccessToken(),
-                'Content-Type' => 'application/json; charset=UTF-8',
-                'X-Upload-Content-Type' => $contentType,
-                'X-Upload-Content-Length' => $fileSize,
-            ])->post($uploadUrl, $fileMetadata);
-
-            $sessionUri = $response->header('Location');
-            
-            if (empty($sessionUri)) {
-                throw new \Exception('Failed to get upload session URI from Google Drive');
+            if (!$sessionUri) {
+                throw new \Exception('No session URI returned from Google Drive');
             }
 
-            Log::info('Generated Google Drive direct upload URL', [
+            Log::info('Google Drive resumable upload session created', [
                 'storage_account_id' => $this->storageAccount->id,
                 'filename' => $filename,
-                'file_size' => $fileSize,
-                'content_type' => $contentType,
+                'session_uri_length' => strlen($sessionUri),
+                'estimated_size' => $estimatedSize
             ]);
 
             return [
-                'success' => true,
-                'upload_url' => $sessionUri,
                 'session_uri' => $sessionUri,
-                'filename' => $filename,
-                'content_type' => $contentType,
-                'expires_at' => now()->addHours(24)->toISOString(), // Google Drive sessions last 24 hours
+                'upload_url' => $sessionUri, // For compatibility
+                'expires_at' => time() + (3600 * 24), // 24 hours from now (Google Drive sessions typically last 1 week)
+                'metadata' => $metadata,
             ];
 
         } catch (\Exception $e) {
             Log::error('Failed to generate Google Drive upload URL', [
-                'error' => $e->getMessage(),
                 'storage_account_id' => $this->storageAccount->id,
                 'filename' => $filename,
+                'error' => $e->getMessage()
             ]);
-
-            throw new \Exception('Failed to generate upload URL: ' . $e->getMessage());
+            
+            throw $e;
         }
+    }
+
+    /**
+     * Google Drive does not support S3-compatible multipart uploads
+     * This method should not be used with Google Drive accounts
+     */
+    public function initializeMultipartUpload(
+        string $filename,
+        string $contentType,
+        array $metadata = []
+    ): array {
+        throw new \Exception('Google Drive does not support S3-compatible multipart uploads. Use resumable uploads instead.');
+    }
+
+    /**
+     * Google Drive does not support S3-compatible multipart uploads
+     */
+    public function signMultipartUploadPart(
+        string $uploadId,
+        string $key,
+        int $partNumber
+    ): array {
+        throw new \Exception('Google Drive does not support S3-compatible multipart uploads. Use resumable uploads instead.');
+    }
+
+    /**
+     * Google Drive does not support S3-compatible multipart uploads
+     */
+    public function completeMultipartUpload(
+        string $uploadId,
+        string $key,
+        array $parts,
+        array $metadata = []
+    ): array {
+        throw new \Exception('Google Drive does not support S3-compatible multipart uploads. Use resumable uploads instead.');
+    }
+
+    /**
+     * Google Drive does not support S3-compatible multipart uploads
+     */
+    public function abortMultipartUpload(string $uploadId, string $key): bool
+    {
+        throw new \Exception('Google Drive does not support S3-compatible multipart uploads. Use resumable uploads instead.');
     }
 
     /**
@@ -276,28 +337,47 @@ class GoogleDriveService
                 'Content-Range' => 'bytes */*', // Query current status
             ])->put($sessionUri);
 
-            $fileData = $response->json();
-
-            if (!$fileData || !isset($fileData['id'])) {
-                throw new \Exception('Upload verification failed: No file ID returned');
-            }
-
-            Log::info('Verified Google Drive upload completion', [
+            Log::info('Google Drive verification response', [
                 'storage_account_id' => $this->storageAccount->id,
-                'file_id' => $fileData['id'],
-                'filename' => $fileData['name'] ?? 'unknown',
+                'status' => $response->status(),
+                'headers' => $response->headers(),
+                'body_preview' => substr($response->body(), 0, 500)
             ]);
 
-            return [
-                'success' => true,
-                'file_id' => $fileData['id'],
-                'filename' => $fileData['name'] ?? 'unknown',
-                'size' => $fileData['size'] ?? 0,
-                'web_view_link' => $fileData['webViewLink'] ?? null,
-                'web_content_link' => $fileData['webContentLink'] ?? null,
-                'created_time' => $fileData['createdTime'] ?? null,
-                'mime_type' => $fileData['mimeType'] ?? null,
-            ];
+            if ($response->status() === 308) {
+                // Upload is still in progress, get the range that's been uploaded
+                $rangeHeader = $response->header('Range');
+                throw new \Exception("Upload still in progress. Range: " . ($rangeHeader ?? 'unknown'));
+            }
+
+            if ($response->status() === 200 || $response->status() === 201) {
+                // Upload completed successfully
+                $fileData = $response->json();
+                
+                if (!$fileData || !isset($fileData['id'])) {
+                    throw new \Exception('Upload verification failed: No file ID returned');
+                }
+
+                Log::info('Verified Google Drive upload completion', [
+                    'storage_account_id' => $this->storageAccount->id,
+                    'file_id' => $fileData['id'],
+                    'filename' => $fileData['name'] ?? 'unknown',
+                ]);
+
+                return [
+                    'success' => true,
+                    'file_id' => $fileData['id'],
+                    'filename' => $fileData['name'] ?? 'unknown',
+                    'size' => $fileData['size'] ?? 0,
+                    'web_view_link' => $fileData['webViewLink'] ?? null,
+                    'web_content_link' => $fileData['webContentLink'] ?? null,
+                    'created_time' => $fileData['createdTime'] ?? null,
+                    'mime_type' => $fileData['mimeType'] ?? null,
+                ];
+            }
+
+            // Other status codes indicate errors
+            throw new \Exception("Upload verification failed with status: {$response->status()}");
 
         } catch (\Exception $e) {
             Log::error('Failed to verify Google Drive upload', [
@@ -310,72 +390,6 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Upload a file to Google Drive (legacy method - now deprecated in favor of direct uploads)
-     * @deprecated Use generateDirectUploadUrl() for better performance and bandwidth efficiency
-     */
-    public function uploadFile(
-        UploadedFile $file,
-        string $filename,
-        array $metadata = []
-    ): array {
-        try {
-            // Create file metadata
-            $driveFile = new DriveFile();
-            $driveFile->setName($filename);
-            
-            // Set parent folder if specified in metadata
-            if (isset($metadata['folder_id'])) {
-                $driveFile->setParents([$metadata['folder_id']]);
-            }
-            
-            // Add description with room and user info
-            if (isset($metadata['room_id'], $metadata['user_id'])) {
-                $description = "DaggerHeart recording from Room {$metadata['room_id']} by User {$metadata['user_id']}";
-                if (isset($metadata['started_at_ms'])) {
-                    $startTime = date('Y-m-d H:i:s', $metadata['started_at_ms'] / 1000);
-                    $description .= " recorded at {$startTime}";
-                }
-                $driveFile->setDescription($description);
-            }
-
-            // Upload the file
-            $result = $this->driveService->files->create(
-                $driveFile,
-                [
-                    'data' => $file->get(),
-                    'mimeType' => $file->getMimeType(),
-                    'uploadType' => 'multipart',
-                ]
-            );
-
-            Log::info('Successfully uploaded file to Google Drive', [
-                'storage_account_id' => $this->storageAccount->id,
-                'file_id' => $result->getId(),
-                'filename' => $filename,
-                'size' => $file->getSize(),
-            ]);
-
-            return [
-                'success' => true,
-                'file_id' => $result->getId(),
-                'filename' => $result->getName(),
-                'size' => $result->getSize(),
-                'web_view_link' => $result->getWebViewLink(),
-                'web_content_link' => $result->getWebContentLink(),
-                'created_time' => $result->getCreatedTime(),
-            ];
-
-        } catch (\Exception $e) {
-            Log::error('Failed to upload file to Google Drive', [
-                'storage_account_id' => $this->storageAccount->id,
-                'filename' => $filename,
-                'error' => $e->getMessage(),
-            ]);
-
-            throw new \Exception('Failed to upload to Google Drive: ' . $e->getMessage());
-        }
-    }
 
     /**
      * Get download URL for a file
@@ -523,11 +537,154 @@ class GoogleDriveService
     }
 
     /**
-     * Download a file from Google Drive
+     * Find or create a folder by name with optional parent
+     */
+    public function findOrCreateFolder(string $folderName, ?string $parentId = null): ?string
+    {
+        try {
+            // First, try to find an existing folder
+            $folderId = $this->findFolder($folderName, $parentId);
+            if ($folderId) {
+                return $folderId;
+            }
+
+            // If not found, create it
+            return $this->createFolder($folderName, $parentId);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to find or create Google Drive folder', [
+                'storage_account_id' => $this->storageAccount->id,
+                'folder_name' => $folderName,
+                'parent_id' => $parentId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Find an existing folder by name and optional parent
+     */
+    private function findFolder(string $folderName, ?string $parentId = null): ?string
+    {
+        try {
+            // Build query to find folder
+            $query = "mimeType='application/vnd.google-apps.folder' and name='" . str_replace("'", "\\'", $folderName) . "' and trashed=false";
+            
+            if ($parentId) {
+                $query .= " and '{$parentId}' in parents";
+            } else {
+                // Search in root if no parent specified
+                $query .= " and 'root' in parents";
+            }
+
+            $response = $this->driveService->files->listFiles([
+                'q' => $query,
+                'fields' => 'files(id, name)',
+                'pageSize' => 1,
+            ]);
+
+            $files = $response->getFiles();
+            if (count($files) > 0) {
+                Log::info('Found existing Google Drive folder', [
+                    'storage_account_id' => $this->storageAccount->id,
+                    'folder_name' => $folderName,
+                    'folder_id' => $files[0]->getId(),
+                    'parent_id' => $parentId,
+                ]);
+                return $files[0]->getId();
+            }
+
+            return null;
+
+        } catch (\Exception $e) {
+            Log::warning('Failed to search for Google Drive folder', [
+                'storage_account_id' => $this->storageAccount->id,
+                'folder_name' => $folderName,
+                'parent_id' => $parentId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Create a new folder
+     */
+    private function createFolder(string $folderName, ?string $parentId = null): ?string
+    {
+        try {
+            $driveFile = new DriveFile();
+            $driveFile->setName($folderName);
+            $driveFile->setMimeType('application/vnd.google-apps.folder');
+            
+            // Set parent folder if specified
+            if ($parentId) {
+                $driveFile->setParents([$parentId]);
+            }
+
+            $result = $this->driveService->files->create($driveFile);
+
+            Log::info('Created Google Drive folder', [
+                'storage_account_id' => $this->storageAccount->id,
+                'folder_name' => $folderName,
+                'folder_id' => $result->getId(),
+                'parent_id' => $parentId,
+            ]);
+
+            return $result->getId();
+
+        } catch (\Exception $e) {
+            Log::error('Failed to create Google Drive folder', [
+                'storage_account_id' => $this->storageAccount->id,
+                'folder_name' => $folderName,
+                'parent_id' => $parentId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Get file information from Google Drive
+     */
+    public function getFileInfo(string $fileId): ?array
+    {
+        try {
+            $file = $this->driveService->files->get($fileId, [
+                'fields' => 'id,name,size,mimeType,createdTime,modifiedTime'
+            ]);
+
+            return [
+                'id' => $file->getId(),
+                'name' => $file->getName(),
+                'size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'created_time' => $file->getCreatedTime(),
+                'modified_time' => $file->getModifiedTime(),
+            ];
+
+        } catch (\Exception $e) {
+            Log::warning('Failed to get Google Drive file info', [
+                'storage_account_id' => $this->storageAccount->id,
+                'file_id' => $fileId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * Download a file from Google Drive (returns binary content)
      */
     public function downloadFile(string $fileId): ?string
     {
         try {
+            // Use the Drive service to get the file content with 'alt=media'
             $response = $this->driveService->files->get($fileId, ['alt' => 'media']);
             
             Log::info('Downloaded file from Google Drive', [
@@ -535,7 +692,9 @@ class GoogleDriveService
                 'file_id' => $fileId,
             ]);
 
-            return $response->getBody()->getContents();
+            // For Google Drive API v3, with 'alt=media', the response is the file content
+            // This should return the raw file content as a string
+            return (string) $response;
 
         } catch (\Exception $e) {
             Log::error('Failed to download file from Google Drive', [

@@ -1,8 +1,7 @@
 @props(['participants', 'room'])
 
 <!-- 5-6 Participants - Responsive Grid Layout -->
-<div class="h-full w-full grid gap-1" 
-     :class="sidebarVisible ? 'grid-cols-2 grid-rows-3' : 'grid-cols-3 grid-rows-2'"
+<div class="h-full w-full grid gap-1 grid-cols-2 grid-rows-3 xl:grid-cols-3 xl:grid-rows-2" 
      x-data="{}"
      x-init="$watch('sidebarVisible', () => console.log('Grid layout - sidebar visible:', sidebarVisible))">
     <!-- Participants (up to 6 total) -->

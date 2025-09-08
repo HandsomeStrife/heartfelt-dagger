@@ -6,6 +6,7 @@ namespace Domain\Room\Actions;
 
 use Domain\Room\Models\RoomRecording;
 use Domain\Room\Services\WasabiS3Service;
+use Domain\Room\Services\GoogleDriveService;
 use Domain\User\Models\UserStorageAccount;
 use Illuminate\Support\Facades\Log;
 
@@ -38,6 +39,8 @@ class FinalizeRecording
             // Complete the multipart upload based on provider
             if ($recording->provider === 'wasabi') {
                 $this->finalizeWasabiRecording($recording, $storageAccount);
+            } elseif ($recording->provider === 'google_drive') {
+                $this->finalizeGoogleDriveRecording($recording, $storageAccount);
             } else {
                 throw new \Exception('Unsupported provider for recording finalization: ' . $recording->provider);
             }
@@ -92,5 +95,49 @@ class FinalizeRecording
             'etag' => $result['etag'],
             'parts_count' => count($parts)
         ]);
+    }
+
+    private function finalizeGoogleDriveRecording(RoomRecording $recording, UserStorageAccount $storageAccount): void
+    {
+        $googleDriveService = new GoogleDriveService($storageAccount);
+        
+        // For Google Drive, the recording should already be completed during the upload process
+        // The multipart_upload_id contains the session URI, but the upload is likely already finished
+        // We just need to verify the file exists and update our records
+        
+        try {
+            // Try to get file info to verify it exists
+            $fileInfo = $googleDriveService->getFileInfo($recording->provider_file_id);
+            
+            if (!$fileInfo) {
+                throw new \Exception('Google Drive file not found or upload incomplete');
+            }
+            
+            // Update recording with final file size if available
+            if (isset($fileInfo['size']) && $fileInfo['size'] > 0) {
+                $recording->update(['size_bytes' => (int) $fileInfo['size']]);
+            }
+            
+            Log::info('Google Drive recording finalized', [
+                'recording_id' => $recording->id,
+                'file_id' => $recording->provider_file_id,
+                'file_size' => $fileInfo['size'] ?? 'unknown',
+                'file_name' => $fileInfo['name'] ?? 'unknown'
+            ]);
+            
+        } catch (\Exception $e) {
+            // If we can't verify the file, the upload is likely still in progress or failed
+            // Don't mark as completed - let it remain in "recording" status for retry
+            
+            Log::warning('Could not verify Google Drive file during finalization, upload may still be in progress', [
+                'recording_id' => $recording->id,
+                'provider_file_id' => $recording->provider_file_id,
+                'session_uri' => $recording->multipart_upload_id,
+                'error' => $e->getMessage()
+            ]);
+            
+            // Throw exception to prevent marking as completed
+            throw new \Exception('Google Drive file verification failed, upload may still be in progress: ' . $e->getMessage());
+        }
     }
 }
