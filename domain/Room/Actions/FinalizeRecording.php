@@ -145,16 +145,31 @@ class FinalizeRecording
             $result = $googleDriveService->finalizeResumableSession($sessionUri, $recording->size_bytes ?? 0);
             
             if ($result['success']) {
-                // Update recording with file information
+                // Update recording with file ID first
                 $recording->update([
                     'provider_file_id' => $result['file_id'],
-                    'size_bytes' => (int) ($result['size'] ?? $recording->size_bytes ?? 0),
                 ]);
+                
+                // Get accurate file info from Google Drive (finalization response size can be 0)
+                $fileInfo = $googleDriveService->getFileInfo($result['file_id']);
+                $actualSize = 0;
+                
+                if ($fileInfo && isset($fileInfo['size']) && $fileInfo['size'] > 0) {
+                    $actualSize = (int) $fileInfo['size'];
+                    $recording->update(['size_bytes' => $actualSize]);
+                } else {
+                    // Fallback to finalization response or current size
+                    $actualSize = (int) ($result['size'] ?? $recording->size_bytes ?? 0);
+                    if ($actualSize > 0) {
+                        $recording->update(['size_bytes' => $actualSize]);
+                    }
+                }
                 
                 Log::info('Google Drive recording finalized successfully', [
                     'recording_id' => $recording->id,
                     'file_id' => $result['file_id'],
-                    'file_size' => $result['size'],
+                    'finalization_size' => $result['size'],
+                    'actual_size' => $actualSize,
                     'file_name' => $result['filename']
                 ]);
             } else {
