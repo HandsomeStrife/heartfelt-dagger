@@ -52,6 +52,9 @@ export class MessageHandler {
             case 'gm-presence-changed':
                 this.handleGmPresenceChanged(data, senderId);
                 break;
+            case 'session-marker-created':
+                this.handleSessionMarkerCreated(data, senderId);
+                break;
             default:
                 console.log('🤷 Unknown room message type:', type);
         }
@@ -170,6 +173,23 @@ export class MessageHandler {
         
         if (this.roomWebRTC.fearCountdownManager) {
             this.roomWebRTC.fearCountdownManager.handleGmPresenceChanged(data);
+        }
+    }
+
+    /**
+     * Handles session marker creation messages
+     */
+    handleSessionMarkerCreated(data, senderId) {
+        console.log('🏷️ Session marker created via Ably:', data, 'from:', senderId);
+        
+        // Don't show notification for markers we created ourselves
+        if (data.creator_id === this.roomWebRTC.currentUserId) {
+            console.log('🏷️ Ignoring our own marker creation');
+            return;
+        }
+        
+        if (this.roomWebRTC.markerManager) {
+            this.roomWebRTC.markerManager.handleMarkerAblyMessage(data);
         }
     }
 }

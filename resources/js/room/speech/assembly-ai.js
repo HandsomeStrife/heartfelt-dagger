@@ -444,4 +444,11 @@ export default class AssemblyAISpeechRecognition {
     getSpeechBuffer() {
         return [...this.speechBuffer];
     }
+
+    /**
+     * Get the speech recognition start time for timing calculations
+     */
+    getStartTime() {
+        return this.speechChunkStartedAt;
+    }
 }

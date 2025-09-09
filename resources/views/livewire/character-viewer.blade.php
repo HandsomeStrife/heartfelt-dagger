@@ -88,8 +88,6 @@
             <x-character-viewer.equipment :organized-equipment="$organized_equipment" />
             <x-character-viewer.journal :character="$character" />
         </section>
-
-        <button pest="refresh-button" wire:click='$refresh'>Refresh</button>
     </main>
 
     <!-- DICE CONTAINER -->

@@ -30,6 +30,7 @@ import { StatusBarManager } from './room/ui/StatusBarManager.js';
 import { SlotManager } from './room/ui/SlotManager.js';
 import { UIStateManager } from './room/ui/UIStateManager.js';
 import { FearCountdownManager } from './room/ui/FearCountdownManager.js';
+import { MarkerManager } from './room/ui/MarkerManager.js';
 import { ConsentManager } from './room/consent/ConsentManager.js';
 import { ConsentDialog } from './room/consent/ConsentDialog.js';
 
@@ -65,6 +66,7 @@ export default class RoomWebRTC {
         this.slotManager = new SlotManager(this);
         this.uiStateManager = new UIStateManager(this);
         this.fearCountdownManager = new FearCountdownManager(this);
+        this.markerManager = new MarkerManager(this);
         
         // Initialize consent managers
         this.consentManager = new ConsentManager(this);

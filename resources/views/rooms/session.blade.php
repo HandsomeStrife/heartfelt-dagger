@@ -143,6 +143,55 @@
                             </svg>
                             <span id="video-status-text">Hide Video</span>
                         </button>
+
+                        <!-- Add Marker Button (only shown when STT or recording enabled) -->
+                        @if(($room->recordingSettings && $room->recordingSettings->isSttEnabled()) || ($room->recordingSettings && $room->recordingSettings->isRecordingEnabled()))
+                        <div class="relative">
+                            <button id="add-marker-btn" class="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs transition-colors flex items-center">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add Marker
+                            </button>
+                            
+                            <!-- Marker Popup (hidden by default) -->
+                            <div id="marker-popup" class="absolute bottom-full mb-2 left-0 bg-slate-800/95 backdrop-blur-xl border border-slate-600/50 rounded-lg shadow-xl p-3 min-w-64 hidden z-50">
+                                <div class="text-white text-sm font-medium mb-3">Add Session Marker</div>
+                                
+                                <!-- Preset Options -->
+                                <div class="space-y-2 mb-3">
+                                    <button class="marker-preset-btn w-full text-left px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors" data-identifier="Session Start">
+                                        Session Start
+                                    </button>
+                                    <button class="marker-preset-btn w-full text-left px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors" data-identifier="Session Stop">
+                                        Session Stop
+                                    </button>
+                                    <button class="marker-preset-btn w-full text-left px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors" data-identifier="Break Start">
+                                        Break Start
+                                    </button>
+                                    <button class="marker-preset-btn w-full text-left px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors" data-identifier="Break Stop">
+                                        Break Stop
+                                    </button>
+                                </div>
+                                
+                                <!-- Custom Input -->
+                                <div class="mb-3">
+                                    <label for="custom-marker-input" class="block text-slate-300 text-xs mb-1">Custom Identifier:</label>
+                                    <input type="text" id="custom-marker-input" class="w-full px-2 py-1 bg-slate-700 border border-slate-600 text-white text-xs rounded focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="Enter custom marker..." maxlength="255">
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="flex space-x-2">
+                                    <button id="create-marker-btn" class="flex-1 px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs transition-colors">
+                                        Create Marker
+                                    </button>
+                                    <button id="cancel-marker-btn" class="px-2 py-1 bg-slate-600 hover:bg-slate-500 text-white rounded text-xs transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                         
                         <!-- Recording Controls (Hidden when not recording) -->
                         <div id="recording-controls" class="hidden items-center space-x-2">
@@ -251,6 +300,55 @@
                             </svg>
                             <span id="video-status-text-normal">Hide Video</span>
                         </button>
+
+                        <!-- Add Marker Button (only shown when STT or recording enabled) -->
+                        @if(($room->recordingSettings && $room->recordingSettings->isSttEnabled()) || ($room->recordingSettings && $room->recordingSettings->isRecordingEnabled()))
+                        <div class="relative">
+                            <button id="add-marker-btn-normal" class="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs transition-colors flex items-center">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add Marker
+                            </button>
+                            
+                            <!-- Marker Popup (hidden by default) -->
+                            <div id="marker-popup-normal" class="absolute bottom-full mb-2 left-0 bg-slate-800/95 backdrop-blur-xl border border-slate-600/50 rounded-lg shadow-xl p-3 min-w-64 hidden z-50">
+                                <div class="text-white text-sm font-medium mb-3">Add Session Marker</div>
+                                
+                                <!-- Preset Options -->
+                                <div class="space-y-2 mb-3">
+                                    <button class="marker-preset-btn-normal w-full text-left px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors" data-identifier="Session Start">
+                                        Session Start
+                                    </button>
+                                    <button class="marker-preset-btn-normal w-full text-left px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors" data-identifier="Session Stop">
+                                        Session Stop
+                                    </button>
+                                    <button class="marker-preset-btn-normal w-full text-left px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors" data-identifier="Break Start">
+                                        Break Start
+                                    </button>
+                                    <button class="marker-preset-btn-normal w-full text-left px-2 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs transition-colors" data-identifier="Break Stop">
+                                        Break Stop
+                                    </button>
+                                </div>
+                                
+                                <!-- Custom Input -->
+                                <div class="mb-3">
+                                    <label for="custom-marker-input-normal" class="block text-slate-300 text-xs mb-1">Custom Identifier:</label>
+                                    <input type="text" id="custom-marker-input-normal" class="w-full px-2 py-1 bg-slate-700 border border-slate-600 text-white text-xs rounded focus:outline-none focus:ring-2 focus:ring-amber-500" placeholder="Enter custom marker..." maxlength="255">
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="flex space-x-2">
+                                    <button id="create-marker-btn-normal" class="flex-1 px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs transition-colors">
+                                        Create Marker
+                                    </button>
+                                    <button id="cancel-marker-btn-normal" class="px-2 py-1 bg-slate-600 hover:bg-slate-500 text-white rounded text-xs transition-colors">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                         
                         <!-- Recording Controls (Hidden when not recording) -->
                         <div id="recording-controls-normal" class="hidden items-center space-x-2">

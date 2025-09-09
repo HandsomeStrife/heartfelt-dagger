@@ -368,6 +368,13 @@ export default class BrowserSpeechRecognition {
     }
 
     /**
+     * Get the speech recognition start time for timing calculations
+     */
+    getStartTime() {
+        return this.speechChunkStartedAt;
+    }
+
+    /**
      * Check if browser supports speech recognition
      */
     static isSupported() {

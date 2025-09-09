@@ -156,6 +156,12 @@ Route::prefix('api/rooms')->name('api.rooms.')->group(function () {
     Route::post('/{room}/recordings/{recording}/progress', [App\Http\Controllers\Api\RoomRecordingController::class, 'updateProgress'])->name('recordings.update-progress');
 });
 
+// API routes for session markers
+Route::prefix('api/session-markers')->name('api.session-markers.')->middleware('auth')->group(function () {
+    Route::post('/', [App\Http\Controllers\Api\SessionMarkerController::class, 'store'])->name('store');
+    Route::get('/', [App\Http\Controllers\Api\SessionMarkerController::class, 'index'])->name('index');
+});
+
 // S3 Multipart upload endpoints (for better resilience with large files)
 Route::prefix('api/uploads/s3/multipart')->name('api.uploads.s3.multipart.')->middleware('auth')->group(function () {
     Route::post('/create', [App\Http\Controllers\Api\S3MultipartController::class, 'create'])->name('create');
