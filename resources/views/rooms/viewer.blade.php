@@ -48,6 +48,8 @@
         window.roomData = {
             id: {{ $room->id }},
             name: "{{ $room->name }}",
+            creator_id: {{ $room->creator_id }},
+            campaign_id: {{ $room->campaign_id ?? 'null' }},
             guest_count: {{ $room->guest_count }},
             total_capacity: {{ $room->getTotalCapacity() }},
             viewer_mode: true, // This is a viewer, not a participant

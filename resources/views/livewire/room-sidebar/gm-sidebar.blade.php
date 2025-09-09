@@ -12,7 +12,8 @@
                     class="w-full flex items-center justify-between px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors">
                 <span x-text="activeTab === 'players' ? 'Players' : 
                             activeTab === 'pages' ? 'Pages' : 
-                            activeTab === 'notes' ? 'Notes' : 'Select Tab'"></span>
+                            activeTab === 'notes' ? 'Notes' : 
+                            activeTab === 'gamestate' ? 'Game State' : 'Select Tab'"></span>
                 <svg class="w-4 h-4 transition-transform" :class="dropdownOpen ? 'rotate-180' : ''" 
                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -48,6 +49,15 @@
                     Pages
                 </button>
                 @endif
+                
+                <button @click="activeTab = 'gamestate'; dropdownOpen = false" 
+                        :class="activeTab === 'gamestate' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700'"
+                        class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Game State
+                </button>
                 
                 <button @click="activeTab = 'notes'; dropdownOpen = false" 
                         :class="activeTab === 'notes' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700'"
@@ -115,6 +125,142 @@
             @endforeach
         </div>
         @endif
+
+        <!-- Game State Tab -->
+        <div x-show="activeTab === 'gamestate'" x-cloak class="p-4 space-y-6">
+            <h3 class="font-outfit text-lg text-white mb-4">Game State Management</h3>
+            
+            <!-- Fear Tracker -->
+            <div class="bg-slate-800/50 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                        <h4 class="text-white font-medium">Fear Level</h4>
+                    </div>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="text-red-300 font-medium text-sm">Fear</div>
+                        <div class="text-white font-bold text-lg" data-fear-display="level">{{ $current_fear_level ?? 0 }}</div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-1">
+                        <button wire:click="decreaseFear" 
+                                class="px-2 py-1 bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 text-red-300 rounded transition-colors text-xs">
+                            -1
+                        </button>
+                        
+                        <button wire:click="increaseFear"
+                                class="px-2 py-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/50 text-green-300 rounded transition-colors text-xs">
+                            +1
+                        </button>
+                        
+                        <div class="flex items-center space-x-1 ml-2">
+                            <input type="number" 
+                                   wire:model.live="fear_level_input" 
+                                   min="0" 
+                                   max="255"
+                                   class="w-12 bg-slate-600/50 border border-slate-500/50 rounded px-2 py-1 text-white text-center text-xs focus:outline-none focus:ring-1 focus:ring-red-500/50"
+                                   placeholder="0">
+                            <button wire:click="setFearLevel" 
+                                    class="px-2 py-1 bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/50 text-amber-300 rounded transition-colors text-xs">
+                                Set
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Countdown Trackers -->
+            <div class="bg-slate-800/50 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h4 class="text-white font-medium">Countdown Trackers</h4>
+                    </div>
+                    <button wire:click="$set('show_add_countdown', true)" 
+                            class="px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/50 text-blue-300 rounded-lg transition-colors text-sm flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Add
+                    </button>
+                </div>
+
+                <!-- Add Countdown Form -->
+                @if($show_add_countdown ?? false)
+                <div class="mb-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600/50">
+                    <div class="space-y-3">
+                        <input type="text" 
+                               wire:model.live="new_countdown_name" 
+                               placeholder="Timer name..."
+                               class="w-full bg-slate-600/50 border border-slate-500/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                        
+                        <div class="flex items-center space-x-2">
+                            <input type="number" 
+                                   wire:model.live="new_countdown_value" 
+                                   min="0"
+                                   placeholder="Value"
+                                   class="flex-1 bg-slate-600/50 border border-slate-500/50 rounded-lg px-3 py-2 text-white text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                            
+                            <button wire:click="createCountdownTracker" 
+                                    class="px-3 py-2 bg-green-600/20 hover:bg-green-600/30 border border-green-500/50 text-green-300 rounded-lg transition-colors text-sm">
+                                Create
+                            </button>
+                            
+                            <button wire:click="$set('show_add_countdown', false)" 
+                                    class="px-3 py-2 bg-slate-600/20 hover:bg-slate-600/30 border border-slate-500/50 text-slate-300 rounded-lg transition-colors text-sm">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Existing Countdown Trackers -->
+                <div class="space-y-2">
+                    @if(empty($countdown_trackers ?? []))
+                        <div class="text-center py-4 text-slate-400 text-sm">
+                            No countdown trackers active
+                        </div>
+                    @else
+                        @foreach($countdown_trackers ?? [] as $trackerId => $tracker)
+                            <div class="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-blue-300 font-medium text-sm">{{ $tracker['name'] }}</div>
+                                    <div class="text-white font-bold text-lg">{{ $tracker['value'] }}</div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-1">
+                                    <button wire:click="decreaseCountdown('{{ $trackerId }}')" 
+                                            class="px-2 py-1 bg-red-600/20 hover:bg-red-600/30 border border-red-500/50 text-red-300 rounded transition-colors text-xs">
+                                        -1
+                                    </button>
+                                    
+                                    <button wire:click="increaseCountdown('{{ $trackerId }}')" 
+                                            class="px-2 py-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/50 text-green-300 rounded transition-colors text-xs">
+                                        +1
+                                    </button>
+                                    
+                                    <button wire:click="deleteCountdownTracker('{{ $trackerId }}')" 
+                                            onclick="return confirm('Delete this countdown tracker?')"
+                                            class="px-2 py-1 bg-slate-600/20 hover:bg-slate-600/30 border border-slate-500/50 text-slate-300 rounded transition-colors text-xs">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </div>
 
         <!-- Notes Tab -->
         <div x-show="activeTab === 'notes'" x-cloak class="p-4">

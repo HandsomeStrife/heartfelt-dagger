@@ -40,6 +40,18 @@ export class MessageHandler {
             case 'webrtc-ice-candidate':
                 this.handleIceCandidate(data, senderId);
                 break;
+            case 'fear-updated':
+                this.handleFearUpdate(data, senderId);
+                break;
+            case 'countdown-updated':
+                this.handleCountdownUpdate(data, senderId);
+                break;
+            case 'countdown-deleted':
+                this.handleCountdownDeleted(data, senderId);
+                break;
+            case 'gm-presence-changed':
+                this.handleGmPresenceChanged(data, senderId);
+                break;
             default:
                 console.log('🤷 Unknown room message type:', type);
         }
@@ -115,5 +127,49 @@ export class MessageHandler {
      */
     handleIceCandidate(data, senderId) {
         this.roomWebRTC.peerConnectionManager.handleIceCandidate(data, senderId);
+    }
+
+    /**
+     * Handles fear level update messages
+     */
+    handleFearUpdate(data, senderId) {
+        console.log('🎭 Fear level updated via Ably:', data, 'from:', senderId);
+        
+        if (this.roomWebRTC.fearCountdownManager) {
+            this.roomWebRTC.fearCountdownManager.handleFearUpdate(data);
+        }
+    }
+
+    /**
+     * Handles countdown tracker update messages
+     */
+    handleCountdownUpdate(data, senderId) {
+        console.log('🎭 Countdown tracker updated via Ably:', data, 'from:', senderId);
+        
+        if (this.roomWebRTC.fearCountdownManager) {
+            this.roomWebRTC.fearCountdownManager.handleCountdownUpdate(data);
+        }
+    }
+
+    /**
+     * Handles countdown tracker deletion messages
+     */
+    handleCountdownDeleted(data, senderId) {
+        console.log('🎭 Countdown tracker deleted via Ably:', data, 'from:', senderId);
+        
+        if (this.roomWebRTC.fearCountdownManager) {
+            this.roomWebRTC.fearCountdownManager.handleCountdownDeletion(data);
+        }
+    }
+
+    /**
+     * Handles GM presence change messages
+     */
+    handleGmPresenceChanged(data, senderId) {
+        console.log('🎭 GM presence changed via Ably:', data, 'from:', senderId);
+        
+        if (this.roomWebRTC.fearCountdownManager) {
+            this.roomWebRTC.fearCountdownManager.handleGmPresenceChanged(data);
+        }
     }
 }

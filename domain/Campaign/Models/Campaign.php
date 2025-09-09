@@ -33,10 +33,14 @@ class Campaign extends Model
         'invite_code',
         'campaign_code',
         'status',
+        'fear_level',
+        'countdown_trackers',
     ];
 
     protected $casts = [
         'status' => CampaignStatus::class,
+        'fear_level' => 'integer',
+        'countdown_trackers' => 'array',
     ];
 
     /**
@@ -246,5 +250,82 @@ class Campaign extends Model
     public function getRouteKeyName(): string
     {
         return 'campaign_code';
+    }
+
+    /**
+     * Get the current fear level
+     */
+    public function getFearLevel(): int
+    {
+        return $this->fear_level ?? 0;
+    }
+
+    /**
+     * Set the fear level (with bounds checking)
+     */
+    public function setFearLevel(int $level): void
+    {
+        $this->fear_level = max(0, min(255, $level));
+    }
+
+    /**
+     * Increase fear level by the specified amount
+     */
+    public function increaseFear(int $amount = 1): int
+    {
+        $newLevel = $this->getFearLevel() + $amount;
+        $this->setFearLevel($newLevel);
+        return $this->fear_level;
+    }
+
+    /**
+     * Decrease fear level by the specified amount
+     */
+    public function decreaseFear(int $amount = 1): int
+    {
+        $newLevel = $this->getFearLevel() - $amount;
+        $this->setFearLevel($newLevel);
+        return $this->fear_level;
+    }
+
+    /**
+     * Get all countdown trackers
+     */
+    public function getCountdownTrackers(): array
+    {
+        return $this->countdown_trackers ?? [];
+    }
+
+    /**
+     * Add or update a countdown tracker
+     */
+    public function setCountdownTracker(string $id, string $name, int $value): void
+    {
+        $trackers = $this->getCountdownTrackers();
+        $trackers[$id] = [
+            'name' => $name,
+            'value' => max(0, $value),
+            'updated_at' => now()->toISOString(),
+        ];
+        $this->countdown_trackers = $trackers;
+    }
+
+    /**
+     * Remove a countdown tracker
+     */
+    public function removeCountdownTracker(string $id): void
+    {
+        $trackers = $this->getCountdownTrackers();
+        unset($trackers[$id]);
+        $this->countdown_trackers = $trackers;
+    }
+
+    /**
+     * Get a specific countdown tracker
+     */
+    public function getCountdownTracker(string $id): ?array
+    {
+        $trackers = $this->getCountdownTrackers();
+        return $trackers[$id] ?? null;
     }
 }

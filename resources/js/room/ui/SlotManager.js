@@ -19,13 +19,21 @@ export class SlotManager {
             // Update character name
             const nameElement = overlay.querySelector('.character-name');
             if (nameElement) {
-                nameElement.textContent = participantData.character_name || participantData.username;
+                if (participantData.is_host) {
+                    nameElement.textContent = 'GAME MASTER';
+                } else {
+                    nameElement.textContent = participantData.character_name || participantData.username || 'Unknown Player';
+                }
             }
 
             // Update character class
             const classElement = overlay.querySelector('.character-class');
             if (classElement) {
-                classElement.textContent = participantData.character_class || (participantData.is_host ? 'GM' : 'No Class');
+                if (participantData.is_host) {
+                    classElement.textContent = 'NARRATOR OF TALES';
+                } else {
+                    classElement.textContent = participantData.character_class || 'NO CLASS';
+                }
             }
 
             overlay.classList.remove('hidden');

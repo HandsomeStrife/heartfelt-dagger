@@ -369,6 +369,8 @@
         window.roomData = {
             id: {{ $room->id }},
             name: "{{ $room->name }}",
+            creator_id: {{ $room->creator_id }},
+            campaign_id: {{ $room->campaign_id ?? 'null' }},
             guest_count: {{ $room->guest_count }},
             total_capacity: {{ $room->getTotalCapacity() }},
             stt_enabled: {{ ($room->recordingSettings && $room->recordingSettings->isSttEnabled()) ? 'true' : 'false' }},
@@ -398,6 +400,33 @@
         
         // Pass current user ID for participant identification
         window.currentUserId = {{ auth()->id() ?? 'null' }};
+        
+        // Pass initial game state data
+        @php
+            $gameStateAction = new \Domain\Room\Actions\GetGameStateAction();
+            $gameState = $gameStateAction->execute($room);
+        @endphp
+        window.roomData.game_state = {
+            fear_tracker: {
+                fear_level: {{ $gameState->fear_tracker->fear_level }},
+                can_increase: {{ $gameState->fear_tracker->can_increase ? 'true' : 'false' }},
+                can_decrease: {{ $gameState->fear_tracker->can_decrease ? 'true' : 'false' }}
+            },
+            countdown_trackers: [
+                @foreach($gameState->countdown_trackers as $tracker)
+                {
+                    id: "{{ $tracker->id }}",
+                    name: "{{ $tracker->name }}",
+                    value: {{ $tracker->value }},
+                    updated_at: "{{ $tracker->updated_at->toISOString() }}",
+                    can_increase: {{ $tracker->can_increase ? 'true' : 'false' }},
+                    can_decrease: {{ $tracker->can_decrease ? 'true' : 'false' }}
+                }{{ !$loop->last ? ',' : '' }}
+                @endforeach
+            ],
+            source_type: "{{ $gameState->source_type }}",
+            source_id: {{ $gameState->source_id }}
+        };
         
         function toggleParticipantsModal() {
             const modal = document.getElementById('participantsModal');
@@ -616,6 +645,11 @@
             if (window.roomData && window.RoomWebRTC) {
                 console.log('🚀 Starting Room WebRTC system');
                 window.roomWebRTC = new window.RoomWebRTC(window.roomData);
+                
+                // Make FearCountdownManager debug methods globally accessible for testing
+                window.debugFearCountdown = () => window.roomWebRTC.fearCountdownManager.debugGmPresence();
+                window.forceShowGameState = () => window.roomWebRTC.fearCountdownManager.forceShowOverlays();
+                window.forceHideGameState = () => window.roomWebRTC.fearCountdownManager.forceHideOverlays();
                 
                 // Check consent requirements immediately upon entering the room
                 window.roomWebRTC.checkInitialConsentRequirements();

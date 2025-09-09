@@ -29,6 +29,7 @@ import AssemblyAISpeechRecognition from './room/speech/assembly-ai.js';
 import { StatusBarManager } from './room/ui/StatusBarManager.js';
 import { SlotManager } from './room/ui/SlotManager.js';
 import { UIStateManager } from './room/ui/UIStateManager.js';
+import { FearCountdownManager } from './room/ui/FearCountdownManager.js';
 import { ConsentManager } from './room/consent/ConsentManager.js';
 import { ConsentDialog } from './room/consent/ConsentDialog.js';
 
@@ -63,6 +64,7 @@ export default class RoomWebRTC {
         this.statusBarManager = new StatusBarManager(this);
         this.slotManager = new SlotManager(this);
         this.uiStateManager = new UIStateManager(this);
+        this.fearCountdownManager = new FearCountdownManager(this);
         
         // Initialize consent managers
         this.consentManager = new ConsentManager(this);
