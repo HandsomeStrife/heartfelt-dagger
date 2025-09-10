@@ -51,6 +51,9 @@ return [
 
         'ses' => [
             'transport' => 'ses',
+            'key' => env('MAIL_USERNAME'),
+            'secret' => env('MAIL_PASSWORD'),
+            'region' => env('AWS_SES_REGION', 'us-east-1'),
         ],
 
         'postmark' => [
