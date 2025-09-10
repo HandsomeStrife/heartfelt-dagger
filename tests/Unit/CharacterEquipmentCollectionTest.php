@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use Domain\Character\Data\CharacterData;
 use Domain\Character\Data\CharacterEquipmentItemData;
+use Domain\Character\Enums\EquipmentType;
 use Domain\Character\Models\Character;
 use Domain\Character\Models\CharacterEquipment;
-use Domain\Character\Enums\EquipmentType;
 
 it('creates character equipment collection from model', function () {
     // Create a character

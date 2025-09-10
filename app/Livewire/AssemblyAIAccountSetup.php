@@ -5,20 +5,23 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Livewire\Forms\AssemblyAIAccountForm;
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class AssemblyAIAccountSetup extends Component
 {
     public AssemblyAIAccountForm $form;
+
     public bool $isTestingConnection = false;
+
     public ?string $connectionResult = null;
+
     public ?string $redirectTo = null;
 
     public function mount(): void
     {
         // Check if user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             abort(403, 'You must be logged in to connect AssemblyAI accounts');
         }
 
@@ -42,7 +45,7 @@ class AssemblyAIAccountSetup extends Component
             }
 
         } catch (\Exception $e) {
-            $this->addError('form', 'Failed to connect AssemblyAI account: ' . $e->getMessage());
+            $this->addError('form', 'Failed to connect AssemblyAI account: '.$e->getMessage());
         }
     }
 
@@ -56,22 +59,23 @@ class AssemblyAIAccountSetup extends Component
             // Skip API validation in testing environment
             if (app()->environment('testing')) {
                 $this->connectionResult = 'success';
+
                 return;
             }
 
             // Test the API key by making a simple request to AssemblyAI
             $response = $this->makeTestRequest($this->form->api_key);
-            
+
             if ($response['success']) {
                 $this->connectionResult = 'success';
             } else {
                 $this->connectionResult = 'error';
-                $this->addError('connection', 'Connection failed: ' . $response['error']);
+                $this->addError('connection', 'Connection failed: '.$response['error']);
             }
 
         } catch (\Exception $e) {
             $this->connectionResult = 'error';
-            $this->addError('connection', 'Connection failed: ' . $e->getMessage());
+            $this->addError('connection', 'Connection failed: '.$e->getMessage());
         } finally {
             $this->isTestingConnection = false;
         }
@@ -85,11 +89,11 @@ class AssemblyAIAccountSetup extends Component
             curl_setopt($ch, CURLOPT_URL, 'https://api.assemblyai.com/v2/transcript');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: ' . $apiKey,
-                'Content-Type: application/json'
+                'Authorization: '.$apiKey,
+                'Content-Type: application/json',
             ]);
             curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-            
+
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);

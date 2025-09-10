@@ -6,7 +6,7 @@ use Domain\Character\Data\CharacterStatsData;
 use Domain\Character\Models\Character;
 use Domain\Character\Models\CharacterAdvancement;
 use Domain\Character\Models\CharacterTrait;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('from model applies simiah evasion bonus', function () {

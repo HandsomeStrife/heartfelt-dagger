@@ -94,7 +94,7 @@ class RoomRecording extends Model
             $bytes /= 1024;
         }
 
-        return round($bytes, 2) . ' ' . $units[$i];
+        return round($bytes, 2).' '.$units[$i];
     }
 
     /**
@@ -121,7 +121,7 @@ class RoomRecording extends Model
         return in_array($this->status, [
             RecordingStatus::Completed,
             RecordingStatus::Ready,
-            RecordingStatus::Uploaded
+            RecordingStatus::Uploaded,
         ]);
     }
 
@@ -207,7 +207,7 @@ class RoomRecording extends Model
      */
     public function canBeFinalized(): bool
     {
-        return $this->status->canBeFinalized() && !empty($this->multipart_upload_id);
+        return $this->status->canBeFinalized() && ! empty($this->multipart_upload_id);
     }
 
     /**
@@ -218,7 +218,7 @@ class RoomRecording extends Model
         return $query->whereIn('status', [
             RecordingStatus::Completed,
             RecordingStatus::Ready,
-            RecordingStatus::Uploaded
+            RecordingStatus::Uploaded,
         ]);
     }
 
@@ -232,13 +232,13 @@ class RoomRecording extends Model
             ->where(function ($q) {
                 // For Wasabi, finalize after 1 minute of inactivity
                 $q->where('provider', 'wasabi')
-                  ->where('updated_at', '<', now()->subMinute());
+                    ->where('updated_at', '<', now()->subMinute());
             })
             ->orWhere(function ($q) {
                 // For Google Drive, be more conservative - wait 5 minutes
                 // since resumable uploads can take longer
                 $q->where('provider', 'google_drive')
-                  ->where('updated_at', '<', now()->subMinutes(5));
+                    ->where('updated_at', '<', now()->subMinutes(5));
             });
     }
 

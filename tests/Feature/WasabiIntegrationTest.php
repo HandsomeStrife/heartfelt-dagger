@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use Domain\Room\Actions\CreateWasabiRecording;
-use Domain\Room\Actions\GenerateWasabiDownloadUrl;
-use Domain\Room\Actions\GenerateWasabiPresignedUrl;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\Room\Models\RoomRecording;
@@ -16,7 +13,7 @@ test('can generate wasabi presigned URL for upload', function () {
     // Create test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Create storage account for Wasabi
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
@@ -61,7 +58,7 @@ test('can generate wasabi presigned URL for upload', function () {
             'metadata' => [
                 'started_at_ms' => 0,
                 'ended_at_ms' => 5000,
-            ]
+            ],
         ]);
 
     $response->assertStatus(200)
@@ -81,7 +78,7 @@ test('can generate wasabi presigned URL for upload', function () {
                 'filename',
                 'size_bytes',
                 'content_type',
-            ]
+            ],
         ])
         ->assertJson([
             'success' => true,
@@ -94,7 +91,7 @@ test('can generate wasabi presigned URL for upload', function () {
                 'filename' => 'test_recording.webm',
                 'size_bytes' => 1024000,
                 'content_type' => 'video/webm',
-            ]
+            ],
         ]);
 
     expect($response->json('presigned_url'))->toContain('test-bucket');
@@ -107,7 +104,7 @@ test('can confirm successful wasabi upload', function () {
     // Create test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Create storage account for Wasabi
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
@@ -151,19 +148,19 @@ test('can confirm successful wasabi upload', function () {
             'size_bytes' => 1024000,
             'started_at_ms' => 0,
             'ended_at_ms' => 5000,
-            'mime_type' => 'video/webm'
+            'mime_type' => 'video/webm',
         ]);
 
     $response->assertStatus(201)
         ->assertJson([
             'success' => true,
-            'message' => 'Recording confirmed and saved'
+            'message' => 'Recording confirmed and saved',
         ])
         ->assertJsonStructure(['recording_id']);
 
     // Verify recording was created in database
     expect(RoomRecording::count())->toBe(1);
-    
+
     $recording = RoomRecording::first();
     expect($recording->room_id)->toBe($room->id);
     expect($recording->user_id)->toBe($user->id);
@@ -178,7 +175,7 @@ test('cannot generate wasabi presigned URL without consent', function () {
     // Create test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Create storage account for Wasabi
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
@@ -225,7 +222,7 @@ test('cannot generate wasabi presigned URL without consent', function () {
     $response->assertStatus(403)
         ->assertJson([
             'error' => 'Video recording consent required',
-            'requires_consent' => true
+            'requires_consent' => true,
         ]);
 });
 
@@ -233,7 +230,7 @@ test('cannot generate wasabi presigned URL for wrong storage provider', function
     // Create test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable recording for the room with LOCAL storage (not Wasabi)
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -265,4 +262,3 @@ test('cannot generate wasabi presigned URL for wrong storage provider', function
     $response->assertStatus(500)
         ->assertJsonStructure(['error']);
 });
-

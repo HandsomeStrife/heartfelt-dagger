@@ -9,16 +9,16 @@ use Domain\Character\Actions\SaveCharacterAction;
 use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Enums\ClassEnum;
 use Domain\Character\Models\Character;
+use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Usernotnull\Toast\Concerns\WireToast;
-use GrahamCampbell\Markdown\Facades\Markdown;
 
 class CharacterBuilder extends Component
 {
-    use WithFileUploads, WireToast;
+    use WireToast, WithFileUploads;
 
     // State Properties
     public CharacterBuilderData $character;
@@ -72,15 +72,13 @@ class CharacterBuilder extends Component
         if ($this->storage_key) {
             $action = new LoadCharacterAction;
             $character_data = $action->execute($this->storage_key);
-            
+
             if ($character_data) {
                 $this->character = $character_data;
                 $this->character_model = Character::where('character_key', $this->storage_key)->first();
             }
         }
     }
-
-
 
     /**
      * Select which experience gets experience_bonus_selection ancestry bonus
@@ -110,12 +108,12 @@ class CharacterBuilder extends Component
 
         $this->character = $character_data;
         $this->storage_key = $characterKey;
-        
+
         // Load the character model to get pronouns and last saved time from database
         $this->character_model = Character::where('character_key', $characterKey)->first();
         $this->pronouns = $this->character_model->pronouns ?? null;
         $this->last_saved_timestamp = $this->character_model?->updated_at?->timestamp;
-        
+
         $this->updateCompletedSteps();
         $this->loadGameData();
     }
@@ -206,36 +204,36 @@ class CharacterBuilder extends Component
         // Properties that should trigger step completion updates but not auto-save
         $stepCompletionProperties = [
             'selected_class',
-            'selected_subclass', 
+            'selected_subclass',
             'selected_ancestry',
             'selected_community',
             'assigned_traits',
             'selected_equipment',
             'experiences',
-            'selected_domain_cards'
+            'selected_domain_cards',
         ];
-        
+
         // Auto-save for specific properties that should save immediately
         // NOTE: Most auto-save properties removed - only keep essential ones
         $autoSaveProperties = [
             // 'name' removed - now manual save only
-            // 'background_answers' removed - now manual save only  
+            // 'background_answers' removed - now manual save only
             // 'physical_description' removed - now manual save only
             // 'personality_traits' removed - now manual save only
             // 'personal_history' removed - now manual save only
             // 'motivations' removed - now manual save only
         ];
-        
+
         // Handle nested properties like background_answers.0
         $topLevelKey = explode('.', $key)[0];
-        
+
         if (in_array($key, $autoSaveProperties) || in_array($topLevelKey, $autoSaveProperties)) {
             $this->saveToDatabase();
             $this->dispatch('character-updated', $this->character);
         } elseif (in_array($key, $stepCompletionProperties) || in_array($topLevelKey, $stepCompletionProperties)) {
             // Update step completion for selection properties without auto-saving
             $this->updateStateOnly();
-            
+
             // Force re-render for step completion updates
             $this->dispatch('step-completion-updated');
         }
@@ -256,10 +254,10 @@ class CharacterBuilder extends Component
         $this->profile_image = null;
         $this->character->profile_image_path = null;
         $this->saveToDatabase();
-        
+
         // Refresh character model after clearing
         $this->character_model = Character::where('character_key', $this->storage_key)->first();
-        
+
         $this->dispatch('character-updated', $this->character);
     }
 
@@ -349,11 +347,11 @@ class CharacterBuilder extends Component
             // Debug: Log that method was called
             error_log('SAVE TO DATABASE CALLED!');
             logger('=== SaveToDatabase Debug ===');
-            logger('Character selected_equipment count: ' . count($this->character->selected_equipment ?? []));
+            logger('Character selected_equipment count: '.count($this->character->selected_equipment ?? []));
             foreach ($this->character->selected_equipment ?? [] as $eq) {
                 logger("  - Equipment: {$eq['type']} - {$eq['key']}");
             }
-            
+
             // Load the existing character from database
             $character = \Domain\Character\Models\Character::where('character_key', $this->storage_key)->firstOrFail();
 
@@ -364,14 +362,14 @@ class CharacterBuilder extends Component
             // Reload the character data to ensure consistency
             $load_action = new LoadCharacterAction;
             $this->character = $load_action->execute($this->storage_key);
-            
+
             // Reload pronouns and update last saved time from database
             $this->character_model = Character::where('character_key', $this->storage_key)->first();
             $this->pronouns = $this->character_model->pronouns ?? null;
-            
+
             // Update timestamp and dispatch JS event for real-time updates
             $this->last_saved_timestamp = time();
-            $this->dispatch('character-saved-timestamp', 
+            $this->dispatch('character-saved-timestamp',
                 timestamp: $this->last_saved_timestamp
             );
 
@@ -419,7 +417,7 @@ class CharacterBuilder extends Component
     // NOTE: Equipment suggestion methods removed - now handled client-side in character-builder.js
     // The following methods were moved to JavaScript for better performance:
     // - getSuggestedWeaponData() -> suggestedPrimaryWeapon, suggestedSecondaryWeapon computed properties
-    // - getSuggestedArmorData() -> suggestedArmor computed property  
+    // - getSuggestedArmorData() -> suggestedArmor computed property
     // - isWeaponSuggested() -> client-side filtering in tier1PrimaryWeapons, tier1SecondaryWeapons
     // - isArmorSuggested() -> client-side filtering in tier1Armor
 
@@ -461,11 +459,12 @@ class CharacterBuilder extends Component
      */
     public function getComputedStats(): array
     {
-        if (!$this->character->selected_class || !isset($this->game_data['classes'][$this->character->selected_class])) {
+        if (! $this->character->selected_class || ! isset($this->game_data['classes'][$this->character->selected_class])) {
             return [];
         }
 
         $class_data = $this->game_data['classes'][$this->character->selected_class];
+
         return $this->character->getComputedStats($class_data);
     }
 }

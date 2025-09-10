@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Livewire\RoomSidebar;
 
-use Domain\Campaign\Actions\GetGameStateAction as CampaignGetGameStateAction;
-use Domain\Campaign\Actions\ManageCountdownTrackerAction as CampaignManageCountdownTrackerAction;
-use Domain\Campaign\Actions\UpdateFearLevelAction as CampaignUpdateFearLevelAction;
 use Domain\Campaign\Models\Campaign;
 use Domain\Room\Actions\GetGameStateAction as RoomGetGameStateAction;
 use Domain\Room\Actions\LoadRoomSessionNotesAction;
@@ -21,19 +18,27 @@ use Livewire\Component;
 class GmSidebar extends Component
 {
     public Room $room;
+
     public ?Campaign $campaign;
+
     public Collection $campaign_pages;
+
     public Collection $participants;
+
     public string $session_notes = '';
-    
+
     // Game State Properties
     public int $current_fear_level = 0;
+
     public array $countdown_trackers = [];
+
     public int $fear_level_input = 0;
-    
+
     // Countdown Form Properties
     public bool $show_add_countdown = false;
+
     public string $new_countdown_name = '';
+
     public int $new_countdown_value = 0;
 
     public function mount(Room $room, ?Campaign $campaign, Collection $campaignPages, Collection $participants): void
@@ -42,10 +47,10 @@ class GmSidebar extends Component
         $this->campaign = $campaign;
         $this->campaign_pages = $campaignPages;
         $this->participants = $participants;
-        
+
         // Load existing session notes
         $this->loadSessionNotes();
-        
+
         // Load game state
         $this->loadGameState();
     }
@@ -53,11 +58,11 @@ class GmSidebar extends Component
     public function loadSessionNotes(): void
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
-        $load_action = new LoadRoomSessionNotesAction();
+        $load_action = new LoadRoomSessionNotesAction;
         $notes_record = $load_action->execute($this->room, $user);
         $this->session_notes = $notes_record->notes ?? '';
     }
@@ -65,22 +70,22 @@ class GmSidebar extends Component
     public function saveSessionNotes(): void
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
-        $save_action = new SaveRoomSessionNotesAction();
+        $save_action = new SaveRoomSessionNotesAction;
         $save_action->execute($this->room, $user, $this->session_notes);
-        
+
         // Dispatch a browser event to show success feedback
         $this->dispatch('notes-saved');
     }
 
     public function loadGameState(): void
     {
-        $getGameStateAction = new RoomGetGameStateAction();
+        $getGameStateAction = new RoomGetGameStateAction;
         $gameState = $getGameStateAction->execute($this->room);
-        
+
         $this->current_fear_level = $gameState->fear_tracker->fear_level;
         $this->fear_level_input = $this->current_fear_level;
         $this->countdown_trackers = $gameState->countdown_trackers->mapWithKeys(function ($tracker) {
@@ -110,12 +115,12 @@ class GmSidebar extends Component
 
     private function updateFearLevel(int $newLevel): void
     {
-        $updateFearAction = new RoomUpdateFearLevelAction();
+        $updateFearAction = new RoomUpdateFearLevelAction;
         $fearTracker = $updateFearAction->execute($this->campaign, $this->room, $newLevel);
-        
+
         $this->current_fear_level = $fearTracker->fear_level;
         $this->fear_level_input = $this->current_fear_level;
-        
+
         // Emit Livewire event for local JavaScript integration
         $this->dispatch('fear-level-updated', [
             'fear_level' => $this->current_fear_level,
@@ -138,7 +143,7 @@ class GmSidebar extends Component
             return;
         }
 
-        $manageCountdownAction = new RoomManageCountdownTrackerAction();
+        $manageCountdownAction = new RoomManageCountdownTrackerAction;
         $tracker = $manageCountdownAction->createCountdownTracker(
             $this->campaign,
             $this->room,
@@ -183,14 +188,14 @@ class GmSidebar extends Component
 
     private function modifyCountdownValue(string $trackerId, int $change): void
     {
-        if (!isset($this->countdown_trackers[$trackerId])) {
+        if (! isset($this->countdown_trackers[$trackerId])) {
             return;
         }
 
         $tracker = $this->countdown_trackers[$trackerId];
         $newValue = max(0, $tracker['value'] + $change);
 
-        $manageCountdownAction = new RoomManageCountdownTrackerAction();
+        $manageCountdownAction = new RoomManageCountdownTrackerAction;
         $updatedTracker = $manageCountdownAction->updateCountdownTracker(
             $this->campaign,
             $this->room,
@@ -221,7 +226,7 @@ class GmSidebar extends Component
 
     public function deleteCountdownTracker(string $trackerId): void
     {
-        $manageCountdownAction = new RoomManageCountdownTrackerAction();
+        $manageCountdownAction = new RoomManageCountdownTrackerAction;
         $deleted = $manageCountdownAction->deleteCountdownTracker(
             $this->campaign,
             $this->room,

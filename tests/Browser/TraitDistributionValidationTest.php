@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('Trait Distribution Validation and Stats Consistency', function () {
-    
+
     it('validates valid trait distribution displays correctly in viewer', function () {
         // Create character with valid trait distribution: -1, 0, 0, +1, +1, +2
         $character_data = [
@@ -23,28 +23,28 @@ describe('Trait Distribution Validation and Stats Consistency', function () {
                 'finesse' => 1,     // +1
                 'instinct' => 1,    // +1
                 'presence' => 0,
-                'knowledge' => -1   // -1
+                'knowledge' => -1,   // -1
             ],
             'selected_equipment' => [],
             'background_answers' => ['answer1', 'answer2', 'answer3'],
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Warrior with Valid Traits'
+            'name' => 'Test Warrior with Valid Traits',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Warrior with Valid Traits');
-        
+
         // Verify trait stats are displayed correctly
         $page->assertPresent('[pest="trait-stats"]');
-        
+
         // Check that individual traits are shown
         $page->assertPresent('[pest="trait-agility"]');
         $page->assertPresent('[pest="trait-strength"]');
@@ -52,7 +52,7 @@ describe('Trait Distribution Validation and Stats Consistency', function () {
         $page->assertPresent('[pest="trait-instinct"]');
         $page->assertPresent('[pest="trait-presence"]');
         $page->assertPresent('[pest="trait-knowledge"]');
-        
+
         // Verify computed stats are displayed
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
@@ -71,32 +71,32 @@ describe('Trait Distribution Validation and Stats Consistency', function () {
                 'finesse' => 0,
                 'instinct' => 1,
                 'presence' => 1,
-                'knowledge' => 2    // +2 Knowledge for spellcasting
+                'knowledge' => 2,    // +2 Knowledge for spellcasting
             ],
             'selected_equipment' => [],
             'background_answers' => ['answer1', 'answer2', 'answer3'],
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Knowledge Wizard'
+            'name' => 'Test Knowledge Wizard',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Knowledge Wizard');
-        
+
         // Verify trait stats are displayed
         $page->assertPresent('[pest="trait-stats"]');
-        
+
         // Verify computed stats are present (Knowledge trait affects spellcasting)
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
-        
+
         // Verify character displays correctly
         $page->assertSee('Wizard');
         $page->assertSee('School of Knowledge');
@@ -115,31 +115,31 @@ describe('Trait Distribution Validation and Stats Consistency', function () {
                 'finesse' => 1,
                 'instinct' => 1,
                 'presence' => 0,
-                'knowledge' => 0
+                'knowledge' => 0,
             ],
             'selected_equipment' => [],
             'background_answers' => ['answer1', 'answer2', 'answer3'],
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Agile Rogue'
+            'name' => 'Test Agile Rogue',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Agile Rogue');
-        
+
         // Verify trait stats are displayed
         $page->assertPresent('[pest="trait-stats"]');
-        
+
         // Verify evasion stat is present (should be affected by high Agility)
         $page->assertPresent('[pest="evasion-stat"]');
-        
+
         // Verify character displays correctly
         $page->assertSee('Rogue');
         $page->assertSee('Nightwalker');
@@ -158,32 +158,32 @@ describe('Trait Distribution Validation and Stats Consistency', function () {
                 'finesse' => 0,
                 'instinct' => 1,
                 'presence' => 1,
-                'knowledge' => -1
+                'knowledge' => -1,
             ],
             'selected_equipment' => [],
             'background_answers' => ['answer1', 'answer2', 'answer3'],
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Strong Guardian'
+            'name' => 'Test Strong Guardian',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Strong Guardian');
-        
+
         // Verify trait stats are displayed
         $page->assertPresent('[pest="trait-stats"]');
-        
+
         // Verify armor and damage thresholds are present (Guardians benefit from Strength)
         $page->assertPresent('[pest="armor-stat"]');
         $page->assertPresent('[pest="damage-thresholds"]');
-        
+
         // Verify character displays correctly
         $page->assertSee('Guardian');
         $page->assertSee('Stalwart');
@@ -202,32 +202,32 @@ describe('Trait Distribution Validation and Stats Consistency', function () {
                 'finesse' => 0,
                 'instinct' => 2,    // +2 Instinct for spellcasting
                 'presence' => 1,
-                'knowledge' => 0
+                'knowledge' => 0,
             ],
             'selected_equipment' => [],
             'background_answers' => ['answer1', 'answer2', 'answer3'],
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Sorcerer with Weakness'
+            'name' => 'Test Sorcerer with Weakness',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Sorcerer with Weakness');
-        
+
         // Verify trait stats are displayed (including negative values)
         $page->assertPresent('[pest="trait-stats"]');
-        
+
         // Verify all computed stats display properly despite negative trait
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
-        
+
         // Verify character displays correctly
         $page->assertSee('Sorcerer');
         $page->assertSee('Elemental Origin');

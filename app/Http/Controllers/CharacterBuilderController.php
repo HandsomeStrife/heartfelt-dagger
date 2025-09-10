@@ -68,7 +68,7 @@ class CharacterBuilderController extends Controller
     {
         // Find character by public_key instead of character_key
         $character_model = \Domain\Character\Models\Character::where('public_key', $public_key)->first();
-        
+
         if (! $character_model) {
             abort(404, 'Character not found');
         }
@@ -106,7 +106,7 @@ class CharacterBuilderController extends Controller
 
         // Get the public_key from the character model
         $character_model = \Domain\Character\Models\Character::where('character_key', $character_key)->first();
-        
+
         // Return character data as JSON
         return response()->json([
             'character_key' => $character_key,
@@ -172,10 +172,10 @@ class CharacterBuilderController extends Controller
         // For anonymous users or characters not owned by current user,
         // check if character_key is in localStorage (this will be handled by JavaScript)
         // For server-side, we'll need to rely on session or pass this check to the frontend
-        
+
         // For now, we'll allow editing if the character has no user_id (anonymous character)
         // The frontend will need to verify localStorage access
-        if (!$character->user_id) {
+        if (! $character->user_id) {
             return true; // Frontend will validate localStorage access
         }
 

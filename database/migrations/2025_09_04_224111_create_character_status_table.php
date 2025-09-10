@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('character_status', function (Blueprint $table) {
             $table->id();
             $table->foreignId('character_id')->constrained('characters')->onDelete('cascade');
-            
+
             // Interactive state - stored as JSON arrays of boolean values
             $table->json('hit_points')->nullable(); // Array of marked HP slots
             $table->json('stress')->nullable(); // Array of marked stress slots
@@ -23,12 +23,12 @@ return new class extends Migration
             $table->json('gold_handfuls')->nullable(); // Array of marked gold handfuls
             $table->json('gold_bags')->nullable(); // Array of marked gold bags
             $table->boolean('gold_chest')->default(false); // Single gold chest state
-            
+
             $table->timestamps();
 
             // Ensure one status record per character
             $table->unique('character_id');
-            
+
             // Index for performance
             $table->index('character_id');
         });

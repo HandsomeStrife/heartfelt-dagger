@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 use Domain\Character\Data\CharacterAdvancementData;
-use PHPUnit\Framework\Attributes\Test;
+
 test('trait bonus creates correct advancement data', function () {
     $advancement = CharacterAdvancementData::traitBonus(
         tier: 1,

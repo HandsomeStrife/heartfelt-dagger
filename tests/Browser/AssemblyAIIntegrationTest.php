@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 use Domain\Room\Models\Room;
 use Domain\User\Models\User;
-use Domain\User\Models\UserStorageAccount;
 
-use function Pest\Laravel\{assertDatabaseHas, actingAs};
+use function Pest\Laravel\actingAs;
 
 test('user can access assemblyai account setup page', function () {
     $user = User::factory()->create();
@@ -22,10 +21,10 @@ test('user can access assemblyai account setup page', function () {
 
 test('room settings page loads correctly for room creator', function () {
     $user = User::factory()->create();
-    
+
     $room = Room::factory()->create([
         'creator_id' => $user->id,
-        'name' => 'Provider Test Room'
+        'name' => 'Provider Test Room',
     ]);
 
     actingAs($user);

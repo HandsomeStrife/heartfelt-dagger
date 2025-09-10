@@ -16,14 +16,14 @@ return new class extends Migration
         Schema::table('campaigns', function (Blueprint $table) {
             $table->unsignedTinyInteger('fear_level')->default(0)->after('status');
             $table->json('countdown_trackers')->nullable()->after('fear_level');
-            
+
             $table->index(['fear_level']);
         });
 
         Schema::table('rooms', function (Blueprint $table) {
             $table->unsignedTinyInteger('fear_level')->default(0)->after('status');
             $table->json('countdown_trackers')->nullable()->after('fear_level');
-            
+
             $table->index(['fear_level']);
         });
     }

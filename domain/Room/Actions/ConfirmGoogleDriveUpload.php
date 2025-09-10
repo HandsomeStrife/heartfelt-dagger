@@ -22,7 +22,7 @@ class ConfirmGoogleDriveUpload
     ): array {
         // Validate that recording is enabled for this room
         $room->load('recordingSettings');
-        if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
+        if (! $room->recordingSettings || ! $room->recordingSettings->isRecordingEnabled()) {
             throw new \Exception('Video recording is not enabled for this room');
         }
 
@@ -33,7 +33,7 @@ class ConfirmGoogleDriveUpload
 
         // Get the storage account
         $storageAccount = UserStorageAccount::find($room->recordingSettings->storage_account_id);
-        if (!$storageAccount || $storageAccount->provider !== 'google_drive') {
+        if (! $storageAccount || $storageAccount->provider !== 'google_drive') {
             throw new \Exception('Google Drive storage account not found or invalid');
         }
 
@@ -50,10 +50,10 @@ class ConfirmGoogleDriveUpload
             if ($fileId) {
                 // File ID provided, get file info directly
                 $fileInfo = $driveService->getFileInfo($fileId);
-                if (!$fileInfo) {
+                if (! $fileInfo) {
                     throw new \Exception('Failed to get file information from Google Drive');
                 }
-                
+
                 // Convert to expected format
                 $fileInfo = [
                     'success' => true,
@@ -67,7 +67,7 @@ class ConfirmGoogleDriveUpload
                 // Verify upload completion and get file information using session URI
                 $fileInfo = $driveService->verifyUploadCompletion($sessionUri);
 
-                if (!$fileInfo['success']) {
+                if (! $fileInfo['success']) {
                     throw new \Exception('Upload verification failed');
                 }
             }
@@ -115,7 +115,7 @@ class ConfirmGoogleDriveUpload
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \Exception('Failed to confirm upload: ' . $e->getMessage());
+            throw new \Exception('Failed to confirm upload: '.$e->getMessage());
         }
     }
 }

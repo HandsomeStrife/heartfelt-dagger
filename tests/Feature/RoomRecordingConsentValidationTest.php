@@ -12,7 +12,7 @@ describe('Video Recording Consent Validation', function () {
     test('Google Drive upload URL generation requires recording consent', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create Google Drive storage account
         $storageAccount = UserStorageAccount::factory()->create([
             'user_id' => $user->id,
@@ -22,7 +22,7 @@ describe('Video Recording Consent Validation', function () {
                 'refresh_token' => 'test_refresh',
             ],
         ]);
-        
+
         // Enable recording with Google Drive
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -62,7 +62,7 @@ describe('Video Recording Consent Validation', function () {
     test('Google Drive upload URL generation succeeds with recording consent', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create Google Drive storage account
         $storageAccount = UserStorageAccount::factory()->create([
             'user_id' => $user->id,
@@ -72,7 +72,7 @@ describe('Video Recording Consent Validation', function () {
                 'refresh_token' => 'test_refresh',
             ],
         ]);
-        
+
         // Enable recording with Google Drive
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -129,7 +129,7 @@ describe('Video Recording Consent Validation', function () {
     test('STT consent does not affect video recording validation', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create Google Drive storage account
         $storageAccount = UserStorageAccount::factory()->create([
             'user_id' => $user->id,
@@ -139,7 +139,7 @@ describe('Video Recording Consent Validation', function () {
                 'refresh_token' => 'test_refresh',
             ],
         ]);
-        
+
         // Enable recording with Google Drive
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -198,13 +198,13 @@ describe('Video Recording Consent Validation', function () {
     test('Google Drive upload confirmation requires recording consent', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create Google Drive storage account
         $storageAccount = UserStorageAccount::factory()->create([
             'user_id' => $user->id,
             'provider' => 'google_drive',
         ]);
-        
+
         // Enable recording with Google Drive
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -245,7 +245,7 @@ describe('STT Consent Validation Independence', function () {
     test('STT endpoints check STT consent not recording consent', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Enable STT for the room
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -280,7 +280,7 @@ describe('STT Consent Validation Independence', function () {
     test('video recording endpoints check recording consent not STT consent', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Enable recording for the room
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -312,4 +312,3 @@ describe('STT Consent Validation Independence', function () {
             ]);
     });
 });
-

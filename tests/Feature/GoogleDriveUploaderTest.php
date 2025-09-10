@@ -15,7 +15,7 @@ test('google drive upload url generation succeeds with valid storage account', f
     // Create test data
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Create Google Drive storage account
     $storageAccount = UserStorageAccount::factory()->create([
         'user_id' => $user->id,
@@ -40,12 +40,12 @@ test('google drive upload url generation succeeds with valid storage account', f
     // Mock Google Drive API responses
     Http::fake([
         'https://www.googleapis.com/upload/drive/v3/files*' => Http::response('', 200, [
-            'Location' => 'https://www.googleapis.com/upload/drive/v3/files/upload/session_abc123'
+            'Location' => 'https://www.googleapis.com/upload/drive/v3/files/upload/session_abc123',
         ]),
         'https://www.googleapis.com/drive/v3/files*' => Http::response([
             'files' => [
-                ['id' => 'folder_123', 'name' => 'Test Folder']
-            ]
+                ['id' => 'folder_123', 'name' => 'Test Folder'],
+            ],
         ], 200),
     ]);
 
@@ -58,7 +58,7 @@ test('google drive upload url generation succeeds with valid storage account', f
             'metadata' => [
                 'started_at_ms' => time() * 1000,
                 'ended_at_ms' => (time() + 60) * 1000,
-            ]
+            ],
         ]);
 
     $response->assertStatus(200);
@@ -68,7 +68,7 @@ test('google drive upload url generation succeeds with valid storage account', f
         'session_uri',
         'filename',
         'expires_at',
-        'metadata'
+        'metadata',
     ]);
 
     expect($response->json('success'))->toBeTrue();
@@ -95,7 +95,7 @@ test('google drive upload url generation fails without storage account', functio
 test('google drive upload url generation fails with invalid credentials', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Create storage account with invalid credentials
     $storageAccount = UserStorageAccount::factory()->create([
         'user_id' => $user->id,
@@ -119,8 +119,8 @@ test('google drive upload url generation fails with invalid credentials', functi
         'https://www.googleapis.com/upload/drive/v3/files*' => Http::response([
             'error' => [
                 'code' => 401,
-                'message' => 'Invalid credentials'
-            ]
+                'message' => 'Invalid credentials',
+            ],
         ], 401),
     ]);
 
@@ -148,7 +148,7 @@ test('google drive service generates valid upload url', function () {
     // Mock HTTP response for resumable upload session
     Http::fake([
         'https://www.googleapis.com/upload/drive/v3/files*' => Http::response('', 200, [
-            'Location' => 'https://www.googleapis.com/upload/drive/v3/files/upload/session_xyz789'
+            'Location' => 'https://www.googleapis.com/upload/drive/v3/files/upload/session_xyz789',
         ]),
         'https://oauth2.googleapis.com/token' => Http::response([
             'access_token' => 'new_access_token',
@@ -157,7 +157,7 @@ test('google drive service generates valid upload url', function () {
     ]);
 
     $service = new \Domain\Room\Services\GoogleDriveService($storageAccount);
-    
+
     $result = $service->generateDirectUploadUrl(
         'test-file.webm',
         'video/webm',

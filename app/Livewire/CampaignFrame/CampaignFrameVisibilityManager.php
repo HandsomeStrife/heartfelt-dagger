@@ -12,7 +12,9 @@ use Livewire\Component;
 class CampaignFrameVisibilityManager extends Component
 {
     public Campaign $campaign;
+
     public array $visibilitySettings = [];
+
     public bool $showManager = false;
 
     public function mount(Campaign $campaign)
@@ -23,7 +25,7 @@ class CampaignFrameVisibilityManager extends Component
 
     public function loadVisibilitySettings()
     {
-        if (!$this->campaign->campaign_frame_id) {
+        if (! $this->campaign->campaign_frame_id) {
             return;
         }
 
@@ -40,17 +42,17 @@ class CampaignFrameVisibilityManager extends Component
 
     public function toggleSectionVisibility(string $section)
     {
-        if (!$this->canManageVisibility()) {
+        if (! $this->canManageVisibility()) {
             return;
         }
 
-        $this->visibilitySettings[$section] = !($this->visibilitySettings[$section] ?? false);
+        $this->visibilitySettings[$section] = ! ($this->visibilitySettings[$section] ?? false);
         $this->saveVisibilitySettings();
     }
 
     public function saveVisibilitySettings()
     {
-        if (!$this->canManageVisibility()) {
+        if (! $this->canManageVisibility()) {
             return;
         }
 
@@ -71,7 +73,7 @@ class CampaignFrameVisibilityManager extends Component
 
     public function toggleManager()
     {
-        $this->showManager = !$this->showManager;
+        $this->showManager = ! $this->showManager;
     }
 
     public function canManageVisibility(): bool
@@ -81,7 +83,7 @@ class CampaignFrameVisibilityManager extends Component
 
     public function hasCampaignFrame(): bool
     {
-        return !is_null($this->campaign->campaign_frame_id);
+        return ! is_null($this->campaign->campaign_frame_id);
     }
 
     public function render()

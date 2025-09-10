@@ -389,6 +389,7 @@ class CharacterBuilderData extends Data implements Wireable
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -402,6 +403,7 @@ class CharacterBuilderData extends Data implements Wireable
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -415,6 +417,7 @@ class CharacterBuilderData extends Data implements Wireable
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -430,9 +433,10 @@ class CharacterBuilderData extends Data implements Wireable
             if ($value === 'proficiency') {
                 $bonus += 2; // Base proficiency at level 1 for character creation
             } else {
-                $bonus += (int)$value;
+                $bonus += (int) $value;
             }
         }
+
         return $bonus;
     }
 
@@ -524,7 +528,7 @@ class CharacterBuilderData extends Data implements Wireable
             'major_threshold' => $major_threshold,
             'severe_threshold' => $severe_threshold,
             'armor_score' => $armor_score,
-            
+
             // Detailed breakdown for UI
             'detailed' => [
                 'evasion' => [
@@ -560,22 +564,22 @@ class CharacterBuilderData extends Data implements Wireable
      */
     public function getSubclassEffects(string $effectType): array
     {
-        if (!$this->selected_subclass) {
+        if (! $this->selected_subclass) {
             return [];
         }
-        
+
         $subclassData = $this->getSubclassData();
-        if (!$subclassData) {
+        if (! $subclassData) {
             return [];
         }
-        
+
         $effects = [];
         $allFeatures = array_merge(
             $subclassData['foundationFeatures'] ?? [],
             $subclassData['specializationFeatures'] ?? [],
             $subclassData['masteryFeatures'] ?? []
         );
-        
+
         foreach ($allFeatures as $feature) {
             $featureEffects = $feature['effects'] ?? [];
             foreach ($featureEffects as $effect) {
@@ -584,7 +588,7 @@ class CharacterBuilderData extends Data implements Wireable
                 }
             }
         }
-        
+
         return $effects;
     }
 
@@ -594,11 +598,12 @@ class CharacterBuilderData extends Data implements Wireable
     private function getSubclassData(): ?array
     {
         $path = resource_path('json/subclasses.json');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return null;
         }
-        
+
         $subclasses = json_decode(file_get_contents($path), true);
+
         return $subclasses[$this->selected_subclass] ?? null;
     }
 
@@ -612,6 +617,7 @@ class CharacterBuilderData extends Data implements Wireable
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -625,6 +631,7 @@ class CharacterBuilderData extends Data implements Wireable
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -638,6 +645,7 @@ class CharacterBuilderData extends Data implements Wireable
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -650,8 +658,9 @@ class CharacterBuilderData extends Data implements Wireable
         $bonus = 0;
         foreach ($effects as $effect) {
             $value = $effect['value'] ?? 0;
-            $bonus += (int)$value;
+            $bonus += (int) $value;
         }
+
         return $bonus;
     }
 
@@ -664,8 +673,9 @@ class CharacterBuilderData extends Data implements Wireable
         $bonus = 0;
         foreach ($effects as $effect) {
             $value = $effect['value'] ?? 0;
-            $bonus += (int)$value;
+            $bonus += (int) $value;
         }
+
         return $bonus;
     }
 
@@ -679,6 +689,7 @@ class CharacterBuilderData extends Data implements Wireable
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -689,10 +700,10 @@ class CharacterBuilderData extends Data implements Wireable
     {
         // Base starting domain cards for all characters
         $base_cards = 2;
-        
+
         // Add subclass bonuses
         $subclass_bonus = $this->getSubclassDomainCardBonus();
-        
+
         return $base_cards + $subclass_bonus;
     }
 
@@ -701,18 +712,18 @@ class CharacterBuilderData extends Data implements Wireable
      */
     public function getAncestryEffects(string $effectType): array
     {
-        if (!$this->selected_ancestry) {
+        if (! $this->selected_ancestry) {
             return [];
         }
-        
+
         $ancestriesData = $this->getAncestryData();
-        if (!$ancestriesData) {
+        if (! $ancestriesData) {
             return [];
         }
-        
+
         $effects = [];
         $features = $ancestriesData['features'] ?? [];
-        
+
         foreach ($features as $feature) {
             $featureEffects = $feature['effects'] ?? [];
             foreach ($featureEffects as $effect) {
@@ -721,7 +732,7 @@ class CharacterBuilderData extends Data implements Wireable
                 }
             }
         }
-        
+
         return $effects;
     }
 
@@ -731,11 +742,12 @@ class CharacterBuilderData extends Data implements Wireable
     private function getAncestryData(): ?array
     {
         $path = resource_path('json/ancestries.json');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return null;
         }
-        
+
         $ancestries = json_decode(file_get_contents($path), true);
+
         return $ancestries[$this->selected_ancestry] ?? null;
     }
 
@@ -744,7 +756,7 @@ class CharacterBuilderData extends Data implements Wireable
      */
     public function hasExperienceBonusSelection(): bool
     {
-        return !empty($this->getAncestryEffects('experience_bonus_selection'));
+        return ! empty($this->getAncestryEffects('experience_bonus_selection'));
     }
 
     /**
@@ -752,10 +764,10 @@ class CharacterBuilderData extends Data implements Wireable
      */
     public function getClankBonusExperience(): ?string
     {
-        if (!$this->hasExperienceBonusSelection()) {
+        if (! $this->hasExperienceBonusSelection()) {
             return null;
         }
-        
+
         return $this->clank_bonus_experience;
     }
 
@@ -765,19 +777,20 @@ class CharacterBuilderData extends Data implements Wireable
     public function getExperienceModifier(string $experienceName): int
     {
         $baseModifier = 2; // All experiences start with +2
-        
+
         // Check if this experience gets experience bonus selection effect
-        if ($this->hasExperienceBonusSelection() && 
+        if ($this->hasExperienceBonusSelection() &&
             $this->getClankBonusExperience() === $experienceName) {
-            
+
             $effects = $this->getAncestryEffects('experience_bonus_selection');
             $bonus = 0;
             foreach ($effects as $effect) {
                 $bonus += $effect['value'] ?? 0;
             }
+
             return $baseModifier + $bonus;
         }
-        
+
         return $baseModifier;
     }
 
@@ -798,5 +811,4 @@ class CharacterBuilderData extends Data implements Wireable
 
         return asset('img/default-avatar.png');
     }
-
 }

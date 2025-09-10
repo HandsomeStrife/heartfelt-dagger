@@ -16,7 +16,7 @@ class WasabiAccountForm extends Form
     #[Validate('required|string|max:100')]
     public string $access_key_id = '';
 
-    #[Validate('required|string|max:100')] 
+    #[Validate('required|string|max:100')]
     public string $secret_access_key = '';
 
     #[Validate('required|string|max:100')]
@@ -65,7 +65,7 @@ class WasabiAccountForm extends Form
         ];
 
         // Add endpoint if provided, otherwise use default Wasabi endpoint
-        if (!empty($this->endpoint)) {
+        if (! empty($this->endpoint)) {
             $credentials['endpoint'] = $this->endpoint;
         } else {
             $credentials['endpoint'] = "https://s3.{$this->region}.wasabisys.com";
@@ -84,7 +84,7 @@ class WasabiAccountForm extends Form
     public function fillFromAccount(UserStorageAccount $account): void
     {
         $credentials = $account->encrypted_credentials;
-        
+
         $this->display_name = $account->display_name;
         $this->access_key_id = $credentials['access_key_id'] ?? '';
         $this->secret_access_key = $credentials['secret_access_key'] ?? '';

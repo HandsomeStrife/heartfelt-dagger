@@ -58,16 +58,23 @@
                     @enderror
                 </div>
 
-                <div class="flex items-center">
-                    <input 
-                        type="checkbox" 
-                        id="remember" 
-                        wire:model="form.remember"
-                        class="h-4 w-4 text-amber-500 focus:ring-amber-400 border-slate-600 rounded bg-slate-700"
-                    >
-                    <label for="remember" class="ml-2 block text-sm text-white/80 font-roboto">
-                        Remember me
-                    </label>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input 
+                            type="checkbox" 
+                            id="remember" 
+                            wire:model="form.remember"
+                            class="h-4 w-4 text-amber-500 focus:ring-amber-400 border-slate-600 rounded bg-slate-700"
+                        >
+                        <label for="remember" class="ml-2 block text-sm text-white/80 font-roboto">
+                            Remember me
+                        </label>
+                    </div>
+                    <div>
+                        <a href="/forgot-password" class="text-sm text-amber-400 hover:text-amber-300 font-roboto transition-colors">
+                            Forgot your password?
+                        </a>
+                    </div>
                 </div>
 
                 <button 

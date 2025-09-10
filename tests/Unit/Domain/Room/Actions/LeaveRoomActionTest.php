@@ -5,11 +5,11 @@ use Domain\Room\Actions\LeaveRoomAction;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new LeaveRoomAction();
+    $this->action = new LeaveRoomAction;
 });
 it('allows participant to leave room', function () {
     $room = Room::factory()->create();
@@ -17,7 +17,7 @@ it('allows participant to leave room', function () {
     $participant = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     expect($participant->left_at)->toBeNull();
@@ -33,7 +33,7 @@ it('sets left at timestamp', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $beforeLeave = now()->subSecond();
@@ -54,7 +54,7 @@ it('prevents non participant from leaving', function () {
     $user = User::factory()->create();
 
     // User is not a participant
-    expect(fn() => $this->action->execute($room, $user))
+    expect(fn () => $this->action->execute($room, $user))
         ->toThrow(Exception::class, 'This user is not an active participant in this room.');
 });
 it('prevents already left participant from leaving again', function () {
@@ -63,10 +63,10 @@ it('prevents already left participant from leaving again', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => now()->subHour() // Already left
+        'left_at' => now()->subHour(), // Already left
     ]);
 
-    expect(fn() => $this->action->execute($room, $user))
+    expect(fn () => $this->action->execute($room, $user))
         ->toThrow(Exception::class, 'This user is not an active participant in this room.');
 });
 it('allows multiple participants to leave independently', function () {
@@ -77,13 +77,13 @@ it('allows multiple participants to leave independently', function () {
     $participant1 = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user1->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $participant2 = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user2->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // User1 leaves
@@ -109,13 +109,13 @@ it('handles participant in multiple rooms', function () {
     $participant1 = RoomParticipant::factory()->create([
         'room_id' => $room1->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $participant2 = RoomParticipant::factory()->create([
         'room_id' => $room2->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // Leave room1 only
@@ -136,19 +136,19 @@ it('does not affect other participants when one leaves', function () {
     $participant1 = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user1->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $participant2 = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user2->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $participant3 = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user3->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // User2 leaves
@@ -168,7 +168,7 @@ it('handles leaving with character attached', function () {
     $participant = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     expect($participant->character_id)->not->toBeNull();
@@ -187,7 +187,7 @@ it('handles leaving without character', function () {
     $participant = RoomParticipant::factory()->withoutCharacter()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $this->action->execute($room, $user);
@@ -204,7 +204,7 @@ it('handles leaving with temporary character', function () {
         'user_id' => $user->id,
         'left_at' => null,
         'character_name' => 'Temp Hero',
-        'character_class' => 'Warrior'
+        'character_class' => 'Warrior',
     ]);
 
     $this->action->execute($room, $user);
@@ -222,7 +222,7 @@ it('maintains room integrity after leave', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $originalRoomCount = Room::count();
@@ -240,7 +240,7 @@ it('preserves participation record', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $originalParticipantCount = RoomParticipant::count();
@@ -261,9 +261,9 @@ it('preserves participation record', function () {
 it('prevents room creator from leaving their own room', function () {
     $creator = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $creator->id]);
-    
+
     // Creator is automatically added as participant during room creation
-    
-    expect(fn() => $this->action->execute($room, $creator))
+
+    expect(fn () => $this->action->execute($room, $creator))
         ->toThrow(Exception::class, 'Room creators cannot leave their own rooms. You can delete the room instead.');
 });

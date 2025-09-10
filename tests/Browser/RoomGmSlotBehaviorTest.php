@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use Domain\Character\Models\Character;
-use Domain\Room\Models\Room;
 use Domain\Room\Actions\JoinRoomAction;
+use Domain\Room\Models\Room;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs};
+
+use function Pest\Laravel\actingAs;
 
 uses()->group('browser');
 
@@ -23,7 +23,7 @@ test('GM slot shows correct GM name and class', function () {
     ]);
 
     // Create a participant for the GM (they join their own room)
-    (new JoinRoomAction())->execute(
+    (new JoinRoomAction)->execute(
         room: $room,
         user: $this->gmUser,
         character: null,
@@ -32,7 +32,7 @@ test('GM slot shows correct GM name and class', function () {
     );
 
     actingAs($this->gmUser);
-    
+
     visit(route('rooms.session', $room))
         ->assertSee('GAME MASTER')
         ->assertSee('NARRATOR OF TALES');
@@ -46,7 +46,7 @@ test('non-GM users see Reserved in GM slot when GM not present', function () {
     ]);
 
     // Join as a player (GM is not present)
-    (new JoinRoomAction())->execute(
+    (new JoinRoomAction)->execute(
         room: $room,
         user: $this->playerUser,
         character: null,
@@ -55,7 +55,7 @@ test('non-GM users see Reserved in GM slot when GM not present', function () {
     );
 
     actingAs($this->playerUser);
-    
+
     visit(route('rooms.session', $room))
         ->assertSee('Reserved')
         ->assertSee('GM Slot');
@@ -69,7 +69,7 @@ test('player join buttons show Join text not Join Quest', function () {
     ]);
 
     actingAs($this->playerUser);
-    
+
     visit(route('rooms.session', $room))
         ->assertSee('Join')
         ->assertDontSee('Join Quest');

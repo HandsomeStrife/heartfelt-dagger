@@ -88,11 +88,11 @@ test('player sidebar displays character stats correctly', function () {
     ]);
 
     $component = Livewire::test(PlayerSidebar::class, ['currentParticipant' => $participant]);
-    
+
     // Check that computed stats are available
     $computedStats = $component->instance()->getComputedStats();
     expect($computedStats)->toHaveKeys(['evasion', 'hit_points', 'stress', 'hope']);
-    
+
     $component->assertSee('Evasion')
         ->assertSee('Armor Score');
 });
@@ -222,7 +222,7 @@ test('player sidebar loads game data correctly', function () {
     ]);
 
     $component = Livewire::test(PlayerSidebar::class, ['currentParticipant' => $participant]);
-    
+
     // Check that game data is loaded
     $gameData = $component->instance()->game_data;
     expect($gameData)->toHaveKeys(['classes', 'ancestries', 'communities']);

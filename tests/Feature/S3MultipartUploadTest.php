@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use Domain\Room\Models\Room;
-use Domain\Room\Models\RoomRecording;
 use Domain\Room\Models\RoomRecordingSettings;
 use Domain\User\Models\User;
 use Domain\User\Models\UserStorageAccount;
-use function Pest\Laravel\{actingAs, postJson, withHeaders};
+
+use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
     // Set up MinIO configuration for testing
@@ -68,14 +68,14 @@ describe('S3 Multipart Create Endpoint', function () {
 
         // Debug the error
         if ($response->status() !== 200) {
-            dump('Status: ' . $response->status());
-            dump('Content: ' . $response->content());
+            dump('Status: '.$response->status());
+            dump('Content: '.$response->content());
         }
 
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'uploadId',
-                'key'
+                'key',
             ]);
 
         $data = $response->json();
@@ -101,8 +101,8 @@ describe('S3 Multipart Create Endpoint', function () {
                 'error' => 'Validation failed',
                 'messages' => [
                     'filename' => ['The filename field is required.'],
-                    'room_id' => ['The room id field is required.']
-                ]
+                    'room_id' => ['The room id field is required.'],
+                ],
             ]);
     });
 
@@ -184,7 +184,7 @@ describe('S3 Multipart Sign Part Endpoint', function () {
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'url',
-                'headers'
+                'headers',
             ]);
 
         $data = $response->json();
@@ -208,7 +208,7 @@ describe('S3 Multipart Sign Part Endpoint', function () {
         $response->assertStatus(422)
             ->assertJsonStructure([
                 'error',
-                'messages' => ['partNumber']
+                'messages' => ['partNumber'],
             ]);
     });
 
@@ -228,7 +228,7 @@ describe('S3 Multipart Sign Part Endpoint', function () {
         $response->assertStatus(422)
             ->assertJsonStructure([
                 'error',
-                'messages' => ['partNumber']
+                'messages' => ['partNumber'],
             ]);
     });
 
@@ -247,7 +247,7 @@ describe('S3 Multipart Sign Part Endpoint', function () {
             'storage_account_id' => $storageAccount->id,
         ]);
 
-        $invalidKey = "rooms/other-room/users/other-user/file.webm";
+        $invalidKey = 'rooms/other-room/users/other-user/file.webm';
 
         $response = actingAs($user)
             ->withHeaders(['X-CSRF-TOKEN' => csrf_token()])
@@ -326,7 +326,7 @@ describe('S3 Multipart Complete Endpoint', function () {
         $response->assertStatus(422)
             ->assertJsonStructure([
                 'error',
-                'messages' => ['parts']
+                'messages' => ['parts'],
             ]);
     });
 
@@ -348,7 +348,7 @@ describe('S3 Multipart Complete Endpoint', function () {
         $response->assertStatus(422)
             ->assertJsonStructure([
                 'error',
-                'messages' => ['parts.0.ETag']
+                'messages' => ['parts.0.ETag'],
             ]);
     });
 });
@@ -461,7 +461,7 @@ describe('Prefix Enforcement', function () {
         $invalidKeys = [
             "rooms/{$otherRoom->id}/users/{$user->id}/file.webm", // Wrong room
             "rooms/{$room->id}/users/{$otherUser->id}/file.webm", // Wrong user
-            "other/path/file.webm", // Completely wrong format
+            'other/path/file.webm', // Completely wrong format
         ];
 
         // Valid key should work for signing
@@ -476,8 +476,8 @@ describe('Prefix Enforcement', function () {
 
         // Debug if it's not 200
         if ($validResponse->status() !== 200) {
-            dump('Valid key response status: ' . $validResponse->status());
-            dump('Valid key response content: ' . $validResponse->content());
+            dump('Valid key response status: '.$validResponse->status());
+            dump('Valid key response content: '.$validResponse->content());
         }
 
         $validResponse->assertStatus(200);

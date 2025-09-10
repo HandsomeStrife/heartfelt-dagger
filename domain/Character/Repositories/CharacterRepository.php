@@ -31,7 +31,7 @@ class CharacterRepository
     {
         $character = Character::find($id);
 
-        if (!$character) {
+        if (! $character) {
             return null;
         }
 
@@ -45,7 +45,7 @@ class CharacterRepository
     {
         $character = Character::where('character_key', $key)->first();
 
-        if (!$character) {
+        if (! $character) {
             return null;
         }
 
@@ -59,7 +59,7 @@ class CharacterRepository
     {
         $character = Character::where('public_key', $public_key)->first();
 
-        if (!$character) {
+        if (! $character) {
             return null;
         }
 
@@ -73,7 +73,7 @@ class CharacterRepository
     {
         $character = Character::with('status')->where('character_key', $key)->first();
 
-        if (!$character) {
+        if (! $character) {
             return null;
         }
 
@@ -93,7 +93,7 @@ class CharacterRepository
     {
         $character = Character::with('status')->where('public_key', $public_key)->first();
 
-        if (!$character) {
+        if (! $character) {
             return null;
         }
 
@@ -123,8 +123,8 @@ class CharacterRepository
 
         if (isset($filters['completed']) && $filters['completed']) {
             $query->whereNotNull('class')
-                  ->whereNotNull('ancestry')
-                  ->whereNotNull('community');
+                ->whereNotNull('ancestry')
+                ->whereNotNull('community');
         }
 
         $characters = $query->orderBy('updated_at', 'desc')->get();

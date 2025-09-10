@@ -23,7 +23,7 @@ class CountdownTrackerData extends Data implements Wireable
     ) {
         // Ensure value is not negative
         $this->value = max(0, $this->value);
-        
+
         // Set capability flags
         $this->can_decrease = $this->value > 0;
         $this->can_increase = true; // Can always increase

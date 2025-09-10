@@ -44,5 +44,3 @@ it('filters level 1 domain cards to the two domains for each class', function ()
         }
     }
 });
-
-

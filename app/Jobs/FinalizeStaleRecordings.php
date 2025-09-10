@@ -30,10 +30,10 @@ class FinalizeStaleRecordings implements ShouldQueue
         $staleRecordings = RoomRecording::needingFinalization()->get();
 
         Log::info('Found stale recordings to finalize', [
-            'count' => $staleRecordings->count()
+            'count' => $staleRecordings->count(),
         ]);
 
-        $finalizeAction = new FinalizeRecording();
+        $finalizeAction = new FinalizeRecording;
         $successCount = 0;
         $failureCount = 0;
 
@@ -43,7 +43,7 @@ class FinalizeStaleRecordings implements ShouldQueue
                 'room_id' => $recording->room_id,
                 'user_id' => $recording->user_id,
                 'multipart_upload_id' => $recording->multipart_upload_id,
-                'last_updated' => $recording->updated_at->toISOString()
+                'last_updated' => $recording->updated_at->toISOString(),
             ]);
 
             if ($finalizeAction->execute($recording)) {
@@ -56,7 +56,7 @@ class FinalizeStaleRecordings implements ShouldQueue
         Log::info('Completed stale recordings finalization job', [
             'total_processed' => $staleRecordings->count(),
             'successful' => $successCount,
-            'failed' => $failureCount
+            'failed' => $failureCount,
         ]);
     }
 }

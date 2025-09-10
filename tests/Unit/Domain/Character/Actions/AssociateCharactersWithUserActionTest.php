@@ -4,11 +4,11 @@ declare(strict_types=1);
 use Domain\Character\Actions\AssociateCharactersWithUserAction;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new AssociateCharactersWithUserAction();
+    $this->action = new AssociateCharactersWithUserAction;
 });
 it('associates anonymous characters with user', function () {
     // Create a user

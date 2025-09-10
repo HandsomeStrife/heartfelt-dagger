@@ -18,6 +18,7 @@ class Login extends Component
         if ($user_data) {
             // Dispatch event to clear localStorage
             $this->dispatch('auth-success');
+
             return $this->redirect('/dashboard');
         }
 

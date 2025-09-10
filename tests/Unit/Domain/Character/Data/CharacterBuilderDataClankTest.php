@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 use Domain\Character\Data\CharacterBuilderData;
-use PHPUnit\Framework\Attributes\Test;
+
 test('clank ancestry can select bonus experience', function () {
     $data = new CharacterBuilderData(
         selected_ancestry: 'clank',

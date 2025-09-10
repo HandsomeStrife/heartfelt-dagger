@@ -11,7 +11,7 @@ test('recording consent API works correctly', function () {
     // Create a test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable recording for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -43,13 +43,13 @@ test('recording consent API works correctly', function () {
             'recording_enabled' => true,
             'requires_consent' => true,
             'consent_given' => false,
-            'consent_denied' => false
+            'consent_denied' => false,
         ]);
 
     // Test granting consent
     $response = $this->actingAs($user)
         ->postJson("/api/rooms/{$room->id}/recording-consent", [
-            'consent_given' => true
+            'consent_given' => true,
         ]);
 
     $response->assertStatus(200)
@@ -60,7 +60,7 @@ test('recording consent API works correctly', function () {
         ->assertJsonStructure([
             'success',
             'consent_given',
-            'participant_id'
+            'participant_id',
         ]);
 
     // Verify consent was saved
@@ -70,7 +70,7 @@ test('recording consent API works correctly', function () {
     // Test denying consent
     $response = $this->actingAs($user)
         ->postJson("/api/rooms/{$room->id}/recording-consent", [
-            'consent_given' => false
+            'consent_given' => false,
         ]);
 
     $response->assertStatus(200)
@@ -81,7 +81,7 @@ test('recording consent API works correctly', function () {
         ->assertJsonStructure([
             'success',
             'consent_given',
-            'participant_id'
+            'participant_id',
         ]);
 
     // Verify consent denial was saved
@@ -93,10 +93,10 @@ test('recording consent returns disabled when recording not enabled', function (
     // Create a test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // No recording settings created - recording should be disabled
 
-    // Create participant 
+    // Create participant
     $participant = RoomParticipant::create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -113,7 +113,7 @@ test('recording consent returns disabled when recording not enabled', function (
         ->assertJson([
             'recording_enabled' => false,
             'requires_consent' => false,
-            'consent_given' => null
+            'consent_given' => null,
         ]);
 });
 
@@ -124,7 +124,7 @@ test('recording upload rejects requests without consent', function () {
     // Create a test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable recording for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -159,26 +159,26 @@ test('recording upload rejects requests without consent', function () {
         'ended_at_ms' => (now()->timestamp + 5) * 1000,
         'size_bytes' => strlen($videoContent),
         'mime_type' => 'video/webm',
-        'filename' => 'test_recording.webm'
+        'filename' => 'test_recording.webm',
     ]);
 
     // Attempt to upload recording without consent
     $response = $this->actingAs($user)
         ->post("/api/rooms/{$room->id}/recordings", [
             'video' => new \Illuminate\Http\UploadedFile($tempPath, 'test_recording.webm', 'video/webm', null, true),
-            'metadata' => $metadata
+            'metadata' => $metadata,
         ]);
 
     $response->assertStatus(403)
         ->assertJson([
             'error' => 'Video recording consent required',
-            'requires_consent' => true
+            'requires_consent' => true,
         ]);
 
     fclose($tempFile);
 });
 
-// Temporarily disabled - file upload validation makes this test complex  
+// Temporarily disabled - file upload validation makes this test complex
 // The same consent validation is thoroughly tested in RoomRecordingConsentValidationTest.php
 test('non-participants cannot upload recordings', function () {
     $this->markTestSkipped('File upload validation makes this test complex - see RoomRecordingConsentValidationTest.php for equivalent coverage');
@@ -186,7 +186,7 @@ test('non-participants cannot upload recordings', function () {
     $gm = User::factory()->create();
     $outsider = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $gm->id]);
-    
+
     // Enable recording for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -208,21 +208,20 @@ test('non-participants cannot upload recordings', function () {
         'ended_at_ms' => (now()->timestamp + 5) * 1000,
         'size_bytes' => strlen($videoContent),
         'mime_type' => 'video/webm',
-        'filename' => 'test_recording.webm'
+        'filename' => 'test_recording.webm',
     ]);
 
     // Attempt to upload recording as non-participant
     $response = $this->actingAs($outsider)
         ->post("/api/rooms/{$room->id}/recordings", [
             'video' => new \Illuminate\Http\UploadedFile($tempPath, 'test_recording.webm', 'video/webm', null, true),
-            'metadata' => $metadata
+            'metadata' => $metadata,
         ]);
 
     $response->assertStatus(403)
         ->assertJson([
-            'error' => 'Only room participants can upload recordings'
+            'error' => 'Only room participants can upload recordings',
         ]);
 
     fclose($tempFile);
 });
-

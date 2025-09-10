@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Domain\Room\Data;
 
+use Livewire\Wireable;
 use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
-use Livewire\Wireable;
-use Domain\Room\Models\Room;
-use Domain\User\Models\User;
 
 class RoomRecordingData extends Data implements Wireable
 {

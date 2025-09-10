@@ -19,8 +19,8 @@ class LeaveCampaignAction
 
         // Find and delete the membership
         $membership = $campaign->members()->where('user_id', $user->id)->first();
-        
-        if (!$membership) {
+
+        if (! $membership) {
             throw new Exception('User is not a member of this campaign');
         }
 

@@ -5,13 +5,12 @@ use Domain\Campaign\Actions\CreateCampaignAction;
 use Domain\Campaign\Data\CampaignData;
 use Domain\Campaign\Data\CreateCampaignData;
 use Domain\Campaign\Enums\CampaignStatus;
-use Domain\Campaign\Models\Campaign;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new CreateCampaignAction();
+    $this->action = new CreateCampaignAction;
 });
 it('creates campaign successfully', function () {
     $creator = User::factory()->create();

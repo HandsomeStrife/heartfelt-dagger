@@ -7,10 +7,11 @@ use Domain\Room\Models\RoomParticipant;
 use Domain\Room\Repositories\RoomRepository;
 use Domain\User\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->repository = new RoomRepository();
+    $this->repository = new RoomRepository;
 });
 it('finds room by id with participant count', function () {
     $room = Room::factory()->create();
@@ -58,13 +59,13 @@ it('gets rooms created by user', function () {
     // Add participants to first room
     RoomParticipant::factory()->count(2)->create([
         'room_id' => $createdRooms->first()->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $foundRooms = $this->repository->getCreatedByUser($creator);
 
     expect($foundRooms)->toHaveCount(3);
-    expect($foundRooms->every(fn($room) => $room->creator_id === $creator->id))->toBeTrue();
+    expect($foundRooms->every(fn ($room) => $room->creator_id === $creator->id))->toBeTrue();
     expect($foundRooms->first()->active_participant_count)->toEqual(2);
 });
 it('orders created rooms by newest first', function () {
@@ -72,11 +73,11 @@ it('orders created rooms by newest first', function () {
 
     $oldRoom = Room::factory()->create([
         'creator_id' => $user->id,
-        'created_at' => now()->subDays(2)
+        'created_at' => now()->subDays(2),
     ]);
     $newRoom = Room::factory()->create([
         'creator_id' => $user->id,
-        'created_at' => now()
+        'created_at' => now(),
     ]);
 
     $foundRooms = $this->repository->getCreatedByUser($user);
@@ -95,14 +96,14 @@ it('gets rooms joined by user', function () {
     RoomParticipant::factory()->create([
         'room_id' => $joinedRoom->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // Other user joins another room
     RoomParticipant::factory()->create([
         'room_id' => $notJoinedRoom->id,
         'user_id' => $otherUser->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $foundRooms = $this->repository->getJoinedByUser($user);
@@ -118,7 +119,7 @@ it('excludes left rooms from joined by user', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => now()
+        'left_at' => now(),
     ]);
 
     $foundRooms = $this->repository->getJoinedByUser($user);
@@ -130,20 +131,20 @@ it('gets room participants with relationships', function () {
 
     $participants = RoomParticipant::factory()->count(3)->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // Add one who left
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => now()
+        'left_at' => now(),
     ]);
 
     $foundParticipants = $this->repository->getRoomParticipants($room);
 
     expect($foundParticipants)->toHaveCount(3);
-    expect($foundParticipants->every(fn($p) => $p->user !== null))->toBeTrue();
-    expect($foundParticipants->every(fn($p) => $p->character !== null))->toBeTrue();
+    expect($foundParticipants->every(fn ($p) => $p->user !== null))->toBeTrue();
+    expect($foundParticipants->every(fn ($p) => $p->character !== null))->toBeTrue();
 });
 it('orders participants by joined at ascending', function () {
     $room = Room::factory()->create();
@@ -151,13 +152,13 @@ it('orders participants by joined at ascending', function () {
     $laterParticipant = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'joined_at' => now(),
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $earlierParticipant = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'joined_at' => now()->subHour(),
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $foundParticipants = $this->repository->getRoomParticipants($room);
@@ -171,7 +172,7 @@ it('includes participant count in all queries', function () {
 
     RoomParticipant::factory()->count(4)->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // Test findById
@@ -211,13 +212,13 @@ it('correctly counts mixed participant states', function () {
     // 3 active participants
     RoomParticipant::factory()->count(3)->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // 2 participants who left
     RoomParticipant::factory()->count(2)->create([
         'room_id' => $room->id,
-        'left_at' => now()
+        'left_at' => now(),
     ]);
 
     $foundRoom = $this->repository->findById($room->id);

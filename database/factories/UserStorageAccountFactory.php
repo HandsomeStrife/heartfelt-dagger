@@ -30,7 +30,7 @@ class UserStorageAccountFactory extends Factory
         return [
             'user_id' => User::factory(),
             'provider' => fake()->randomElement(['wasabi', 'google_drive']),
-            'display_name' => fake()->company() . ' Storage',
+            'display_name' => fake()->company().' Storage',
             'is_active' => fake()->boolean(80), // 80% chance of being active
             'encrypted_credentials' => [],
         ];
@@ -44,11 +44,11 @@ class UserStorageAccountFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'provider' => 'wasabi',
-                'display_name' => fake()->company() . ' Wasabi',
+                'display_name' => fake()->company().' Wasabi',
                 'encrypted_credentials' => [
                     'access_key_id' => fake()->regexify('[A-Z0-9]{20}'),
                     'secret_access_key' => fake()->regexify('[a-zA-Z0-9+/]{40}'),
-                    'bucket' => fake()->slug() . '-bucket',
+                    'bucket' => fake()->slug().'-bucket',
                     'region' => fake()->randomElement(['us-east-1', 'us-west-1', 'us-west-2', 'eu-west-1']),
                     'endpoint' => 'https://s3.us-east-1.wasabisys.com',
                 ],
@@ -64,7 +64,7 @@ class UserStorageAccountFactory extends Factory
         return $this->state(function (array $attributes) {
             return [
                 'provider' => 'google_drive',
-                'display_name' => fake()->firstName() . '\'s Google Drive',
+                'display_name' => fake()->firstName().'\'s Google Drive',
                 'encrypted_credentials' => [
                     'refresh_token' => fake()->regexify('[a-zA-Z0-9_-]{40}'),
                     'email' => fake()->email(),

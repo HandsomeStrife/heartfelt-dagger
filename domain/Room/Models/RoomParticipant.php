@@ -6,10 +6,10 @@ namespace Domain\Room\Models;
 
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class RoomParticipant extends Model
 {
@@ -46,7 +46,7 @@ class RoomParticipant extends Model
      */
     public function hasCharacter(): bool
     {
-        return !is_null($this->character_id);
+        return ! is_null($this->character_id);
     }
 
     /**

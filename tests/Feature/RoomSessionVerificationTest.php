@@ -5,12 +5,14 @@ declare(strict_types=1);
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\delete;
 
 test('room session page uses minimal layout without header and footer', function () {
     $creator = User::factory()->create();
     $room = Room::factory()->passwordless()->create(['creator_id' => $creator->id]);
-    
+
     // Add creator as participant
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
@@ -21,11 +23,11 @@ test('room session page uses minimal layout without header and footer', function
     $response = actingAs($creator)->get("/rooms/{$room->invite_code}/session");
 
     $response->assertOk();
-    
+
     // Verify minimal layout is used (no navigation or footer data-testids)
     $response->assertDontSee('data-testid="main-navigation"', false);
     $response->assertDontSee('data-testid="main-footer"', false);
-    
+
     // Verify session elements are present
     $response->assertSee('data-testid="room-info"', false);
     $response->assertSee('data-testid="room-name"', false);
@@ -35,10 +37,10 @@ test('room session page uses minimal layout without header and footer', function
 
 test('room session creates video slots that scale with capacity', function () {
     $creator = User::factory()->create();
-    
+
     $testCases = [
         ['guest_count' => 2], // getTotalCapacity() = 3
-        ['guest_count' => 3], // getTotalCapacity() = 4  
+        ['guest_count' => 3], // getTotalCapacity() = 4
         ['guest_count' => 4], // getTotalCapacity() = 5
         ['guest_count' => 5], // getTotalCapacity() = 6
         ['guest_count' => 6], // getTotalCapacity() = 7 (max)
@@ -46,9 +48,9 @@ test('room session creates video slots that scale with capacity', function () {
 
     foreach ($testCases as $case) {
         $room = Room::factory()->passwordless()->create([
-        'creator_id' => $creator->id,
-        'guest_count' => $case['guest_count'],
-    ]);
+            'creator_id' => $creator->id,
+            'guest_count' => $case['guest_count'],
+        ]);
 
         // Add creator as participant
         RoomParticipant::factory()->create([
@@ -58,15 +60,15 @@ test('room session creates video slots that scale with capacity', function () {
         ]);
 
         $response = actingAs($creator)->get("/rooms/{$room->invite_code}/session");
-        
+
         // Verify video slots are present and scale appropriately
         $content = $response->getContent();
         $videoSlotCount = substr_count($content, 'data-testid="video-slot"');
-        
+
         // Should have at least 2 slots and at most 6 slots for valid room sizes
-        expect($videoSlotCount)->toBeGreaterThanOrEqual(2, 
+        expect($videoSlotCount)->toBeGreaterThanOrEqual(2,
             "Room with {$case['guest_count']} guests should have at least 2 video slots");
-        expect($videoSlotCount)->toBeLessThanOrEqual(6, 
+        expect($videoSlotCount)->toBeLessThanOrEqual(6,
             "Room with {$case['guest_count']} guests should have at most 6 video slots");
     }
 });
@@ -74,16 +76,16 @@ test('room session creates video slots that scale with capacity', function () {
 test('room session shows appropriate buttons for creator vs participant', function () {
     $creator = User::factory()->create();
     $participant = User::factory()->create();
-    
+
     $room = Room::factory()->passwordless()->create(['creator_id' => $creator->id]);
-    
+
     // Add both as participants
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $creator->id,
         'left_at' => null,
     ]);
-    
+
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $participant->id,
@@ -107,7 +109,7 @@ test('room session includes required webrtc javascript context', function () {
         'creator_id' => $creator->id,
         'name' => 'WebRTC Test Room',
     ]);
-    
+
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $creator->id,
@@ -162,16 +164,16 @@ test('room session layout elements are correct for different capacities', functi
 test('room overview page shows delete button for creator', function () {
     $creator = User::factory()->create();
     $participant = User::factory()->create();
-    
+
     $room = Room::factory()->passwordless()->create(['creator_id' => $creator->id]);
-    
+
     // Add both as participants
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $creator->id,
         'left_at' => null,
     ]);
-    
+
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $participant->id,

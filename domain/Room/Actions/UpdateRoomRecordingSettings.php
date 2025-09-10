@@ -37,7 +37,7 @@ class UpdateRoomRecordingSettings
                 ->where('is_active', true)
                 ->first();
 
-            if (!$storageAccount) {
+            if (! $storageAccount) {
                 throw new \Exception('Storage account not found or not accessible');
             }
 
@@ -56,7 +56,7 @@ class UpdateRoomRecordingSettings
                 ->where('is_active', true)
                 ->first();
 
-            if (!$sttAccount) {
+            if (! $sttAccount) {
                 throw new \Exception('STT account not found or not accessible');
             }
 
@@ -69,25 +69,25 @@ class UpdateRoomRecordingSettings
         }
 
         // If recording is disabled, clear storage settings
-        if (!$recordingEnabled) {
+        if (! $recordingEnabled) {
             $storageProvider = null;
             $storageAccountId = null;
         }
 
         // If STT is disabled, clear STT settings
-        if (!$sttEnabled) {
+        if (! $sttEnabled) {
             $sttProvider = null;
             $sttAccountId = null;
         }
 
         // If recording is enabled but no storage provider specified, default to local_device
-        if ($recordingEnabled && !$storageProvider) {
+        if ($recordingEnabled && ! $storageProvider) {
             $storageProvider = 'local_device';
             $storageAccountId = null;
         }
 
         // If STT is enabled but no provider specified, default to browser
-        if ($sttEnabled && !$sttProvider) {
+        if ($sttEnabled && ! $sttProvider) {
             $sttProvider = 'browser';
             $sttAccountId = null;
         }
@@ -95,7 +95,7 @@ class UpdateRoomRecordingSettings
         try {
             // Get or create recording settings
             $settings = RoomRecordingSettings::firstOrNew(['room_id' => $room->id]);
-            
+
             $settings->recording_enabled = $recordingEnabled;
             $settings->stt_enabled = $sttEnabled;
             $settings->storage_provider = $storageProvider;
@@ -104,18 +104,18 @@ class UpdateRoomRecordingSettings
             $settings->stt_account_id = $sttAccountId;
             $settings->stt_consent_requirement = $sttConsentRequirement;
             $settings->recording_consent_requirement = $recordingConsentRequirement;
-            
+
             // Handle viewer password - hash if provided, null if empty
             if ($viewerPassword) {
                 $settings->viewer_password = \Hash::make($viewerPassword);
             } else {
                 $settings->viewer_password = null;
             }
-            
+
             $settings->save();
 
             // If STT is disabled, reset all participant STT consent for this room
-            if (!$sttEnabled) {
+            if (! $sttEnabled) {
                 $room->participants()->update([
                     'stt_consent_given' => null,
                     'stt_consent_at' => null,
@@ -142,8 +142,7 @@ class UpdateRoomRecordingSettings
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \Exception('Failed to update recording settings: ' . $e->getMessage());
+            throw new \Exception('Failed to update recording settings: '.$e->getMessage());
         }
     }
 }
-

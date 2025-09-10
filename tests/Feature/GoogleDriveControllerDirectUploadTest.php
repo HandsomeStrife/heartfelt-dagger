@@ -1,17 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Http;
 use Domain\Room\Models\Room;
-use Domain\Room\Models\RoomRecording;
-use Domain\Room\Models\RoomRecordingSettings;
 use Domain\Room\Models\RoomParticipant;
+use Domain\Room\Models\RoomRecordingSettings;
 use Domain\User\Models\User;
 use Domain\User\Models\UserStorageAccount;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
     $this->room = Room::factory()->create(['creator_id' => $this->user->id]);
-    
+
     // Create recording settings for Google Drive
     $this->recordingSettings = RoomRecordingSettings::factory()->create([
         'room_id' => $this->room->id,
@@ -20,7 +19,7 @@ beforeEach(function () {
         'storage_provider' => 'google_drive',
         'storage_account_id' => null,
     ]);
-    
+
     // Create Google Drive storage account
     $this->storageAccount = UserStorageAccount::factory()->create([
         'user_id' => $this->user->id,
@@ -33,9 +32,9 @@ beforeEach(function () {
             'created_at' => now()->timestamp - 1800,
         ],
     ]);
-    
+
     $this->recordingSettings->update(['storage_account_id' => $this->storageAccount->id]);
-    
+
     // Create participant with recording consent
     RoomParticipant::factory()->create([
         'room_id' => $this->room->id,
@@ -50,7 +49,7 @@ describe('Google Drive Upload URL Generation API', function () {
     test('generates upload URL successfully', function () {
         Http::fake([
             'https://www.googleapis.com/upload/drive/v3/files*' => Http::response('', 200, [
-                'Location' => 'https://www.googleapis.com/upload/drive/v3/files/resumable?uploadType=resumable&upload_id=test123'
+                'Location' => 'https://www.googleapis.com/upload/drive/v3/files/resumable?uploadType=resumable&upload_id=test123',
             ]),
             'https://www.googleapis.com/oauth2/v4/token' => Http::response([
                 'access_token' => 'new_access_token',
@@ -66,7 +65,7 @@ describe('Google Drive Upload URL Generation API', function () {
                 'metadata' => [
                     'started_at_ms' => 1000,
                     'ended_at_ms' => 2000,
-                ]
+                ],
             ]);
 
         $response->assertStatus(200)
@@ -85,7 +84,7 @@ describe('Google Drive Upload URL Generation API', function () {
                     'size_bytes',
                     'content_type',
                     'session_uri',
-                ]
+                ],
             ])
             ->assertJson([
                 'success' => true,
@@ -93,7 +92,7 @@ describe('Google Drive Upload URL Generation API', function () {
                     'provider' => 'google_drive',
                     'room_id' => $this->room->id,
                     'user_id' => $this->user->id,
-                ]
+                ],
             ]);
 
         expect($response->json('upload_url'))->toContain('googleapis.com');
@@ -109,9 +108,9 @@ describe('Google Drive Upload URL Generation API', function () {
                 'error',
                 'messages' => [
                     'filename',
-                    'content_type', 
-                    'size'
-                ]
+                    'content_type',
+                    'size',
+                ],
             ]);
     });
 
@@ -150,7 +149,7 @@ describe('Google Drive Upload URL Generation API', function () {
 
     test('requires room access', function () {
         $otherUser = User::factory()->create();
-        
+
         $response = $this->actingAs($otherUser)
             ->postJson("/api/rooms/{$this->room->id}/recordings/google-drive-upload-url", [
                 'filename' => 'test.webm',
@@ -183,7 +182,7 @@ describe('Google Drive Upload URL Generation API', function () {
         $response->assertStatus(403)
             ->assertJson([
                 'error' => 'Video recording consent required',
-                'requires_consent' => true
+                'requires_consent' => true,
             ]);
     });
 
@@ -245,7 +244,7 @@ describe('Google Drive Upload Confirmation API', function () {
                     'content_type' => 'video/webm',
                     'started_at_ms' => 1000,
                     'ended_at_ms' => 2000,
-                ]
+                ],
             ]);
 
         $response->assertStatus(201)
@@ -279,15 +278,15 @@ describe('Google Drive Upload Confirmation API', function () {
             ->assertJsonStructure([
                 'error',
                 'messages' => [
-                    'session_uri'
-                ]
+                    'session_uri',
+                ],
             ]);
     });
 
     test('validates session URI format', function () {
         $response = $this->actingAs($this->user)
             ->postJson("/api/rooms/{$this->room->id}/recordings/confirm-google-drive", [
-                'session_uri' => 'invalid-uri'
+                'session_uri' => 'invalid-uri',
             ]);
 
         $response->assertStatus(422);
@@ -296,7 +295,7 @@ describe('Google Drive Upload Confirmation API', function () {
     test('handles Google Drive API errors', function () {
         Http::fake([
             'https://www.googleapis.com/upload/drive/v3/files/resumable*' => Http::response([
-                'error' => ['message' => 'File not found']
+                'error' => ['message' => 'File not found'],
             ], 404),
             'https://www.googleapis.com/oauth2/v4/token' => Http::response([
                 'access_token' => 'new_access_token',
@@ -306,7 +305,7 @@ describe('Google Drive Upload Confirmation API', function () {
 
         $response = $this->actingAs($this->user)
             ->postJson("/api/rooms/{$this->room->id}/recordings/confirm-google-drive", [
-                'session_uri' => 'https://googleapis.com/invalid'
+                'session_uri' => 'https://googleapis.com/invalid',
             ]);
 
         $response->assertStatus(500)
@@ -315,7 +314,7 @@ describe('Google Drive Upload Confirmation API', function () {
 
     test('requires authentication', function () {
         $response = $this->postJson("/api/rooms/{$this->room->id}/recordings/confirm-google-drive", [
-            'session_uri' => 'https://googleapis.com/test'
+            'session_uri' => 'https://googleapis.com/test',
         ]);
 
         $response->assertStatus(403); // Laravel returns 403 when room access check fails before auth check
@@ -323,10 +322,10 @@ describe('Google Drive Upload Confirmation API', function () {
 
     test('requires room access', function () {
         $otherUser = User::factory()->create();
-        
+
         $response = $this->actingAs($otherUser)
             ->postJson("/api/rooms/{$this->room->id}/recordings/confirm-google-drive", [
-                'session_uri' => 'https://googleapis.com/test'
+                'session_uri' => 'https://googleapis.com/test',
             ]);
 
         $response->assertStatus(403)
@@ -346,13 +345,13 @@ describe('Google Drive Upload Confirmation API', function () {
 
         $response = $this->actingAs($userWithoutConsent)
             ->postJson("/api/rooms/{$this->room->id}/recordings/confirm-google-drive", [
-                'session_uri' => 'https://googleapis.com/test'
+                'session_uri' => 'https://googleapis.com/test',
             ]);
 
         $response->assertStatus(403)
             ->assertJson([
                 'error' => 'Video recording consent required',
-                'requires_consent' => true
+                'requires_consent' => true,
             ]);
     });
 });

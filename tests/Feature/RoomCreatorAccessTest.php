@@ -5,7 +5,8 @@ declare(strict_types=1);
 use Domain\Room\Models\Room;
 use Domain\User\Models\User;
 use Illuminate\Support\Facades\Hash;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\actingAs;
 
 test('room creator can access password-protected room overview without password', function () {
     $user = User::factory()->create();
@@ -18,7 +19,7 @@ test('room creator can access password-protected room overview without password'
 
     // Creator should be able to access room overview without providing password
     $response = actingAs($user)->get("/rooms/{$room->invite_code}");
-    
+
     $response->assertOk();
     $response->assertViewIs('rooms.show');
     $response->assertViewHas('room');
@@ -37,7 +38,7 @@ test('non-creator cannot access password-protected room overview without passwor
 
     // Non-creator should be redirected to join page
     $response = actingAs($otherUser)->get("/rooms/{$room->invite_code}");
-    
+
     $response->assertRedirect("/rooms/join/{$room->invite_code}");
 });
 
@@ -53,7 +54,7 @@ test('non-creator can access password-protected room overview with correct passw
 
     // Non-creator should be able to access with password in URL
     $response = actingAs($otherUser)->get("/rooms/{$room->invite_code}?password={$password}");
-    
+
     $response->assertOk();
     $response->assertViewIs('rooms.show');
     $response->assertViewHas('room');
@@ -68,7 +69,7 @@ test('room creator can access room overview for non-password-protected room', fu
     ]);
 
     $response = actingAs($user)->get("/rooms/{$room->invite_code}");
-    
+
     $response->assertOk();
     $response->assertViewIs('rooms.show');
     $response->assertViewHas('user_is_creator', true);

@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Domain\Room\Actions\FinalizeRecording;
+use Domain\Room\Enums\RecordingStatus;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomRecording;
-use Domain\Room\Enums\RecordingStatus;
 use Domain\User\Models\User;
 use Domain\User\Models\UserStorageAccount;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,7 +16,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     $this->user = User::factory()->create();
     $this->room = Room::factory()->create(['creator_id' => $this->user->id]);
-    
+
     $this->storageAccount = UserStorageAccount::factory()->create([
         'user_id' => $this->user->id,
         'provider' => 'google_drive',
@@ -25,7 +25,7 @@ beforeEach(function () {
             'access_token' => 'fake_access_token',
             'refresh_token' => 'fake_refresh_token',
             'expires_at' => now()->addHours(1)->timestamp,
-        ]
+        ],
     ]);
 });
 
@@ -43,11 +43,11 @@ test('can finalize Google Drive recording successfully', function () {
 
     // For this test, we'll expect the finalization to complete successfully
     // even if the file info can't be retrieved (graceful degradation)
-    $action = new FinalizeRecording();
+    $action = new FinalizeRecording;
     $result = $action->execute($recording);
 
     expect($result)->toBeTrue();
-    
+
     $recording->refresh();
     expect($recording->status)->toBe(RecordingStatus::Completed);
     // Size won't be updated in test environment due to fake credentials, but that's OK
@@ -69,17 +69,17 @@ test('handles Google Drive API errors gracefully during finalization', function 
         'https://www.googleapis.com/drive/v3/files/fake_file_id_456*' => Http::response([
             'error' => [
                 'code' => 404,
-                'message' => 'File not found'
-            ]
+                'message' => 'File not found',
+            ],
         ], 404),
     ]);
 
-    $action = new FinalizeRecording();
+    $action = new FinalizeRecording;
     $result = $action->execute($recording);
 
     // Should still succeed even if file verification fails
     expect($result)->toBeTrue();
-    
+
     $recording->refresh();
     expect($recording->status)->toBe(RecordingStatus::Completed);
 });
@@ -93,11 +93,11 @@ test('skips recordings that cannot be finalized', function () {
         'status' => RecordingStatus::Completed,
     ]);
 
-    $action = new FinalizeRecording();
+    $action = new FinalizeRecording;
     $result = $action->execute($recording);
 
     expect($result)->toBeFalse();
-    
+
     $recording->refresh();
     expect($recording->status)->toBe(RecordingStatus::Completed); // Should remain unchanged
 });
@@ -116,11 +116,11 @@ test('handles missing storage account during finalization', function () {
     // Delete the storage account
     $this->storageAccount->delete();
 
-    $action = new FinalizeRecording();
+    $action = new FinalizeRecording;
     $result = $action->execute($recording);
 
     expect($result)->toBeFalse();
-    
+
     $recording->refresh();
     expect($recording->status)->toBe(RecordingStatus::Failed);
 });

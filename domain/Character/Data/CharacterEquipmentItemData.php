@@ -12,7 +12,7 @@ use Spatie\LaravelData\Data;
 class CharacterEquipmentItemData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public int $id,
         public int $character_id,
@@ -63,12 +63,12 @@ class CharacterEquipmentItemData extends Data implements Wireable
         if (isset($this->equipment_data['baseThresholds'])) {
             return $this->equipment_data['baseThresholds'];
         }
-        
+
         // Fallback to direct thresholds format
         if (isset($this->equipment_data['thresholds'])) {
             return $this->equipment_data['thresholds'];
         }
-        
+
         return null;
     }
 

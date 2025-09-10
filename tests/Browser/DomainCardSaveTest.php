@@ -13,12 +13,12 @@ describe('Domain Card Save State', function () {
                 'assigned_traits' => ['agility' => 2, 'strength' => 1, 'finesse' => 1, 'instinct' => 0, 'presence' => 0, 'knowledge' => -1],
                 'selected_equipment' => [],
                 'selected_domain_cards' => [],
-            ]
+            ],
         ]);
     });
 
     it('properly resets save state after domain card changes', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-9"]') // Navigate to domain cards step
             ->wait(1)
             ->assertSee('Select Domain Cards')
@@ -49,7 +49,7 @@ describe('Domain Card Save State', function () {
     });
 
     it('handles multiple rapid domain card changes before save', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-9"]') // Navigate to domain cards step
             ->wait(1)
             ->assertSee('Select Domain Cards')

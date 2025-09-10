@@ -20,7 +20,7 @@ describe('GenerateWasabiPresignedUrl Action', function () {
 
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create([
             'user_id' => $user->id,
             'display_name' => 'Test Wasabi Storage',
@@ -29,7 +29,7 @@ describe('GenerateWasabiPresignedUrl Action', function () {
                 'secret_access_key' => config('services.wasabi.secret_key'),
                 'region' => env('WASABI_REGION', 'us-east-1'),
                 'endpoint' => env('WASABI_ENDPOINT', 'https://s3.wasabisys.com'),
-                'bucket_name' => 'test-action-bucket-' . time() . '-' . rand(1000, 9999),
+                'bucket_name' => 'test-action-bucket-'.time().'-'.rand(1000, 9999),
             ],
         ]);
 
@@ -42,8 +42,8 @@ describe('GenerateWasabiPresignedUrl Action', function () {
 
         $room->refresh();
 
-        $action = new GenerateWasabiPresignedUrl();
-        
+        $action = new GenerateWasabiPresignedUrl;
+
         $result = $action->execute(
             $room,
             $user,
@@ -56,42 +56,42 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         expect($result)->toBeArray();
         expect($result['success'])->toBeTrue();
         expect($result)->toHaveKeys([
-            'presigned_url', 'key', 'bucket', 'expires_at', 'headers', 'metadata'
+            'presigned_url', 'key', 'bucket', 'expires_at', 'headers', 'metadata',
         ]);
-        
+
         // Verify URL structure
         expect($result['presigned_url'])->toContain('https://');
         expect($result['presigned_url'])->toContain($storageAccount->encrypted_credentials['bucket_name']);
         expect($result['bucket'])->toBe($storageAccount->encrypted_credentials['bucket_name']);
-        
+
         // Verify key format follows expected pattern
         expect($result['key'])->toContain('recordings/');
         expect($result['key'])->toContain("room_{$room->id}");
         expect($result['key'])->toContain("user_{$user->id}");
         expect($result['key'])->toContain('test-recording.webm');
-        
+
         // Verify headers
         expect($result['headers'])->toHaveKey('Content-Type');
         expect($result['headers']['Content-Type'])->toBe('video/webm');
-        
+
         // Verify metadata
         expect($result['metadata'])->toHaveKeys([
-            'provider', 'provider_file_id', 'storage_account_id', 
-            'room_id', 'user_id', 'filename', 'size_bytes', 'content_type', 'custom_meta'
+            'provider', 'provider_file_id', 'storage_account_id',
+            'room_id', 'user_id', 'filename', 'size_bytes', 'content_type', 'custom_meta',
         ]);
         expect($result['metadata']['provider'])->toBe('wasabi');
         expect($result['metadata']['room_id'])->toBe($room->id);
         expect($result['metadata']['user_id'])->toBe($user->id);
         expect($result['metadata']['custom_meta'])->toBe('test_value');
-    })->skip(fn() => app()->environment('testing') && empty(config('services.wasabi.access_key')), 
+    })->skip(fn () => app()->environment('testing') && empty(config('services.wasabi.access_key')),
         'Wasabi credentials not configured for testing');
 
     test('fails when recording is not enabled', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create(['user_id' => $user->id]);
-        
+
         RoomRecordingSettings::factory()->create([
             'room_id' => $room->id,
             'recording_enabled' => false, // Recording disabled
@@ -100,16 +100,16 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         ]);
 
         $room->refresh();
-        $action = new GenerateWasabiPresignedUrl();
-        
-        expect(fn() => $action->execute($room, $user, 'test.webm', 'video/webm', 1024))
+        $action = new GenerateWasabiPresignedUrl;
+
+        expect(fn () => $action->execute($room, $user, 'test.webm', 'video/webm', 1024))
             ->toThrow(\Exception::class, 'Video recording is not enabled for this room');
     });
 
     test('fails when storage provider is not wasabi', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         RoomRecordingSettings::factory()->create([
             'room_id' => $room->id,
             'recording_enabled' => true,
@@ -118,9 +118,9 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         ]);
 
         $room->refresh();
-        $action = new GenerateWasabiPresignedUrl();
-        
-        expect(fn() => $action->execute($room, $user, 'test.webm', 'video/webm', 1024))
+        $action = new GenerateWasabiPresignedUrl;
+
+        expect(fn () => $action->execute($room, $user, 'test.webm', 'video/webm', 1024))
             ->toThrow(\Exception::class, 'Room is not configured for Wasabi storage');
     });
 
@@ -128,11 +128,11 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         $creator = User::factory()->create();
         $otherUser = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $creator->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create([
             'user_id' => $otherUser->id, // Different user
         ]);
-        
+
         RoomRecordingSettings::factory()->create([
             'room_id' => $room->id,
             'recording_enabled' => true,
@@ -141,18 +141,18 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         ]);
 
         $room->refresh();
-        $action = new GenerateWasabiPresignedUrl();
-        
-        expect(fn() => $action->execute($room, $creator, 'test.webm', 'video/webm', 1024))
+        $action = new GenerateWasabiPresignedUrl;
+
+        expect(fn () => $action->execute($room, $creator, 'test.webm', 'video/webm', 1024))
             ->toThrow(\Exception::class, 'Storage account does not belong to room creator');
     });
 
     test('fails when file size exceeds limit', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create(['user_id' => $user->id]);
-        
+
         RoomRecordingSettings::factory()->create([
             'room_id' => $room->id,
             'recording_enabled' => true,
@@ -161,20 +161,20 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         ]);
 
         $room->refresh();
-        $action = new GenerateWasabiPresignedUrl();
-        
+        $action = new GenerateWasabiPresignedUrl;
+
         $oversizedFile = 101 * 1024 * 1024; // 101MB (over 100MB limit)
-        
-        expect(fn() => $action->execute($room, $user, 'huge.webm', 'video/webm', $oversizedFile))
+
+        expect(fn () => $action->execute($room, $user, 'huge.webm', 'video/webm', $oversizedFile))
             ->toThrow(\Exception::class, 'File size exceeds maximum allowed size of 100MB');
     });
 
     test('fails when content type is not allowed', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create(['user_id' => $user->id]);
-        
+
         RoomRecordingSettings::factory()->create([
             'room_id' => $room->id,
             'recording_enabled' => true,
@@ -183,18 +183,18 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         ]);
 
         $room->refresh();
-        $action = new GenerateWasabiPresignedUrl();
-        
-        expect(fn() => $action->execute($room, $user, 'test.txt', 'text/plain', 1024))
+        $action = new GenerateWasabiPresignedUrl;
+
+        expect(fn () => $action->execute($room, $user, 'test.txt', 'text/plain', 1024))
             ->toThrow(\Exception::class, 'File type not allowed. Only WebM, MP4, and QuickTime videos are supported.');
     });
 
     test('validates filename constraints', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create(['user_id' => $user->id]);
-        
+
         RoomRecordingSettings::factory()->create([
             'room_id' => $room->id,
             'recording_enabled' => true,
@@ -203,18 +203,18 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         ]);
 
         $room->refresh();
-        $action = new GenerateWasabiPresignedUrl();
-        
+        $action = new GenerateWasabiPresignedUrl;
+
         // Test empty filename
-        expect(fn() => $action->execute($room, $user, '', 'video/webm', 1024))
+        expect(fn () => $action->execute($room, $user, '', 'video/webm', 1024))
             ->toThrow(\Exception::class, 'Invalid filename. Must be between 1 and 255 characters.');
-        
+
         // Test filename with path traversal
-        expect(fn() => $action->execute($room, $user, '../test.webm', 'video/webm', 1024))
+        expect(fn () => $action->execute($room, $user, '../test.webm', 'video/webm', 1024))
             ->toThrow(\Exception::class, 'Invalid filename. Path separators are not allowed.');
-        
+
         // Test filename with forward slash
-        expect(fn() => $action->execute($room, $user, 'folder/test.webm', 'video/webm', 1024))
+        expect(fn () => $action->execute($room, $user, 'folder/test.webm', 'video/webm', 1024))
             ->toThrow(\Exception::class, 'Invalid filename. Path separators are not allowed.');
     });
 
@@ -226,7 +226,7 @@ describe('GenerateWasabiPresignedUrl Action', function () {
 
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create([
             'user_id' => $user->id,
             'encrypted_credentials' => [
@@ -234,7 +234,7 @@ describe('GenerateWasabiPresignedUrl Action', function () {
                 'secret_access_key' => config('services.wasabi.secret_key'),
                 'region' => env('WASABI_REGION', 'us-east-1'),
                 'endpoint' => env('WASABI_ENDPOINT', 'https://s3.wasabisys.com'),
-                'bucket_name' => 'test-content-types-' . time() . '-' . rand(1000, 9999),
+                'bucket_name' => 'test-content-types-'.time().'-'.rand(1000, 9999),
             ],
         ]);
 
@@ -246,7 +246,7 @@ describe('GenerateWasabiPresignedUrl Action', function () {
         ]);
 
         $room->refresh();
-        $action = new GenerateWasabiPresignedUrl();
+        $action = new GenerateWasabiPresignedUrl;
 
         $allowedTypes = [
             ['filename' => 'test.webm', 'content_type' => 'video/webm'],
@@ -267,6 +267,6 @@ describe('GenerateWasabiPresignedUrl Action', function () {
             expect($result['headers']['Content-Type'])->toBe($fileType['content_type']);
             expect($result['metadata']['content_type'])->toBe($fileType['content_type']);
         }
-    })->skip(fn() => app()->environment('testing') && empty(config('services.wasabi.access_key')), 
+    })->skip(fn () => app()->environment('testing') && empty(config('services.wasabi.access_key')),
         'Wasabi credentials not configured for testing');
 });

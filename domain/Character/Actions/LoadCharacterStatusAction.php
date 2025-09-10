@@ -17,19 +17,19 @@ class LoadCharacterStatusAction
     {
         // Find the character
         $character = Character::where('character_key', $character_key)->first();
-        
-        if (!$character) {
+
+        if (! $character) {
             throw new \InvalidArgumentException("Character with key '{$character_key}' not found");
         }
 
         // Try to get existing status
         $status = $character->status()->first();
-        
+
         if ($status) {
             // Adjust status arrays to match current computed stats (in case stats changed)
             $status->adjustToComputedStats($computed_stats);
             $status->save();
-            
+
             return CharacterStatusData::fromModel($status);
         }
 
@@ -37,5 +37,3 @@ class LoadCharacterStatusAction
         return CharacterStatusData::createDefault($character->id, $computed_stats);
     }
 }
-
-

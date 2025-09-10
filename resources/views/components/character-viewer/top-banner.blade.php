@@ -8,6 +8,8 @@
     'computedStats' => [],
     'canEdit' => false,
     'traitInfo' => [],
+    'canLevelUp' => false,
+    'characterKey' => null,
 ])
 <header
     pest="character-viewer-top-banner"
@@ -18,7 +20,16 @@
     <div class="absolute top-4 right-6 translate-y-full sm:translate-y-0 sm:top-3">
         <div class="rounded-3xl ring-1 ring-indigo-400/40 bg-indigo-500/10 px-4 py-3 min-w-[8.5rem]">
             <div class="text-[10px] uppercase tracking-wider text-indigo-200/90">Level</div>
-            <div class="text-3xl font-extrabold text-indigo-200 leading-none">1</div>
+            <div class="text-3xl font-extrabold text-indigo-200 leading-none">{{ $character->level ?? 1 }}</div>
+            
+            @if($canLevelUp && $canEdit && $characterKey)
+            <div class="mt-1">
+                <a href="{{ route('character.level-up', ['public_key' => $character->public_key, 'character_key' => $characterKey]) }}"
+                   class="text-xs text-amber-400 hover:text-amber-300 underline transition-colors">
+                    Level Up
+                </a>
+            </div>
+            @endif
         </div>
     </div>
     <div class="grid grid-cols-12 gap-6 items-start">

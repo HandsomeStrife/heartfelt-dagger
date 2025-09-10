@@ -16,7 +16,7 @@ return new class extends Migration
     {
         // First clear any existing thumbnail URLs that might be too long
         DB::table('room_recordings')->update(['thumbnail_url' => null]);
-        
+
         Schema::table('room_recordings', function (Blueprint $table) {
             $table->text('thumbnail_url')->nullable()->change();
         });

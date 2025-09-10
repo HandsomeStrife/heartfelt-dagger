@@ -3,7 +3,7 @@
 declare(strict_types=1);
 use Domain\Character\Data\CharacterStatsData;
 use Domain\Character\Models\Character;
-use PHPUnit\Framework\Attributes\Test;
+
 test('stats include subclass hit point bonus', function () {
     $character = createCharacterWithSubclass('school of war');
 

@@ -18,7 +18,7 @@ class UpdateSttConsent
             ->whereNull('left_at')
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             throw new \Exception('Participant not found in room or has already left');
         }
 
@@ -41,7 +41,7 @@ class UpdateSttConsent
             ->whereNull('left_at')
             ->first(); // This is simplified - in production you'd need session tracking
 
-        if (!$participant) {
+        if (! $participant) {
             throw new \Exception('Anonymous participant not found in room');
         }
 

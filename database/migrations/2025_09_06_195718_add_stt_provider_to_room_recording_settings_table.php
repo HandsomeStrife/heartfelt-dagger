@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('room_recording_settings', function (Blueprint $table) {
             $table->string('stt_provider', 20)->nullable()->after('stt_enabled'); // 'browser' or 'assemblyai'
             $table->foreignId('stt_account_id')->nullable()->after('stt_provider')->constrained('user_storage_accounts')->onDelete('set null');
-            
+
             $table->index(['stt_provider']);
         });
     }

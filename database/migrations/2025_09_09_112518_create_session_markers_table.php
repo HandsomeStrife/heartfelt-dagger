@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('video_time')->nullable(); // Video recording time in seconds
             $table->integer('stt_time')->nullable(); // STT recording time in seconds
             $table->timestamps(); // created_at will be UTC time
-            
+
             // Indexes for performance
             $table->index(['room_id']);
             $table->index(['creator_id']);

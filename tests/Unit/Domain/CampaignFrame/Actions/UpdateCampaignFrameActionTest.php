@@ -36,7 +36,7 @@ test('it updates a campaign frame successfully', function () {
         'session_zero_questions' => ['Updated question?'],
     ]);
 
-    $action = new UpdateCampaignFrameAction();
+    $action = new UpdateCampaignFrameAction;
 
     // Act
     $updated_frame = $action->execute($frame, $update_data);
@@ -63,7 +63,7 @@ test('it maintains the creator when updating', function () {
         'is_public' => false,
     ]);
 
-    $action = new UpdateCampaignFrameAction();
+    $action = new UpdateCampaignFrameAction;
 
     // Act
     $updated_frame = $action->execute($frame, $update_data);

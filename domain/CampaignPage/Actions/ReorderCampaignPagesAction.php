@@ -12,10 +12,9 @@ class ReorderCampaignPagesAction
 {
     /**
      * Reorder pages within a campaign and optional parent
-     * 
-     * @param Campaign $campaign
-     * @param array $pageIds Array of page IDs in desired order
-     * @param int|null $parentId Parent page ID or null for root level
+     *
+     * @param  array  $pageIds  Array of page IDs in desired order
+     * @param  int|null  $parentId  Parent page ID or null for root level
      */
     public function execute(Campaign $campaign, array $pageIds, ?int $parentId = null): void
     {

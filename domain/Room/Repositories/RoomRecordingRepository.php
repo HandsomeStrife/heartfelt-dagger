@@ -25,14 +25,14 @@ class RoomRecordingRepository
                     $participantQuery->where('user_id', $user->id);
                 });
         })
-        ->with(['room', 'user'])
-        ->byStartTime()
-        ->get()
-        ->map(fn (RoomRecording $recording) => RoomRecordingData::from([
-            ...$recording->toArray(),
-            'room' => $recording->room ? $recording->room->toArray() : null,
-            'user' => $recording->user ? $recording->user->toArray() : null,
-        ]));
+            ->with(['room', 'user'])
+            ->byStartTime()
+            ->get()
+            ->map(fn (RoomRecording $recording) => RoomRecordingData::from([
+                ...$recording->toArray(),
+                'room' => $recording->room ? $recording->room->toArray() : null,
+                'user' => $recording->user ? $recording->user->toArray() : null,
+            ]));
     }
 
     /**
@@ -43,7 +43,7 @@ class RoomRecordingRepository
     public function getByRoomForUser(Room $room, User $user): Collection
     {
         // Check if user has access to this room
-        if (!$this->userCanAccessRoom($room, $user)) {
+        if (! $this->userCanAccessRoom($room, $user)) {
             return collect();
         }
 
@@ -52,10 +52,10 @@ class RoomRecordingRepository
             ->byStartTime()
             ->get()
             ->map(fn (RoomRecording $recording) => RoomRecordingData::from([
-            ...$recording->toArray(),
-            'room' => $recording->room ? $recording->room->toArray() : null,
-            'user' => $recording->user ? $recording->user->toArray() : null,
-        ]));
+                ...$recording->toArray(),
+                'room' => $recording->room ? $recording->room->toArray() : null,
+                'user' => $recording->user ? $recording->user->toArray() : null,
+            ]));
     }
 
     /**
@@ -76,10 +76,10 @@ class RoomRecordingRepository
             ->byStartTime()
             ->get()
             ->map(fn (RoomRecording $recording) => RoomRecordingData::from([
-            ...$recording->toArray(),
-            'room' => $recording->room ? $recording->room->toArray() : null,
-            'user' => $recording->user ? $recording->user->toArray() : null,
-        ]));
+                ...$recording->toArray(),
+                'room' => $recording->room ? $recording->room->toArray() : null,
+                'user' => $recording->user ? $recording->user->toArray() : null,
+            ]));
     }
 
     /**
@@ -103,10 +103,10 @@ class RoomRecordingRepository
             ->byStartTime()
             ->get()
             ->map(fn (RoomRecording $recording) => RoomRecordingData::from([
-            ...$recording->toArray(),
-            'room' => $recording->room ? $recording->room->toArray() : null,
-            'user' => $recording->user ? $recording->user->toArray() : null,
-        ]));
+                ...$recording->toArray(),
+                'room' => $recording->room ? $recording->room->toArray() : null,
+                'user' => $recording->user ? $recording->user->toArray() : null,
+            ]));
     }
 
     /**
@@ -122,20 +122,20 @@ class RoomRecordingRepository
                     $participantQuery->where('user_id', $user->id);
                 });
         })
-        ->whereHas('room', function ($query) use ($searchTerm) {
-            $query->where(function ($searchQuery) use ($searchTerm) {
-                $searchQuery->where('name', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('description', 'LIKE', "%{$searchTerm}%");
-            });
-        })
-        ->with(['room', 'user'])
-        ->byStartTime()
-        ->get()
-        ->map(fn (RoomRecording $recording) => RoomRecordingData::from([
-            ...$recording->toArray(),
-            'room' => $recording->room ? $recording->room->toArray() : null,
-            'user' => $recording->user ? $recording->user->toArray() : null,
-        ]));
+            ->whereHas('room', function ($query) use ($searchTerm) {
+                $query->where(function ($searchQuery) use ($searchTerm) {
+                    $searchQuery->where('name', 'LIKE', "%{$searchTerm}%")
+                        ->orWhere('description', 'LIKE', "%{$searchTerm}%");
+                });
+            })
+            ->with(['room', 'user'])
+            ->byStartTime()
+            ->get()
+            ->map(fn (RoomRecording $recording) => RoomRecordingData::from([
+                ...$recording->toArray(),
+                'room' => $recording->room ? $recording->room->toArray() : null,
+                'user' => $recording->user ? $recording->user->toArray() : null,
+            ]));
     }
 
     /**
@@ -156,10 +156,10 @@ class RoomRecordingRepository
             ->byStartTime()
             ->get()
             ->map(fn (RoomRecording $recording) => RoomRecordingData::from([
-            ...$recording->toArray(),
-            'room' => $recording->room ? $recording->room->toArray() : null,
-            'user' => $recording->user ? $recording->user->toArray() : null,
-        ]));
+                ...$recording->toArray(),
+                'room' => $recording->room ? $recording->room->toArray() : null,
+                'user' => $recording->user ? $recording->user->toArray() : null,
+            ]));
     }
 
     /**
@@ -168,7 +168,7 @@ class RoomRecordingRepository
     public function getGroupedByRoomForUser(User $user): Collection
     {
         $recordings = $this->getByUser($user);
-        
+
         return $recordings->groupBy(function (RoomRecordingData $recording) {
             return $recording->room_id;
         })->map(function (Collection $roomRecordings) {

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 use Domain\Room\Models\Room;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\actingAs;
 
 test('room URLs use invite_code tokens instead of database IDs', function () {
     $user = User::factory()->create();
@@ -43,12 +44,12 @@ test('room creation redirects to token-based URLs', function () {
     ]);
 
     $room = Room::where('name', 'Token Test Room')->first();
-    
+
     // Verify redirect uses invite_code, not ID
     $expectedUrl = route('rooms.show', $room);
     expect($expectedUrl)->toContain($room->invite_code);
     // URL should be in format /rooms/{invite_code}, not /rooms/{id}
-    expect($expectedUrl)->toEndWith('/rooms/' . $room->invite_code);
+    expect($expectedUrl)->toEndWith('/rooms/'.$room->invite_code);
 
     $response->assertRedirect($expectedUrl);
 });
@@ -59,36 +60,36 @@ test('old ID-based URLs do not work', function () {
 
     // Try to access room using old ID-based URL pattern
     $oldStyleUrl = "/rooms/{$room->id}";
-    
+
     $response = actingAs($user)->get($oldStyleUrl);
-    
+
     // Should return 404 because route expects invite_code, not ID
     $response->assertNotFound();
 });
 
 test('room URLs are not predictable', function () {
     $user = User::factory()->create();
-    
+
     // Create multiple rooms to test invite_code uniqueness
     $rooms = Room::factory()->count(5)->create(['creator_id' => $user->id]);
-    
+
     $inviteCodes = $rooms->pluck('invite_code')->toArray();
-    
+
     // All invite codes should be unique
     expect(array_unique($inviteCodes))->toHaveCount(5);
-    
+
     // All should be 8 characters of A-Z and 0-9
     foreach ($inviteCodes as $code) {
         expect($code)->toHaveLength(8);
         expect($code)->toMatch('/^[A-Z0-9]{8}$/');
     }
-    
+
     // Sequential room IDs should not result in sequential invite codes
     $rooms = $rooms->sortBy('id');
     $sortedCodes = $rooms->pluck('invite_code')->toArray();
     $alphabeticallySorted = $sortedCodes;
     sort($alphabeticallySorted);
-    
+
     // Codes should not be in alphabetical order (randomness check)
     expect($sortedCodes)->not->toEqual($alphabeticallySorted);
 });

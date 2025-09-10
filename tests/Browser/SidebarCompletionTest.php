@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Domain\Character\Models\Character;
-
 // Test that sidebar completion indicators update properly when steps are completed
 it('updates sidebar completion indicators in real-time', function () {
     $page = visit('/character-builder');
@@ -21,7 +19,7 @@ it('updates sidebar completion indicators in real-time', function () {
     // The step 1 button should have completion styling
     $page->assertVisible('[pest="sidebar-tab-1"] .bg-emerald-500'); // Green completion icon
 
-    // Select subclass - Step 2 should become complete  
+    // Select subclass - Step 2 should become complete
     $page->click('[pest="subclass-card-stalwart"]');
     $page->wait(1);
 
@@ -39,7 +37,7 @@ it('updates sidebar completion indicators in real-time', function () {
     // Step 3 should now show as complete in sidebar
     $page->assertVisible('[pest="sidebar-tab-3"] .bg-emerald-500'); // Green completion icon
 
-    // Navigate to community step  
+    // Navigate to community step
     $page->click('[pest="next-step-button"]');
     $page->wait(1);
 
@@ -69,7 +67,7 @@ it('shows completion status correctly in sidebar text', function () {
     $page->click('[pest="sidebar-tab-1"]'); // Click to see the detail
     $page->assertSee('Completed'); // Should show completion status
 
-    // Select subclass  
+    // Select subclass
     $page->click('[pest="subclass-card-college of lore"]');
     $page->wait(1);
 

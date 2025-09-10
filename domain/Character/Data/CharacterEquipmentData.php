@@ -13,7 +13,7 @@ use Spatie\LaravelData\Data;
 class CharacterEquipmentData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public ?array $primary_weapon,
         public ?array $secondary_weapon,
@@ -43,10 +43,9 @@ class CharacterEquipmentData extends Data implements Wireable
     public static function fromBuilderData(array $selected_equipment): self
     {
         // Filter out null values and ensure each item has required structure
-        $valid_equipment = array_filter($selected_equipment, fn ($item) => 
-            $item !== null && is_array($item) && isset($item['type'])
+        $valid_equipment = array_filter($selected_equipment, fn ($item) => $item !== null && is_array($item) && isset($item['type'])
         );
-        
+
         $weapons = array_filter($valid_equipment, fn ($item) => $item['type'] === 'weapon');
         $armor = array_filter($valid_equipment, fn ($item) => $item['type'] === 'armor');
         $items = array_filter($valid_equipment, fn ($item) => $item['type'] === 'item');

@@ -12,12 +12,12 @@
 */
 
 // Include shared test helpers
-require_once __DIR__ . '/Helpers.php';
+require_once __DIR__.'/Helpers.php';
 
 // Feature tests use the full Laravel TestCase with database
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
-    ->in('Browser','Unit', 'Feature');
+    ->in('Browser', 'Unit', 'Feature');
 
 // Increase default browser timeout for heavier pages/components (milliseconds)
 pest()->browser()->timeout(15000);

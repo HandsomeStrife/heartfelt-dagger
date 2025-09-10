@@ -7,10 +7,11 @@ use Domain\Character\Models\Character;
 use Domain\Character\Models\CharacterAdvancement;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new ApplyAdvancementAction();
+    $this->action = new ApplyAdvancementAction;
 });
 test('execute creates new advancement record', function () {
     $character = Character::factory()->create();
@@ -37,7 +38,7 @@ test('execute throws exception for duplicate advancement slot', function () {
 
     $advancement_data = CharacterAdvancementData::traitBonus(1, 1, ['agility'], 1);
 
-    expect(fn() => $this->action->execute($character, $advancement_data))
+    expect(fn () => $this->action->execute($character, $advancement_data))
         ->toThrow(\InvalidArgumentException::class, 'Advancement slot already taken');
 });
 test('execute allows different advancement numbers same tier', function () {
@@ -81,7 +82,7 @@ test('execute validates tier range', function () {
     $advancement_data = CharacterAdvancementData::traitBonus(0, 1, ['agility'], 1);
 
     // Invalid tier
-    expect(fn() => $this->action->execute($character, $advancement_data))
+    expect(fn () => $this->action->execute($character, $advancement_data))
         ->toThrow(\InvalidArgumentException::class, 'Tier must be between 1 and 4');
 });
 test('execute validates tier upper bound', function () {
@@ -89,7 +90,7 @@ test('execute validates tier upper bound', function () {
     $advancement_data = CharacterAdvancementData::traitBonus(5, 1, ['agility'], 1);
 
     // Invalid tier
-    expect(fn() => $this->action->execute($character, $advancement_data))
+    expect(fn () => $this->action->execute($character, $advancement_data))
         ->toThrow(\InvalidArgumentException::class, 'Tier must be between 1 and 4');
 });
 test('execute validates advancement number range', function () {
@@ -97,7 +98,7 @@ test('execute validates advancement number range', function () {
     $advancement_data = CharacterAdvancementData::traitBonus(1, 0, ['agility'], 1);
 
     // Invalid advancement number
-    expect(fn() => $this->action->execute($character, $advancement_data))
+    expect(fn () => $this->action->execute($character, $advancement_data))
         ->toThrow(\InvalidArgumentException::class, 'Advancement number must be 1 or 2');
 });
 test('execute validates advancement number upper bound', function () {
@@ -105,7 +106,7 @@ test('execute validates advancement number upper bound', function () {
     $advancement_data = CharacterAdvancementData::traitBonus(1, 3, ['agility'], 1);
 
     // Invalid advancement number
-    expect(fn() => $this->action->execute($character, $advancement_data))
+    expect(fn () => $this->action->execute($character, $advancement_data))
         ->toThrow(\InvalidArgumentException::class, 'Advancement number must be 1 or 2');
 });
 test('execute validates character level for tier', function () {
@@ -113,7 +114,7 @@ test('execute validates character level for tier', function () {
     $advancement_data = CharacterAdvancementData::traitBonus(3, 1, ['agility'], 1);
 
     // Tier 3 requires level 5+
-    expect(fn() => $this->action->execute($character, $advancement_data))
+    expect(fn () => $this->action->execute($character, $advancement_data))
         ->toThrow(\InvalidArgumentException::class, 'Character level insufficient for tier 3');
 });
 test('execute allows tier progression with sufficient level', function () {
@@ -131,7 +132,7 @@ test('execute validates multiclass advancement data', function () {
     $advancement_data = CharacterAdvancementData::multiclass(4, 1, '');
 
     // Empty class
-    expect(fn() => $this->action->execute($character, $advancement_data))
+    expect(fn () => $this->action->execute($character, $advancement_data))
         ->toThrow(\InvalidArgumentException::class, 'Multiclass advancement requires a class selection');
 });
 test('execute validates trait bonus advancement data', function () {
@@ -139,7 +140,7 @@ test('execute validates trait bonus advancement data', function () {
     $advancement_data = CharacterAdvancementData::traitBonus(1, 1, [], 1);
 
     // Empty traits array
-    expect(fn() => $this->action->execute($character, $advancement_data))
+    expect(fn () => $this->action->execute($character, $advancement_data))
         ->toThrow(\InvalidArgumentException::class, 'Trait bonus advancement requires at least one trait');
 });
 test('execute creates advancement in transaction', function () {
@@ -174,7 +175,7 @@ test('execute creates different advancement types', function () {
 
     foreach ($advancement_types as $advancement_data) {
         $result = $this->action->execute($character, $advancement_data);
-        
+
         expect($result)->toBeInstanceOf(CharacterAdvancement::class);
         expect($result->advancement_type)->toEqual($advancement_data->advancement_type);
         expect($result->advancement_data)->toEqual($advancement_data->advancement_data);

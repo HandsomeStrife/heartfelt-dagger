@@ -46,14 +46,14 @@ test('gm sees gm sidebar with campaign pages', function () {
         'creator_id' => $this->gm->id,
         'campaign_id' => $campaign->id,
     ]);
-    
+
     // Create some campaign pages
     $page1 = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'creator_id' => $this->gm->id,
         'title' => 'Test Page 1',
     ]);
-    
+
     $page2 = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'creator_id' => $this->gm->id,
@@ -72,18 +72,18 @@ test('gm sees gm sidebar with campaign pages', function () {
 
 test('player sees player sidebar with character details', function () {
     $campaign = Campaign::factory()->create(['creator_id' => $this->gm->id]);
-    
+
     // Add user as campaign member
     CampaignMember::factory()->create([
         'campaign_id' => $campaign->id,
         'user_id' => $this->user->id,
     ]);
-    
+
     $room = Room::factory()->create([
         'creator_id' => $this->gm->id,
         'campaign_id' => $campaign->id,
     ]);
-    
+
     // Create a character for the player
     $character = Character::factory()->create([
         'user_id' => $this->user->id,
@@ -91,7 +91,7 @@ test('player sees player sidebar with character details', function () {
         'class' => 'warrior',
         'ancestry' => 'human',
     ]);
-    
+
     // Join the room as a player with character
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
@@ -102,12 +102,12 @@ test('player sees player sidebar with character details', function () {
 
     $response = $this->actingAs($this->user)
         ->get(route('rooms.session', $room));
-        
+
     if ($response->status() !== 200) {
-        dump('Response status: ' . $response->status());
-        dump('Redirect location: ' . $response->headers->get('Location'));
+        dump('Response status: '.$response->status());
+        dump('Redirect location: '.$response->headers->get('Location'));
     }
-        
+
     $response->assertOk()
         ->assertSee('Test Character')
         ->assertSee('warrior')
@@ -119,18 +119,18 @@ test('player sees player sidebar with character details', function () {
 
 test('player without character sees empty sidebar', function () {
     $campaign = Campaign::factory()->create(['creator_id' => $this->gm->id]);
-    
+
     // Add user as campaign member
     CampaignMember::factory()->create([
         'campaign_id' => $campaign->id,
         'user_id' => $this->user->id,
     ]);
-    
+
     $room = Room::factory()->create([
         'creator_id' => $this->gm->id,
         'campaign_id' => $campaign->id,
     ]);
-    
+
     // Join the room as a player without character
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
@@ -154,7 +154,7 @@ test('gm sidebar shows player summaries', function () {
         'creator_id' => $this->gm->id,
         'campaign_id' => $campaign->id,
     ]);
-    
+
     // Create characters for players
     $character1 = Character::factory()->create([
         'user_id' => $this->user->id,
@@ -162,7 +162,7 @@ test('gm sidebar shows player summaries', function () {
         'class' => 'warrior',
         'ancestry' => 'human',
     ]);
-    
+
     $player2 = User::factory()->create();
     $character2 = Character::factory()->create([
         'user_id' => $player2->id,
@@ -170,14 +170,14 @@ test('gm sidebar shows player summaries', function () {
         'class' => 'wizard',
         'ancestry' => 'elf',
     ]);
-    
+
     // Join the room as players
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $this->user->id,
         'character_id' => $character1->id,
     ]);
-    
+
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $player2->id,
@@ -213,7 +213,7 @@ test('room session loads campaign pages for gm', function () {
         'creator_id' => $this->gm->id,
         'campaign_id' => $campaign->id,
     ]);
-    
+
     // Create campaign pages
     CampaignPage::factory()->count(3)->create([
         'campaign_id' => $campaign->id,
@@ -222,9 +222,9 @@ test('room session loads campaign pages for gm', function () {
 
     $response = $this->actingAs($this->gm)
         ->get(route('rooms.session', $room));
-        
+
     $response->assertOk();
-    
+
     // Check that campaign pages were loaded in the view data
     $response->assertViewHas('campaign_pages');
     $campaignPages = $response->viewData('campaign_pages');
@@ -233,24 +233,24 @@ test('room session loads campaign pages for gm', function () {
 
 test('room session does not load campaign pages for players', function () {
     $campaign = Campaign::factory()->create(['creator_id' => $this->gm->id]);
-    
+
     // Add user as campaign member
     CampaignMember::factory()->create([
         'campaign_id' => $campaign->id,
         'user_id' => $this->user->id,
     ]);
-    
+
     $room = Room::factory()->create([
         'creator_id' => $this->gm->id,
         'campaign_id' => $campaign->id,
     ]);
-    
+
     // Join as player
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $this->user->id,
     ]);
-    
+
     // Create campaign pages
     CampaignPage::factory()->count(3)->create([
         'campaign_id' => $campaign->id,
@@ -259,9 +259,9 @@ test('room session does not load campaign pages for players', function () {
 
     $response = $this->actingAs($this->user)
         ->get(route('rooms.session', $room));
-        
+
     $response->assertOk();
-    
+
     // Check that campaign pages collection is empty for players
     $response->assertViewHas('campaign_pages');
     $campaignPages = $response->viewData('campaign_pages');

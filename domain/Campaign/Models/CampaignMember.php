@@ -62,7 +62,7 @@ class CampaignMember extends Model
      */
     public function hasCharacter(): bool
     {
-        return !is_null($this->character_id);
+        return ! is_null($this->character_id);
     }
 
     /**

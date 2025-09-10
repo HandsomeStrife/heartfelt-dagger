@@ -18,16 +18,16 @@ class CreateRoomData extends Data implements Wireable
     public function __construct(
         #[Required, Max(100)]
         public string $name,
-        
+
         #[Required, Max(500)]
         public string $description,
-        
+
         #[Max(255)]
         public ?string $password,
-        
+
         #[Required, Min(2), Max(6)]
         public int $guest_count,
-        
+
         public ?int $campaign_id = null,
     ) {}
 }

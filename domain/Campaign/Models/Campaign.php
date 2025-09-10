@@ -201,7 +201,7 @@ class Campaign extends Model
      */
     public function isCampaignFrameSectionVisible(string $section): bool
     {
-        if (!$this->campaign_frame_id) {
+        if (! $this->campaign_frame_id) {
             return false;
         }
 
@@ -209,9 +209,10 @@ class Campaign extends Model
             ->where('section_name', $section)
             ->first();
 
-        if (!$visibility) {
+        if (! $visibility) {
             // Use default visibility if not set
             $defaults = CampaignFrameVisibility::getDefaultVisibilitySettings();
+
             return $defaults[$section] ?? false;
         }
 
@@ -223,7 +224,7 @@ class Campaign extends Model
      */
     public function getVisibleCampaignFrameSections(?User $user = null): array
     {
-        if (!$this->campaign_frame_id) {
+        if (! $this->campaign_frame_id) {
             return [];
         }
 
@@ -275,6 +276,7 @@ class Campaign extends Model
     {
         $newLevel = $this->getFearLevel() + $amount;
         $this->setFearLevel($newLevel);
+
         return $this->fear_level;
     }
 
@@ -285,6 +287,7 @@ class Campaign extends Model
     {
         $newLevel = $this->getFearLevel() - $amount;
         $this->setFearLevel($newLevel);
+
         return $this->fear_level;
     }
 
@@ -326,6 +329,7 @@ class Campaign extends Model
     public function getCountdownTracker(string $id): ?array
     {
         $trackers = $this->getCountdownTrackers();
+
         return $trackers[$id] ?? null;
     }
 }

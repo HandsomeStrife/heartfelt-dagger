@@ -8,6 +8,7 @@ use Domain\Character\Models\CharacterExperience;
 use Domain\Character\Models\CharacterTrait;
 use Domain\User\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 it('generates unique character key on creation', function () {
@@ -155,7 +156,7 @@ it('returns default profile image when none set', function () {
     expect($profileImage)->toContain('img/default-avatar.png');
 });
 it('validates required fields', function () {
-    expect(fn() => Character::create([
+    expect(fn () => Character::create([
         // Missing required fields like character_key, name, class, etc.
     ]))->toThrow(\Illuminate\Database\QueryException::class);
 });

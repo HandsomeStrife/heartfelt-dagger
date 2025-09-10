@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('Ancestry Effects Builder and Viewer Integration', function () {
-    
+
     it('validates Clank ancestry displays correctly with experience bonus', function () {
         // Create character with Clank ancestry
         $character_data = [
@@ -24,18 +24,18 @@ describe('Ancestry Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Clank Rogue'
+            'name' => 'Test Clank Rogue',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Clank Rogue');
-        
+
         // Verify Clank ancestry features section appears
         $page->assertPresent('[pest="ancestry-features-section"]');
         $page->assertSee('Clank');
@@ -55,22 +55,22 @@ describe('Ancestry Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Galapa Guardian'
+            'name' => 'Test Galapa Guardian',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Galapa Guardian');
-        
+
         // Verify Galapa ancestry features section appears
         $page->assertPresent('[pest="ancestry-features-section"]');
         $page->assertSee('Galapa');
-        
+
         // Verify damage thresholds are displayed (Galapa gets +2 to both thresholds)
         $page->assertPresent('[pest="damage-thresholds"]');
     });
@@ -88,22 +88,22 @@ describe('Ancestry Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Giant Warrior'
+            'name' => 'Test Giant Warrior',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Giant Warrior');
-        
+
         // Verify Giant ancestry features section appears
         $page->assertPresent('[pest="ancestry-features-section"]');
         $page->assertSee('Giant');
-        
+
         // Verify HP display is present (Giant gets +1 HP)
         $page->assertPresent('[pest="hit-points-track"]');
     });
@@ -121,22 +121,22 @@ describe('Ancestry Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Human Bard'
+            'name' => 'Test Human Bard',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Human Bard');
-        
+
         // Verify Human ancestry features section appears
         $page->assertPresent('[pest="ancestry-features-section"]');
         $page->assertSee('Human');
-        
+
         // Verify stress display is present (Human gets +1 Stress)
         $page->assertPresent('[pest="stress-track"]');
     });
@@ -154,22 +154,22 @@ describe('Ancestry Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Simiah Ranger'
+            'name' => 'Test Simiah Ranger',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Simiah Ranger');
-        
+
         // Verify Simiah ancestry features section appears
         $page->assertPresent('[pest="ancestry-features-section"]');
         $page->assertSee('Simiah');
-        
+
         // Verify evasion display is present (Simiah gets +1 Evasion)
         $page->assertPresent('[pest="evasion-stat"]');
     });
@@ -187,25 +187,25 @@ describe('Ancestry Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Earthkin Guardian'
+            'name' => 'Test Earthkin Guardian',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Earthkin Guardian');
-        
+
         // Verify Earthkin ancestry features section appears
         $page->assertPresent('[pest="ancestry-features-section"]');
         $page->assertSee('Earthkin');
-        
+
         // Verify playtest labeling appears (should show "Void - Playtest v1.3")
         $page->assertSee('Void - Playtest');
-        
+
         // Verify armor and threshold bonuses are reflected
         $page->assertPresent('[pest="armor-stat"]');
         $page->assertPresent('[pest="damage-thresholds"]');
@@ -224,22 +224,22 @@ describe('Ancestry Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Dwarf Druid'
+            'name' => 'Test Dwarf Druid',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Dwarf Druid');
-        
+
         // Verify Dwarf ancestry features section appears
         $page->assertPresent('[pest="ancestry-features-section"]');
         $page->assertSee('Dwarf');
-        
+
         // Verify standard stats are present (no special bonuses, just normal display)
         $page->assertPresent('[pest="hit-points-track"]');
         $page->assertPresent('[pest="stress-track"]');

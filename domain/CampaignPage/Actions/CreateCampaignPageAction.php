@@ -36,7 +36,7 @@ class CreateCampaignPageAction
             ]);
 
             // Handle specific player access
-            if ($data->access_level === PageAccessLevel::SPECIFIC_PLAYERS && !empty($data->authorized_user_ids)) {
+            if ($data->access_level === PageAccessLevel::SPECIFIC_PLAYERS && ! empty($data->authorized_user_ids)) {
                 $page->authorizedUsers()->attach($data->authorized_user_ids);
             }
 

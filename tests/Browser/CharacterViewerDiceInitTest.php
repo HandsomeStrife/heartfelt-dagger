@@ -20,7 +20,7 @@ it('hides loading screen on character viewer even if dice API is unavailable', f
         'name' => 'Dice Init Check',
     ]);
 
-    $page = visit('/character/' . $character->character_key);
+    $page = visit('/character/'.$character->character_key);
 
     // Regardless of dice API availability, UI should not remain blocked
     $page->wait(2.5);
@@ -29,5 +29,3 @@ it('hides loading screen on character viewer even if dice API is unavailable', f
     $isHidden = $page->script('(() => { const el = document.getElementById("character-loading-screen"); if(!el){return true;} const style = getComputedStyle(el); return style.display === "none" || parseFloat(style.opacity || "1") === 0; })()');
     expect((bool) $isHidden)->toBeTrue();
 });
-
-

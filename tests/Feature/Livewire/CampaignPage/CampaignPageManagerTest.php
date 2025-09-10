@@ -7,12 +7,11 @@ use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
 use Domain\CampaignPage\Models\CampaignPage;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs};
+
+use function Pest\Laravel\actingAs;
 use function Pest\Livewire\livewire;
 
-
-it('can render campaign page manager', function ()
-{
+it('can render campaign page manager', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -24,25 +23,21 @@ it('can render campaign page manager', function ()
         ->assertSee('Organize and manage your campaign lore');
 });
 
-
-it('loads pages on mount', function ()
-{
+it('loads pages on mount', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
-    
+
     $page1 = CampaignPage::factory()->allPlayers()->create(['campaign_id' => $campaign->id]);
     $page2 = CampaignPage::factory()->allPlayers()->create(['campaign_id' => $campaign->id]);
 
     actingAs($user);
 
     $component = livewire(CampaignPageManager::class, ['campaign' => $campaign]);
-    
+
     expect($component->get('pages'))->toHaveCount(2);
 });
 
-
-it('shows_create button for campaign creators', function ()
-{
+it('shows_create button for campaign creators', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -52,13 +47,11 @@ it('shows_create button for campaign creators', function ()
         ->assertSee('Create Page');
 });
 
-
-it('hides_create button for non creators', function ()
-{
+it('hides_create button for non creators', function () {
     $creator = User::factory()->create();
     $member = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
-    
+
     CampaignMember::create(['campaign_id' => $campaign->id, 'user_id' => $member->id]);
 
     actingAs($member);
@@ -67,9 +60,7 @@ it('hides_create button for non creators', function ()
         ->assertDontSee('Create Page');
 });
 
-
-it('can switch view modes', function ()
-{
+it('can switch view modes', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -81,12 +72,10 @@ it('can switch view modes', function ()
         ->assertSet('view_mode', 'list');
 });
 
-
-it('can search pages', function ()
-{
+it('can search pages', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
-    
+
     $dragonPage = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Dragon Lair',
@@ -106,12 +95,10 @@ it('can search pages', function ()
         ->assertSet('view_mode', 'search');
 });
 
-
-it('can filter by categories', function ()
-{
+it('can filter by categories', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
-    
+
     $npcPage = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'category_tags' => ['NPCs', 'Villains'],
@@ -128,9 +115,7 @@ it('can filter by categories', function ()
         ->assertSet('selected_categories', ['NPCs']);
 });
 
-
-it('can clear search filters', function ()
-{
+it('can clear search filters', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -146,9 +131,7 @@ it('can clear search filters', function ()
         ->assertSet('view_mode', 'hierarchy');
 });
 
-
-it('can create page', function ()
-{
+it('can create page', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -160,9 +143,7 @@ it('can create page', function ()
         ->assertSet('editing_page', null);
 });
 
-
-it('can create child page', function ()
-{
+it('can create child page', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $parentPage = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
@@ -175,9 +156,7 @@ it('can create child page', function ()
         ->assertDispatched('set-parent');
 });
 
-
-it('can edit page', function ()
-{
+it('can edit page', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $page = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
@@ -190,9 +169,7 @@ it('can edit page', function ()
         ->assertSet('editing_page.id', $page->id);
 });
 
-
-it('can delete page', function ()
-{
+it('can delete page', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $page = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
@@ -206,9 +183,7 @@ it('can delete page', function ()
     expect(CampaignPage::find($page->id))->toBeNull();
 });
 
-
-it('prevents_non authorized users from deleting', function ()
-{
+it('prevents_non authorized users from deleting', function () {
     $creator = User::factory()->create();
     $otherUser = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
@@ -223,12 +198,10 @@ it('prevents_non authorized users from deleting', function ()
     expect(CampaignPage::find($page->id))->not->toBeNull();
 });
 
-
-it('can reorder pages', function ()
-{
+it('can reorder pages', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
-    
+
     $page1 = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'display_order' => 1,
@@ -246,14 +219,12 @@ it('can reorder pages', function ()
 
     $page1->refresh();
     $page2->refresh();
-    
+
     expect($page2->display_order)->toBe(1);
     expect($page1->display_order)->toBe(2);
 });
 
-
-it('refreshes pages on form events', function ()
-{
+it('refreshes pages on form events', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -265,9 +236,7 @@ it('refreshes pages on form events', function ()
         ->assertSet('show_form', false);
 });
 
-
-it('closes form', function ()
-{
+it('closes form', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $page = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
@@ -282,15 +251,13 @@ it('closes form', function ()
         ->assertSet('editing_page', null);
 });
 
-
-it('loads campaign statistics', function ()
-{
+it('loads campaign statistics', function () {
     $user = User::factory()->create();
     $player = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
-    
+
     CampaignMember::create(['campaign_id' => $campaign->id, 'user_id' => $player->id]);
-    
+
     $page1 = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'category_tags' => ['NPCs'],
@@ -303,20 +270,18 @@ it('loads campaign statistics', function ()
     actingAs($user);
 
     $component = livewire(CampaignPageManager::class, ['campaign' => $campaign]);
-    
+
     expect($component->get('available_categories'))->toHaveCount(2);
     expect($component->get('campaign_members'))->toHaveCount(1);
 });
 
-
-it('respects_access permissions for page visibility', function ()
-{
+it('respects_access permissions for page visibility', function () {
     $creator = User::factory()->create();
     $player = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
-    
+
     CampaignMember::create(['campaign_id' => $campaign->id, 'user_id' => $player->id]);
-    
+
     $gmPage = CampaignPage::factory()->gmOnly()->create(['campaign_id' => $campaign->id]);
     $playersPage = CampaignPage::factory()->allPlayers()->create(['campaign_id' => $campaign->id]);
 

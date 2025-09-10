@@ -42,8 +42,6 @@ class CampaignPageData extends Data implements Wireable
         public ?array $breadcrumbs = null,
     ) {}
 
-
-
     public static function fromModel(CampaignPage $page): self
     {
         return self::from([
@@ -62,9 +60,9 @@ class CampaignPageData extends Data implements Wireable
             'campaign' => $page->relationLoaded('campaign') ? CampaignData::from($page->campaign) : null,
             'creator' => $page->relationLoaded('creator') ? UserData::from($page->creator) : null,
             'parent' => $page->relationLoaded('parent') && $page->parent ? self::fromModel($page->parent) : null,
-            'children' => $page->relationLoaded('children') ? 
+            'children' => $page->relationLoaded('children') ?
                 $page->children->map(fn ($child) => self::fromModel($child)) : null,
-            'authorized_users' => $page->relationLoaded('authorizedUsers') ? 
+            'authorized_users' => $page->relationLoaded('authorizedUsers') ?
                 $page->authorizedUsers->map(fn ($user) => UserData::from($user))->toArray() : null,
             'depth_level' => $page->getDepthLevel(),
             'breadcrumbs' => array_map(fn ($ancestor) => self::fromModel($ancestor), $page->ancestors()),

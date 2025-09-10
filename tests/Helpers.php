@@ -11,10 +11,10 @@ declare(strict_types=1);
  */
 function createTestCharacter(): mixed
 {
-    if (!class_exists('Domain\Character\Models\Character')) {
+    if (! class_exists('Domain\Character\Models\Character')) {
         throw new \Exception('createTestCharacter() can only be used in Laravel-dependent tests');
     }
-    
+
     return \Domain\Character\Models\Character::factory()->create();
 }
 
@@ -23,10 +23,10 @@ function createTestCharacter(): mixed
  */
 function createTestCharacterWith(array $attributes): mixed
 {
-    if (!class_exists('Domain\Character\Models\Character')) {
+    if (! class_exists('Domain\Character\Models\Character')) {
         throw new \Exception('createTestCharacterWith() can only be used in Laravel-dependent tests');
     }
-    
+
     return \Domain\Character\Models\Character::factory()->create($attributes);
 }
 
@@ -50,7 +50,7 @@ function waitForChecked($page, string $selector, int $timeoutMs = 6000): void
 {
     $attempts = (int) ($timeoutMs / 200);
     for ($i = 0; $i < $attempts; $i++) {
-        $ok = $page->script("(() => !!document.querySelector('" . addslashes($selector) . ":checked'))()");
+        $ok = $page->script("(() => !!document.querySelector('".addslashes($selector).":checked'))()");
         if ($ok) {
             return;
         }

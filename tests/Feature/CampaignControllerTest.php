@@ -5,10 +5,14 @@ declare(strict_types=1);
 use Domain\Campaign\Models\Campaign;
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, delete};
+
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\delete;
+use function Pest\Laravel\get;
+use function Pest\Laravel\post;
 
 describe('CampaignController', function () {
-    
+
     describe('index', function () {
         it('displays campaigns dashboard for authenticated user', function () {
             $user = User::factory()->create();
@@ -59,7 +63,7 @@ describe('CampaignController', function () {
                 ->assertSessionHas('success', 'Campaign created successfully!');
 
             expect(Campaign::where('name', 'Test Campaign')->exists())->toBeTrue();
-            
+
             $campaign = Campaign::where('name', 'Test Campaign')->first();
             expect($campaign->description)->toBeNull();
             expect($campaign->creator_id)->toBe($user->id);
@@ -83,7 +87,7 @@ describe('CampaignController', function () {
 
         it('creates campaign with optional campaign frame', function () {
             $user = User::factory()->create();
-            
+
             // Create a simple campaign frame manually without factory
             $frame = CampaignFrame::create([
                 'name' => 'Test Frame',

@@ -22,20 +22,20 @@ class JoinRoomAction
         ?string $temporaryCharacterClass = null
     ): RoomParticipantData {
         $userId = $user ? $user->id : 'anonymous';
-        
+
         Log::info('JoinRoomAction - Starting execution', [
             'room_id' => $room->id,
             'user_id' => $userId,
             'character_id' => $character ? $character->id : null,
             'temporary_character_name' => $temporaryCharacterName,
-            'temporary_character_class' => $temporaryCharacterClass
+            'temporary_character_class' => $temporaryCharacterClass,
         ]);
-        
+
         // Check if authenticated user is already participating in this room
         if ($user && $room->hasActiveParticipant($user)) {
             Log::warning('JoinRoomAction - User already participating', [
                 'room_id' => $room->id,
-                'user_id' => $userId
+                'user_id' => $userId,
             ]);
             throw new Exception('You are already an active participant in this room.');
         }
@@ -46,7 +46,7 @@ class JoinRoomAction
                 'room_id' => $room->id,
                 'user_id' => $userId,
                 'current_participants' => $room->getActiveParticipantCount(),
-                'total_capacity' => $room->getTotalCapacity()
+                'total_capacity' => $room->getTotalCapacity(),
             ]);
             throw new Exception('This room is at capacity.');
         }
@@ -57,7 +57,7 @@ class JoinRoomAction
                 'room_id' => $room->id,
                 'user_id' => $userId,
                 'character_id' => $character->id,
-                'character_user_id' => $character->user_id
+                'character_user_id' => $character->user_id,
             ]);
             throw new Exception('Character does not belong to the user.');
         }
@@ -68,9 +68,9 @@ class JoinRoomAction
             'user_id' => $userId,
             'character_id' => $character?->id,
             'character_name' => $temporaryCharacterName,
-            'character_class' => $temporaryCharacterClass
+            'character_class' => $temporaryCharacterClass,
         ]);
-        
+
         $participant = RoomParticipant::create([
             'room_id' => $room->id,
             'user_id' => $user?->id,
@@ -81,7 +81,7 @@ class JoinRoomAction
         ]);
 
         $participant->load(['user', 'character']);
-        
+
         Log::info('JoinRoomAction - Participant created successfully', [
             'room_id' => $room->id,
             'user_id' => $userId,
@@ -90,7 +90,7 @@ class JoinRoomAction
             'participant_character_id' => $participant->character_id,
             'participant_character_name' => $participant->character_name,
             'participant_character_class' => $participant->character_class,
-            'joined_at' => $participant->joined_at
+            'joined_at' => $participant->joined_at,
         ]);
 
         return RoomParticipantData::from([

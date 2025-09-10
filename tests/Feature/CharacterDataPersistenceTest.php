@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use Domain\User\Models\User;
 use Domain\Character\Models\Character;
+use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
 test('character data persists correctly to database', function () {
     $user = User::factory()->create();
-    
+
     $characterData = [
         'user_id' => $user->id,
         'name' => 'Persistence Test Character',
@@ -35,7 +35,7 @@ test('character data persists correctly to database', function () {
                 'data' => [
                     'name' => 'Plate Armor',
                     'baseScore' => 5,
-                ]
+                ],
             ],
             [
                 'key' => 'warhammer',
@@ -43,9 +43,9 @@ test('character data persists correctly to database', function () {
                 'data' => [
                     'name' => 'Warhammer',
                     'trait' => 'Strength',
-                    'damage' => ['dice' => 'd10', 'modifier' => 3]
-                ]
-            ]
+                    'damage' => ['dice' => 'd10', 'modifier' => 3],
+                ],
+            ],
         ],
         'experiences' => [
             ['name' => 'Mountain Warfare', 'modifier' => 2],
@@ -75,7 +75,7 @@ test('character data persists correctly to database', function () {
     // Verify character was created
     expect($character)->toBeInstanceOf(Character::class);
     expect($character->name)->toBe('Persistence Test Character');
-    
+
     // Verify complex data structures persist correctly
     expect($character->assigned_traits)->toBe($characterData['assigned_traits']);
     expect($character->selected_equipment)->toBe($characterData['selected_equipment']);
@@ -93,7 +93,7 @@ test('character data persists correctly to database', function () {
 
 test('character traits array structure validates correctly', function () {
     $user = User::factory()->create();
-    
+
     $character = Character::factory()->create([
         'user_id' => $user->id,
         'assigned_traits' => [
@@ -108,7 +108,7 @@ test('character traits array structure validates correctly', function () {
 
     // Retrieve from database
     $retrievedCharacter = Character::find($character->id);
-    
+
     // Verify array structure is preserved
     expect($retrievedCharacter->assigned_traits)->toBeArray();
     expect($retrievedCharacter->assigned_traits)->toHaveKey('agility');
@@ -117,7 +117,7 @@ test('character traits array structure validates correctly', function () {
     expect($retrievedCharacter->assigned_traits)->toHaveKey('instinct');
     expect($retrievedCharacter->assigned_traits)->toHaveKey('presence');
     expect($retrievedCharacter->assigned_traits)->toHaveKey('knowledge');
-    
+
     // Verify values are correct types and values
     expect($retrievedCharacter->assigned_traits['agility'])->toBe(-1);
     expect($retrievedCharacter->assigned_traits['knowledge'])->toBe(2);
@@ -134,7 +134,7 @@ test('character equipment data structure persists with integrity', function () {
                 'baseScore' => 3,
                 'baseThresholds' => ['minor' => 1, 'major' => 2, 'severe' => 3],
                 'features' => ['Lightweight'],
-            ]
+            ],
         ],
         [
             'key' => 'longsword',
@@ -149,11 +149,11 @@ test('character equipment data structure persists with integrity', function () {
                 'damage' => [
                     'dice' => 'd8',
                     'modifier' => 2,
-                    'type' => 'physical'
+                    'type' => 'physical',
                 ],
                 'features' => ['Versatile'],
-            ]
-        ]
+            ],
+        ],
     ];
 
     $character = Character::factory()->create([
@@ -161,7 +161,7 @@ test('character equipment data structure persists with integrity', function () {
     ]);
 
     $retrievedCharacter = Character::find($character->id);
-    
+
     expect($retrievedCharacter->selected_equipment)->toBe($equipment);
     expect($retrievedCharacter->selected_equipment[0]['data']['name'])->toBe('Leather Armor');
     expect($retrievedCharacter->selected_equipment[1]['data']['damage']['dice'])->toBe('d8');
@@ -187,10 +187,10 @@ test('character domain cards persist with proper structure', function () {
     ]);
 
     $retrievedCharacter = Character::find($character->id);
-    
+
     expect($retrievedCharacter->selected_domain_cards)->toBe($domainCards);
     expect($retrievedCharacter->selected_domain_cards)->toHaveCount(2);
-    
+
     // Verify each domain card has required fields
     foreach ($retrievedCharacter->selected_domain_cards as $card) {
         expect($card)->toHaveKey('domain');
@@ -211,9 +211,9 @@ test('character experiences maintain proper format', function () {
     ]);
 
     $retrievedCharacter = Character::find($character->id);
-    
+
     expect($retrievedCharacter->experiences)->toBe($experiences);
-    
+
     foreach ($retrievedCharacter->experiences as $experience) {
         expect($experience)->toHaveKey('name');
         expect($experience)->toHaveKey('modifier');
@@ -235,7 +235,7 @@ test('character relationship with user persists correctly', function () {
 
     // Test direct relationship
     expect($character->user_id)->toBe($user->id);
-    
+
     // Test Eloquent relationship
     $retrievedCharacter = Character::with('user')->find($character->id);
     expect($retrievedCharacter->user)->not->toBeNull();
@@ -252,12 +252,12 @@ test('character unique keys are properly generated and stored', function () {
     expect($character->public_key)->not->toBeNull();
     expect(strlen($character->character_key))->toBe(10); // Based on factory pattern
     expect(strlen($character->public_key))->toBe(10);
-    
+
     // Keys should be unique
     $character2 = Character::factory()->create([
         'name' => 'Another Character',
     ]);
-    
+
     expect($character->character_key)->not->toBe($character2->character_key);
     expect($character->public_key)->not->toBe($character2->public_key);
 });
@@ -278,14 +278,14 @@ test('character optional fields handle null values gracefully', function () {
     ]);
 
     $retrievedCharacter = Character::find($character->id);
-    
+
     expect($retrievedCharacter->profile_image_path)->toBeNull();
     expect($retrievedCharacter->physical_description)->toBeNull();
     expect($retrievedCharacter->personality_traits)->toBeNull();
     expect($retrievedCharacter->personal_history)->toBeNull();
     expect($retrievedCharacter->motivations)->toBeNull();
     expect($retrievedCharacter->selected_subclass)->toBeNull();
-    
+
     // Required fields should still be present
     expect($retrievedCharacter->name)->toBe('Minimal Character');
     expect($retrievedCharacter->selected_class)->toBe('warrior');

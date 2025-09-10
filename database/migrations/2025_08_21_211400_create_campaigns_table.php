@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('invite_code', 8)->unique();
             $table->string('status', 20)->default('active');
             $table->timestamps();
-            
+
             $table->index(['creator_id']);
             $table->index(['invite_code']);
             $table->index(['status']);

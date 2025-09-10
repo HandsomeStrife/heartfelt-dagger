@@ -24,8 +24,8 @@ class WebRTCController extends Controller
         }
 
         // Use cache to avoid hitting Cloudflare API too frequently
-        $cacheKey = 'cf:ice:' . (int) (time() / 300); // 5-minute cache buckets
-        
+        $cacheKey = 'cf:ice:'.(int) (time() / 300); // 5-minute cache buckets
+
         $iceConfig = Cache::remember($cacheKey, 300, function () {
             return $this->fetchCloudflareIceConfig();
         });
@@ -43,8 +43,9 @@ class WebRTCController extends Controller
             $token = Config::get('services.cloudflare.turn_api_token');
             $ttl = (int) Config::get('services.cloudflare.turn_ttl', 7200);
 
-            if (!$keyId || !$token) {
+            if (! $keyId || ! $token) {
                 Log::warning('Cloudflare TURN credentials not configured, falling back to STUN-only');
+
                 return $this->getFallbackIceConfig();
             }
 
@@ -57,38 +58,38 @@ class WebRTCController extends Controller
 
             if ($response->successful()) {
                 $config = $response->json();
-                
+
                 // Validate response structure
                 if (is_array($config) && isset($config['iceServers']) && is_array($config['iceServers'])) {
                     // Optional: Remove :53 candidates if unwanted
                     foreach ($config['iceServers'] as &$server) {
-                        if (!empty($server['urls'])) {
+                        if (! empty($server['urls'])) {
                             $server['urls'] = array_values(
                                 array_filter(
-                                    (array) $server['urls'], 
-                                    fn($url) => !preg_match('/:\s*53(\b|\?)/', $url)
+                                    (array) $server['urls'],
+                                    fn ($url) => ! preg_match('/:\s*53(\b|\?)/', $url)
                                 )
                             );
                         }
                     }
-                    
+
                     Log::info('Successfully fetched Cloudflare ICE configuration', [
                         'servers_count' => count($config['iceServers']),
-                        'ttl' => $ttl
+                        'ttl' => $ttl,
                     ]);
-                    
+
                     return $config;
                 }
             }
 
             Log::warning('Invalid response from Cloudflare TURN API', [
                 'status' => $response->status(),
-                'response' => $response->body()
+                'response' => $response->body(),
             ]);
 
         } catch (\Exception $e) {
             Log::error('Failed to fetch Cloudflare ICE configuration', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
 
@@ -106,10 +107,10 @@ class WebRTCController extends Controller
                 [
                     'urls' => [
                         'stun:stun.cloudflare.com:3478',
-                        'stun:stun.l.google.com:19302'
-                    ]
-                ]
-            ]
+                        'stun:stun.l.google.com:19302',
+                    ],
+                ],
+            ],
         ];
     }
 }

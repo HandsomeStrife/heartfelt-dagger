@@ -56,7 +56,7 @@ class RoomRecordingSettings extends Model
      */
     public function hasStorageProvider(): bool
     {
-        return !empty($this->storage_provider) && !empty($this->storage_account_id);
+        return ! empty($this->storage_provider) && ! empty($this->storage_account_id);
     }
 
     /**
@@ -96,7 +96,7 @@ class RoomRecordingSettings extends Model
      */
     public function hasSttProvider(): bool
     {
-        return !empty($this->stt_provider) && !empty($this->stt_account_id);
+        return ! empty($this->stt_provider) && ! empty($this->stt_account_id);
     }
 
     /**
@@ -158,7 +158,7 @@ class RoomRecordingSettings extends Model
      */
     public function hasViewerPassword(): bool
     {
-        return !empty($this->viewer_password);
+        return ! empty($this->viewer_password);
     }
 
     /**
@@ -166,10 +166,10 @@ class RoomRecordingSettings extends Model
      */
     public function verifyViewerPassword(string $password): bool
     {
-        if (!$this->hasViewerPassword()) {
+        if (! $this->hasViewerPassword()) {
             return true; // No password required
         }
-        
+
         return \Hash::check($password, $this->viewer_password);
     }
 

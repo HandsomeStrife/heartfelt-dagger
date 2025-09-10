@@ -17,34 +17,37 @@ use Livewire\Component;
 class RoomRecordingSettings extends Component
 {
     public Room $room;
-    
+
     #[Validate]
     public RoomRecordingSettingsFormData $form;
-    
+
     public Collection $wasabiAccounts;
+
     public Collection $googleDriveAccounts;
+
     public Collection $assemblyAIAccounts;
+
     public bool $canManageSettings = false;
 
     public function mount(Room $room): void
     {
         $this->room = $room;
-        
+
         // Check if current user can manage settings
         $this->canManageSettings = auth()->check() && $this->room->creator_id === auth()->id();
-        
-        if (!$this->canManageSettings) {
+
+        if (! $this->canManageSettings) {
             abort(403, 'Only the room creator can manage recording settings');
         }
 
         // Load current settings
         $this->room->load('recordingSettings');
-        $currentSettings = $this->room->recordingSettings 
+        $currentSettings = $this->room->recordingSettings
             ? RoomRecordingSettingsData::from($this->room->recordingSettings)
             : null;
-            
+
         $this->form = RoomRecordingSettingsFormData::fromRoomRecordingSettings($currentSettings);
-        
+
         // Load user's storage accounts
         $this->loadStorageAccounts();
     }
@@ -53,17 +56,17 @@ class RoomRecordingSettings extends Component
     {
         /** @var \Domain\User\Models\User $user */
         $user = auth()->user();
-        
+
         $this->wasabiAccounts = $user->storageAccounts()
             ->where('provider', 'wasabi')
             ->where('is_active', true)
             ->get();
-            
+
         $this->googleDriveAccounts = $user->storageAccounts()
             ->where('provider', 'google_drive')
             ->where('is_active', true)
             ->get();
-            
+
         $this->assemblyAIAccounts = $user->storageAccounts()
             ->where('provider', 'assemblyai')
             ->where('is_active', true)
@@ -88,10 +91,10 @@ class RoomRecordingSettings extends Component
     public function updatedFormRecordingEnabled(): void
     {
         // If recording is disabled, clear storage settings
-        if (!$this->form->recording_enabled) {
+        if (! $this->form->recording_enabled) {
             $this->form->storage_provider = null;
             $this->form->storage_account_id = null;
-        } else if (!$this->form->storage_provider) {
+        } elseif (! $this->form->storage_provider) {
             // If recording is enabled but no storage provider, default to local_device
             $this->form->storage_provider = 'local_device';
         }
@@ -100,10 +103,10 @@ class RoomRecordingSettings extends Component
     public function updatedFormSttEnabled(): void
     {
         // If STT is disabled, clear STT settings
-        if (!$this->form->stt_enabled) {
+        if (! $this->form->stt_enabled) {
             $this->form->stt_provider = null;
             $this->form->stt_account_id = null;
-        } else if (!$this->form->stt_provider) {
+        } elseif (! $this->form->stt_provider) {
             // If STT is enabled but no provider, default to browser
             $this->form->stt_provider = 'browser';
         }
@@ -113,12 +116,12 @@ class RoomRecordingSettings extends Component
     {
         // Clear storage account when switching providers
         $this->form->storage_account_id = null;
-        
+
         // If switching to local_device, no account needed
         if ($this->form->storage_provider === 'local_device') {
             return;
         }
-        
+
         // Auto-select account if only one available
         $accounts = $this->getAccountsForProvider($this->form->storage_provider);
         if ($accounts->count() === 1) {
@@ -130,12 +133,12 @@ class RoomRecordingSettings extends Component
     {
         // Clear STT account when switching providers
         $this->form->stt_account_id = null;
-        
+
         // If switching to browser, no account needed
         if ($this->form->stt_provider === 'browser') {
             return;
         }
-        
+
         // Auto-select account if only one available
         $accounts = $this->getSttAccountsForProvider($this->form->stt_provider);
         if ($accounts->count() === 1) {
@@ -163,18 +166,19 @@ class RoomRecordingSettings extends Component
     public function save(): void
     {
         $this->validate();
-        
-        if (!$this->form->isValid()) {
+
+        if (! $this->form->isValid()) {
             $this->addError('form', $this->form->getValidationMessage());
+
             return;
         }
 
         try {
-            $updateAction = new UpdateRoomRecordingSettings();
-            
+            $updateAction = new UpdateRoomRecordingSettings;
+
             /** @var User $user */
             $user = auth()->user();
-            
+
             $updateAction->execute(
                 $this->room,
                 $user,
@@ -190,11 +194,11 @@ class RoomRecordingSettings extends Component
             );
 
             session()->flash('success', 'Recording settings updated successfully!');
-            
+
             // Reload the room settings
             $this->room->refresh();
             $this->room->load('recordingSettings');
-            
+
         } catch (\Exception $e) {
             $this->addError('form', $e->getMessage());
         }
@@ -202,21 +206,22 @@ class RoomRecordingSettings extends Component
 
     public function connectWasabi(): void
     {
-        $this->redirect('/wasabi/connect?redirect_to=' . urlencode(request()->url()));
+        $this->redirect('/wasabi/connect?redirect_to='.urlencode(request()->url()));
     }
 
     public function connectGoogleDrive(): void
     {
-        $this->redirect('/google-drive/authorize?redirect_to=' . urlencode(request()->url()));
+        $this->redirect('/google-drive/authorize?redirect_to='.urlencode(request()->url()));
     }
 
     public function getStorageAccountName(?int $accountId): string
     {
-        if (!$accountId) {
+        if (! $accountId) {
             return 'No account selected';
         }
 
         $account = UserStorageAccount::find($accountId);
+
         return $account ? $account->display_name : 'Unknown account';
     }
 
@@ -250,9 +255,10 @@ class RoomRecordingSettings extends Component
     public function resetSttConsent(int $participantId): void
     {
         $participant = $this->room->participants()->find($participantId);
-        
-        if (!$participant) {
+
+        if (! $participant) {
             session()->flash('error', 'Participant not found.');
+
             return;
         }
 
@@ -266,9 +272,10 @@ class RoomRecordingSettings extends Component
     public function resetRecordingConsent(int $participantId): void
     {
         $participant = $this->room->participants()->find($participantId);
-        
-        if (!$participant) {
+
+        if (! $participant) {
             session()->flash('error', 'Participant not found.');
+
             return;
         }
 
@@ -319,9 +326,9 @@ class RoomRecordingSettings extends Component
     public function render()
     {
         $participants = $this->getParticipantsWithConsent();
-        
+
         return view('livewire.room-recording-settings', [
-            'participants' => $participants
+            'participants' => $participants,
         ]);
     }
 }

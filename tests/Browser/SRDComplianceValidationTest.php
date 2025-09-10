@@ -9,7 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('SRD Compliance Validation', function () {
-    
+
     it('validates Warrior class displays correct starting stats in viewer', function () {
         // Create Warrior with standard configuration
         $character_data = [
@@ -23,25 +23,25 @@ describe('SRD Compliance Validation', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'SRD Test Warrior'
+            'name' => 'SRD Test Warrior',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('SRD Test Warrior');
-        
+
         // Verify all core stats are displayed (exact values computed by the system)
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
         $page->assertPresent('[pest="hit-points-track"]');
         $page->assertPresent('[pest="stress-track"]');
         $page->assertPresent('[pest="damage-thresholds"]');
-        
+
         // Verify class display
         $page->assertSee('Warrior');
         $page->assertSee('Stalwart');
@@ -60,25 +60,25 @@ describe('SRD Compliance Validation', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'SRD Test Wizard'
+            'name' => 'SRD Test Wizard',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('SRD Test Wizard');
-        
+
         // Verify all core stats are displayed
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
         $page->assertPresent('[pest="hit-points-track"]');
         $page->assertPresent('[pest="stress-track"]');
         $page->assertPresent('[pest="damage-thresholds"]');
-        
+
         // Verify class and subclass display
         $page->assertSee('Wizard');
         $page->assertSee('School of War');
@@ -97,25 +97,25 @@ describe('SRD Compliance Validation', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'SRD Test Guardian'
+            'name' => 'SRD Test Guardian',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('SRD Test Guardian');
-        
+
         // Verify all core stats are displayed
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
         $page->assertPresent('[pest="hit-points-track"]');
         $page->assertPresent('[pest="stress-track"]');
         $page->assertPresent('[pest="damage-thresholds"]');
-        
+
         // Verify class and subclass display
         $page->assertSee('Guardian');
         $page->assertSee('Stalwart');
@@ -134,25 +134,25 @@ describe('SRD Compliance Validation', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'SRD Test Rogue'
+            'name' => 'SRD Test Rogue',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('SRD Test Rogue');
-        
+
         // Verify all core stats are displayed
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
         $page->assertPresent('[pest="hit-points-track"]');
         $page->assertPresent('[pest="stress-track"]');
         $page->assertPresent('[pest="damage-thresholds"]');
-        
+
         // Verify class and subclass display
         $page->assertSee('Rogue');
         $page->assertSee('Nightwalker');
@@ -171,25 +171,25 @@ describe('SRD Compliance Validation', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'SRD Test Druid'
+            'name' => 'SRD Test Druid',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('SRD Test Druid');
-        
+
         // Verify all core stats are displayed
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
         $page->assertPresent('[pest="hit-points-track"]');
         $page->assertPresent('[pest="stress-track"]');
         $page->assertPresent('[pest="damage-thresholds"]');
-        
+
         // Verify class and subclass display
         $page->assertSee('Druid');
         $page->assertSee('Warden of Renewal');
@@ -208,25 +208,25 @@ describe('SRD Compliance Validation', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'SRD Test Stacked Bonuses'
+            'name' => 'SRD Test Stacked Bonuses',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('SRD Test Stacked Bonuses');
-        
+
         // Verify all stats display (should include stacked bonuses)
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');
         $page->assertPresent('[pest="hit-points-track"]');
         $page->assertPresent('[pest="stress-track"]');
         $page->assertPresent('[pest="damage-thresholds"]');
-        
+
         // Verify character displays correctly
         $page->assertSee('Giant');
         $page->assertSee('Wizard');
@@ -246,25 +246,25 @@ describe('SRD Compliance Validation', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'SRD Test Domain Cards'
+            'name' => 'SRD Test Domain Cards',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('SRD Test Domain Cards');
-        
+
         // Note: Domain cards section only shows if cards are selected
         // This test focuses on core stat validation instead
-        
+
         // Verify class and subclass
         $page->assertSee('Sorcerer');
         $page->assertSee('Elemental Origin');
-        
+
         // Verify all core stats are displayed
         $page->assertPresent('[pest="evasion-stat"]');
         $page->assertPresent('[pest="armor-stat"]');

@@ -25,11 +25,11 @@ class SessionMarkerFactory extends Factory
             'uuid' => $this->faker->uuid(),
             'identifier' => $this->faker->randomElement([
                 'Session Start',
-                'Session Stop', 
+                'Session Stop',
                 'Break Start',
                 'Break Stop',
                 null,
-                $this->faker->words(2, true)
+                $this->faker->words(2, true),
             ]),
             'creator_id' => User::factory(),
             'user_id' => User::factory(),
@@ -64,7 +64,7 @@ class SessionMarkerFactory extends Factory
     /**
      * Create a marker for a specific room and creator
      */
-    public function forRoomAndCreator(int $roomId, int $creatorId, int $userId = null): static
+    public function forRoomAndCreator(int $roomId, int $creatorId, ?int $userId = null): static
     {
         return $this->state(fn (array $attributes) => [
             'room_id' => $roomId,

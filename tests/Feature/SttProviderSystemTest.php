@@ -19,7 +19,7 @@ class SttProviderSystemTest extends TestCase
     {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create recording settings with STT enabled but no provider specified
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -36,7 +36,7 @@ class SttProviderSystemTest extends TestCase
         $response->assertOk()
             ->assertJson([
                 'provider' => 'browser',
-                'config' => []
+                'config' => [],
             ]);
     }
 
@@ -44,7 +44,7 @@ class SttProviderSystemTest extends TestCase
     {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create recording settings with AssemblyAI provider but no account
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -60,7 +60,7 @@ class SttProviderSystemTest extends TestCase
 
         $response->assertStatus(400)
             ->assertJson([
-                'error' => 'AssemblyAI account not configured'
+                'error' => 'AssemblyAI account not configured',
             ]);
     }
 
@@ -68,18 +68,18 @@ class SttProviderSystemTest extends TestCase
     {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create AssemblyAI account
         $assemblyAIAccount = UserStorageAccount::create([
             'user_id' => $user->id,
             'provider' => 'assemblyai',
             'display_name' => 'Test AssemblyAI Account',
             'encrypted_credentials' => [
-                'api_key' => 'test_api_key_12345'
+                'api_key' => 'test_api_key_12345',
             ],
             'is_active' => true,
         ]);
-        
+
         // Create recording settings with AssemblyAI provider
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -97,8 +97,8 @@ class SttProviderSystemTest extends TestCase
             ->assertJson([
                 'provider' => 'assemblyai',
                 'config' => [
-                    'api_key' => 'test_api_key_12345'
-                ]
+                    'api_key' => 'test_api_key_12345',
+                ],
             ]);
     }
 
@@ -125,7 +125,7 @@ class SttProviderSystemTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson([
-                'error' => 'Access denied'
+                'error' => 'Access denied',
             ]);
     }
 
@@ -133,7 +133,7 @@ class SttProviderSystemTest extends TestCase
     {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Create recording settings with STT disabled
         RoomRecordingSettings::create([
             'room_id' => $room->id,
@@ -149,9 +149,7 @@ class SttProviderSystemTest extends TestCase
 
         $response->assertStatus(400)
             ->assertJson([
-                'error' => 'STT not enabled for this room'
+                'error' => 'STT not enabled for this room',
             ]);
     }
 }
-
-

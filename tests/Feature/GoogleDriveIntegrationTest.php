@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-use Domain\Room\Actions\CreateGoogleDriveStorageAccount;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
-use Domain\Room\Models\RoomRecording;
 use Domain\Room\Models\RoomRecordingSettings;
 use Domain\Room\Services\GoogleDriveService;
 use Domain\User\Models\User;
@@ -14,7 +12,7 @@ use Illuminate\Http\UploadedFile;
 
 test('google drive service initializes correctly with storage account', function () {
     $user = User::factory()->create();
-    
+
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'google_drive',
@@ -31,14 +29,14 @@ test('google drive service initializes correctly with storage account', function
     ]);
 
     $driveService = new GoogleDriveService($storageAccount);
-    
+
     expect($driveService)->toBeInstanceOf(GoogleDriveService::class);
     expect($driveService->getStorageAccount())->toBe($storageAccount);
 });
 
 test('google drive service rejects non-google-drive storage accounts', function () {
     $user = User::factory()->create();
-    
+
     $wasabiAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'wasabi', // Not Google Drive
@@ -66,7 +64,7 @@ test('can generate google drive authorization url', function () {
     ]);
 
     $authUrl = GoogleDriveService::getAuthorizationUrl();
-    
+
     expect($authUrl)->toBeString();
     expect($authUrl)->toContain('accounts.google.com');
     expect($authUrl)->toContain('oauth2');
@@ -77,7 +75,7 @@ test('can generate google drive authorization url', function () {
 test('google drive oauth callback handles authorization correctly', function () {
     // Create test user
     $user = User::factory()->create();
-    
+
     // Mock config
     config([
         'services.google_drive.client_id' => 'test_client_id',
@@ -117,7 +115,7 @@ test('google drive oauth callback requires authentication', function () {
 // The system now uses direct uploads to Google Drive via resumable upload sessions
 test('can upload to google drive via api endpoint', function () {
     $this->markTestSkipped('Server-side upload endpoint removed - system now uses direct uploads');
-    
+
     // Create Google Drive storage account
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
@@ -162,7 +160,7 @@ test('can upload to google drive via api endpoint', function () {
     $response = $this->actingAs($user)
         ->post("/api/rooms/{$room->id}/recordings/upload-google-drive", [
             'video' => $videoFile,
-            'metadata' => $metadata
+            'metadata' => $metadata,
         ]);
 
     // Since we're using fake credentials, this will likely fail at the Google API level
@@ -173,7 +171,7 @@ test('can upload to google drive via api endpoint', function () {
 // DEPRECATED: This test was for the server-side upload endpoint which has been removed
 test('google drive upload requires consent', function () {
     $this->markTestSkipped('Server-side upload endpoint removed - system now uses direct uploads');
-    
+
     // Create Google Drive storage account
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
@@ -217,14 +215,14 @@ test('google drive upload requires consent', function () {
     $response->assertStatus(403)
         ->assertJson([
             'error' => 'Video recording consent required',
-            'requires_consent' => true
+            'requires_consent' => true,
         ]);
 });
 
 // DEPRECATED: This test was for the server-side upload endpoint which has been removed
 test('non-participants cannot upload to google drive', function () {
     $this->markTestSkipped('Server-side upload endpoint removed - system now uses direct uploads');
-    
+
     // Create Google Drive storage account
     $storageAccount = UserStorageAccount::create([
         'user_id' => $gm->id,
@@ -256,13 +254,13 @@ test('non-participants cannot upload to google drive', function () {
 
     $response->assertStatus(403)
         ->assertJson([
-            'error' => 'Only room participants can upload recordings'
+            'error' => 'Only room participants can upload recordings',
         ]);
 });
 
 test('can disconnect google drive account', function () {
     $user = User::factory()->create();
-    
+
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'google_drive',
@@ -276,7 +274,7 @@ test('can disconnect google drive account', function () {
     // Test disconnecting the account
     $response = $this->actingAs($user)
         ->post('/google-drive/disconnect', [
-            'storage_account_id' => $storageAccount->id
+            'storage_account_id' => $storageAccount->id,
         ]);
 
     $response->assertStatus(302)

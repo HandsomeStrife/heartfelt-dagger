@@ -3,10 +3,9 @@
 declare(strict_types=1);
 
 use App\Livewire\CharacterViewer;
-use Domain\Character\Data\CharacterBuilderData;
 
 test('getWeaponFeatureText returns string features directly', function () {
-    $viewer = new CharacterViewer();
+    $viewer = new CharacterViewer;
 
     $text = $viewer->getWeaponFeatureText([
         'feature' => 'Reliable: +1 to attack rolls',
@@ -16,7 +15,7 @@ test('getWeaponFeatureText returns string features directly', function () {
 });
 
 test('getWeaponFeatureText extracts description from associative feature array', function () {
-    $viewer = new CharacterViewer();
+    $viewer = new CharacterViewer;
 
     $text = $viewer->getWeaponFeatureText([
         'feature' => [
@@ -29,7 +28,7 @@ test('getWeaponFeatureText extracts description from associative feature array',
 });
 
 test('getWeaponFeatureText concatenates list-style feature arrays', function () {
-    $viewer = new CharacterViewer();
+    $viewer = new CharacterViewer;
 
     $text = $viewer->getWeaponFeatureText([
         'feature' => [
@@ -43,7 +42,7 @@ test('getWeaponFeatureText concatenates list-style feature arrays', function () 
 });
 
 test('getOrganizedEquipment normalizes singular equipment types', function () {
-    $viewer = new CharacterViewer();
+    $viewer = new CharacterViewer;
 
     // Create a CharacterData with equipment collection
     $equipment = collect([
@@ -112,5 +111,3 @@ test('getOrganizedEquipment normalizes singular equipment types', function () {
         ->and($organized['items'])->toHaveCount(1)
         ->and($organized['consumables'])->toHaveCount(1);
 });
-
-

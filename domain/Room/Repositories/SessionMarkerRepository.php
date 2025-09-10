@@ -62,11 +62,11 @@ class SessionMarkerRepository
     {
         $query = SessionMarker::with(['creator', 'user', 'recording'])
             ->byCreator($creatorId);
-            
+
         if ($roomId) {
             $query->forRoom($roomId);
         }
-        
+
         return $query->orderBy('created_at', 'desc')
             ->get()
             ->map(fn (SessionMarker $marker) => SessionMarkerData::fromModel($marker));

@@ -36,32 +36,32 @@ class SessionMarkerController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $validated = $validator->validated();
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Authentication required'
+                'message' => 'Authentication required',
             ], 401);
         }
 
         try {
             // Verify the user has access to this room (is a participant)
             $room = Room::with('participants')->findOrFail($validated['room_id']);
-            
+
             $isParticipant = $room->participants()
                 ->where('user_id', $user->id)
                 ->exists();
-                
-            if (!$isParticipant && $room->creator_id !== $user->id) {
+
+            if (! $isParticipant && $room->creator_id !== $user->id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Access denied - you are not a participant in this room'
+                    'message' => 'Access denied - you are not a participant in this room',
                 ], 403);
             }
 
@@ -83,14 +83,14 @@ class SessionMarkerController extends Controller
                     'markers_created' => $markers->count(),
                     'video_time' => $validated['video_time'] ?? null,
                     'stt_time' => $validated['stt_time'] ?? null,
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create session marker',
-                'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error'
+                'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error',
             ], 500);
         }
     }
@@ -108,32 +108,32 @@ class SessionMarkerController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $validated = $validator->validated();
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Authentication required'
+                'message' => 'Authentication required',
             ], 401);
         }
 
         try {
             // Verify the user has access to this room
             $room = Room::with('participants')->findOrFail($validated['room_id']);
-            
+
             $isParticipant = $room->participants()
                 ->where('user_id', $user->id)
                 ->exists();
-                
-            if (!$isParticipant && $room->creator_id !== $user->id) {
+
+            if (! $isParticipant && $room->creator_id !== $user->id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Access denied - you are not a participant in this room'
+                    'message' => 'Access denied - you are not a participant in this room',
                 ], 403);
             }
 
@@ -145,14 +145,14 @@ class SessionMarkerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data' => $markers->toArray()
+                'data' => $markers->toArray(),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve session markers',
-                'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error'
+                'error' => app()->environment('local') ? $e->getMessage() : 'Internal server error',
             ], 500);
         }
     }

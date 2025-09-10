@@ -10,7 +10,7 @@ enum RecordingStatus: string
     case Finalizing = 'finalizing';
     case Completed = 'completed';
     case Failed = 'failed';
-    
+
     // Legacy values for backward compatibility
     case Uploaded = 'uploaded';
     case Processing = 'processing';

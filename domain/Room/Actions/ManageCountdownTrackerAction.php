@@ -17,7 +17,7 @@ class ManageCountdownTrackerAction
      */
     public function createCountdownTracker(?Campaign $campaign, ?Room $room, string $name, int $value): CountdownTrackerData
     {
-        if (!$campaign && !$room) {
+        if (! $campaign && ! $room) {
             throw new \InvalidArgumentException('Either campaign or room must be provided');
         }
 
@@ -27,7 +27,7 @@ class ManageCountdownTrackerAction
         if ($campaign) {
             $campaign->setCountdownTracker($id, $name, $value);
             $campaign->save();
-        } elseif ($room && !$room->campaign_id) {
+        } elseif ($room && ! $room->campaign_id) {
             $room->setCountdownTracker($id, $name, $value);
             $room->save();
         } else {
@@ -42,31 +42,31 @@ class ManageCountdownTrackerAction
      */
     public function updateCountdownTracker(?Campaign $campaign, ?Room $room, string $id, string $name, int $value): CountdownTrackerData
     {
-        if (!$campaign && !$room) {
+        if (! $campaign && ! $room) {
             throw new \InvalidArgumentException('Either campaign or room must be provided');
         }
 
         if ($campaign) {
             $existingTracker = $campaign->getCountdownTracker($id);
-            if (!$existingTracker) {
+            if (! $existingTracker) {
                 throw new \InvalidArgumentException("Countdown tracker with ID '{$id}' not found");
             }
 
             $campaign->setCountdownTracker($id, $name, $value);
             $campaign->save();
-            
+
             return CountdownTrackerData::fromArray($id, $campaign->getCountdownTracker($id));
         }
 
-        if ($room && !$room->campaign_id) {
+        if ($room && ! $room->campaign_id) {
             $existingTracker = $room->getCountdownTracker($id);
-            if (!$existingTracker) {
+            if (! $existingTracker) {
                 throw new \InvalidArgumentException("Countdown tracker with ID '{$id}' not found");
             }
 
             $room->setCountdownTracker($id, $name, $value);
             $room->save();
-            
+
             return CountdownTrackerData::fromArray($id, $room->getCountdownTracker($id));
         }
 
@@ -78,33 +78,33 @@ class ManageCountdownTrackerAction
      */
     public function increaseCountdownTracker(?Campaign $campaign, ?Room $room, string $id, int $amount = 1): CountdownTrackerData
     {
-        if (!$campaign && !$room) {
+        if (! $campaign && ! $room) {
             throw new \InvalidArgumentException('Either campaign or room must be provided');
         }
 
         if ($campaign) {
             $tracker = $campaign->getCountdownTracker($id);
-            if (!$tracker) {
+            if (! $tracker) {
                 throw new \InvalidArgumentException("Countdown tracker with ID '{$id}' not found");
             }
 
             $newValue = $tracker['value'] + $amount;
             $campaign->setCountdownTracker($id, $tracker['name'], $newValue);
             $campaign->save();
-            
+
             return CountdownTrackerData::fromArray($id, $campaign->getCountdownTracker($id));
         }
 
-        if ($room && !$room->campaign_id) {
+        if ($room && ! $room->campaign_id) {
             $tracker = $room->getCountdownTracker($id);
-            if (!$tracker) {
+            if (! $tracker) {
                 throw new \InvalidArgumentException("Countdown tracker with ID '{$id}' not found");
             }
 
             $newValue = $tracker['value'] + $amount;
             $room->setCountdownTracker($id, $tracker['name'], $newValue);
             $room->save();
-            
+
             return CountdownTrackerData::fromArray($id, $room->getCountdownTracker($id));
         }
 
@@ -116,33 +116,33 @@ class ManageCountdownTrackerAction
      */
     public function decreaseCountdownTracker(?Campaign $campaign, ?Room $room, string $id, int $amount = 1): CountdownTrackerData
     {
-        if (!$campaign && !$room) {
+        if (! $campaign && ! $room) {
             throw new \InvalidArgumentException('Either campaign or room must be provided');
         }
 
         if ($campaign) {
             $tracker = $campaign->getCountdownTracker($id);
-            if (!$tracker) {
+            if (! $tracker) {
                 throw new \InvalidArgumentException("Countdown tracker with ID '{$id}' not found");
             }
 
             $newValue = max(0, $tracker['value'] - $amount);
             $campaign->setCountdownTracker($id, $tracker['name'], $newValue);
             $campaign->save();
-            
+
             return CountdownTrackerData::fromArray($id, $campaign->getCountdownTracker($id));
         }
 
-        if ($room && !$room->campaign_id) {
+        if ($room && ! $room->campaign_id) {
             $tracker = $room->getCountdownTracker($id);
-            if (!$tracker) {
+            if (! $tracker) {
                 throw new \InvalidArgumentException("Countdown tracker with ID '{$id}' not found");
             }
 
             $newValue = max(0, $tracker['value'] - $amount);
             $room->setCountdownTracker($id, $tracker['name'], $newValue);
             $room->save();
-            
+
             return CountdownTrackerData::fromArray($id, $room->getCountdownTracker($id));
         }
 
@@ -154,31 +154,31 @@ class ManageCountdownTrackerAction
      */
     public function deleteCountdownTracker(?Campaign $campaign, ?Room $room, string $id): bool
     {
-        if (!$campaign && !$room) {
+        if (! $campaign && ! $room) {
             throw new \InvalidArgumentException('Either campaign or room must be provided');
         }
 
         if ($campaign) {
             $tracker = $campaign->getCountdownTracker($id);
-            if (!$tracker) {
+            if (! $tracker) {
                 return false; // Already doesn't exist
             }
 
             $campaign->removeCountdownTracker($id);
             $campaign->save();
-            
+
             return true;
         }
 
-        if ($room && !$room->campaign_id) {
+        if ($room && ! $room->campaign_id) {
             $tracker = $room->getCountdownTracker($id);
-            if (!$tracker) {
+            if (! $tracker) {
                 return false; // Already doesn't exist
             }
 
             $room->removeCountdownTracker($id);
             $room->save();
-            
+
             return true;
         }
 
@@ -190,7 +190,7 @@ class ManageCountdownTrackerAction
      */
     public function getCountdownTrackers(?Campaign $campaign, ?Room $room): Collection
     {
-        if (!$campaign && !$room) {
+        if (! $campaign && ! $room) {
             throw new \InvalidArgumentException('Either campaign or room must be provided');
         }
 
@@ -200,7 +200,7 @@ class ManageCountdownTrackerAction
                 ->values();
         }
 
-        if ($room && !$room->campaign_id) {
+        if ($room && ! $room->campaign_id) {
             return collect($room->getCountdownTrackers())
                 ->map(fn (array $data, string $id) => CountdownTrackerData::fromArray($id, $data))
                 ->values();

@@ -24,7 +24,7 @@
                          title="Click to roll attack">
                         <div class="text-[10px] uppercase text-slate-400">{{ ucfirst($primary['data']['trait'] ?? 'Strength') }}</div>
                         <div class="font-bold">
-                            {{ $character->assigned_traits[$primary['data']['trait'] ?? 'strength'] ?? 0 > 0 ? '+' : '' }}{{ $character->assigned_traits[$primary['data']['trait'] ?? 'strength'] ?? 0 }}
+                            {{ $traitValues[$primary['data']['trait'] ?? 'strength'] ?? '+0' }}
                         </div>
                         <div class="text-[8px] text-slate-500 mt-1">Click to Attack</div>
                     </div>

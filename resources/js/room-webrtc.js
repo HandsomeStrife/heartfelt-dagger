@@ -169,6 +169,12 @@ export default class RoomWebRTC {
             this.slotManager.hideLoadingState(slotContainer);
             this.slotManager.showVideoControls(slotContainer);
 
+            // Create automatic join marker
+            if (participantData) {
+                const participantName = participantData.character_name || participantData.username || 'Unknown Player';
+                await this.markerManager.createAutomaticJoinMarker(participantName);
+            }
+
             // Handle consent requirements
             await this.consentManager.handleConsentRequirements();
 
@@ -190,6 +196,13 @@ export default class RoomWebRTC {
         }
 
         console.log('🚪 Leaving slot:', this.currentSlotId);
+
+        // Create automatic leave marker before stopping anything
+        const occupant = this.slotOccupants.get(this.currentSlotId);
+        if (occupant && occupant.participantData) {
+            const participantName = occupant.participantData.character_name || occupant.participantData.username || 'Unknown Player';
+            await this.markerManager.createAutomaticLeaveMarker(participantName);
+        }
 
         // Announce we're leaving
         this.ablyManager.publishToAbly('user-left', {

@@ -9,10 +9,10 @@ it('prevents guest users from seeing characters owned by authenticated users', f
     // Create a user and character owned by that user
     $user = User::factory()->create();
     $ownedCharacter = Character::factory()->create(['user_id' => $user->id]);
-    
+
     // Create an anonymous character
     $anonymousCharacter = Character::factory()->create(['user_id' => null]);
-    
+
     // Visit the character grid as a guest user with localStorage containing both character keys
     $page = visit('/characters');
     $page->script("
@@ -20,7 +20,7 @@ it('prevents guest users from seeing characters owned by authenticated users', f
         window.dispatchEvent(new CustomEvent('load-characters-from-storage'));
     ");
     $page->wait(2);
-    
+
     // Should only see the anonymous character, not the owned character
     $page->assertDontSee($ownedCharacter->name);
     $page->assertSee($anonymousCharacter->name);
@@ -30,19 +30,19 @@ it('prevents authenticated users from seeing characters owned by other users', f
     // Create two users
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
-    
+
     // Create characters owned by each user
     $user1Character = Character::factory()->create(['user_id' => $user1->id]);
     $user2Character = Character::factory()->create(['user_id' => $user2->id]);
     $anonymousCharacter = Character::factory()->create(['user_id' => null]);
-    
+
     // Log in as user1
     $this->actingAs($user1);
-    
+
     // Visit the character grid
     $page = visit('/characters');
     $page->wait(2);
-    
+
     // Should only see user1's character, not user2's character or anonymous character
     $page->assertSee($user1Character->name);
     $page->assertDontSee($user2Character->name);
@@ -52,22 +52,22 @@ it('prevents authenticated users from seeing characters owned by other users', f
 it('allows authenticated users to see only their own characters from database', function () {
     // Create a user
     $user = User::factory()->create();
-    
+
     // Create multiple characters owned by the user
     $character1 = Character::factory()->create(['user_id' => $user->id]);
     $character2 = Character::factory()->create(['user_id' => $user->id]);
-    
+
     // Create characters owned by another user
     $otherUser = User::factory()->create();
     $otherCharacter = Character::factory()->create(['user_id' => $otherUser->id]);
-    
+
     // Log in as the first user
     $this->actingAs($user);
-    
+
     // Visit the character grid
     $page = visit('/characters');
     $page->wait(2);
-    
+
     // Should see both of user's characters, but not the other user's character
     $page->assertSee($character1->name);
     $page->assertSee($character2->name);
@@ -78,7 +78,7 @@ it('allows guest users to see only anonymous characters from localStorage', func
     // Create an anonymous character and an owned character
     $anonymousCharacter = Character::factory()->create(['user_id' => null]);
     $ownedCharacter = Character::factory()->create(['user_id' => User::factory()->create()->id]);
-    
+
     // Visit the character grid as guest with both keys in localStorage
     $page = visit('/characters');
     $page->script("
@@ -86,7 +86,7 @@ it('allows guest users to see only anonymous characters from localStorage', func
         window.dispatchEvent(new CustomEvent('load-characters-from-storage'));
     ");
     $page->wait(2);
-    
+
     // Should only see the anonymous character
     $page->assertSee($anonymousCharacter->name);
     $page->assertDontSee($ownedCharacter->name);
@@ -98,7 +98,7 @@ it('shows no characters for guests when localStorage contains only owned charact
     $user2 = User::factory()->create();
     $character1 = Character::factory()->create(['user_id' => $user1->id]);
     $character2 = Character::factory()->create(['user_id' => $user2->id]);
-    
+
     // Visit the character grid as guest with only owned character keys
     $page = visit('/characters');
     $page->script("
@@ -106,7 +106,7 @@ it('shows no characters for guests when localStorage contains only owned charact
         window.dispatchEvent(new CustomEvent('load-characters-from-storage'));
     ");
     $page->wait(2);
-    
+
     // Should show "No Characters Yet" message
     $page->assertSee('No Characters Yet');
     $page->assertDontSee($character1->name);

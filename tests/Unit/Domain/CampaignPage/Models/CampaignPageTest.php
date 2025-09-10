@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
-use Domain\CampaignPage\Enums\PageAccessLevel;
 use Domain\CampaignPage\Models\CampaignPage;
 use Domain\User\Models\User;
 
@@ -29,7 +28,7 @@ it('can have a parent page', function () {
     $parentPage = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
     $childPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $parentPage->id
+        'parent_id' => $parentPage->id,
     ]);
 
     expect($childPage->parent)->toBeInstanceOf(CampaignPage::class);
@@ -42,12 +41,12 @@ it('can have child pages', function () {
     $childPage1 = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'parent_id' => $parentPage->id,
-        'display_order' => 1
+        'display_order' => 1,
     ]);
     $childPage2 = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'parent_id' => $parentPage->id,
-        'display_order' => 2
+        'display_order' => 2,
     ]);
 
     expect($parentPage->children)->toHaveCount(2);
@@ -59,7 +58,7 @@ it('can have authorized users', function () {
     $page = CampaignPage::factory()->specificPlayers()->create();
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
-    
+
     $page->authorizedUsers()->attach([$user1->id, $user2->id]);
 
     expect($page->authorizedUsers)->toHaveCount(2);
@@ -79,7 +78,7 @@ it('allows campaign creator to always view page', function () {
     $pageCreator = User::factory()->create();
     $page = CampaignPage::factory()->gmOnly()->create([
         'campaign_id' => $campaign->id,
-        'creator_id' => $pageCreator->id
+        'creator_id' => $pageCreator->id,
     ]);
 
     expect($page->canBeViewedBy($campaignCreator))->toBeTrue();
@@ -92,7 +91,7 @@ it('restricts gm only pages to gm', function () {
 
     CampaignMember::create([
         'campaign_id' => $campaign->id,
-        'user_id' => $player->id
+        'user_id' => $player->id,
     ]);
 
     expect($page->canBeViewedBy($player))->toBeFalse();
@@ -105,7 +104,7 @@ it('allows all players pages to be viewed by campaign members', function () {
 
     CampaignMember::create([
         'campaign_id' => $campaign->id,
-        'user_id' => $player->id
+        'user_id' => $player->id,
     ]);
 
     expect($page->canBeViewedBy($player))->toBeTrue();
@@ -120,11 +119,11 @@ it('restricts specific players pages to authorized users only', function () {
     // Add both as campaign members
     CampaignMember::create([
         'campaign_id' => $campaign->id,
-        'user_id' => $authorizedPlayer->id
+        'user_id' => $authorizedPlayer->id,
     ]);
     CampaignMember::create([
         'campaign_id' => $campaign->id,
-        'user_id' => $unauthorizedPlayer->id
+        'user_id' => $unauthorizedPlayer->id,
     ]);
 
     // Only authorize one player for the page
@@ -145,15 +144,15 @@ it('restricts unpublished pages to creator only', function () {
 
 it('can calculate depth level', function () {
     $campaign = Campaign::factory()->create();
-    
+
     $rootPage = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
     $childPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $rootPage->id
+        'parent_id' => $rootPage->id,
     ]);
     $grandchildPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $childPage->id
+        'parent_id' => $childPage->id,
     ]);
 
     expect($rootPage->getDepthLevel())->toBe(0);
@@ -163,24 +162,24 @@ it('can calculate depth level', function () {
 
 it('can get ancestors', function () {
     $campaign = Campaign::factory()->create();
-    
+
     $rootPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'title' => 'Root Page'
+        'title' => 'Root Page',
     ]);
     $childPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'parent_id' => $rootPage->id,
-        'title' => 'Child Page'
+        'title' => 'Child Page',
     ]);
     $grandchildPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'parent_id' => $childPage->id,
-        'title' => 'Grandchild Page'
+        'title' => 'Grandchild Page',
     ]);
 
     $ancestors = $grandchildPage->ancestors();
-    
+
     expect($ancestors)->toHaveCount(2);
     expect($ancestors[0]->id)->toBe($rootPage->id);
     expect($ancestors[1]->id)->toBe($childPage->id);
@@ -188,19 +187,19 @@ it('can get ancestors', function () {
 
 it('can detect descendant relationships', function () {
     $campaign = Campaign::factory()->create();
-    
+
     $rootPage = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
     $childPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $rootPage->id
+        'parent_id' => $rootPage->id,
     ]);
     $grandchildPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $childPage->id
+        'parent_id' => $childPage->id,
     ]);
     $siblingPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $rootPage->id
+        'parent_id' => $rootPage->id,
     ]);
 
     expect($grandchildPage->isDescendantOf($rootPage))->toBeTrue();
@@ -214,26 +213,26 @@ it('scopes accessible pages correctly', function () {
     $pageCreator = User::factory()->create();
     $authorizedPlayer = User::factory()->create();
     $unauthorizedPlayer = User::factory()->create();
-    
+
     $campaign = Campaign::factory()->create(['creator_id' => $campaignCreator->id]);
-    
+
     // Add players to campaign
     CampaignMember::create(['campaign_id' => $campaign->id, 'user_id' => $authorizedPlayer->id]);
     CampaignMember::create(['campaign_id' => $campaign->id, 'user_id' => $unauthorizedPlayer->id]);
 
     $gmPage = CampaignPage::factory()->gmOnly()->create([
         'campaign_id' => $campaign->id,
-        'creator_id' => $pageCreator->id
+        'creator_id' => $pageCreator->id,
     ]);
-    
+
     $allPlayersPage = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
-        'creator_id' => $pageCreator->id
+        'creator_id' => $pageCreator->id,
     ]);
-    
+
     $specificPage = CampaignPage::factory()->specificPlayers()->create([
         'campaign_id' => $campaign->id,
-        'creator_id' => $pageCreator->id
+        'creator_id' => $pageCreator->id,
     ]);
     $specificPage->authorizedUsers()->attach($authorizedPlayer->id);
 

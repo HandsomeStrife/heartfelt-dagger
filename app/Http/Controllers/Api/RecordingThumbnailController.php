@@ -11,13 +11,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class RecordingThumbnailController extends Controller
 {
     /**
      * Upload a thumbnail for a recording
-     * 
+     *
      * POST /api/recordings/thumbnail
      * Body: { recording_id, thumbnail }
      */
@@ -39,7 +38,7 @@ class RecordingThumbnailController extends Controller
 
             // Decode base64 thumbnail
             $thumbnailData = $this->decodeBase64Image($validated['thumbnail']);
-            if (!$thumbnailData) {
+            if (! $thumbnailData) {
                 return response()->json(['error' => 'Invalid thumbnail data'], 400);
             }
 
@@ -52,30 +51,30 @@ class RecordingThumbnailController extends Controller
             Log::info('Thumbnail uploaded successfully', [
                 'recording_id' => $recording->id,
                 'user_id' => $user->id,
-                'thumbnail_url' => $thumbnailUrl
+                'thumbnail_url' => $thumbnailUrl,
             ]);
 
             return response()->json([
                 'success' => true,
-                'thumbnail_url' => $thumbnailUrl
+                'thumbnail_url' => $thumbnailUrl,
             ]);
 
         } catch (\Exception $e) {
             Log::error('Thumbnail upload failed', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id(),
-                'request_data' => $request->only(['recording_id'])
+                'request_data' => $request->only(['recording_id']),
             ]);
 
             return response()->json([
-                'error' => 'Failed to upload thumbnail'
+                'error' => 'Failed to upload thumbnail',
             ], 500);
         }
     }
 
     /**
      * Generate a stream URL for a recording
-     * 
+     *
      * GET /api/recordings/{recording}/stream
      */
     public function generateStreamUrl(RoomRecording $recording): JsonResponse
@@ -97,31 +96,31 @@ class RecordingThumbnailController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$storageAccount) {
+            if (! $storageAccount) {
                 return response()->json(['error' => 'No active Wasabi storage account found'], 400);
             }
 
             $wasabiService = new WasabiS3Service($storageAccount);
-            
+
             // Generate a presigned URL for streaming (4 hours)
             $streamResult = $wasabiService->generatePresignedDownloadUrl($recording->provider_file_id, 60 * 4);
-            
+
             // Update recording with stream URL
             $recording->update(['stream_url' => $streamResult['download_url']]);
 
             return response()->json([
                 'success' => true,
-                'stream_url' => $streamResult['download_url']
+                'stream_url' => $streamResult['download_url'],
             ]);
 
         } catch (\Exception $e) {
             Log::error('Stream URL generation failed', [
                 'recording_id' => $recording->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to generate stream URL'
+                'error' => 'Failed to generate stream URL',
             ], 500);
         }
     }
@@ -134,11 +133,11 @@ class RecordingThumbnailController extends Controller
             if (count($parts) !== 2) {
                 return null;
             }
-            
+
             // Extract mime type
             preg_match('/data:image\/([a-zA-Z]+);base64/', $parts[0], $matches);
             $mimeType = isset($matches[1]) ? "image/{$matches[1]}" : 'image/jpeg';
-            
+
             $base64Data = $parts[1];
         } else {
             $base64Data = $base64String;
@@ -153,7 +152,7 @@ class RecordingThumbnailController extends Controller
         return [
             'data' => $imageData,
             'mime_type' => $mimeType,
-            'extension' => $mimeType === 'image/png' ? 'png' : 'jpg'
+            'extension' => $mimeType === 'image/png' ? 'png' : 'jpg',
         ];
     }
 
@@ -174,7 +173,7 @@ class RecordingThumbnailController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$storageAccount) {
+        if (! $storageAccount) {
             throw new \Exception('No active Wasabi storage account found');
         }
 
@@ -183,7 +182,7 @@ class RecordingThumbnailController extends Controller
         $bucket = $credentials['bucket_name'];
 
         // Generate thumbnail key
-        $thumbnailKey = str_replace('.webm', '_thumbnail.' . $thumbnailData['extension'], $recording->provider_file_id);
+        $thumbnailKey = str_replace('.webm', '_thumbnail.'.$thumbnailData['extension'], $recording->provider_file_id);
 
         // Create temporary file
         $tempPath = tempnam(sys_get_temp_dir(), 'thumbnail_');
@@ -196,12 +195,12 @@ class RecordingThumbnailController extends Controller
                 'Key' => $thumbnailKey,
                 'SourceFile' => $tempPath,
                 'ContentType' => $thumbnailData['mime_type'],
-                'ACL' => 'private'
+                'ACL' => 'private',
             ]);
 
             // Generate presigned URL for thumbnail (1 week)
             $thumbnailResult = $wasabiService->generatePresignedDownloadUrl($thumbnailKey, 60 * 24 * 7);
-            
+
             return $thumbnailResult['download_url'];
 
         } finally {
@@ -214,12 +213,12 @@ class RecordingThumbnailController extends Controller
 
     private function uploadThumbnailToLocal(RoomRecording $recording, array $thumbnailData): string
     {
-        $filename = "thumbnail_{$recording->id}." . $thumbnailData['extension'];
+        $filename = "thumbnail_{$recording->id}.".$thumbnailData['extension'];
         $path = "thumbnails/{$filename}";
-        
+
         // Store in public disk
         \Storage::disk('public')->put($path, $thumbnailData['data']);
-        
+
         return \Storage::disk('public')->url($path);
     }
 }

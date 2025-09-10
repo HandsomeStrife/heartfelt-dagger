@@ -376,6 +376,98 @@ export class MarkerManager {
     }
 
     /**
+     * Create an automatic marker when a player joins the room
+     */
+    async createAutomaticJoinMarker(participantName) {
+        console.log('🏷️ === Creating Automatic Join Marker ===');
+        console.log(`🏷️ Player joined: ${participantName}`);
+        
+        // Only create join markers if STT or recording is enabled
+        if (!this.isMarkeringEnabled()) {
+            console.log('🏷️ Markering not enabled - skipping automatic join marker');
+            return;
+        }
+        
+        try {
+            // Calculate timing information
+            const timingInfo = this.calculateTimingInfo();
+            console.log('🏷️ Join marker timing info:', timingInfo);
+            
+            // Create identifier
+            const identifier = `${participantName} joined`;
+            
+            // Create the marker via API
+            const response = await this.createMarkerViaAPI(identifier, timingInfo);
+            
+            if (response.success) {
+                console.log('🏷️ ✅ Automatic join marker created successfully:', response.data);
+                
+                // Send Ably message to all participants
+                this.sendMarkerAblyMessage(response.data);
+                
+                console.log(`🏷️ ✅ "${identifier}" marker created automatically`);
+            } else {
+                console.error('🏷️ ❌ Failed to create automatic join marker:', response.message);
+            }
+            
+        } catch (error) {
+            console.error('🏷️ ❌ Error creating automatic join marker:', error);
+            // Don't show error to user for automatic markers - fail silently
+        }
+    }
+
+    /**
+     * Create an automatic marker when a player leaves the room
+     */
+    async createAutomaticLeaveMarker(participantName) {
+        console.log('🏷️ === Creating Automatic Leave Marker ===');
+        console.log(`🏷️ Player left: ${participantName}`);
+        
+        // Only create leave markers if STT or recording is enabled
+        if (!this.isMarkeringEnabled()) {
+            console.log('🏷️ Markering not enabled - skipping automatic leave marker');
+            return;
+        }
+        
+        try {
+            // Calculate timing information
+            const timingInfo = this.calculateTimingInfo();
+            console.log('🏷️ Leave marker timing info:', timingInfo);
+            
+            // Create identifier
+            const identifier = `${participantName} left`;
+            
+            // Create the marker via API
+            const response = await this.createMarkerViaAPI(identifier, timingInfo);
+            
+            if (response.success) {
+                console.log('🏷️ ✅ Automatic leave marker created successfully:', response.data);
+                
+                // Send Ably message to all participants
+                this.sendMarkerAblyMessage(response.data);
+                
+                console.log(`🏷️ ✅ "${identifier}" marker created automatically`);
+            } else {
+                console.error('🏷️ ❌ Failed to create automatic leave marker:', response.message);
+            }
+            
+        } catch (error) {
+            console.error('🏷️ ❌ Error creating automatic leave marker:', error);
+            // Don't show error to user for automatic markers - fail silently
+        }
+    }
+
+    /**
+     * Check if marker functionality is enabled (STT or recording)
+     */
+    isMarkeringEnabled() {
+        const sttEnabled = this.roomWebRTC.roomData.stt_enabled;
+        const recordingEnabled = this.roomWebRTC.roomData.recording_enabled;
+        
+        return sttEnabled || recordingEnabled;
+    }
+
+    /**
      * Clean up event listeners
      */
     destroy() {
@@ -383,3 +475,4 @@ export class MarkerManager {
         document.removeEventListener('keydown', this.handleKeyPress);
     }
 }
+

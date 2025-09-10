@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('Subclass Effects Builder and Viewer Integration', function () {
-    
+
     it('validates School of Knowledge subclass displays correctly', function () {
         // Create Wizard with School of Knowledge using working pattern
         $character_data = [
@@ -22,18 +22,18 @@ describe('Subclass Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Wizard with School of Knowledge'
+            'name' => 'Test Wizard with School of Knowledge',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Wizard with School of Knowledge');
-        
+
         // Verify School of Knowledge subclass features section appears
         $page->assertPresent('[pest="subclass-features-section"]');
         $page->assertSee('School of Knowledge');
@@ -50,22 +50,22 @@ describe('Subclass Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Wizard with School of War'
+            'name' => 'Test Wizard with School of War',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Wizard with School of War');
-        
+
         // Verify School of War subclass features section appears
         $page->assertPresent('[pest="subclass-features-section"]');
         $page->assertSee('School of War');
-        
+
         // Verify HP bonus is reflected (School of War gives +1 HP)
         $page->assertPresent('[pest="hit-points-track"]');
     });
@@ -81,22 +81,22 @@ describe('Subclass Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Rogue with Nightwalker'
+            'name' => 'Test Rogue with Nightwalker',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Rogue with Nightwalker');
-        
+
         // Verify Nightwalker subclass features section appears
         $page->assertPresent('[pest="subclass-features-section"]');
         $page->assertSee('Nightwalker');
-        
+
         // Verify character stats are displayed (Nightwalker gets +1 Evasion)
         $page->assertPresent('[pest="evasion-stat"]');
     });
@@ -112,22 +112,22 @@ describe('Subclass Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Guardian with Stalwart'
+            'name' => 'Test Guardian with Stalwart',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Guardian with Stalwart');
-        
+
         // Verify Stalwart subclass features section appears
         $page->assertPresent('[pest="subclass-features-section"]');
         $page->assertSee('Stalwart');
-        
+
         // Verify damage thresholds are displayed (Stalwart gets threshold bonuses)
         $page->assertPresent('[pest="damage-thresholds"]');
     });
@@ -143,22 +143,22 @@ describe('Subclass Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Seraph with Winged Sentinel'
+            'name' => 'Test Seraph with Winged Sentinel',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Seraph with Winged Sentinel');
-        
+
         // Verify Winged Sentinel subclass features section appears
         $page->assertPresent('[pest="subclass-features-section"]');
         $page->assertSee('Winged Sentinel');
-        
+
         // Verify damage thresholds are displayed (Winged Sentinel gets +4 Severe threshold)
         $page->assertPresent('[pest="damage-thresholds"]');
     });
@@ -174,22 +174,22 @@ describe('Subclass Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Warrior with Vengeance'
+            'name' => 'Test Warrior with Vengeance',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Warrior with Vengeance');
-        
+
         // Verify Vengeance subclass features section appears
         $page->assertPresent('[pest="subclass-features-section"]');
         $page->assertSee('Vengeance');
-        
+
         // Verify stress track is displayed (Vengeance gets +1 Stress)
         $page->assertPresent('[pest="stress-track"]');
     });
@@ -205,22 +205,22 @@ describe('Subclass Effects Builder and Viewer Integration', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Bard with Troubadour'
+            'name' => 'Test Bard with Troubadour',
         ];
 
-        $action = new SaveCharacterAction();
+        $action = new SaveCharacterAction;
         $character_builder_data = CharacterBuilderData::from($character_data);
         $character_model = $action->execute($character_builder_data);
 
-        $page = visit('/character/' . $character_model->public_key);
-        
+        $page = visit('/character/'.$character_model->public_key);
+
         // Verify the page loads successfully
         $page->assertSee('Test Bard with Troubadour');
-        
+
         // Verify Troubadour subclass features section appears
         $page->assertPresent('[pest="subclass-features-section"]');
         $page->assertSee('Troubadour');
-        
+
         // Verify standard stats are present (no special bonuses, just normal display)
         $page->assertPresent('[pest="hit-points-track"]');
         $page->assertPresent('[pest="stress-track"]');

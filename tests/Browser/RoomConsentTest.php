@@ -7,7 +7,8 @@ use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\Room\Models\RoomRecordingSettings;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs};
+
+use function Pest\Laravel\actingAs;
 
 test('consent popup shows immediately when entering room with required STT', function () {
     // Create user, campaign, and room
@@ -37,7 +38,7 @@ test('consent popup shows immediately when entering room with required STT', fun
     // Login and visit the room session page
     actingAs($user);
     $page = visit("/rooms/{$room->invite_code}/session");
-    
+
     // Wait for consent dialog to appear and verify content
     $page->waitForText('Speech Recording Consent', 10);
     $page->assertSee('Your voice will be transcribed and saved');
@@ -72,7 +73,7 @@ test('user can join room when no consent required', function () {
     // Login and visit the room session page
     actingAs($user);
     $page = visit("/rooms/{$room->invite_code}/session");
-    
+
     // Should see join button immediately without consent dialogs
     $page->waitForText('Join Room', 10);
     $page->assertDontSee('Speech Recording Consent');

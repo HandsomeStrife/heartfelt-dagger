@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 use Domain\Character\Data\CharacterBuilderData;
-use PHPUnit\Framework\Attributes\Test;
+
 test('school of knowledge builder provides domain card bonuses', function () {
     $builder = new CharacterBuilderData(
         selected_class: 'wizard',

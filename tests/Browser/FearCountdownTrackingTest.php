@@ -13,7 +13,7 @@ it('displays fear tracker and countdown controls in GM sidebar', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $room = Room::factory()->forCampaign($campaign)->create(['creator_id' => $user->id]);
-    
+
     // Set initial game state
     $campaign->setFearLevel(3);
     $campaign->setCountdownTracker('test-timer', 'Test Timer', 10);
@@ -48,7 +48,7 @@ it('allows GM to increase fear level', function () {
                 ->waitFor('[data-fear-display="level"]')
                 ->assertSeeIn('[data-fear-display="level"]', '1');
         });
-    
+
     // Verify in database
     expect($room->fresh()->getFearLevel())->toBe(1);
 });
@@ -71,7 +71,7 @@ it('allows GM to create countdown tracker', function () {
                 ->assertSee('Initiative Timer')
                 ->assertSee('5');
         });
-    
+
     // Verify in database
     $trackers = $room->fresh()->getCountdownTrackers();
     expect($trackers)->not->toBeEmpty();
@@ -82,7 +82,7 @@ it('displays fear and countdown in GM video slot overlay', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $room = Room::factory()->forCampaign($campaign)->create(['creator_id' => $user->id]);
-    
+
     // Set game state
     $campaign->setFearLevel(5);
     $campaign->setCountdownTracker('turn-timer', 'Turn Timer', 8);
@@ -103,13 +103,13 @@ it('displays fear and countdown in GM video slot overlay', function () {
 
 it('shows different game state for campaign vs standalone room', function () {
     $user = User::factory()->create();
-    
+
     // Campaign room
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $campaignRoom = Room::factory()->forCampaign($campaign)->create(['creator_id' => $user->id]);
     $campaign->setFearLevel(10);
     $campaign->save();
-    
+
     // Standalone room
     $standaloneRoom = Room::factory()->create(['creator_id' => $user->id]);
     $standaloneRoom->setFearLevel(5);

@@ -17,15 +17,15 @@ class SaveCharacterStatusAction
     {
         // Find the character
         $character = Character::where('character_key', $character_key)->first();
-        
-        if (!$character) {
+
+        if (! $character) {
             throw new \InvalidArgumentException("Character with key '{$character_key}' not found");
         }
 
         // Get or create the status record
         $status = $character->status()->first();
-        
-        if (!$status) {
+
+        if (! $status) {
             // Create new status record
             $status = CharacterStatus::create([
                 'character_id' => $character->id,
@@ -53,5 +53,3 @@ class SaveCharacterStatusAction
         return CharacterStatusData::fromModel($status->fresh());
     }
 }
-
-

@@ -31,7 +31,7 @@ class JoinCampaignAction
         }
 
         // If no character provided (empty slot), create a new character for the user
-        if (!$character) {
+        if (! $character) {
             $character = $this->create_character_action->execute(
                 user: $user,
                 name: null, // Will be set to default in CreateCharacterAction

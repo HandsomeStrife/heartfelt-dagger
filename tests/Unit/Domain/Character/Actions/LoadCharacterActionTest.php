@@ -9,7 +9,7 @@ use Domain\Character\Models\CharacterEquipment;
 use Domain\Character\Models\CharacterExperience;
 use Domain\Character\Models\CharacterTrait;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {

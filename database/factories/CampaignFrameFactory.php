@@ -81,9 +81,9 @@ class CampaignFrameFactory extends Factory
                 'description' => $this->faker->paragraph(),
             ],
             'session_zero_questions' => [
-                $this->faker->sentence() . '?',
-                $this->faker->sentence() . '?',
-                $this->faker->sentence() . '?',
+                $this->faker->sentence().'?',
+                $this->faker->sentence().'?',
+                $this->faker->sentence().'?',
             ],
         ];
     }

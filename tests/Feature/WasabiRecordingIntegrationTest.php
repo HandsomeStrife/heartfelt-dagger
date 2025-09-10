@@ -21,10 +21,10 @@ describe('Wasabi Recording Integration', function () {
 
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Use a unique bucket name that likely doesn't exist
-        $uniqueBucketName = 'daggerheart-test-action-' . time() . '-' . rand(1000, 9999);
-        
+        $uniqueBucketName = 'daggerheart-test-action-'.time().'-'.rand(1000, 9999);
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create([
             'user_id' => $user->id,
             'display_name' => 'Action Test Wasabi',
@@ -47,8 +47,8 @@ describe('Wasabi Recording Integration', function () {
         $room->refresh();
 
         try {
-            $action = new GenerateWasabiPresignedUrl();
-            
+            $action = new GenerateWasabiPresignedUrl;
+
             // This should work even if the bucket doesn't exist (auto-creation)
             $result = $action->execute(
                 $room,
@@ -65,11 +65,11 @@ describe('Wasabi Recording Integration', function () {
             expect($result['bucket'])->toBe($uniqueBucketName);
             expect($result['presigned_url'])->toContain($uniqueBucketName);
             expect($result['key'])->toContain('integration-test-recording.webm');
-            
+
             // Verify metadata includes our custom data
             expect($result['metadata']['test_type'])->toBe('integration');
             expect($result['metadata']['created_by'])->toBe('automated_test');
-            
+
             // Verify that the bucket now exists by testing service directly
             $wasabiService = new WasabiS3Service($storageAccount);
             $connectionTest = $wasabiService->testConnection();
@@ -83,31 +83,31 @@ describe('Wasabi Recording Integration', function () {
                 'video/mp4',
                 2 * 1024 * 1024
             );
-            
+
             expect($secondResult['success'])->toBeTrue();
             expect($secondResult['bucket'])->toBe($uniqueBucketName);
-            
+
         } catch (\Exception $e) {
-            $this->fail('Integration test failed: ' . $e->getMessage());
+            $this->fail('Integration test failed: '.$e->getMessage());
         } finally {
             // Clean up: Delete the test bucket if it was created
             try {
                 $wasabiService = new WasabiS3Service($storageAccount);
                 $s3Client = $wasabiService->createS3ClientWithCredentials($storageAccount->encrypted_credentials);
-                
+
                 // Delete the bucket (it should be empty since we only generated URLs, didn't upload)
                 $s3Client->deleteBucket(['Bucket' => $uniqueBucketName]);
             } catch (\Exception $e) {
-                error_log("Failed to clean up integration test bucket {$uniqueBucketName}: " . $e->getMessage());
+                error_log("Failed to clean up integration test bucket {$uniqueBucketName}: ".$e->getMessage());
             }
         }
-    })->skip(fn() => app()->environment('testing') && empty(config('services.wasabi.access_key')), 
+    })->skip(fn () => app()->environment('testing') && empty(config('services.wasabi.access_key')),
         'Wasabi credentials not configured for testing');
 
     test('RoomRecordingSettings factory works correctly with Wasabi', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create([
             'user_id' => $user->id,
         ]);
@@ -167,9 +167,9 @@ describe('Wasabi Recording Integration', function () {
     test('room with recording settings loads relationship correctly', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         $storageAccount = UserStorageAccount::factory()->wasabi()->create(['user_id' => $user->id]);
-        
+
         $settings = RoomRecordingSettings::factory()
             ->withWasabiStorage($storageAccount)
             ->create(['room_id' => $room->id]);
@@ -189,19 +189,19 @@ describe('Wasabi Recording Integration', function () {
     test('multiple rooms can have different recording configurations', function () {
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
-        
+
         $room1 = Room::factory()->create(['creator_id' => $user1->id]);
         $room2 = Room::factory()->create(['creator_id' => $user2->id]);
         $room3 = Room::factory()->create(['creator_id' => $user1->id]);
 
         $wasabiAccount = UserStorageAccount::factory()->wasabi()->create(['user_id' => $user1->id]);
-        
+
         // Room 1: Wasabi recording enabled
         RoomRecordingSettings::factory()
             ->withWasabiStorage($wasabiAccount)
             ->create(['room_id' => $room1->id]);
 
-        // Room 2: Local recording enabled  
+        // Room 2: Local recording enabled
         RoomRecordingSettings::factory()
             ->withLocalStorage()
             ->create(['room_id' => $room2->id]);

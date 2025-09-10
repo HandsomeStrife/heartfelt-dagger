@@ -8,7 +8,8 @@ use Domain\Room\Models\RoomRecordingSettings;
 use Domain\User\Models\User;
 use Domain\User\Models\UserStorageAccount;
 use Illuminate\Support\Facades\Storage;
-use function Pest\Laravel\{actingAs, getJson};
+
+use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
     // Configure MinIO for testing
@@ -76,7 +77,7 @@ describe('Recording Download Endpoints', function () {
 
         $redirectUrl = $response->headers->get('location');
         expect($redirectUrl)->toBeString();
-        expect($redirectUrl)->toContain('minio:9000'); // MinIO endpoint  
+        expect($redirectUrl)->toContain('minio:9000'); // MinIO endpoint
         expect($redirectUrl)->not()->toContain('127.0.0.1'); // Should use storage endpoint, not app
     });
 
@@ -167,12 +168,12 @@ describe('Recording Download Endpoints', function () {
             ->get("/api/rooms/{$room->id}/recordings/{$recording->id}/download");
 
         $response->assertStatus(200);
-        
+
         // Verify headers for file download
         $response->assertHeader('Content-Type', 'video/webm');
         $response->assertHeader('Content-Disposition', 'attachment; filename="local-recording.webm"');
         $response->assertHeader('Content-Length', (string) (512 * 1024));
-        
+
         // Verify content is the fake file content
         expect($response->getContent())->toBe('fake-video-content');
 
@@ -208,7 +209,7 @@ describe('Recording Download Endpoints', function () {
 
     test('fails when user is not an active participant', function () {
         $roomOwner = User::factory()->create();
-        $unauthorizedUser = User::factory()->create(); 
+        $unauthorizedUser = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $roomOwner->id]);
 
         $recording = RoomRecording::create([

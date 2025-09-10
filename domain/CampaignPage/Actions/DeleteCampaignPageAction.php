@@ -15,7 +15,7 @@ class DeleteCampaignPageAction
             // Move children to parent or root level
             if ($page->children()->exists()) {
                 $page->children()->update([
-                    'parent_id' => $page->parent_id
+                    'parent_id' => $page->parent_id,
                 ]);
             }
 

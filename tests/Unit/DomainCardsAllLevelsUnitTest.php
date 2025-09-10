@@ -39,5 +39,3 @@ it('getFilteredDomainCards includes all levels for class domains', function (): 
         }
     }
 });
-
-

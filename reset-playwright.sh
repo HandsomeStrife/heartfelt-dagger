@@ -15,6 +15,6 @@ echo "🎭 Installing Playwright in user context..."
 ./vendor/bin/sail npx playwright install
 
 echo "🔧 Installing Playwright with system dependencies in root context..."
-./vendor/bin/sail root-shell -c "npx playwright install --with-deps"
+./vendor/bin/sail root-shell -c "npx playwright install-deps"
 
 echo "✅ Playwright reset complete! Your browser tests should now work."

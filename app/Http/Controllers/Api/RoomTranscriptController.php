@@ -42,19 +42,19 @@ class RoomTranscriptController extends Controller
             // Additional validation
             if ($validated['ended_at_ms'] <= $validated['started_at_ms']) {
                 throw ValidationException::withMessages([
-                    'ended_at_ms' => 'End time must be after start time.'
+                    'ended_at_ms' => 'End time must be after start time.',
                 ]);
             }
 
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Check if STT is enabled for this room
             $room->load('recordingSettings');
-            if (!$room->recordingSettings || !$room->recordingSettings->isSttEnabled()) {
+            if (! $room->recordingSettings || ! $room->recordingSettings->isSttEnabled()) {
                 return response()->json(['error' => 'Speech-to-text is not enabled for this room'], 403);
             }
 
@@ -66,20 +66,20 @@ class RoomTranscriptController extends Controller
                     ->whereNull('left_at')
                     ->first();
 
-                if (!$participant) {
+                if (! $participant) {
                     return response()->json(['error' => 'User is not an active participant in this room'], 403);
                 }
 
-                if (!$participant->hasSttConsent()) {
+                if (! $participant->hasSttConsent()) {
                     return response()->json([
                         'error' => 'Speech-to-text consent required',
-                        'requires_consent' => true
+                        'requires_consent' => true,
                     ], 403);
                 }
             }
 
             // Create transcript
-            $transcriptData = (new CreateRoomTranscript())->execute(
+            $transcriptData = (new CreateRoomTranscript)->execute(
                 room_id: $room->id,
                 user_id: $validated['user_id'] ?? $user?->id,
                 character_id: $validated['character_id'] ?? null,
@@ -96,23 +96,23 @@ class RoomTranscriptController extends Controller
             return response()->json([
                 'success' => true,
                 'transcript' => $transcriptData,
-                'message' => 'Transcript saved successfully'
+                'message' => 'Transcript saved successfully',
             ], 201);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             Log::error('Failed to save room transcript', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to save transcript'
+                'error' => 'Failed to save transcript',
             ], 500);
         }
     }
@@ -125,12 +125,12 @@ class RoomTranscriptController extends Controller
         try {
             // Check if user has access to this room and is an active participant
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Additional check: user must be the room creator or an active participant to view transcripts
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+            if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
                 return response()->json(['error' => 'Only room participants can view transcripts'], 403);
             }
 
@@ -146,8 +146,8 @@ class RoomTranscriptController extends Controller
             // Get transcripts based on filters
             if (isset($validated['start_ms']) && isset($validated['end_ms'])) {
                 $transcripts = $this->transcriptRepository->getByRoomInTimeRange(
-                    $room, 
-                    (int) $validated['start_ms'], 
+                    $room,
+                    (int) $validated['start_ms'],
                     (int) $validated['end_ms']
                 );
             } elseif (isset($validated['search'])) {
@@ -167,23 +167,23 @@ class RoomTranscriptController extends Controller
             return response()->json([
                 'success' => true,
                 'transcripts' => $transcripts->values(),
-                'count' => $transcripts->count()
+                'count' => $transcripts->count(),
             ]);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             Log::error('Failed to get room transcripts', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to get transcripts'
+                'error' => 'Failed to get transcripts',
             ], 500);
         }
     }

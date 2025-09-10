@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 use Domain\Character\Models\Character;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('clank ancestry can select bonus experience', function () {

@@ -9,11 +9,11 @@ use Domain\Campaign\Models\CampaignMember;
 use Domain\Campaign\Repositories\CampaignRepository;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->repository = new CampaignRepository();
+    $this->repository = new CampaignRepository;
 });
 it('finds campaign by id with member count', function () {
     $creator = User::factory()->create(['username' => 'gamemaster']);
@@ -64,8 +64,8 @@ it('gets campaigns created by user', function () {
     $result = $this->repository->getCreatedByUser($creator);
 
     expect($result)->toHaveCount(3);
-    expect($result->every(fn($campaign) => $campaign->creator_id === $creator->id))->toBeTrue();
-    expect($result->every(fn($campaign) => $campaign instanceof CampaignData))->toBeTrue();
+    expect($result->every(fn ($campaign) => $campaign->creator_id === $creator->id))->toBeTrue();
+    expect($result->every(fn ($campaign) => $campaign instanceof CampaignData))->toBeTrue();
 });
 it('orders created campaigns by newest first', function () {
     $creator = User::factory()->create();
@@ -110,7 +110,7 @@ it('gets campaigns joined by user', function () {
     $result = $this->repository->getJoinedByUser($user);
 
     expect($result)->toHaveCount(2);
-    expect($result->every(fn($campaign) => $campaign instanceof CampaignData))->toBeTrue();
+    expect($result->every(fn ($campaign) => $campaign instanceof CampaignData))->toBeTrue();
     expect($result->contains('id', $joinedCampaigns[0]->id))->toBeTrue();
     expect($result->contains('id', $joinedCampaigns[1]->id))->toBeTrue();
     expect($result->contains('id', $notJoinedCampaign->id))->toBeFalse();
@@ -136,7 +136,7 @@ it('gets campaign members with relationships', function () {
     $result = $this->repository->getCampaignMembers($campaign);
 
     expect($result)->toHaveCount(2);
-    expect($result->every(fn($member) => $member instanceof CampaignMemberData))->toBeTrue();
+    expect($result->every(fn ($member) => $member instanceof CampaignMemberData))->toBeTrue();
 
     // Check first member (should be ordered by joined_at)
     $firstMember = $result->first();
@@ -179,7 +179,7 @@ it('gets active campaigns', function () {
     $result = $this->repository->getActiveCampaigns();
 
     expect($result)->toHaveCount(2);
-    expect($result->every(fn($campaign) => $campaign->status === CampaignStatus::ACTIVE))->toBeTrue();
+    expect($result->every(fn ($campaign) => $campaign->status === CampaignStatus::ACTIVE))->toBeTrue();
 });
 it('gets all user campaigns combined', function () {
     $user = User::factory()->create();

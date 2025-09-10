@@ -129,6 +129,8 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.$watch('assigned_traits', () => this.markAsUnsaved(), { deep: true });
             this.$watch('selected_domain_cards', () => this.markAsUnsaved(), { deep: true });
             this.$watch('selected_equipment', () => this.markAsUnsaved(), { deep: true });
+            this.$watch('name', () => this.markAsUnsaved());
+            this.$watch('pronouns', () => this.markAsUnsaved());
         },
 
         /**
@@ -829,8 +831,9 @@ export function characterBuilderComponent($wire, gameData = {}) {
                 });
             }
 
-            // Mark as unsaved
+            // Mark as unsaved and refresh sidebar
             this.markAsUnsaved();
+            this.refreshStepCompletion();
 
             // NOTE: Equipment sync removed - now handled via entangled properties
         },
@@ -876,8 +879,9 @@ export function characterBuilderComponent($wire, gameData = {}) {
                 }
             }
 
-            // Mark as unsaved - sync handled via entangled properties
+            // Mark as unsaved and refresh sidebar - sync handled via entangled properties
             this.markAsUnsaved();
+            this.refreshStepCompletion();
         },
 
         isEquipmentSelected(key, type) {
@@ -922,8 +926,9 @@ export function characterBuilderComponent($wire, gameData = {}) {
                 });
             }
             
-            // Mark as unsaved
+            // Mark as unsaved and refresh sidebar
             this.markAsUnsaved();
+            this.refreshStepCompletion();
             
             // NOTE: Equipment sync removed - now handled via entangled properties
         },

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('room_participants', function (Blueprint $table) {
             $table->boolean('stt_consent_given')->nullable()->after('left_at');
             $table->timestamp('stt_consent_at')->nullable()->after('stt_consent_given');
-            
+
             $table->index(['stt_consent_given']);
         });
     }

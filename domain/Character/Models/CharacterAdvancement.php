@@ -19,6 +19,7 @@ class CharacterAdvancement extends Model
     {
         return \Database\Factories\CharacterAdvancementFactory::new();
     }
+
     protected $fillable = [
         'character_id',
         'tier',
@@ -88,6 +89,7 @@ class CharacterAdvancement extends Model
         }
 
         $traits = $this->advancement_data['traits'] ?? [];
+
         return in_array($trait_name, $traits);
     }
 
@@ -96,7 +98,7 @@ class CharacterAdvancement extends Model
      */
     public function getTraitBonus(string $trait_name): int
     {
-        if (!$this->affectsTrait($trait_name)) {
+        if (! $this->affectsTrait($trait_name)) {
             return 0;
         }
 
@@ -116,7 +118,7 @@ class CharacterAdvancement extends Model
      */
     public function getEvasionBonus(): int
     {
-        if (!$this->providesEvasionBonus()) {
+        if (! $this->providesEvasionBonus()) {
             return 0;
         }
 
@@ -136,7 +138,7 @@ class CharacterAdvancement extends Model
      */
     public function getHitPointBonus(): int
     {
-        if (!$this->providesHitPoints()) {
+        if (! $this->providesHitPoints()) {
             return 0;
         }
 
@@ -156,7 +158,7 @@ class CharacterAdvancement extends Model
      */
     public function getStressBonus(): int
     {
-        if (!$this->providesStress()) {
+        if (! $this->providesStress()) {
             return 0;
         }
 
@@ -176,7 +178,7 @@ class CharacterAdvancement extends Model
      */
     public function getProficiencyBonus(): int
     {
-        if (!$this->providesProficiencyBonus()) {
+        if (! $this->providesProficiencyBonus()) {
             return 0;
         }
 
@@ -196,7 +198,7 @@ class CharacterAdvancement extends Model
      */
     public function getMulticlassSelection(): ?string
     {
-        if (!$this->isMulticlass()) {
+        if (! $this->isMulticlass()) {
             return null;
         }
 

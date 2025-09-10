@@ -3,7 +3,7 @@
 declare(strict_types=1);
 use Domain\Character\Models\Character;
 use Domain\Character\Models\CharacterAdvancement;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('character advancement belongs to character', function () {
@@ -114,7 +114,7 @@ test('unique constraint prevents duplicate tier advancement number', function ()
         'advancement_number' => 1,
     ]);
 
-    expect(fn() => CharacterAdvancement::factory()->create([
+    expect(fn () => CharacterAdvancement::factory()->create([
         'character_id' => $character->id,
         'tier' => 1,
         'advancement_number' => 1,

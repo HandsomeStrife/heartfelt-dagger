@@ -8,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('Character Model Computed Stats', function () {
-    
+
     it('calculates School of War hit point bonus correctly from saved character data', function () {
         // Create a character with School of War subclass saved in database
         $character = Character::factory()->create([
@@ -22,14 +22,14 @@ describe('Character Model Computed Stats', function () {
                 'background_answers' => ['answer1', 'answer2', 'answer3'],
                 'connections' => ['connection1', 'connection2', 'connection3'],
                 'experiences' => [],
-                'selected_domain_cards' => []
-            ]
+                'selected_domain_cards' => [],
+            ],
         ]);
 
         // Get class data (Wizard starts with 4 HP)
         $class_data = [
             'startingEvasion' => 9,
-            'startingHitPoints' => 4
+            'startingHitPoints' => 4,
         ];
 
         $computed_stats = $character->getComputedStats($class_data);
@@ -52,14 +52,14 @@ describe('Character Model Computed Stats', function () {
                 'background_answers' => ['answer1', 'answer2', 'answer3'],
                 'connections' => ['connection1', 'connection2', 'connection3'],
                 'experiences' => [],
-                'selected_domain_cards' => []
-            ]
+                'selected_domain_cards' => [],
+            ],
         ]);
 
         // Get class data (Wizard starts with 4 HP)
         $class_data = [
             'startingEvasion' => 9,
-            'startingHitPoints' => 4
+            'startingHitPoints' => 4,
         ];
 
         $computed_stats = $character->getComputedStats($class_data);

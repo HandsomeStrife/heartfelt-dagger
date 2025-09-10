@@ -52,7 +52,7 @@ class CharacterNotes extends Model
     {
         $characterNotes = static::getOrCreateForCharacterAndUser($character, $user);
         $characterNotes->update(['notes' => $notes]);
-        
+
         return $characterNotes;
     }
 

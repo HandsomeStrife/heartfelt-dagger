@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Domain\User\Models\User;
+
 use function Pest\Laravel\actingAs;
 
 test('guest sees Characters and Tools dropdowns and fake profile', function () {
@@ -47,5 +48,3 @@ test('authenticated sees Campaigns, Characters/Resources dropdowns and profile o
         ->assertSee('Discord')
         ->assertSee('Logout');
 });
-
-

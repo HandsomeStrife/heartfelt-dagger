@@ -40,6 +40,8 @@
             :can-edit="$can_edit"
             :trait-info="$this->getTraitInfo()"
             :trait-values="$trait_values"
+            :can-level-up="$can_level_up"
+            :character-key="$character_key"
         />
 
         <!-- MAIN: Left = Damage & Health, Right = Hope + Gold -->
@@ -48,7 +50,7 @@
             <div class="lg:col-span-7">
                 <x-character-viewer.damage-health :computed-stats="$computed_stats" />
 
-                <x-character-viewer.active-weapons :organized-equipment="$organized_equipment" :character="$character" />
+                <x-character-viewer.active-weapons :organized-equipment="$organized_equipment" :character="$character" :trait-values="$trait_values" />
 
                 <x-character-viewer.active-armor :organized-equipment="$organized_equipment" />
             </div>

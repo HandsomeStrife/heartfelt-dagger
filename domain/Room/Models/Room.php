@@ -7,12 +7,12 @@ namespace Domain\Room\Models;
 use Domain\Campaign\Models\Campaign;
 use Domain\Room\Enums\RoomStatus;
 use Domain\User\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Builder;
 
 class Room extends Model
 {
@@ -141,12 +141,12 @@ class Room extends Model
     public function canUserAccess(?User $user): bool
     {
         // If room is not linked to a campaign, anyone can access
-        if (!$this->campaign_id) {
+        if (! $this->campaign_id) {
             return true;
         }
 
         // Campaign rooms require authentication
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -245,6 +245,7 @@ class Room extends Model
     {
         $newLevel = $this->getFearLevel() + $amount;
         $this->setFearLevel($newLevel);
+
         return $this->fear_level;
     }
 
@@ -255,6 +256,7 @@ class Room extends Model
     {
         $newLevel = $this->getFearLevel() - $amount;
         $this->setFearLevel($newLevel);
+
         return $this->fear_level;
     }
 
@@ -296,6 +298,7 @@ class Room extends Model
     public function getCountdownTracker(string $id): ?array
     {
         $trackers = $this->getCountdownTrackers();
+
         return $trackers[$id] ?? null;
     }
 }

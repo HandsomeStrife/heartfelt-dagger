@@ -18,13 +18,13 @@ class SttConfigController extends Controller
     {
         // Check if user has access to this room
         $user = $request->user();
-        if (!$room->canUserAccess($user)) {
+        if (! $room->canUserAccess($user)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
         // Get room recording settings
         $settings = $room->recordingSettings;
-        if (!$settings || !$settings->isSttEnabled()) {
+        if (! $settings || ! $settings->isSttEnabled()) {
             return response()->json(['error' => 'STT not enabled for this room'], 400);
         }
 
@@ -32,34 +32,32 @@ class SttConfigController extends Controller
         if ($settings->isUsingBrowserStt()) {
             return response()->json([
                 'provider' => 'browser',
-                'config' => []
+                'config' => [],
             ]);
         }
 
         // If using AssemblyAI, get the API key
         if ($settings->isUsingAssemblyAI()) {
             $sttAccount = $settings->sttAccount;
-            if (!$sttAccount) {
+            if (! $sttAccount) {
                 return response()->json(['error' => 'AssemblyAI account not configured'], 400);
             }
 
             $credentials = $sttAccount->getCredentials();
             $apiKey = $credentials['api_key'] ?? null;
 
-            if (!$apiKey) {
+            if (! $apiKey) {
                 return response()->json(['error' => 'AssemblyAI API key not found'], 400);
             }
 
             return response()->json([
                 'provider' => 'assemblyai',
                 'config' => [
-                    'api_key' => $apiKey
-                ]
+                    'api_key' => $apiKey,
+                ],
             ]);
         }
 
         return response()->json(['error' => 'Unknown STT provider'], 400);
     }
 }
-
-

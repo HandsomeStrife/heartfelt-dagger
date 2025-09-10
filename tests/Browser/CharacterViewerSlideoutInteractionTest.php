@@ -30,7 +30,7 @@ it('opens only the relevant slideover when clicking info buttons', function () {
         'selected_equipment' => [],
     ];
 
-    $action = new SaveCharacterAction();
+    $action = new SaveCharacterAction;
     $character_data = CharacterBuilderData::from($character);
     $character_model = $action->execute($character_data);
 
@@ -44,15 +44,15 @@ it('opens only the relevant slideover when clicking info buttons', function () {
     // Verify the specific content is there but the long descriptions are not
     $page->assertSee('Clank Features');
     $page->assertSee('Seaborne Features');
-    
+
     // Should not see the long descriptions in the main view (this confirms slideouts are working)
     $page->assertDontSee('sentient mechanical beings built from a variety of materials');
     $page->assertDontSee('lived on or near a large body of water');
-    
+
     // Should see the features but not the full ancestry/community descriptions
     $page->assertSee('Purposeful Design');
     $page->assertSee('Know the Tide');
-    
+
     // Verify Info buttons are present
     $page->assertSee('Info');
 });

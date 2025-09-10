@@ -13,7 +13,9 @@ use Livewire\Component;
 class CharacterGrid extends Component
 {
     public array $character_keys = [];
+
     public Collection $characters;
+
     public bool $loading = true;
 
     public function mount(): void
@@ -41,16 +43,17 @@ class CharacterGrid extends Component
     {
         $this->character_keys = $character_keys;
         $this->loading = true;
-        
+
         if (empty($character_keys)) {
             $this->characters = collect();
             $this->loading = false;
+
             return;
         }
 
-        $action = new LoadCharacterAction();
+        $action = new LoadCharacterAction;
         $characters = collect();
-        
+
         foreach ($character_keys as $key) {
             try {
                 $character = $action->execute($key);
@@ -69,7 +72,7 @@ class CharacterGrid extends Component
                 continue;
             }
         }
-        
+
         $this->characters = $characters;
         $this->loading = false;
     }
@@ -94,8 +97,6 @@ class CharacterGrid extends Component
     {
         $this->loadCharactersForCurrentUser();
     }
-
-
 
     public function viewCharacter(string $character_key): void
     {

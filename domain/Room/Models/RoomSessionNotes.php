@@ -52,7 +52,7 @@ class RoomSessionNotes extends Model
     {
         $sessionNotes = static::getOrCreateForRoomAndUser($room, $user);
         $sessionNotes->update(['notes' => $notes]);
-        
+
         return $sessionNotes;
     }
 

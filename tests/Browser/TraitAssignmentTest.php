@@ -10,12 +10,12 @@ describe('Trait Assignment', function () {
                 'selected_subclass' => 'stalwart',
                 'assigned_traits' => [],
                 'selected_equipment' => [],
-            ]
+            ],
         ]);
     });
 
     it('can click trait boxes to assign values', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-5"]')
             ->waitFor('[pest="trait-box"][pest-trait="agility"]')
             ->click('[pest="trait-box"][pest-trait="agility"]')
@@ -24,7 +24,7 @@ describe('Trait Assignment', function () {
     });
 
     it('can remove trait assignments by clicking again', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-5"]')
             ->waitFor('[pest="trait-box"][pest-trait="agility"]')
             ->click('[pest="trait-box"][pest-trait="agility"]') // Assign first value
@@ -35,7 +35,7 @@ describe('Trait Assignment', function () {
     });
 
     it('can apply suggested traits for class', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-5"]')
             ->waitFor('[pest="apply-suggested-traits"]')
             ->click('[pest="apply-suggested-traits"]')
@@ -44,7 +44,7 @@ describe('Trait Assignment', function () {
     });
 
     it('shows unsaved changes banner when traits are modified', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-5"]')
             ->waitFor('[pest="trait-box"][pest-trait="agility"]')
             ->click('[pest="trait-box"][pest-trait="agility"]')

@@ -3,8 +3,11 @@
 declare(strict_types=1);
 use App\Livewire\Auth\Register;
 use Domain\User\Models\User;
+
+use function Pest\Laravel\assertAuthenticated;
+use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Livewire\livewire;
-use function Pest\Laravel\{assertAuthenticated, assertDatabaseHas};
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('register component can be rendered', function () {

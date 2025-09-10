@@ -9,7 +9,6 @@ use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Data\UserData;
 use Illuminate\Support\Collection;
 use Livewire\Wireable;
-use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
 

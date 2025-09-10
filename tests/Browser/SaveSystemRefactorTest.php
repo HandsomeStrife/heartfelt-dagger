@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 // Tests for the save system refactor addressing multiple issues
 describe('Save System Refactor', function () {
-    
+
     it('shows tall-toasts notifications instead of custom popup', function () {
         $page = visit('/character-builder');
         $page->assertPathBeginsWith('/character-builder/');
@@ -15,10 +15,10 @@ describe('Save System Refactor', function () {
 
         // Click save and expect tall-toasts notification
         $page->click('[pest="floating-save-button"]');
-        
+
         // Wait for save to complete
         $page->wait(2);
-        
+
         // Should NOT see the old "Notification" popup
         $page->assertDontSee('Notification');
     });
@@ -33,14 +33,14 @@ describe('Save System Refactor', function () {
 
         // Click save
         $page->click('[pest="floating-save-button"]');
-        
+
         // Should see saving overlay immediately
         $page->assertSee('Saving character...');
         $page->assertVisible('.h-6.w-6.animate-spin'); // Loading spinner in overlay
-        
+
         // Wait for save to complete
         $page->wait(2);
-        
+
         // Saving overlay should disappear
         $page->assertDontSee('Saving character...');
     });
@@ -52,7 +52,7 @@ describe('Save System Refactor', function () {
         // Initially should see header banner
         $page->assertSee('Character Builder');
         $page->assertSee('Save'); // Header save button
-        
+
         // Should not see unsaved changes banner
         $page->assertDontSee('You have unsaved changes');
 
@@ -63,10 +63,10 @@ describe('Save System Refactor', function () {
         // Header banner should be hidden, unsaved changes banner should show
         $page->assertSee('You have unsaved changes');
         $page->assertSee('Save Now'); // Unsaved changes banner save button
-        
+
         // Check that the black header banner is hidden (by checking if "Character Builder" title is not visible in the header)
         $page->wait(0.5); // Allow time for Alpine to process
-        
+
         // Try to verify the header is hidden by checking if it's not in the DOM or not visible
         // Since Alpine x-show sets display:none, we need to check differently
 
@@ -89,7 +89,7 @@ describe('Save System Refactor', function () {
         $page->wait(1);
         $page->click('[pest="subclass-card-stalwart"]');
         $page->wait(1);
-        
+
         // Navigate through steps to equipment
         for ($step = 1; $step <= 5; $step++) {
             $page->click('[pest="next-step-button"]');
@@ -102,7 +102,7 @@ describe('Save System Refactor', function () {
 
         // Should see unsaved changes banner
         $page->assertSee('You have unsaved changes');
-        
+
         // Should NOT automatically save (no success toast yet)
         $page->assertDontSee('Character saved successfully!');
 
@@ -133,7 +133,7 @@ describe('Save System Refactor', function () {
 
         // Should trigger unsaved changes
         $page->assertSee('You have unsaved changes');
-        
+
         // Should not auto-save
         $page->assertDontSee('Character saved successfully!');
     });
@@ -160,10 +160,10 @@ describe('Save System Refactor', function () {
 
         // Should trigger unsaved changes
         $page->assertSee('You have unsaved changes');
-        
+
         // Should not auto-save
         $page->assertDontSee('Character saved successfully!');
-        
+
         // Manual save should work
         $page->click('[pest="floating-save-button"]');
         $page->wait(2); // Wait for potential save (Livewire calls don't work in browser tests)
@@ -180,18 +180,18 @@ describe('Save System Refactor', function () {
 
         // Should trigger unsaved changes
         $page->assertSee('You have unsaved changes');
-        
+
         // Should not auto-save
         $page->assertDontSee('Character saved successfully!');
 
-        // Change pronouns  
+        // Change pronouns
         $page->clear('[pest="character-pronouns-input"]');
         $page->type('[pest="character-pronouns-input"]', 'they/them');
         $page->wait(1);
 
         // Should still have unsaved changes
         $page->assertSee('You have unsaved changes');
-        
+
         // Manual save should work
         $page->click('[pest="floating-save-button"]');
         $page->wait(2); // Wait for potential save (Livewire calls don't work in browser tests)
@@ -219,13 +219,12 @@ describe('Save System Refactor', function () {
 
         // Should not cause any errors
         $page->assertDontSee('trim(): Argument #1 ($string) must be of type string, null given');
-        
+
         // Should trigger unsaved changes
         $page->assertSee('You have unsaved changes');
-        
+
         // Should not auto-save
         $page->assertDontSee('Character saved successfully!');
     });
 
 });
-

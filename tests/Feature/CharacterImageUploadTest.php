@@ -6,7 +6,9 @@ use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\delete;
+use function Pest\Laravel\get;
 use function Pest\Livewire\livewire;
 
 test('character image displays properly when uploaded', function () {
@@ -24,22 +26,22 @@ test('character image displays properly when uploaded', function () {
 
     // Test the Livewire component
     $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
-    
+
     // Initially no image
     $initialImageUrl = $component->instance()->getImageUrl();
     expect($initialImageUrl)->toBeNull();
 
     // Set the profile image (this should trigger updatedProfileImage)
     $component->set('profile_image', $fakeImage);
-    
+
     // Wait for the upload to process and then check if we have an image URL
     $imageUrl = $component->instance()->getImageUrl();
     expect($imageUrl)->not()->toBeNull();
-    
+
     // Verify file was uploaded and stored to database
     $character->refresh();
     expect($character->profile_image_path)->not()->toBeNull();
-    
+
     // Since we're using fake storage, let's check if the file was stored
     if ($character->profile_image_path) {
         expect(Storage::disk('s3')->exists($character->profile_image_path))->toBeTrue();
@@ -83,15 +85,15 @@ test('character image clears properly', function () {
 
     // Test clearing the image
     $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
-    
+
     // Initially should have image
     $initialImageUrl = $component->instance()->getImageUrl();
     expect($initialImageUrl)->not()->toBeNull();
     expect($initialImageUrl)->toContain($imagePath);
-    
+
     // Clear the image
     $component->call('clearProfileImage');
-    
+
     // Should be null after clearing
     $clearedImageUrl = $component->instance()->getImageUrl();
     expect($clearedImageUrl)->toBeNull();
@@ -107,16 +109,16 @@ test('character image getProfileImage method generates correct signed URL', func
     Storage::fake('s3');
 
     $imagePath = 'test-images/test_avatar.jpg';
-    
+
     // Actually store the file in fake S3
     Storage::disk('s3')->put($imagePath, 'fake image content');
-    
+
     $character = Character::factory()->create([
         'profile_image_path' => $imagePath,
     ]);
 
     $imageUrl = $character->getProfileImage();
-    
+
     // Should contain the image path and expiration parameter (indicating signed URL)
     expect($imageUrl)->toContain($imagePath);
     expect($imageUrl)->toContain('expiration=');
@@ -128,7 +130,7 @@ test('character image returns default when no image exists', function () {
     ]);
 
     $imageUrl = $character->getProfileImage();
-    
+
     // Should return default avatar
     expect($imageUrl)->toContain('default-avatar.png');
 });
@@ -151,18 +153,18 @@ test('character image handles all three scenarios correctly', function () {
     // Scenario 2: Upload an image when there is none
     $fakeImage1 = UploadedFile::fake()->image('first-avatar.jpg', 300, 300);
     $component->set('profile_image', $fakeImage1);
-    
+
     $uploadedImageUrl = $component->instance()->getImageUrl();
     expect($uploadedImageUrl)->not()->toBeNull();
     expect($uploadedImageUrl)->toContain('preview-file');
 
     // Clear the temporary image and verify it saves to database
     $component->set('profile_image', null);
-    
+
     // Reload to get saved image
     $character->refresh();
     $component = livewire(CharacterBuilder::class, ['characterKey' => $character->character_key]);
-    
+
     if ($character->profile_image_path) {
         $savedImageUrl = $component->instance()->getImageUrl();
         expect($savedImageUrl)->not()->toBeNull();
@@ -176,7 +178,7 @@ test('character image handles all three scenarios correctly', function () {
     // Scenario 4: Upload a new image after deleting
     $fakeImage2 = UploadedFile::fake()->image('second-avatar.jpg', 300, 300);
     $component->set('profile_image', $fakeImage2);
-    
+
     $newImageUrl = $component->instance()->getImageUrl();
     expect($newImageUrl)->not()->toBeNull();
     expect($newImageUrl)->toContain('preview-file');

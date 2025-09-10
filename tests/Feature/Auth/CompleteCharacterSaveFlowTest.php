@@ -7,8 +7,9 @@ use Domain\User\Actions\RegisterUserAction;
 use Domain\User\Data\RegisterUserData;
 use Domain\User\Models\User;
 use Illuminate\Support\Facades\Hash;
-use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\post;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('complete character save flow from anonymous to user owned', function () {

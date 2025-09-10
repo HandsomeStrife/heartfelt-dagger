@@ -11,12 +11,12 @@ describe('Experience Creation', function () {
                 'assigned_traits' => ['agility' => 2, 'strength' => 1, 'finesse' => 1, 'instinct' => 0, 'presence' => 0, 'knowledge' => -1],
                 'selected_equipment' => [],
                 'experiences' => [],
-            ]
+            ],
         ]);
     });
 
     it('can add a new experience', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-8"]')
             ->wait(1)
             ->assertPresent('[pest="experience-name-input"]')
@@ -31,7 +31,7 @@ describe('Experience Creation', function () {
 
     it('can remove an experience', function () {
         // First add an experience
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-8"]')
             ->wait(1)
             ->assertPresent('[pest="experience-name-input"]')
@@ -50,7 +50,7 @@ describe('Experience Creation', function () {
 
     it('can edit an experience description', function () {
         // First add an experience
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-8"]')
             ->wait(1)
             ->assertPresent('[pest="experience-name-input"]')
@@ -75,7 +75,7 @@ describe('Experience Creation', function () {
 
     it('can cancel editing an experience', function () {
         // First add an experience
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-8"]')
             ->wait(1)
             ->assertPresent('[pest="experience-name-input"]')
@@ -100,7 +100,7 @@ describe('Experience Creation', function () {
     });
 
     it('shows unsaved changes banner when experiences are modified', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-8"]')
             ->wait(1)
             ->assertPresent('[pest="experience-name-input"]')
@@ -112,7 +112,7 @@ describe('Experience Creation', function () {
     });
 
     it('limits experiences to 2 maximum', function () {
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-8"]')
             ->wait(1)
             ->assertPresent('[pest="experience-name-input"]')
@@ -136,11 +136,11 @@ describe('Experience Creation', function () {
         $this->character->update([
             'character_data' => array_merge($this->character->character_data, [
                 'selected_ancestry' => 'clank',
-                'experiences' => []
-            ])
+                'experiences' => [],
+            ]),
         ]);
 
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-8"]')
             ->wait(1)
             ->assertPresent('[pest="experience-name-input"]')
@@ -171,13 +171,13 @@ describe('Experience Creation', function () {
             'character_data' => array_merge($this->character->character_data, [
                 'selected_ancestry' => 'clank',
                 'experiences' => [
-                    ['name' => 'Test Experience', 'description' => 'Test description']
+                    ['name' => 'Test Experience', 'description' => 'Test description'],
                 ],
-                'clank_bonus_experience' => 'Test Experience'
-            ])
+                'clank_bonus_experience' => 'Test Experience',
+            ]),
         ]);
 
-        visit('/character-builder/' . $this->character->storage_key)
+        visit('/character-builder/'.$this->character->storage_key)
             ->click('[pest="sidebar-tab-8"]')
             ->wait(1)
             ->assertPresent('[pest="experience-item"]')

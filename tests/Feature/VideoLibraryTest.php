@@ -6,7 +6,6 @@ use App\Livewire\VideoLibrary;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomRecording;
 use Domain\User\Models\User;
-use Domain\User\Models\UserStorageAccount;
 
 test('video library loads for authenticated user', function () {
     $user = User::factory()->create();
@@ -36,7 +35,7 @@ test('video library shows no recordings message when empty', function () {
 test('video library displays user recordings', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -53,14 +52,14 @@ test('video library displays user recordings', function () {
 test('video library can filter recordings by provider', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
         'provider' => 'wasabi',
         'status' => 'ready',
     ]);
-    
+
     RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -87,13 +86,13 @@ test('video library can filter recordings by provider', function () {
 test('video library can filter recordings by status', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
         'status' => 'ready',
     ]);
-    
+
     RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -120,19 +119,19 @@ test('video library can search recordings', function () {
     $user = User::factory()->create();
     $room1 = Room::factory()->create([
         'creator_id' => $user->id,
-        'name' => 'Epic Adventure'
+        'name' => 'Epic Adventure',
     ]);
     $room2 = Room::factory()->create([
         'creator_id' => $user->id,
-        'name' => 'Casual Gaming'
+        'name' => 'Casual Gaming',
     ]);
-    
+
     RoomRecording::factory()->create([
         'room_id' => $room1->id,
         'user_id' => $user->id,
         'status' => 'ready',
     ]);
-    
+
     RoomRecording::factory()->create([
         'room_id' => $room2->id,
         'user_id' => $user->id,
@@ -176,7 +175,7 @@ test('video library can change view modes', function () {
 test('video library can toggle analytics', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -198,7 +197,7 @@ test('video library can toggle analytics', function () {
 test('video library can select recordings', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     $recording = RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -220,17 +219,17 @@ test('video library can select recordings', function () {
 test('video library shows only accessible recordings', function () {
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
-    
+
     $room1 = Room::factory()->create(['creator_id' => $user1->id]);
     $room2 = Room::factory()->create(['creator_id' => $user2->id]);
-    
+
     // Recording accessible to user1 (room creator)
     RoomRecording::factory()->create([
         'room_id' => $room1->id,
         'user_id' => $user1->id,
         'status' => 'ready',
     ]);
-    
+
     // Recording not accessible to user1 (different room creator)
     RoomRecording::factory()->create([
         'room_id' => $room2->id,
@@ -248,10 +247,10 @@ test('video library shows only accessible recordings', function () {
 test('video library can filter by date range', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     $today = now();
     $yesterday = now()->subDay();
-    
+
     // Recording from today
     RoomRecording::factory()->create([
         'room_id' => $room->id,
@@ -260,7 +259,7 @@ test('video library can filter by date range', function () {
         'ended_at_ms' => $today->copy()->addMinutes(30)->getTimestamp() * 1000,
         'status' => 'ready',
     ]);
-    
+
     // Recording from yesterday
     RoomRecording::factory()->create([
         'room_id' => $room->id,
@@ -303,7 +302,7 @@ test('video library can clear all filters', function () {
 test('video library download recording requires ready status', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     $processingRecording = RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -315,7 +314,7 @@ test('video library download recording requires ready status', function () {
 
     $component->call('downloadRecording', $processingRecording->id)
         ->assertHasNoErrors();
-    
+
     // The method should have been called without PHP errors
     // The actual download failure is expected and handled gracefully
     expect(true)->toBeTrue();
@@ -324,7 +323,7 @@ test('video library download recording requires ready status', function () {
 test('video library play recording selects it', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     $recording = RoomRecording::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Domain\Character\Data\CharacterBuilderData;
 
 describe('CharacterBuilderData Computed Stats', function () {
-    
+
     it('calculates School of War hit point bonus correctly', function () {
         // Create a wizard with School of War subclass (should get +1 HP)
         $character_data = CharacterBuilderData::from([
@@ -19,13 +19,13 @@ describe('CharacterBuilderData Computed Stats', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test School of War Wizard'
+            'name' => 'Test School of War Wizard',
         ]);
 
         // Get class data (Wizard starts with 4 HP)
         $class_data = [
             'startingEvasion' => 9,
-            'startingHitPoints' => 4
+            'startingHitPoints' => 4,
         ];
 
         $computed_stats = $character_data->getComputedStats($class_data);
@@ -48,13 +48,13 @@ describe('CharacterBuilderData Computed Stats', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test Giant School of War Wizard'
+            'name' => 'Test Giant School of War Wizard',
         ]);
 
         // Get class data (Wizard starts with 4 HP)
         $class_data = [
             'startingEvasion' => 9,
-            'startingHitPoints' => 4
+            'startingHitPoints' => 4,
         ];
 
         $computed_stats = $character_data->getComputedStats($class_data);
@@ -77,13 +77,13 @@ describe('CharacterBuilderData Computed Stats', function () {
             'connections' => ['connection1', 'connection2', 'connection3'],
             'experiences' => [],
             'selected_domain_cards' => [],
-            'name' => 'Test School of Knowledge Wizard'
+            'name' => 'Test School of Knowledge Wizard',
         ]);
 
         // Get class data (Wizard starts with 4 HP)
         $class_data = [
             'startingEvasion' => 9,
-            'startingHitPoints' => 4
+            'startingHitPoints' => 4,
         ];
 
         $computed_stats = $character_data->getComputedStats($class_data);

@@ -16,6 +16,7 @@ use Livewire\Form;
 class CampaignPageFormData extends Form
 {
     public ?CampaignPage $page = null;
+
     public Campaign $campaign;
 
     #[Validate('required|string|max:200')]
@@ -45,13 +46,14 @@ class CampaignPageFormData extends Form
     public function setCampaign(Campaign $campaign): self
     {
         $this->campaign = $campaign;
+
         return $this;
     }
 
     public function setPage(?CampaignPage $page): self
     {
         $this->page = $page;
-        
+
         if ($page) {
             $this->fill([
                 'title' => $page->title ?? '',
@@ -103,7 +105,8 @@ class CampaignPageFormData extends Form
             'authorized_user_ids' => $this->authorized_user_ids,
         ]);
 
-        $action = new CreateCampaignPageAction();
+        $action = new CreateCampaignPageAction;
+
         return $action->execute($createData, $user);
     }
 
@@ -120,7 +123,8 @@ class CampaignPageFormData extends Form
             'authorized_user_ids' => $this->authorized_user_ids,
         ]);
 
-        $action = new UpdateCampaignPageAction();
+        $action = new UpdateCampaignPageAction;
+
         return $action->execute($this->page, $updateData);
     }
 

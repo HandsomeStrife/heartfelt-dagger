@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Domain\Room\Data;
 
+use Livewire\Wireable;
 use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
-use Livewire\Wireable;
 
 class RoomRecordingSettingsData extends Data implements Wireable
 {
@@ -21,8 +21,8 @@ class RoomRecordingSettingsData extends Data implements Wireable
         public ?int $storage_account_id,
         public ?string $stt_provider,
         public ?int $stt_account_id,
-        public string $stt_consent_requirement = 'optional',
-        public string $recording_consent_requirement = 'optional',
+        public string $stt_consent_requirement,
+        public string $recording_consent_requirement,
         public ?string $viewer_password,
         public ?string $created_at,
         public ?string $updated_at,

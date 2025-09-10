@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('Character Status Actions', function () {
-    
+
     it('can save and load character status', function () {
         // Create a character
         $character = Character::factory()->create([
@@ -33,7 +33,7 @@ describe('Character Status Actions', function () {
         $status_data->gold_chest = true; // Mark gold chest
 
         // Save the status
-        $save_action = new SaveCharacterStatusAction();
+        $save_action = new SaveCharacterStatusAction;
         $saved_status = $save_action->execute('TESTKEY123', $status_data);
 
         // Verify saved data
@@ -43,7 +43,7 @@ describe('Character Status Actions', function () {
         expect($saved_status->gold_chest)->toBe(true);
 
         // Load the status
-        $load_action = new LoadCharacterStatusAction();
+        $load_action = new LoadCharacterStatusAction;
         $loaded_status = $load_action->execute('TESTKEY123', [
             'final_hit_points' => 5,
             'stress' => 6,
@@ -64,7 +64,7 @@ describe('Character Status Actions', function () {
         ]);
 
         // Load status (should create default)
-        $load_action = new LoadCharacterStatusAction();
+        $load_action = new LoadCharacterStatusAction;
         $status = $load_action->execute('TESTKEY456', [
             'final_hit_points' => 7,
             'stress' => 8,
@@ -78,7 +78,7 @@ describe('Character Status Actions', function () {
         expect($status->hope)->toHaveCount(6);
         expect($status->gold_handfuls)->toHaveCount(9);
         expect($status->gold_bags)->toHaveCount(9);
-        
+
         // All should be false initially
         expect(array_filter($status->hit_points))->toBeEmpty();
         expect(array_filter($status->stress))->toBeEmpty();
@@ -101,11 +101,11 @@ describe('Character Status Actions', function () {
         $initial_status->hit_points[2] = true; // Mark 3rd HP
 
         // Save initial status
-        $save_action = new SaveCharacterStatusAction();
+        $save_action = new SaveCharacterStatusAction;
         $save_action->execute('TESTKEY789', $initial_status);
 
         // Load with different stats (7 HP now)
-        $load_action = new LoadCharacterStatusAction();
+        $load_action = new LoadCharacterStatusAction;
         $adjusted_status = $load_action->execute('TESTKEY789', [
             'final_hit_points' => 7, // Increased from 5 to 7
             'stress' => 6,
@@ -118,5 +118,3 @@ describe('Character Status Actions', function () {
         expect($adjusted_status->hit_points[5])->toBe(false); // New slots should be false
     });
 });
-
-

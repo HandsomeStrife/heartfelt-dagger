@@ -6,11 +6,11 @@ use Domain\Room\Actions\JoinRoomAction;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new JoinRoomAction();
+    $this->action = new JoinRoomAction;
 });
 it('joins room with character successfully', function () {
     $room = Room::factory()->create(['guest_count' => 5]);
@@ -125,7 +125,7 @@ it('prevents duplicate participation', function () {
     $this->action->execute($room, $user);
 
     // Try to join again
-    expect(fn() => $this->action->execute($room, $user))
+    expect(fn () => $this->action->execute($room, $user))
         ->toThrow(Exception::class, 'You are already an active participant in this room.');
 });
 it('prevents joining full room', function () {
@@ -139,7 +139,7 @@ it('prevents joining full room', function () {
     $this->action->execute($room, $user2); // 2 participants (at capacity)
 
     // Try to join full room
-    expect(fn() => $this->action->execute($room, $user3))
+    expect(fn () => $this->action->execute($room, $user3))
         ->toThrow(Exception::class, 'This room is at capacity.');
 });
 it('validates character ownership', function () {
@@ -148,7 +148,7 @@ it('validates character ownership', function () {
     $otherUser = User::factory()->create();
     $otherCharacter = Character::factory()->create(['user_id' => $otherUser->id]);
 
-    expect(fn() => $this->action->execute($room, $user, $otherCharacter))
+    expect(fn () => $this->action->execute($room, $user, $otherCharacter))
         ->toThrow(Exception::class, 'Character does not belong to the user.');
 });
 it('allows multiple users to join same room', function () {

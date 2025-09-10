@@ -11,7 +11,7 @@ test('transcript API rejects requests without consent', function () {
     // Create a test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -46,7 +46,7 @@ test('transcript API rejects requests without consent', function () {
     $response->assertStatus(403)
         ->assertJson([
             'error' => 'Speech-to-text consent required',
-            'requires_consent' => true
+            'requires_consent' => true,
         ]);
 });
 
@@ -54,7 +54,7 @@ test('transcript API accepts requests with valid consent', function () {
     // Create a test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -89,7 +89,7 @@ test('transcript API accepts requests with valid consent', function () {
     $response->assertStatus(201)
         ->assertJson([
             'success' => true,
-            'message' => 'Transcript saved successfully'
+            'message' => 'Transcript saved successfully',
         ]);
 });
 
@@ -97,7 +97,7 @@ test('consent API endpoint works correctly', function () {
     // Create a test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -127,13 +127,13 @@ test('consent API endpoint works correctly', function () {
             'stt_enabled' => true,
             'requires_consent' => true,
             'consent_given' => false,
-            'consent_denied' => false
+            'consent_denied' => false,
         ]);
 
     // Test granting consent
     $response = $this->actingAs($user)
         ->postJson("/api/rooms/{$room->id}/stt-consent", [
-            'consent_given' => true
+            'consent_given' => true,
         ]);
 
     $response->assertStatus(200)
@@ -141,7 +141,7 @@ test('consent API endpoint works correctly', function () {
             'success' => true,
             'consent_given' => true,
             'should_redirect' => false,
-            'message' => 'Speech-to-text consent granted'
+            'message' => 'Speech-to-text consent granted',
         ]);
 
     // Verify consent was saved
@@ -151,7 +151,7 @@ test('consent API endpoint works correctly', function () {
     // Test denying consent
     $response = $this->actingAs($user)
         ->postJson("/api/rooms/{$room->id}/stt-consent", [
-            'consent_given' => false
+            'consent_given' => false,
         ]);
 
     $response->assertStatus(200)
@@ -159,7 +159,7 @@ test('consent API endpoint works correctly', function () {
             'success' => true,
             'consent_given' => false,
             'should_redirect' => true,
-            'message' => 'Speech-to-text consent denied'
+            'message' => 'Speech-to-text consent denied',
         ]);
 
     // Verify consent denial was saved
@@ -171,7 +171,7 @@ test('consent cannot be bypassed by malicious users', function () {
     // Create a test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -206,7 +206,7 @@ test('consent cannot be bypassed by malicious users', function () {
     $response->assertStatus(403)
         ->assertJson([
             'error' => 'Speech-to-text consent required',
-            'requires_consent' => true
+            'requires_consent' => true,
         ]);
 
     // Try to submit transcript for another user (should also fail)
@@ -223,7 +223,7 @@ test('consent cannot be bypassed by malicious users', function () {
 
     $response->assertStatus(403)
         ->assertJson([
-            'error' => 'User is not an active participant in this room'
+            'error' => 'User is not an active participant in this room',
         ]);
 });
 
@@ -231,10 +231,10 @@ test('STT is disabled when no recording settings exist', function () {
     // Create a test user and room
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // No recording settings created - STT should be disabled
 
-    // Create participant 
+    // Create participant
     $participant = RoomParticipant::create([
         'room_id' => $room->id,
         'user_id' => $user->id,
@@ -251,7 +251,7 @@ test('STT is disabled when no recording settings exist', function () {
         ->assertJson([
             'stt_enabled' => false,
             'requires_consent' => false,
-            'consent_given' => null
+            'consent_given' => null,
         ]);
 
     // Try to create transcript - should fail because STT is disabled
@@ -267,7 +267,7 @@ test('STT is disabled when no recording settings exist', function () {
 
     $response->assertStatus(403)
         ->assertJson([
-            'error' => 'Speech-to-text is not enabled for this room'
+            'error' => 'Speech-to-text is not enabled for this room',
         ]);
 });
 

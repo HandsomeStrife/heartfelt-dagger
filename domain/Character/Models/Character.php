@@ -30,6 +30,7 @@ class Character extends Model
         'ancestry',
         'community',
         'level',
+        'proficiency',
         'profile_image_path',
         'character_data',
         'is_public',
@@ -47,6 +48,7 @@ class Character extends Model
         'character_data' => 'array',
         'is_public' => 'boolean',
         'level' => 'integer',
+        'proficiency' => 'integer',
     ];
 
     /**
@@ -202,19 +204,20 @@ class Character extends Model
     public function getEffectiveTraitValue(TraitName $trait): int
     {
         $base_value = $this->getTraitValue($trait);
-        
+
         // Add trait advancement bonuses
         $trait_advancements = $this->advancements
             ->where('advancement_type', 'trait_bonus')
-            ->filter(function($advancement) use ($trait) {
+            ->filter(function ($advancement) use ($trait) {
                 $traits = $advancement->advancement_data['traits'] ?? [];
+
                 return in_array($trait->value, $traits);
             });
-            
-        $advancement_bonus = $trait_advancements->sum(function($advancement) {
+
+        $advancement_bonus = $trait_advancements->sum(function ($advancement) {
             return $advancement->advancement_data['bonus'] ?? 0;
         });
-        
+
         return $base_value + $advancement_bonus;
     }
 
@@ -234,6 +237,7 @@ class Character extends Model
     public function getBanner(): string
     {
         $class = $this->class ?: 'warrior'; // Default to warrior if class is null
+
         return asset('img/banners/'.strtolower($class).'.webp');
     }
 
@@ -248,7 +252,8 @@ class Character extends Model
                 // Check if S3 is properly configured
                 if (config('filesystems.disks.s3.key') && config('filesystems.disks.s3.secret')) {
                     $s3Disk = Storage::disk('s3');
-                    // For MinIO/S3, always try to generate temporaryUrl 
+
+                    // For MinIO/S3, always try to generate temporaryUrl
                     // even if we can't check existence (exists() might fail on MinIO)
                     return $s3Disk->temporaryUrl(
                         $this->profile_image_path,
@@ -257,9 +262,9 @@ class Character extends Model
                 }
             } catch (\Exception $e) {
                 // S3 not configured or error, fall back to local
-                \Illuminate\Support\Facades\Log::warning('S3 not available for profile image, falling back to local storage: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('S3 not available for profile image, falling back to local storage: '.$e->getMessage());
             }
-            
+
             // Fall back to local storage (use 'public' disk for local development)
             return Storage::disk('public')->url($this->profile_image_path);
         }
@@ -333,6 +338,7 @@ class Character extends Model
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -346,6 +352,7 @@ class Character extends Model
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -359,6 +366,7 @@ class Character extends Model
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -374,9 +382,10 @@ class Character extends Model
             if ($value === 'proficiency') {
                 $bonus += $this->getProficiencyBonus();
             } else {
-                $bonus += (int)$value;
+                $bonus += (int) $value;
             }
         }
+
         return $bonus;
     }
 
@@ -390,6 +399,7 @@ class Character extends Model
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -403,6 +413,7 @@ class Character extends Model
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -416,6 +427,7 @@ class Character extends Model
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -428,8 +440,9 @@ class Character extends Model
         $bonus = 0;
         foreach ($effects as $effect) {
             $value = $effect['value'] ?? 0;
-            $bonus += (int)$value;
+            $bonus += (int) $value;
         }
+
         return $bonus;
     }
 
@@ -442,8 +455,9 @@ class Character extends Model
         $bonus = 0;
         foreach ($effects as $effect) {
             $value = $effect['value'] ?? 0;
-            $bonus += (int)$value;
+            $bonus += (int) $value;
         }
+
         return $bonus;
     }
 
@@ -457,6 +471,7 @@ class Character extends Model
         foreach ($effects as $effect) {
             $bonus += $effect['value'] ?? 0;
         }
+
         return $bonus;
     }
 
@@ -467,10 +482,10 @@ class Character extends Model
     {
         // Base starting domain cards for all characters
         $base_cards = 2;
-        
+
         // Add subclass bonuses
         $subclass_bonus = $this->getSubclassDomainCardBonus();
-        
+
         return $base_cards + $subclass_bonus;
     }
 
@@ -479,22 +494,22 @@ class Character extends Model
      */
     public function getSubclassEffects(string $effectType): array
     {
-        if (!$this->subclass) {
+        if (! $this->subclass) {
             return [];
         }
-        
+
         $subclassData = $this->getSubclassData();
-        if (!$subclassData) {
+        if (! $subclassData) {
             return [];
         }
-        
+
         $effects = [];
         $allFeatures = array_merge(
             $subclassData['foundationFeatures'] ?? [],
             $subclassData['specializationFeatures'] ?? [],
             $subclassData['masteryFeatures'] ?? []
         );
-        
+
         foreach ($allFeatures as $feature) {
             $featureEffects = $feature['effects'] ?? [];
             foreach ($featureEffects as $effect) {
@@ -503,7 +518,7 @@ class Character extends Model
                 }
             }
         }
-        
+
         return $effects;
     }
 
@@ -513,11 +528,12 @@ class Character extends Model
     private function getSubclassData(): ?array
     {
         $path = resource_path('json/subclasses.json');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return null;
         }
-        
+
         $subclasses = json_decode(file_get_contents($path), true);
+
         return $subclasses[$this->subclass] ?? null;
     }
 
@@ -526,18 +542,18 @@ class Character extends Model
      */
     public function getAncestryEffects(string $effectType): array
     {
-        if (!$this->ancestry) {
+        if (! $this->ancestry) {
             return [];
         }
-        
+
         $ancestriesData = $this->getAncestryData();
-        if (!$ancestriesData) {
+        if (! $ancestriesData) {
             return [];
         }
-        
+
         $effects = [];
         $features = $ancestriesData['features'] ?? [];
-        
+
         foreach ($features as $feature) {
             $featureEffects = $feature['effects'] ?? [];
             foreach ($featureEffects as $effect) {
@@ -546,7 +562,7 @@ class Character extends Model
                 }
             }
         }
-        
+
         return $effects;
     }
 
@@ -556,11 +572,12 @@ class Character extends Model
     private function getAncestryData(): ?array
     {
         $path = resource_path('json/ancestries.json');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return null;
         }
-        
+
         $ancestries = json_decode(file_get_contents($path), true);
+
         return $ancestries[$this->ancestry] ?? null;
     }
 
@@ -569,7 +586,7 @@ class Character extends Model
      */
     public function hasExperienceBonusSelection(): bool
     {
-        return !empty($this->getAncestryEffects('experience_bonus_selection'));
+        return ! empty($this->getAncestryEffects('experience_bonus_selection'));
     }
 
     /**
@@ -577,10 +594,10 @@ class Character extends Model
      */
     public function getClankBonusExperience(): ?string
     {
-        if (!$this->hasExperienceBonusSelection()) {
+        if (! $this->hasExperienceBonusSelection()) {
             return null;
         }
-        
+
         return $this->character_data['clank_bonus_experience'] ?? null;
     }
 
@@ -590,19 +607,20 @@ class Character extends Model
     public function getExperienceModifier(string $experienceName): int
     {
         $baseModifier = 2; // All experiences start with +2
-        
+
         // Check if this experience gets experience bonus selection effect
-        if ($this->hasExperienceBonusSelection() && 
+        if ($this->hasExperienceBonusSelection() &&
             $this->getClankBonusExperience() === $experienceName) {
-            
+
             $effects = $this->getAncestryEffects('experience_bonus_selection');
             $bonus = 0;
             foreach ($effects as $effect) {
                 $bonus += $effect['value'] ?? 0;
             }
+
             return $baseModifier + $bonus;
         }
-        
+
         return $baseModifier;
     }
 
@@ -611,19 +629,19 @@ class Character extends Model
      */
     public function getProficiencyBonus(): int
     {
-        // Base proficiency increases with character level  
+        // Base proficiency increases with character level
         // Level 1: +0, Level 2-4: +1, Level 5-7: +2, Level 8-10: +3
-        $base_proficiency = match(true) {
+        $base_proficiency = match (true) {
             $this->level <= 1 => 0,
             $this->level <= 4 => 1,
             $this->level <= 7 => 2,
             default => 3,
         };
-        
+
         // Add advancement bonuses
         $advancement_bonus = $this->advancements
             ->where('advancement_type', 'proficiency')
-            ->sum(function($advancement) {
+            ->sum(function ($advancement) {
                 return $advancement->advancement_data['bonus'] ?? 0;
             });
 
@@ -652,10 +670,10 @@ class Character extends Model
         // Advancement bonuses
         $advancement_bonus = $this->advancements
             ->where('advancement_type', 'evasion')
-            ->sum(function($advancement) {
+            ->sum(function ($advancement) {
                 return $advancement->advancement_data['bonus'] ?? 0;
             });
-        
+
         if ($advancement_bonus > 0) {
             $bonuses['advancements'] = $advancement_bonus;
         }
@@ -685,10 +703,10 @@ class Character extends Model
         // Advancement bonuses
         $advancement_bonus = $this->advancements
             ->where('advancement_type', 'hit_point')
-            ->sum(function($advancement) {
+            ->sum(function ($advancement) {
                 return $advancement->advancement_data['bonus'] ?? 0;
             });
-        
+
         if ($advancement_bonus > 0) {
             $bonuses['advancements'] = $advancement_bonus;
         }
@@ -718,10 +736,10 @@ class Character extends Model
         // Advancement bonuses
         $advancement_bonus = $this->advancements
             ->where('advancement_type', 'stress')
-            ->sum(function($advancement) {
+            ->sum(function ($advancement) {
                 return $advancement->advancement_data['bonus'] ?? 0;
             });
-        
+
         if ($advancement_bonus > 0) {
             $bonuses['advancements'] = $advancement_bonus;
         }
@@ -734,7 +752,7 @@ class Character extends Model
      */
     public function getTier(): int
     {
-        return match(true) {
+        return match (true) {
             $this->level >= 8 => 4,
             $this->level >= 5 => 3,
             $this->level >= 2 => 2,
@@ -750,7 +768,7 @@ class Character extends Model
         return $this->advancements
             ->where('advancement_type', 'multiclass')
             ->pluck('advancement_data')
-            ->map(function($data) {
+            ->map(function ($data) {
                 return $data['class'] ?? null;
             })
             ->filter()
@@ -764,7 +782,7 @@ class Character extends Model
     {
         // For saved characters, we need to reconstruct the CharacterBuilderData from the database
         // The class/subclass are stored as separate columns, not in character_data
-        if (!empty($this->character_data)) {
+        if (! empty($this->character_data)) {
             // Build a complete character data array that matches CharacterBuilderData structure
             $builder_data_array = [
                 'selected_class' => $this->class,
@@ -775,29 +793,30 @@ class Character extends Model
                 'assigned_traits' => $this->getTraitsArray(),
                 'background_answers' => $this->character_data['background']['answers'] ?? [],
                 'connections' => $this->character_data['connections'] ?? [],
-                'experiences' => $this->experiences()->get()->map(function($exp) {
+                'experiences' => $this->experiences()->get()->map(function ($exp) {
                     return [
                         'name' => $exp->experience_name,
-                        'description' => $exp->experience_description
+                        'description' => $exp->experience_description,
                     ];
                 })->toArray(),
-                'selected_equipment' => $this->equipment()->get()->map(function($equip) {
+                'selected_equipment' => $this->equipment()->get()->map(function ($equip) {
                     return [
                         'type' => $equip->equipment_type,
                         'key' => $equip->equipment_key,
-                        'data' => $equip->equipment_data
+                        'data' => $equip->equipment_data,
                     ];
                 })->toArray(),
-                'selected_domain_cards' => $this->domainCards()->get()->map(function($card) {
+                'selected_domain_cards' => $this->domainCards()->get()->map(function ($card) {
                     return [
                         'domain' => $card->domain,
                         'ability_key' => $card->ability_key,
-                        'ability_level' => $card->ability_level
+                        'ability_level' => $card->ability_level,
                     ];
                 })->toArray(),
             ];
 
             $character_builder_data = \Domain\Character\Data\CharacterBuilderData::from($builder_data_array);
+
             return $character_builder_data->getComputedStats($class_data);
         }
 

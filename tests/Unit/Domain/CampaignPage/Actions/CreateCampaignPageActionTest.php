@@ -12,7 +12,7 @@ use Domain\User\Models\User;
 it('creates a campaign page successfully', function () {
     $campaign = Campaign::factory()->create();
     $creator = User::factory()->create();
-    
+
     $data = CreateCampaignPageData::from([
         'campaign_id' => $campaign->id,
         'parent_id' => null,
@@ -25,7 +25,7 @@ it('creates a campaign page successfully', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new CreateCampaignPageAction();
+    $action = new CreateCampaignPageAction;
     $page = $action->execute($data, $creator);
 
     expect($page)->toBeInstanceOf(CampaignPage::class);
@@ -42,12 +42,12 @@ it('creates a campaign page successfully', function () {
 it('creates a child page with correct parent', function () {
     $campaign = Campaign::factory()->create();
     $creator = User::factory()->create();
-    
+
     $parentPage = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'creator_id' => $creator->id
+        'creator_id' => $creator->id,
     ]);
-    
+
     $data = CreateCampaignPageData::from([
         'campaign_id' => $campaign->id,
         'parent_id' => $parentPage->id,
@@ -60,7 +60,7 @@ it('creates a child page with correct parent', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new CreateCampaignPageAction();
+    $action = new CreateCampaignPageAction;
     $page = $action->execute($data, $creator);
 
     expect($page->parent_id)->toBe($parentPage->id);
@@ -70,19 +70,19 @@ it('creates a child page with correct parent', function () {
 it('sets display order automatically when zero', function () {
     $campaign = Campaign::factory()->create();
     $creator = User::factory()->create();
-    
+
     // Create existing pages with different display orders
     CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'parent_id' => null,
-        'display_order' => 1
+        'display_order' => 1,
     ]);
     CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
         'parent_id' => null,
-        'display_order' => 3
+        'display_order' => 3,
     ]);
-    
+
     $data = CreateCampaignPageData::from([
         'campaign_id' => $campaign->id,
         'parent_id' => null,
@@ -95,7 +95,7 @@ it('sets display order automatically when zero', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new CreateCampaignPageAction();
+    $action = new CreateCampaignPageAction;
     $page = $action->execute($data, $creator);
 
     expect($page->display_order)->toBe(4); // Max (3) + 1
@@ -106,7 +106,7 @@ it('attaches authorized users for specific players access', function () {
     $creator = User::factory()->create();
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
-    
+
     $data = CreateCampaignPageData::from([
         'campaign_id' => $campaign->id,
         'parent_id' => null,
@@ -119,7 +119,7 @@ it('attaches authorized users for specific players access', function () {
         'authorized_user_ids' => [$user1->id, $user2->id],
     ]);
 
-    $action = new CreateCampaignPageAction();
+    $action = new CreateCampaignPageAction;
     $page = $action->execute($data, $creator);
 
     expect($page->authorizedUsers)->toHaveCount(2);
@@ -130,7 +130,7 @@ it('does not attach users for non specific access levels', function () {
     $campaign = Campaign::factory()->create();
     $creator = User::factory()->create();
     $user1 = User::factory()->create();
-    
+
     $data = CreateCampaignPageData::from([
         'campaign_id' => $campaign->id,
         'parent_id' => null,
@@ -143,7 +143,7 @@ it('does not attach users for non specific access levels', function () {
         'authorized_user_ids' => [$user1->id], // Should be ignored
     ]);
 
-    $action = new CreateCampaignPageAction();
+    $action = new CreateCampaignPageAction;
     $page = $action->execute($data, $creator);
 
     expect($page->authorizedUsers)->toHaveCount(0);
@@ -152,7 +152,7 @@ it('does not attach users for non specific access levels', function () {
 it('handles null content and empty categories', function () {
     $campaign = Campaign::factory()->create();
     $creator = User::factory()->create();
-    
+
     $data = CreateCampaignPageData::from([
         'campaign_id' => $campaign->id,
         'parent_id' => null,
@@ -165,7 +165,7 @@ it('handles null content and empty categories', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new CreateCampaignPageAction();
+    $action = new CreateCampaignPageAction;
     $page = $action->execute($data, $creator);
 
     expect($page->content)->toBeNull();
@@ -175,7 +175,7 @@ it('handles null content and empty categories', function () {
 it('creates page in database transaction', function () {
     $campaign = Campaign::factory()->create();
     $creator = User::factory()->create();
-    
+
     $data = CreateCampaignPageData::from([
         'campaign_id' => $campaign->id,
         'parent_id' => null,
@@ -188,12 +188,12 @@ it('creates page in database transaction', function () {
         'authorized_user_ids' => [999999], // Invalid user ID to force error
     ]);
 
-    $action = new CreateCampaignPageAction();
-    
+    $action = new CreateCampaignPageAction;
+
     // This should fail and rollback the transaction
-    expect(fn() => $action->execute($data, $creator))
+    expect(fn () => $action->execute($data, $creator))
         ->toThrow(Exception::class);
-    
+
     // Verify no page was created
     expect(CampaignPage::where('title', 'Transaction Test')->exists())->toBeFalse();
 });

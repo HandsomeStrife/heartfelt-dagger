@@ -2,13 +2,19 @@
 
 declare(strict_types=1);
 use Domain\Campaign\Models\Campaign;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Campaign\Models\CampaignMember;
 use Domain\Character\Models\Character;
 use Domain\Room\Models\Room;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{assertDatabaseHas, assertDatabaseMissing, assertDatabaseCount};
+
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\assertDatabaseCount;
+use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertDatabaseMissing;
+use function Pest\Laravel\delete;
+use function Pest\Laravel\get;
+use function Pest\Laravel\post;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('campaigns index requires authentication', function () {
@@ -207,7 +213,7 @@ test('user can join campaign without character and gets new character created', 
     ]);
 
     $campaignMember = $campaign->members()->where('user_id', $user->id)->first();
-    
+
     expect($campaignMember)->not->toBeNull();
     expect($campaignMember->character_id)->not->toBeNull();
     expect($campaignMember->character->name)->toBe('New Character');
@@ -335,7 +341,7 @@ test('routes use correct parameter binding', function () {
     $response = actingAs($user)->get("/campaigns/{$campaign->campaign_code}");
     $response->assertOk();
 
-    // Join form uses invite_code  
+    // Join form uses invite_code
     $response = actingAs($user)->get("/join/{$campaign->invite_code}");
     $response->assertOk();
 });

@@ -12,14 +12,17 @@ use Livewire\Component;
 class WasabiAccountSetup extends Component
 {
     public WasabiAccountForm $form;
+
     public bool $isTestingConnection = false;
+
     public ?string $connectionResult = null;
+
     public ?string $redirectTo = null;
 
     public function mount(): void
     {
         // Check if user is authenticated
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             abort(403, 'You must be logged in to connect storage accounts');
         }
 
@@ -43,7 +46,7 @@ class WasabiAccountSetup extends Component
             }
 
         } catch (\Exception $e) {
-            $this->addError('form', 'Failed to connect Wasabi account: ' . $e->getMessage());
+            $this->addError('form', 'Failed to connect Wasabi account: '.$e->getMessage());
         }
     }
 
@@ -82,7 +85,7 @@ class WasabiAccountSetup extends Component
 
         } catch (\Exception $e) {
             $this->connectionResult = 'error';
-            $this->addError('connection', 'Connection failed: ' . $e->getMessage());
+            $this->addError('connection', 'Connection failed: '.$e->getMessage());
         } finally {
             $this->isTestingConnection = false;
         }

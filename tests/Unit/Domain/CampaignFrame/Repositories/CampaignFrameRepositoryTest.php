@@ -12,7 +12,7 @@ test('it gets public frames', function () {
     CampaignFrame::factory()->create(['is_public' => false]);
     CampaignFrame::factory()->create(['is_public' => true, 'name' => 'B Frame']);
 
-    $repository = new CampaignFrameRepository();
+    $repository = new CampaignFrameRepository;
 
     // Act
     $frames = $repository->getPublicFrames();
@@ -27,12 +27,12 @@ test('gets frames by user', function () {
     // Arrange
     $user = User::factory()->create();
     $other_user = User::factory()->create();
-    
+
     CampaignFrame::factory()->create(['creator_id' => $user->id, 'updated_at' => now()->subHour()]);
     CampaignFrame::factory()->create(['creator_id' => $other_user->id]);
     CampaignFrame::factory()->create(['creator_id' => $user->id, 'updated_at' => now()]);
 
-    $repository = new CampaignFrameRepository();
+    $repository = new CampaignFrameRepository;
 
     // Act
     $frames = $repository->getFramesByUser($user);
@@ -46,7 +46,7 @@ test('gets frames by user', function () {
 test('finds frame by id', function () {
     // Arrange
     $frame = CampaignFrame::factory()->create();
-    $repository = new CampaignFrameRepository();
+    $repository = new CampaignFrameRepository;
 
     // Act
     $found_frame = $repository->findById($frame->id);
@@ -59,7 +59,7 @@ test('finds frame by id', function () {
 
 test('returns null when frame not found by id', function () {
     // Arrange
-    $repository = new CampaignFrameRepository();
+    $repository = new CampaignFrameRepository;
 
     // Act
     $found_frame = $repository->findById(999);
@@ -72,14 +72,14 @@ test('finds frame by id for user with access', function () {
     // Arrange
     $user = User::factory()->create();
     $other_user = User::factory()->create();
-    
+
     $public_frame = CampaignFrame::factory()->create(['is_public' => true]);
     $private_frame = CampaignFrame::factory()->create([
         'creator_id' => $user->id,
         'is_public' => false,
     ]);
 
-    $repository = new CampaignFrameRepository();
+    $repository = new CampaignFrameRepository;
 
     // Act & Assert
     // User can access public frames
@@ -104,20 +104,20 @@ test('searches public frames', function () {
         'name' => 'Fantasy Adventure',
         'description' => 'A magical quest',
     ]);
-    
+
     CampaignFrame::factory()->create([
         'is_public' => true,
         'name' => 'Sci-Fi Campaign',
         'description' => 'Space exploration',
     ]);
-    
+
     CampaignFrame::factory()->create([
         'is_public' => false,
         'name' => 'Fantasy Private',
         'description' => 'Secret adventure',
     ]);
 
-    $repository = new CampaignFrameRepository();
+    $repository = new CampaignFrameRepository;
 
     // Act
     $fantasy_frames = $repository->searchPublicFrames('Fantasy');
@@ -134,7 +134,7 @@ test('searches public frames', function () {
 test('gets frames available for campaign', function () {
     // Arrange
     $user = User::factory()->create();
-    
+
     CampaignFrame::factory()->create(['is_public' => true, 'name' => 'A Public']);
     CampaignFrame::factory()->create([
         'creator_id' => $user->id,
@@ -143,7 +143,7 @@ test('gets frames available for campaign', function () {
     ]);
     CampaignFrame::factory()->create(['is_public' => true, 'name' => 'C Public']);
 
-    $repository = new CampaignFrameRepository();
+    $repository = new CampaignFrameRepository;
 
     // Act
     $frames = $repository->getFramesAvailableForCampaign($user);
@@ -160,14 +160,14 @@ test('gets frames available for campaign', function () {
 test('gets only public frames when no user provided', function () {
     // Arrange
     $user = User::factory()->create();
-    
+
     CampaignFrame::factory()->create(['is_public' => true]);
     CampaignFrame::factory()->create([
         'creator_id' => $user->id,
         'is_public' => false,
     ]);
 
-    $repository = new CampaignFrameRepository();
+    $repository = new CampaignFrameRepository;
 
     // Act
     $frames = $repository->getFramesAvailableForCampaign();

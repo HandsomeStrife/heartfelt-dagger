@@ -9,7 +9,6 @@ use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomRecording;
 use Domain\Room\Models\SessionMarker;
 use Domain\User\Models\User;
-use Illuminate\Support\Str;
 
 class CreateSessionMarker
 {
@@ -25,13 +24,13 @@ class CreateSessionMarker
     ): SessionMarkerData {
         // Validate that the room exists
         $room = Room::findOrFail($roomId);
-        
+
         // Validate that the creator exists
         $creator = User::findOrFail($creatorId);
-        
+
         // Validate that the user exists
         $user = User::findOrFail($userId);
-        
+
         // Validate recording if provided
         if ($recordingId) {
             $recording = RoomRecording::where('id', $recordingId)

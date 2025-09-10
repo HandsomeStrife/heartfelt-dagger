@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use Domain\Character\Models\Character;
 use App\Livewire\CharacterViewer;
+use Domain\Character\Models\Character;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -22,13 +22,13 @@ test('class starting statistics match SRD values exactly', function () {
     ];
 
     $character = Character::factory()->create();
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $characterViewer->mount($character->public_key, $character->character_key, false);
     $gameData = $characterViewer->loadGameData();
 
     foreach ($srdClassStats as $className => $expectedStats) {
         expect($gameData['classes'])->toHaveKey($className);
-        
+
         $classData = $gameData['classes'][$className];
         expect($classData['startingEvasion'])->toBe($expectedStats['startingEvasion']);
         expect($classData['startingHitPoints'])->toBe($expectedStats['startingHitPoints']);
@@ -40,7 +40,7 @@ test('all characters start with exactly 6 stress slots', function () {
         'selected_class' => 'warrior',
     ]);
 
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $characterViewer->mount($character->public_key, $character->character_key, false);
     $computedStats = $characterViewer->getComputedStats();
 
@@ -62,13 +62,13 @@ test('class domain pairings match SRD specifications', function () {
     ];
 
     $character = Character::factory()->create();
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $characterViewer->mount($character->public_key, $character->character_key, false);
     $gameData = $characterViewer->loadGameData();
 
     foreach ($srdClassDomains as $className => $expectedDomains) {
         expect($gameData['classes'])->toHaveKey($className);
-        
+
         $classData = $gameData['classes'][$className];
         expect($classData['domains'])->toBe($expectedDomains);
         expect($classData['domains'])->toHaveCount(2); // Exactly 2 domains per class
@@ -84,10 +84,10 @@ test('domain card access is restricted to class domains', function () {
         ],
     ]);
 
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $characterViewer->mount($character->public_key, $character->character_key, false);
     $gameData = $characterViewer->loadGameData();
-    
+
     $classData = $gameData['classes']['sorcerer'];
     $allowedDomains = $classData['domains'];
 
@@ -107,7 +107,7 @@ test('starting characters are limited to exactly 2 domain cards', function () {
     ]);
 
     expect($character->selected_domain_cards)->toHaveCount(2);
-    
+
     // Verify each card is level 1
     foreach ($character->selected_domain_cards as $card) {
         expect($card['ability_level'])->toBe(1);
@@ -128,7 +128,7 @@ test('hope economy follows SRD rules', function () {
 });
 
 test('all class hope features cost exactly 3 hope', function () {
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $gameData = $characterViewer->loadGameData();
 
     foreach ($gameData['classes'] as $className => $classData) {
@@ -143,14 +143,14 @@ test('damage thresholds calculate according to SRD formula', function () {
         'selected_class' => 'guardian',
     ]);
 
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $characterViewer->mount($character->public_key, $character->character_key, false);
     $computedStats = $characterViewer->getComputedStats();
 
     $level = 1;
-    
+
     // SRD formula: damage thresholds based on armor + level modifiers
-    // major_threshold is the threshold between minor and major damage  
+    // major_threshold is the threshold between minor and major damage
     // severe_threshold is the threshold between major and severe damage
     expect($computedStats['major_threshold'])->toBeGreaterThanOrEqual(1);
     expect($computedStats['severe_threshold'])->toBeGreaterThanOrEqual(1);
@@ -168,7 +168,7 @@ test('equipment tier restrictions are enforced for starting characters', functio
                     'name' => 'Leather Armor',
                     'tier' => 1, // Tier 1 is allowed
                     'baseScore' => 3,
-                ]
+                ],
             ],
             [
                 'key' => 'shortbow',
@@ -177,8 +177,8 @@ test('equipment tier restrictions are enforced for starting characters', functio
                     'name' => 'Shortbow',
                     'tier' => 1, // Tier 1 is allowed
                     'trait' => 'Agility',
-                ]
-            ]
+                ],
+            ],
         ],
     ]);
 
@@ -191,7 +191,7 @@ test('equipment tier restrictions are enforced for starting characters', functio
 
 test('trait distribution validation enforces exact SRD array', function () {
     $validDistribution = [-1, 0, 0, 1, 1, 2];
-    
+
     $character = Character::factory()->create([
         'assigned_traits' => [
             'agility' => -1,
@@ -205,7 +205,7 @@ test('trait distribution validation enforces exact SRD array', function () {
 
     $traitValues = array_values($character->assigned_traits);
     sort($traitValues);
-    
+
     expect($traitValues)->toBe($validDistribution);
     expect(array_sum($traitValues))->toBe(3); // Sum must be 3
 });
@@ -223,14 +223,14 @@ test('computed statistics use correct SRD calculations', function () {
         ],
     ]);
 
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $characterViewer->mount($character->public_key, $character->character_key, false);
     $computedStats = $characterViewer->getComputedStats();
 
     // Warrior starts with Evasion 9, HP 7
     expect($computedStats['final_evasion'])->toBe(9);
     expect($computedStats['final_hit_points'])->toBe(7);
-    
+
     // Stress should always be 6 for starting characters
     expect($computedStats['final_stress'])->toBe(6);
 });
@@ -252,11 +252,11 @@ test('experience modifiers follow SRD format of plus two', function () {
 
 test('all domain names are valid according to SRD', function () {
     $validDomains = [
-        'arcana', 'blade', 'bone', 'codex', 'grace', 
-        'midnight', 'sage', 'splendor', 'valor'
+        'arcana', 'blade', 'bone', 'codex', 'grace',
+        'midnight', 'sage', 'splendor', 'valor',
     ];
 
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $gameData = $characterViewer->loadGameData();
 
     // Check that all class domains are valid
@@ -275,16 +275,16 @@ test('ancestry and community data loads correctly', function () {
         'selected_community' => 'ridgeborne',
     ]);
 
-    $characterViewer = new CharacterViewer();
+    $characterViewer = new CharacterViewer;
     $characterViewer->mount($character->public_key, $character->character_key, false);
     $gameData = $characterViewer->loadGameData();
 
     expect($gameData['ancestries'])->toHaveKey('dwarf');
     expect($gameData['communities'])->toHaveKey('ridgeborne');
-    
+
     $ancestryData = $gameData['ancestries']['dwarf'];
     $communityData = $gameData['communities']['ridgeborne'];
-    
+
     expect($ancestryData['name'])->toBeString();
     expect($communityData['name'])->toBeString();
 });

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use Domain\Character\Enums\EquipmentType;
 use Domain\Character\Models\Character;
 use Domain\Character\Models\CharacterEquipment;
-use Domain\Character\Enums\EquipmentType;
 
 it('displays correct damage thresholds for unarmored character', function () {
     // Create an unarmored level 3 character
@@ -20,7 +20,7 @@ it('displays correct damage thresholds for unarmored character', function () {
 
     // According to SRD: Unarmored major threshold = level (3), severe threshold = 2×level (6)
     $page->assertSee('3') // Major threshold
-         ->assertSee('6'); // Severe threshold
+        ->assertSee('6'); // Severe threshold
 });
 
 it('displays correct damage thresholds for armored character', function () {
@@ -49,8 +49,8 @@ it('displays correct damage thresholds for armored character', function () {
     $page = visit("/character/{$character->public_key}");
 
     // Level 5 with leather armor: base (6/13) + level bonus (4) = 10/17
-    $page->assertSee('10') // Major threshold  
-         ->assertSee('17'); // Severe threshold
+    $page->assertSee('10') // Major threshold
+        ->assertSee('17'); // Severe threshold
 });
 
 it('displays thresholds for different armor types correctly', function () {
@@ -65,7 +65,7 @@ it('displays thresholds for different armor types correctly', function () {
             ],
             'expectedMajor' => '5',
             'expectedSevere' => '11',
-            'description' => 'Gambeson Armor'
+            'description' => 'Gambeson Armor',
         ],
         [
             'armorKey' => 'chainmail armor',
@@ -76,7 +76,7 @@ it('displays thresholds for different armor types correctly', function () {
             ],
             'expectedMajor' => '7',
             'expectedSevere' => '15',
-            'description' => 'Chainmail Armor'
+            'description' => 'Chainmail Armor',
         ],
     ];
 
@@ -100,8 +100,8 @@ it('displays thresholds for different armor types correctly', function () {
 
         // Visit and verify the thresholds display
         $page = visit("/character/{$character->public_key}");
-        
+
         $page->assertSee($case['expectedMajor'])
-             ->assertSee($case['expectedSevere']);
+            ->assertSee($case['expectedSevere']);
     }
 });

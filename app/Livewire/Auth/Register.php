@@ -17,6 +17,7 @@ class Register extends Component
 
         // Dispatch event to clear localStorage
         $this->dispatch('auth-success');
+
         return $this->redirect('/dashboard');
     }
 

@@ -28,7 +28,7 @@ test('it creates a campaign frame successfully', function () {
         'session_zero_questions' => ['What are your character goals?', 'What are your limits?'],
     ]);
 
-    $action = new CreateCampaignFrameAction();
+    $action = new CreateCampaignFrameAction;
 
     // Act
     $frame = $action->execute($data, $user);
@@ -59,7 +59,7 @@ test('it creates a private campaign frame by default', function () {
         'is_public' => false,
     ]);
 
-    $action = new CreateCampaignFrameAction();
+    $action = new CreateCampaignFrameAction;
 
     // Act
     $frame = $action->execute($data, $user);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 use Domain\Room\Data\CreateRoomData;
 use Illuminate\Validation\ValidationException;
 use Livewire\Wireable;
-use PHPUnit\Framework\Attributes\Test;
+
 it('implements wireable interface', function () {
     $createData = new CreateRoomData(
         name: 'Test Room',
@@ -31,14 +31,14 @@ it('creates from valid array', function () {
     expect($createData->guest_count)->toEqual(4);
 });
 it('validates required name field', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'description' => 'Missing name field',
         'password' => 'password',
         'guest_count' => 2,
     ]))->toThrow(ValidationException::class);
 });
 it('validates required description field', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => 'Test Room',
         'password' => 'password',
         'guest_count' => 2,
@@ -59,14 +59,14 @@ it('allows optional password field', function () {
     expect($data->guest_count)->toEqual(2);
 });
 it('validates required guest count field', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => 'Test Room',
         'description' => 'Test Description',
         'password' => 'password',
     ]))->toThrow(ValidationException::class);
 });
 it('validates name max length', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => str_repeat('A', 101), // Exceeds max length
         'description' => 'Valid description',
         'password' => 'password',
@@ -74,7 +74,7 @@ it('validates name max length', function () {
     ]))->toThrow(ValidationException::class);
 });
 it('validates description max length', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => 'Valid name',
         'description' => str_repeat('B', 501), // Exceeds max length
         'password' => 'password',
@@ -82,7 +82,7 @@ it('validates description max length', function () {
     ]))->toThrow(ValidationException::class);
 });
 it('validates password max length', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => 'Valid name',
         'description' => 'Valid description',
         'password' => str_repeat('P', 256), // Exceeds max length
@@ -90,7 +90,7 @@ it('validates password max length', function () {
     ]))->toThrow(ValidationException::class);
 });
 it('validates guest count minimum', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => 'Valid name',
         'description' => 'Valid description',
         'password' => 'password',
@@ -98,7 +98,7 @@ it('validates guest count minimum', function () {
     ]))->toThrow(ValidationException::class);
 });
 it('validates guest count maximum', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => 'Valid name',
         'description' => 'Valid description',
         'password' => 'password',
@@ -199,7 +199,7 @@ it('handles special characters', function () {
     expect($createData->password)->toEqual('p@$$w0rd!');
 });
 it('validates empty string as invalid', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => '',
         'description' => 'Valid description',
         'password' => 'password',
@@ -207,7 +207,7 @@ it('validates empty string as invalid', function () {
     ]))->toThrow(ValidationException::class);
 });
 it('validates null values as invalid', function () {
-    expect(fn() => CreateRoomData::validate([
+    expect(fn () => CreateRoomData::validate([
         'name' => null,
         'description' => 'Valid description',
         'password' => 'password',

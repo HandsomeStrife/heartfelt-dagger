@@ -27,21 +27,21 @@ return new class extends Migration
 
         // Data migration: move combined fields to separate fields
         $frames = DB::table('campaign_frames')->get();
-        
+
         foreach ($frames as $frame) {
             $toneAndThemes = json_decode($frame->tone_and_themes, true) ?? [];
             $principles = json_decode($frame->principles, true) ?? [];
-            
+
             // Try to intelligently split tone_and_themes into tone and themes
             // Tone words are typically adjectives (Adventurous, Epic, etc.)
             // Theme words are typically concepts (Cultural Clash, etc.)
             $tone = [];
             $themes = [];
-            
+
             foreach ($toneAndThemes as $item) {
                 // Basic heuristic: if it contains spaces or specific theme keywords, it's likely a theme
-                if (str_contains($item, ' ') || 
-                    str_contains(strtolower($item), 'vs') || 
+                if (str_contains($item, ' ') ||
+                    str_contains(strtolower($item), 'vs') ||
                     str_contains(strtolower($item), 'clash') ||
                     str_contains(strtolower($item), 'transformation') ||
                     str_contains(strtolower($item), 'survival') ||
@@ -51,7 +51,7 @@ return new class extends Migration
                     $tone[] = $item;
                 }
             }
-            
+
             // Update the record with new structure
             DB::table('campaign_frames')
                 ->where('id', $frame->id)
@@ -87,16 +87,16 @@ return new class extends Migration
 
         // Data migration: combine new fields back into old structure
         $frames = DB::table('campaign_frames')->get();
-        
+
         foreach ($frames as $frame) {
             $tone = json_decode($frame->tone, true) ?? [];
             $themes = json_decode($frame->themes, true) ?? [];
             $playerPrinciples = json_decode($frame->player_principles, true) ?? [];
             $gmPrinciples = json_decode($frame->gm_principles, true) ?? [];
-            
+
             $combinedToneAndThemes = array_merge($tone, $themes);
             $combinedPrinciples = array_merge($playerPrinciples, $gmPrinciples);
-            
+
             DB::table('campaign_frames')
                 ->where('id', $frame->id)
                 ->update([

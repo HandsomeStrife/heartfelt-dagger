@@ -100,16 +100,14 @@ class CharacterStatus extends Model
         }
 
         // Hope is always 6 slots, gold is always 9+9+1, so no adjustment needed
-        if (!$this->hope) {
+        if (! $this->hope) {
             $this->hope = array_fill(0, 6, false);
         }
-        if (!$this->gold_handfuls) {
+        if (! $this->gold_handfuls) {
             $this->gold_handfuls = array_fill(0, 9, false);
         }
-        if (!$this->gold_bags) {
+        if (! $this->gold_bags) {
             $this->gold_bags = array_fill(0, 9, false);
         }
     }
 }
-
-

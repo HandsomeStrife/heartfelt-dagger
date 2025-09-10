@@ -38,5 +38,3 @@ it('persists clank bonus experience through save and load after livewire-style r
     expect($loaded)->not()->toBeNull();
     expect($loaded->clank_bonus_experience)->toBe('Tinkering');
 });
-
-

@@ -17,10 +17,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->longText('notes')->nullable();
             $table->timestamps();
-            
+
             // Ensure one notes record per room per user
             $table->unique(['room_id', 'user_id']);
-            
+
             // Indexes for performance
             $table->index(['room_id', 'user_id']);
         });

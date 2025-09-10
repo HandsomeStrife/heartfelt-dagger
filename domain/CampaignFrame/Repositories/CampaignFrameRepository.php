@@ -40,7 +40,7 @@ class CampaignFrameRepository
     public function findById(int $id): ?CampaignFrameData
     {
         $frame = CampaignFrame::with('creator')->find($id);
-        
+
         return $frame ? CampaignFrameData::fromModel($frame) : null;
     }
 

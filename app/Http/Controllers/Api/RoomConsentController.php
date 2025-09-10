@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Domain\Room\Actions\UpdateSttConsent;
 use Domain\Room\Actions\UpdateRecordingConsent;
+use Domain\Room\Actions\UpdateSttConsent;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Illuminate\Http\JsonResponse;
@@ -32,13 +32,13 @@ class RoomConsentController extends Controller
 
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Check if STT is enabled for this room
             $room->load('recordingSettings');
-            if (!$room->recordingSettings || !$room->recordingSettings->isSttEnabled()) {
+            if (! $room->recordingSettings || ! $room->recordingSettings->isSttEnabled()) {
                 return response()->json(['error' => 'Speech-to-text is not enabled for this room'], 403);
             }
 
@@ -60,7 +60,7 @@ class RoomConsentController extends Controller
                         'character_class' => 'Host',
                         'joined_at' => now(),
                     ]);
-                    
+
                     // Now update consent
                     if ($validated['consent_given']) {
                         $participant->grantSttConsent();
@@ -73,36 +73,34 @@ class RoomConsentController extends Controller
             }
 
             // If consent was denied, they should be redirected out
-            $shouldRedirect = !$validated['consent_given'];
+            $shouldRedirect = ! $validated['consent_given'];
 
             return response()->json([
                 'success' => true,
                 'consent_given' => $participant->hasSttConsent(),
                 'should_redirect' => $shouldRedirect,
-                'message' => $validated['consent_given'] 
+                'message' => $validated['consent_given']
                     ? 'Speech-to-text consent granted'
-                    : 'Speech-to-text consent denied'
+                    : 'Speech-to-text consent denied',
             ]);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to update STT consent', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to update consent'
+                'error' => 'Failed to update consent',
             ], 500);
         }
     }
-
-
 
     /**
      * Get the current STT consent status for a user in a room
@@ -112,7 +110,7 @@ class RoomConsentController extends Controller
         try {
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
@@ -120,11 +118,11 @@ class RoomConsentController extends Controller
             $room->load('recordingSettings');
             $sttEnabled = $room->recordingSettings && $room->recordingSettings->isSttEnabled();
 
-            if (!$sttEnabled) {
+            if (! $sttEnabled) {
                 return response()->json([
                     'stt_enabled' => false,
                     'requires_consent' => false,
-                    'consent_given' => null
+                    'consent_given' => null,
                 ]);
             }
 
@@ -135,42 +133,42 @@ class RoomConsentController extends Controller
                 ->first();
 
             // If no participant record but user is room creator, they still need consent
-            if (!$participant && $room->isCreator($user)) {
+            if (! $participant && $room->isCreator($user)) {
                 // Room creators should always have consent requirements apply to them
                 $consentRequired = $room->recordingSettings->isSttConsentRequired();
-                
+
                 return response()->json([
                     'stt_enabled' => true,
                     'consent_required' => $consentRequired,
                     'requires_consent' => true, // Always require consent decision for creators
                     'consent_given' => false,
-                    'consent_denied' => false
+                    'consent_denied' => false,
                 ]);
-            } elseif (!$participant) {
+            } elseif (! $participant) {
                 return response()->json(['error' => 'User is not an active participant in this room'], 403);
             }
 
             // Check if consent is required based on room settings
             $consentRequired = $room->recordingSettings->isSttConsentRequired();
             $requiresConsentDialog = $participant->hasNoSttConsentDecision();
-            
+
             return response()->json([
                 'stt_enabled' => true,
                 'consent_required' => $consentRequired,
                 'requires_consent' => $requiresConsentDialog,
                 'consent_given' => $participant->hasSttConsent(),
-                'consent_denied' => $participant->hasDeniedSttConsent()
+                'consent_denied' => $participant->hasDeniedSttConsent(),
             ]);
 
         } catch (\Exception $e) {
             \Log::error('Failed to get STT consent status', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to get consent status'
+                'error' => 'Failed to get consent status',
             ], 500);
         }
     }
@@ -187,13 +185,13 @@ class RoomConsentController extends Controller
 
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Check if recording is enabled for this room
             $room->load('recordingSettings');
-            if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
+            if (! $room->recordingSettings || ! $room->recordingSettings->isRecordingEnabled()) {
                 return response()->json(['error' => 'Video recording is not enabled for this room'], 403);
             }
 
@@ -214,7 +212,7 @@ class RoomConsentController extends Controller
                         'character_class' => null,
                         'joined_at' => now(),
                     ]);
-                    
+
                     // Now apply the consent decision
                     if ($validated['consent_given']) {
                         $participant->giveRecordingConsent();
@@ -229,23 +227,23 @@ class RoomConsentController extends Controller
             return response()->json([
                 'success' => true,
                 'consent_given' => $validated['consent_given'],
-                'participant_id' => $participant->id
+                'participant_id' => $participant->id,
             ]);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to update recording consent', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to update consent'
+                'error' => 'Failed to update consent',
             ], 500);
         }
     }
@@ -258,7 +256,7 @@ class RoomConsentController extends Controller
         try {
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
@@ -266,11 +264,11 @@ class RoomConsentController extends Controller
             $room->load('recordingSettings');
             $recordingEnabled = $room->recordingSettings && $room->recordingSettings->isRecordingEnabled();
 
-            if (!$recordingEnabled) {
+            if (! $recordingEnabled) {
                 return response()->json([
                     'recording_enabled' => false,
                     'requires_consent' => false,
-                    'consent_given' => null
+                    'consent_given' => null,
                 ]);
             }
 
@@ -281,42 +279,42 @@ class RoomConsentController extends Controller
                 ->first();
 
             // If no participant record but user is room creator, they still need consent
-            if (!$participant && $room->isCreator($user)) {
+            if (! $participant && $room->isCreator($user)) {
                 // Room creators should always have consent requirements apply to them
                 $consentRequired = $room->recordingSettings->isRecordingConsentRequired();
-                
+
                 return response()->json([
                     'recording_enabled' => true,
                     'consent_required' => $consentRequired,
                     'requires_consent' => true, // Always require consent decision for creators
                     'consent_given' => false,
-                    'consent_denied' => false
+                    'consent_denied' => false,
                 ]);
-            } elseif (!$participant) {
+            } elseif (! $participant) {
                 return response()->json(['error' => 'User is not an active participant in this room'], 403);
             }
 
             // Check if consent is required based on room settings
             $consentRequired = $room->recordingSettings->isRecordingConsentRequired();
             $requiresConsentDialog = $participant->hasNoRecordingConsentDecision();
-            
+
             return response()->json([
                 'recording_enabled' => true,
                 'consent_required' => $consentRequired,
                 'requires_consent' => $requiresConsentDialog,
                 'consent_given' => $participant->hasRecordingConsent(),
-                'consent_denied' => $participant->hasRecordingConsentDenied()
+                'consent_denied' => $participant->hasRecordingConsentDenied(),
             ]);
 
         } catch (\Exception $e) {
             \Log::error('Failed to get recording consent status', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to get consent status'
+                'error' => 'Failed to get consent status',
             ], 500);
         }
     }

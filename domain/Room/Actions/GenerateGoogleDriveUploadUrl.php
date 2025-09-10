@@ -22,7 +22,7 @@ class GenerateGoogleDriveUploadUrl
     ): array {
         // Validate that recording is enabled for this room
         $room->load('recordingSettings');
-        if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
+        if (! $room->recordingSettings || ! $room->recordingSettings->isRecordingEnabled()) {
             throw new \Exception('Video recording is not enabled for this room');
         }
 
@@ -33,7 +33,7 @@ class GenerateGoogleDriveUploadUrl
 
         // Get the storage account
         $storageAccount = UserStorageAccount::find($room->recordingSettings->storage_account_id);
-        if (!$storageAccount || $storageAccount->provider !== 'google_drive') {
+        if (! $storageAccount || $storageAccount->provider !== 'google_drive') {
             throw new \Exception('Google Drive storage account not found or invalid');
         }
 
@@ -52,12 +52,12 @@ class GenerateGoogleDriveUploadUrl
             // Generate user-friendly filename with user name and timestamp
             $extension = pathinfo($filename, PATHINFO_EXTENSION);
             $timestamp = now()->format('Y-m-d_H-i-s');
-            
+
             // Get user name from room participant or user name
             $participant = \Domain\Room\Models\RoomParticipant::where('room_id', $room->id)
                 ->where('user_id', $user->id)
                 ->first();
-            
+
             $userName = $participant?->character_name ?? $user->name ?? "User{$user->id}";
             // Clean up username for filename (remove special characters)
             $cleanUserName = preg_replace('/[^a-zA-Z0-9\-_]/', '', $userName);
@@ -84,7 +84,7 @@ class GenerateGoogleDriveUploadUrl
                 // If origin is malformed, fall back to app.url
                 $origin = config('app.url');
             }
-            
+
             $result = $driveService->generateDirectUploadUrl(
                 $uniqueFilename,
                 $contentType,
@@ -131,7 +131,7 @@ class GenerateGoogleDriveUploadUrl
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \Exception('Failed to generate upload URL: ' . $e->getMessage());
+            throw new \Exception('Failed to generate upload URL: '.$e->getMessage());
         }
     }
 
@@ -148,8 +148,8 @@ class GenerateGoogleDriveUploadUrl
 
         // Check content type
         $allowedTypes = ['video/webm', 'video/mp4', 'video/quicktime'];
-        if (!in_array($contentType, $allowedTypes)) {
-            throw new \Exception('Invalid content type. Allowed types: ' . implode(', ', $allowedTypes));
+        if (! in_array($contentType, $allowedTypes)) {
+            throw new \Exception('Invalid content type. Allowed types: '.implode(', ', $allowedTypes));
         }
 
         // Check filename
@@ -166,14 +166,15 @@ class GenerateGoogleDriveUploadUrl
         try {
             // Create organized folder structure: "Heartfelt Dagger" > "Room: {room_name}"
             $heartfeltDaggerFolderId = $driveService->findOrCreateFolder('Heartfelt Dagger', null);
-            if (!$heartfeltDaggerFolderId) {
+            if (! $heartfeltDaggerFolderId) {
                 Log::warning('Failed to create Heartfelt Dagger main folder');
+
                 return null;
             }
 
             $roomFolderName = "Room: {$room->name}";
             $roomFolderId = $driveService->findOrCreateFolder($roomFolderName, $heartfeltDaggerFolderId);
-            
+
             return $roomFolderId;
 
         } catch (\Exception $e) {
@@ -181,7 +182,7 @@ class GenerateGoogleDriveUploadUrl
                 'room_id' => $room->id,
                 'error' => $e->getMessage(),
             ]);
-            
+
             // Return null to upload to root directory as fallback
             return null;
         }

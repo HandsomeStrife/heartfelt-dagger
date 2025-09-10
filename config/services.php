@@ -47,7 +47,7 @@ return [
 
     'wasabi' => [
         'access_key' => env('WASABI_ACCESS_KEY'),
-        'secret_key' => env('WASABI_SECRET_KEY')
+        'secret_key' => env('WASABI_SECRET_KEY'),
     ],
 
     'cloudflare' => [

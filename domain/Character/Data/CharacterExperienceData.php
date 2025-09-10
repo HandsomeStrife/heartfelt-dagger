@@ -11,7 +11,7 @@ use Spatie\LaravelData\Data;
 class CharacterExperienceData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public string $name,
         public string $description,

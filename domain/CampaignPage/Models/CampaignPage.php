@@ -65,12 +65,12 @@ class CampaignPage extends Model
     public function canBeViewedBy(?User $user): bool
     {
         // Not published pages can only be viewed by creator
-        if (!$this->is_published) {
+        if (! $this->is_published) {
             return $user && $this->creator_id === $user->id;
         }
 
         // No user means guest access - only allow if no restrictions
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -97,7 +97,7 @@ class CampaignPage extends Model
      */
     public function canBeEditedBy(?User $user): bool
     {
-        if (!$user) {
+        if (! $user) {
             return false;
         }
 
@@ -107,10 +107,10 @@ class CampaignPage extends Model
         }
 
         // Campaign creator can always edit
-        if (!$this->relationLoaded('campaign')) {
+        if (! $this->relationLoaded('campaign')) {
             $this->load('campaign');
         }
-        
+
         return $this->campaign && $this->campaign->isCreator($user);
     }
 
@@ -160,7 +160,7 @@ class CampaignPage extends Model
      */
     public function scopeAccessibleBy($query, ?User $user)
     {
-        if (!$user) {
+        if (! $user) {
             return $query->where('id', null); // Return empty result
         }
 
@@ -168,25 +168,25 @@ class CampaignPage extends Model
             // Creator can see all their pages
             $q->where('creator_id', $user->id)
               // Campaign creator can see all pages in their campaigns
-              ->orWhereHas('campaign', function ($campaignQuery) use ($user) {
-                  $campaignQuery->where('creator_id', $user->id);
-              })
+                ->orWhereHas('campaign', function ($campaignQuery) use ($user) {
+                    $campaignQuery->where('creator_id', $user->id);
+                })
               // All players access
-              ->orWhere(function ($accessQuery) use ($user) {
-                  $accessQuery->where('access_level', PageAccessLevel::ALL_PLAYERS)
-                             ->whereHas('campaign', function ($campaignQuery) use ($user) {
-                                 $campaignQuery->whereHas('members', function ($memberQuery) use ($user) {
-                                     $memberQuery->where('user_id', $user->id);
-                                 });
-                             });
-              })
+                ->orWhere(function ($accessQuery) use ($user) {
+                    $accessQuery->where('access_level', PageAccessLevel::ALL_PLAYERS)
+                        ->whereHas('campaign', function ($campaignQuery) use ($user) {
+                            $campaignQuery->whereHas('members', function ($memberQuery) use ($user) {
+                                $memberQuery->where('user_id', $user->id);
+                            });
+                        });
+                })
               // Specific players access
-              ->orWhere(function ($accessQuery) use ($user) {
-                  $accessQuery->where('access_level', PageAccessLevel::SPECIFIC_PLAYERS)
-                             ->whereHas('authorizedUsers', function ($userQuery) use ($user) {
-                                 $userQuery->where('users.id', $user->id);
-                             });
-              });
+                ->orWhere(function ($accessQuery) use ($user) {
+                    $accessQuery->where('access_level', PageAccessLevel::SPECIFIC_PLAYERS)
+                        ->whereHas('authorizedUsers', function ($userQuery) use ($user) {
+                            $userQuery->where('users.id', $user->id);
+                        });
+                });
         })->where('is_published', true);
     }
 
@@ -215,7 +215,7 @@ class CampaignPage extends Model
         // FULLTEXT search has minimum word length and indexing requirements
         return $query->where(function ($q) use ($searchTerm) {
             $q->where('title', 'LIKE', "%{$searchTerm}%")
-              ->orWhere('content', 'LIKE', "%{$searchTerm}%");
+                ->orWhere('content', 'LIKE', "%{$searchTerm}%");
         });
     }
 }

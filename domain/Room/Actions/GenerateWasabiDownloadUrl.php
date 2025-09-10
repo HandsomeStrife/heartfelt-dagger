@@ -8,7 +8,6 @@ use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomRecording;
 use Domain\Room\Services\WasabiS3Service;
 use Domain\User\Models\User;
-use Domain\User\Models\UserStorageAccount;
 use Illuminate\Support\Facades\Log;
 
 class GenerateWasabiDownloadUrl
@@ -20,7 +19,7 @@ class GenerateWasabiDownloadUrl
         int $expirationMinutes = 60
     ): array {
         // Validate that user has access to this recording
-        if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+        if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
             throw new \Exception('Only room participants can download recordings');
         }
 
@@ -37,8 +36,8 @@ class GenerateWasabiDownloadUrl
         // Get the storage account
         $room->load('recordingSettings.storageAccount');
         $storageAccount = $room->recordingSettings?->storageAccount;
-        
-        if (!$storageAccount || $storageAccount->provider !== 'wasabi') {
+
+        if (! $storageAccount || $storageAccount->provider !== 'wasabi') {
             throw new \Exception('Wasabi storage account not found or invalid');
         }
 
@@ -79,8 +78,7 @@ class GenerateWasabiDownloadUrl
                 'storage_account_id' => $storageAccount->id ?? null,
             ]);
 
-            throw new \Exception('Failed to generate download URL: ' . $e->getMessage());
+            throw new \Exception('Failed to generate download URL: '.$e->getMessage());
         }
     }
 }
-

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Domain\Character\Models\Character;
 
 describe('Character Viewer Display Validation', function () {
-    
+
     it('validates character viewer displays basic character information correctly', function () {
         $character = Character::factory()->create([
             'character_data' => [
@@ -29,25 +29,25 @@ describe('Character Viewer Display Validation', function () {
         ]);
 
         // Navigate directly to character viewer
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify basic character information is displayed
         $page->assertPresent('[pest="character-viewer-top-banner"]')
             ->assertPresent('[pest="character-name"]')
             ->assertSee('Eldara Moonshadow')
             ->assertPresent('[pest="character-pronouns"]')
             ->assertSee('she/her');
-        
+
         // Verify heritage display
         $page->assertPresent('[pest="character-heritage"]')
             ->assertSee('Loreborne Human')
             ->assertSee('Wizard')
             ->assertSee('School of Knowledge');
-        
+
         // Verify class domains
         $page->assertPresent('[pest="class-domains"]')
             ->assertSee('Codex & Splendor');
-        
+
         // Verify character stats are displayed
         $page->assertPresent('[pest="character-stats"]')
             ->assertPresent('[pest="evasion-stat"]')
@@ -72,24 +72,24 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Thorin Ironforge',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify damage and health section
         $page->assertPresent('[pest="damage-health-section"]');
-        
+
         // Verify damage thresholds are displayed
         $page->assertPresent('[pest="damage-thresholds"]');
-        
+
         // Verify hit points section
         $page->assertPresent('[pest="hit-points-section"]')
             ->assertPresent('[pest="hp-counter"]')
             ->assertPresent('[pest="hit-points-track"]');
-        
+
         // Verify stress section
         $page->assertPresent('[pest="stress-section"]')
             ->assertPresent('[pest="stress-counter"]')
             ->assertPresent('[pest="stress-track"]');
-        
+
         // Verify armor slots section
         $page->assertPresent('[pest="armor-slots-section"]')
             ->assertPresent('[pest="armor-slots-track"]');
@@ -116,14 +116,14 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Lyralei Swiftarrow',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify active weapons section
         $page->assertPresent('[pest="active-weapons-section"]');
-        
+
         // Verify active armor section
         $page->assertPresent('[pest="active-armor-section"]');
-        
+
         // Verify equipment inventory section
         $page->assertPresent('[pest="equipment-section"]')
             ->assertPresent('[pest="inventory-section"]')
@@ -149,12 +149,12 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Cogwright Seven',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify experiences section exists
         $page->assertPresent('[pest="experience-section"]')
             ->assertPresent('[pest="experience-list"]');
-        
+
         // Verify experiences are displayed
         $page->assertSee('Lock Picking')
             ->assertSee('Urban Navigation');
@@ -175,8 +175,8 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Thalion Greenleaf',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify domain cards section
         $page->assertPresent('[pest="domain-cards-section"]');
     });
@@ -196,8 +196,8 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Mira Scholarly',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify subclass features section exists
         $page->assertPresent('[pest="subclass-features-section"]')
             ->assertSee('School of Knowledge Features');
@@ -218,8 +218,8 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Cogwright Seven',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify ancestry features section exists
         $page->assertPresent('[pest="ancestry-features-section"]')
             ->assertSee('Clank Features');
@@ -240,8 +240,8 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Thorin Ironforge',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify community features section exists
         $page->assertPresent('[pest="community-features-section"]')
             ->assertSee('Ridgeborne Features');
@@ -262,8 +262,8 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Stone Walker',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Verify playtest label is displayed for Earthkin
         $page->assertSee('Void - Playtest');
     });
@@ -283,16 +283,16 @@ describe('Character Viewer Display Validation', function () {
             'name' => 'Unnamed Character',
         ]);
 
-        $page = visit('/character/' . $character->character_key);
-        
+        $page = visit('/character/'.$character->character_key);
+
         // Should still render basic structure even with minimal data
         $page->assertPresent('[pest="character-viewer-top-banner"]')
             ->assertPresent('[pest="damage-health-section"]')
             ->assertPresent('[pest="equipment-section"]');
-        
+
         // Should show character name or default
         $page->assertSee('Unnamed Character');
-        
+
         // Should handle empty experiences gracefully
         $page->assertNotPresent('[pest="experience-section"]');
     });

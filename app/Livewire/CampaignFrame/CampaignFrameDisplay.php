@@ -12,6 +12,7 @@ use Livewire\Component;
 class CampaignFrameDisplay extends Component
 {
     public Campaign $campaign;
+
     public array $visibleSections = [];
 
     public function mount(Campaign $campaign)
@@ -22,7 +23,7 @@ class CampaignFrameDisplay extends Component
 
     public function loadVisibleSections()
     {
-        if (!$this->campaign->campaign_frame_id) {
+        if (! $this->campaign->campaign_frame_id) {
             return;
         }
 
@@ -31,12 +32,12 @@ class CampaignFrameDisplay extends Component
 
     public function hasCampaignFrame(): bool
     {
-        return !is_null($this->campaign->campaign_frame_id) && !is_null($this->campaign->campaignFrame);
+        return ! is_null($this->campaign->campaign_frame_id) && ! is_null($this->campaign->campaignFrame);
     }
 
     public function hasVisibleContent(): bool
     {
-        return $this->hasCampaignFrame() && !empty($this->visibleSections);
+        return $this->hasCampaignFrame() && ! empty($this->visibleSections);
     }
 
     public function isCreator(): bool
@@ -46,7 +47,7 @@ class CampaignFrameDisplay extends Component
 
     public function getSectionContent(string $section): mixed
     {
-        if (!$this->campaign->campaignFrame) {
+        if (! $this->campaign->campaignFrame) {
             return null;
         }
 
@@ -59,6 +60,7 @@ class CampaignFrameDisplay extends Component
             if (empty($content)) {
                 return 'Not specified';
             }
+
             return implode(' • ', $content);
         }
 

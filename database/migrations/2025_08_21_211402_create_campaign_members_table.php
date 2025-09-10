@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('character_id')->nullable()->constrained('characters')->onDelete('set null');
             $table->timestamp('joined_at')->useCurrent();
             $table->timestamps();
-            
+
             $table->unique(['campaign_id', 'user_id']);
             $table->index(['campaign_id']);
             $table->index(['user_id']);

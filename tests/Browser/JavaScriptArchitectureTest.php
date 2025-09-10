@@ -16,7 +16,7 @@ it('trait application works through JavaScript', function () {
     // Navigate to trait assignment step
     $page->click('[pest="next-step-button"]'); // Go to subclass step
     $page->wait(1);
-    $page->click('[pest="next-step-button"]'); // Go to ancestry step  
+    $page->click('[pest="next-step-button"]'); // Go to ancestry step
     $page->wait(1);
     $page->click('[pest="next-step-button"]'); // Go to community step
     $page->wait(1);
@@ -32,7 +32,7 @@ it('trait application works through JavaScript', function () {
 
     // Verify traits were applied
     $page->assertVisible('.trait-assignment-complete', 'Traits should be assigned');
-    
+
     // Verify unsaved changes indicator appears
     $page->assertSee('Unsaved Changes');
     $page->assertVisible('[pest="save-character-button"]');
@@ -62,7 +62,7 @@ it('equipment suggestions work through JavaScript', function () {
     // Verify equipment was selected
     $page->assertSee('Primary Weapon');
     $page->assertSee('Armor');
-    
+
     // Verify unsaved changes tracking
     $page->assertSee('Unsaved Changes');
 });
@@ -96,7 +96,7 @@ it('domain card selection works through JavaScript', function () {
 
     // Verify completion state
     $page->assertSee('Domain Card Selection Complete!');
-    
+
     // Verify unsaved changes tracking
     $page->assertSee('Unsaved Changes');
 });
@@ -108,7 +108,7 @@ it('character selection methods work through JavaScript', function () {
     // Test class selection through JavaScript
     $page->click('[pest="class-card-bard"]');
     $page->wait(1);
-    
+
     // Verify class was selected and UI updated
     $page->assertSee('Choose a Subclass');
     $page->assertSee('Unsaved Changes');
@@ -126,7 +126,7 @@ it('character selection methods work through JavaScript', function () {
     $page->wait(1);
     $page->assertSee('Unsaved Changes');
 
-    // Navigate to community step  
+    // Navigate to community step
     $page->click('[pest="next-step-button"]');
     $page->wait(1);
 
@@ -137,7 +137,7 @@ it('character selection methods work through JavaScript', function () {
 
     // Verify all selections are preserved
     $page->assertSee('Bard');
-    $page->assertSee('College of Lore'); 
+    $page->assertSee('College of Lore');
     $page->assertSee('Human');
     $page->assertSee('Loreborne');
 });
@@ -210,14 +210,14 @@ it('instant UI feedback works without server round-trips', function () {
     $page->wait(0.1); // Minimal wait
     $page->assertSee('Choose a Subclass');
     $endTime = microtime(true);
-    
+
     // Should be very fast (under 500ms for UI update)
     expect(($endTime - $startTime) * 1000)->toBeLessThan(500);
 
     // Navigate to traits and test instant trait application
     $page->click('[pest="next-step-button"]'); // Subclass
     $page->wait(1);
-    $page->click('[pest="next-step-button"]'); // Ancestry  
+    $page->click('[pest="next-step-button"]'); // Ancestry
     $page->wait(1);
     $page->click('[pest="next-step-button"]'); // Community
     $page->wait(1);
@@ -230,7 +230,7 @@ it('instant UI feedback works without server round-trips', function () {
     $page->wait(0.1);
     $page->assertVisible('.trait-assignment-complete');
     $endTime = microtime(true);
-    
+
     // Should be very fast
     expect(($endTime - $startTime) * 1000)->toBeLessThan(500);
 });
@@ -240,13 +240,13 @@ it('complex character creation flow with JavaScript architecture', function () {
     $page->assertPathBeginsWith('/character-builder/');
 
     // Complete character creation using only JavaScript interactions
-    
+
     // Step 1: Class selection
     $page->click('[pest="class-card-druid"]');
     $page->wait(1);
     $page->assertSee('Unsaved Changes');
 
-    // Step 2: Subclass selection  
+    // Step 2: Subclass selection
     $page->click('[pest="subclass-card-nature spirit"]');
     $page->wait(1);
 

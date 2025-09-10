@@ -10,10 +10,10 @@ it('debugs bard equipment requirements', function (): void {
     $classesPath = base_path('resources/json/classes.json');
     $classes = json_decode((string) file_get_contents($classesPath), true) ?? [];
     $bardData = $classes['bard'];
-    
+
     expect($bardData['startingInventory']['chooseOne'])->toBe(['Minor Health Potion', 'Minor Stamina Potion']);
     expect($bardData['startingInventory']['chooseExtra'])->toBe(['romance novel', 'letter never opened']);
-    
+
     // Create character with exact items from the data
     $character = new CharacterBuilderData(selected_class: 'bard');
     $character->selected_equipment = [
@@ -21,25 +21,25 @@ it('debugs bard equipment requirements', function (): void {
             'key' => 'rapier',
             'name' => 'Rapier',
             'type' => 'weapon',
-            'data' => ['type' => 'Primary']
+            'data' => ['type' => 'Primary'],
         ],
         [
             'key' => 'light_armor',
             'name' => 'Light Armor',
-            'type' => 'armor'
+            'type' => 'armor',
         ],
         [
             'key' => 'minor health potion', // From chooseOne (lowercased)
             'name' => 'Minor Health Potion',
-            'type' => 'consumable'
+            'type' => 'consumable',
         ],
         [
             'key' => 'romance novel', // From chooseExtra
             'name' => 'Romance Novel',
-            'type' => 'item'
-        ]
+            'type' => 'item',
+        ],
     ];
-    
+
     expect($character->isStepComplete(CharacterBuilderStep::EQUIPMENT))->toBeTrue();
 });
 
@@ -48,7 +48,7 @@ it('debugs warrior secondary weapon test', function (): void {
     $classesPath = base_path('resources/json/classes.json');
     $classes = json_decode((string) file_get_contents($classesPath), true) ?? [];
     $warriorData = $classes['warrior'];
-    
+
     // Warrior has both chooseOne and chooseExtra, so secondary weapon test needs ALL requirements
     $character = new CharacterBuilderData(selected_class: 'warrior');
     $character->selected_equipment = [
@@ -56,30 +56,30 @@ it('debugs warrior secondary weapon test', function (): void {
             'key' => 'longsword',
             'name' => 'Longsword',
             'type' => 'weapon',
-            'data' => ['type' => 'Primary']
+            'data' => ['type' => 'Primary'],
         ],
         [
             'key' => 'handaxe',
             'name' => 'Handaxe',
             'type' => 'weapon',
-            'data' => ['type' => 'Secondary']
+            'data' => ['type' => 'Secondary'],
         ],
         [
             'key' => 'chainmail',
             'name' => 'Chainmail',
-            'type' => 'armor'
+            'type' => 'armor',
         ],
         [
             'key' => 'minor health potion', // chooseOne item
             'name' => 'Minor Health Potion',
-            'type' => 'consumable'
+            'type' => 'consumable',
         ],
         [
             'key' => 'war trophy', // chooseExtra item
             'name' => 'War Trophy',
-            'type' => 'item'
-        ]
+            'type' => 'item',
+        ],
     ];
-    
+
     expect($character->isStepComplete(CharacterBuilderStep::EQUIPMENT))->toBeTrue();
 });

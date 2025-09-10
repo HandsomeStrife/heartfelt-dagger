@@ -36,7 +36,7 @@ class ApplyAdvancementAction
             }
 
             // Validate tier progression (character must be at appropriate level)
-            $required_level = match($advancement_data->tier) {
+            $required_level = match ($advancement_data->tier) {
                 1 => 1,
                 2 => 1,
                 3 => 5,
@@ -64,7 +64,7 @@ class ApplyAdvancementAction
             }
 
             // Create the advancement record
-            return CharacterAdvancement::create([
+            $advancement = CharacterAdvancement::create([
                 'character_id' => $character->id,
                 'tier' => $advancement_data->tier,
                 'advancement_number' => $advancement_data->advancement_number,
@@ -72,6 +72,11 @@ class ApplyAdvancementAction
                 'advancement_data' => $advancement_data->advancement_data,
                 'description' => $advancement_data->description,
             ]);
+
+            // Apply advancement-specific effects
+            $this->applyAdvancementEffects($character, $advancement_data);
+
+            return $advancement;
         });
     }
 
@@ -81,15 +86,15 @@ class ApplyAdvancementAction
     public function getAvailableOptions(Character $character, int $tier): array
     {
         // Load class data to get tier options
-        $class_data_path = resource_path("json/classes.json");
-        if (!file_exists($class_data_path)) {
+        $class_data_path = resource_path('json/classes.json');
+        if (! file_exists($class_data_path)) {
             return [];
         }
 
         $classes_data = json_decode(file_get_contents($class_data_path), true);
         $class_data = $classes_data[$character->class] ?? null;
-        
-        if (!$class_data || !isset($class_data['tierOptions']["tier{$tier}"])) {
+
+        if (! $class_data || ! isset($class_data['tierOptions']["tier{$tier}"])) {
             return [];
         }
 
@@ -133,7 +138,7 @@ class ApplyAdvancementAction
         // Check mutual exclusivity
         if (isset($option['mutuallyExclusive'])) {
             $exclusive_type = $option['mutuallyExclusive'];
-            
+
             // Check if any mutually exclusive option has been selected in this tier
             $exclusive_selected = CharacterAdvancement::where('character_id', $character->id)
                 ->where('tier', $tier)
@@ -174,6 +179,7 @@ class ApplyAdvancementAction
         // This is a simplified parser - in a real implementation you'd want more sophisticated parsing
         if (str_contains($description, 'trait') && str_contains($description, '+1 bonus')) {
             $traits = $user_selections['traits'] ?? ['agility', 'strength']; // Default example
+
             return CharacterAdvancementData::traitBonus($tier, $advancement_number, $traits);
         }
 
@@ -190,11 +196,12 @@ class ApplyAdvancementAction
         }
 
         if (str_contains($description, 'domain card')) {
-            $level = match($tier) {
+            $level = match ($tier) {
                 2 => 2,
                 3 => 3,
                 default => 4,
             };
+
             return CharacterAdvancementData::domainCard($tier, $advancement_number, $level);
         }
 
@@ -208,15 +215,69 @@ class ApplyAdvancementAction
 
         if (str_contains($description, 'subclass')) {
             $subclass_key = $user_selections['subclass'] ?? 'example'; // Would need user input
+
             return CharacterAdvancementData::subclass($tier, $advancement_number, $subclass_key);
         }
 
         if (str_contains($description, 'Multiclass')) {
             $class_key = $user_selections['class'] ?? 'warrior'; // Would need user input
+
             return CharacterAdvancementData::multiclass($tier, $advancement_number, $class_key);
         }
 
         // Default fallback
         throw new \InvalidArgumentException("Unable to parse advancement option: {$description}");
+    }
+
+    /**
+     * Apply advancement-specific effects to the character
+     */
+    private function applyAdvancementEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        switch ($advancement_data->advancement_type) {
+            case 'trait_bonus':
+                $this->applyTraitBonusEffects($character, $advancement_data);
+                break;
+            case 'hit_point':
+                $this->applyHitPointEffects($character, $advancement_data);
+                break;
+            case 'stress':
+                $this->applyStressEffects($character, $advancement_data);
+                break;
+                // Add other advancement types as needed
+        }
+    }
+
+    /**
+     * Apply trait bonus advancement effects (mark traits)
+     */
+    private function applyTraitBonusEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        $traits = $advancement_data->advancement_data['traits'] ?? [];
+
+        foreach ($traits as $trait_name) {
+            // Mark the trait in the database
+            $character->traits()
+                ->where('trait_name', $trait_name)
+                ->update(['is_marked' => true]);
+        }
+    }
+
+    /**
+     * Apply hit point advancement effects
+     */
+    private function applyHitPointEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        // Hit point bonuses are handled through the advancement record itself
+        // No additional database changes needed
+    }
+
+    /**
+     * Apply stress advancement effects
+     */
+    private function applyStressEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        // Stress bonuses are handled through the advancement record itself
+        // No additional database changes needed
     }
 }

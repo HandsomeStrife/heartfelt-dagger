@@ -12,7 +12,7 @@ use Spatie\LaravelData\Data;
 class CharacterStatsData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public int $evasion,
         public int $hit_points,
@@ -73,11 +73,12 @@ class CharacterStatsData extends Data implements Wireable
     private static function getClassData(string $className): array
     {
         $path = resource_path('json/classes.json');
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return [];
         }
-        
+
         $classes = json_decode(file_get_contents($path), true);
+
         return $classes[$className] ?? [];
     }
 

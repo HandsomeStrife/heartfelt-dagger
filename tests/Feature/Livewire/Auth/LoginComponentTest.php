@@ -4,8 +4,11 @@ declare(strict_types=1);
 use App\Livewire\Auth\Login;
 use Domain\User\Models\User;
 use Illuminate\Support\Facades\Hash;
+
+use function Pest\Laravel\assertAuthenticated;
+use function Pest\Laravel\assertGuest;
 use function Pest\Livewire\livewire;
-use function Pest\Laravel\{assertAuthenticated, assertGuest};
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('login component can be rendered', function () {

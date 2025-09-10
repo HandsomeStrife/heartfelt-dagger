@@ -26,7 +26,7 @@ it('can send fear level updates via Ably messaging', function () {
         // Verify the Ably message was sent by checking console logs
         ->script('return window.roomWebRTC && window.roomWebRTC.fearCountdownManager ? "initialized" : "not initialized"')
         ->assertScript('return window.roomWebRTC && window.roomWebRTC.fearCountdownManager ? "initialized" : "not initialized"', 'initialized');
-    
+
     // Verify in database
     expect($room->fresh()->getFearLevel())->toBe(1);
 });
@@ -80,7 +80,7 @@ it('can handle countdown tracker creation via Ably', function () {
                 ->assertSee('Initiative Timer')
                 ->assertSee('5');
         });
-    
+
     // Verify in database
     $trackers = $room->fresh()->getCountdownTrackers();
     expect($trackers)->not->toBeEmpty();

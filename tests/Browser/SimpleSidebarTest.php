@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Domain\Character\Models\Character;
-
 // Simple test to verify step completion behavior
 it('shows step completion after selecting class and saving', function () {
     $page = visit('/character-builder');

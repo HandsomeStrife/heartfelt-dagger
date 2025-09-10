@@ -4,8 +4,9 @@ declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
+
 use function Pest\Livewire\livewire;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {

@@ -13,20 +13,25 @@ use Livewire\Component;
 class CampaignPageForm extends Component
 {
     public CampaignPageFormData $form;
+
     public Campaign $campaign;
+
     public ?CampaignPage $page = null;
+
     public bool $showForm = false;
 
     // Data for form options
     public array $parentPageOptions = [];
+
     public array $campaignMembers = [];
+
     public array $categoryTags = [];
 
     public function mount(Campaign $campaign, ?CampaignPage $page = null)
     {
         $this->campaign = $campaign;
         $this->page = $page;
-        
+
         $this->form->setCampaign($campaign);
         $this->form->setPage($page);
 
@@ -40,16 +45,16 @@ class CampaignPageForm extends Component
 
     public function loadFormOptions()
     {
-        $repository = new CampaignPageRepository();
+        $repository = new CampaignPageRepository;
         $user = Auth::user();
 
         // Get available parent pages (excluding current page to prevent circular references)
         $allPages = $repository->getAccessiblePagesForCampaign($this->campaign, $user);
         $this->parentPageOptions = $allPages
-            ->filter(fn($pageData) => !$this->page || $pageData->id !== $this->page->id)
-            ->map(fn($pageData) => [
+            ->filter(fn ($pageData) => ! $this->page || $pageData->id !== $this->page->id)
+            ->map(fn ($pageData) => [
                 'value' => $pageData->id,
-                'label' => str_repeat('— ', $pageData->depth_level ?? 0) . $pageData->title
+                'label' => str_repeat('— ', $pageData->depth_level ?? 0).$pageData->title,
             ])
             ->prepend(['value' => null, 'label' => 'No Parent (Root Level)'])
             ->toArray();
@@ -58,9 +63,9 @@ class CampaignPageForm extends Component
         $this->campaignMembers = $this->campaign->members()
             ->with('user')
             ->get()
-            ->map(fn($member) => [
+            ->map(fn ($member) => [
                 'value' => $member->user_id,
-                'label' => $member->user->username
+                'label' => $member->user->username,
             ])
             ->toArray();
 
@@ -77,11 +82,11 @@ class CampaignPageForm extends Component
             $this->dispatch('page-saved', [
                 'page_id' => $savedPage->id,
                 'title' => $savedPage->title,
-                'mode' => $this->mode
+                'mode' => $this->mode,
             ]);
 
-            session()->flash('success', $this->mode === 'create' 
-                ? 'Campaign page created successfully!' 
+            session()->flash('success', $this->mode === 'create'
+                ? 'Campaign page created successfully!'
                 : 'Campaign page updated successfully!');
 
             if ($this->mode === 'create') {
@@ -90,7 +95,7 @@ class CampaignPageForm extends Component
             }
 
         } catch (\Exception $e) {
-            $this->addError('form', 'Failed to save page: ' . $e->getMessage());
+            $this->addError('form', 'Failed to save page: '.$e->getMessage());
         }
     }
 
@@ -103,8 +108,8 @@ class CampaignPageForm extends Component
 
     public function toggleForm()
     {
-        $this->showForm = !$this->showForm;
-        if (!$this->showForm) {
+        $this->showForm = ! $this->showForm;
+        if (! $this->showForm) {
             $this->form->reset();
         }
     }
@@ -112,7 +117,7 @@ class CampaignPageForm extends Component
     public function addCategoryTag(string $tag)
     {
         $tag = trim($tag);
-        if (!empty($tag) && !in_array($tag, $this->form->category_tags)) {
+        if (! empty($tag) && ! in_array($tag, $this->form->category_tags)) {
             $this->form->category_tags[] = $tag;
         }
     }
@@ -126,11 +131,11 @@ class CampaignPageForm extends Component
     public function canEdit(): bool
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return false;
         }
-        
+
         if ($this->page && $this->page->exists) {
             return $this->page->canBeEditedBy($user);
         }
@@ -141,7 +146,7 @@ class CampaignPageForm extends Component
 
     public function render()
     {
-        if (!$this->canEdit()) {
+        if (! $this->canEdit()) {
             return '<div><!-- No permission to edit --></div>';
         }
 

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('rooms', function (Blueprint $table) {
             $table->foreignId('campaign_id')->nullable()->after('creator_id')->constrained('campaigns')->onDelete('cascade');
             $table->string('viewer_code', 12)->unique()->after('invite_code');
-            
+
             $table->index(['campaign_id']);
             $table->index(['viewer_code']);
         });

@@ -25,24 +25,24 @@ it('adds countdown_trackers column to rooms table', function () {
 
 it('sets default fear_level to 0 for campaigns', function () {
     $campaign = \Domain\Campaign\Models\Campaign::factory()->create();
-    
+
     expect($campaign->getFearLevel())->toBe(0);
 });
 
 it('sets default fear_level to 0 for rooms', function () {
     $room = \Domain\Room\Models\Room::factory()->create();
-    
+
     expect($room->getFearLevel())->toBe(0);
 });
 
 it('allows null countdown_trackers for campaigns', function () {
     $campaign = \Domain\Campaign\Models\Campaign::factory()->create();
-    
+
     expect($campaign->countdown_trackers)->toBeNull();
 });
 
 it('allows null countdown_trackers for rooms', function () {
     $room = \Domain\Room\Models\Room::factory()->create();
-    
+
     expect($room->countdown_trackers)->toBeNull();
 });

@@ -4,8 +4,9 @@ declare(strict_types=1);
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
 use Illuminate\Support\Facades\Hash;
-use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\post;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('characters are saved against user on login with character keys', function () {

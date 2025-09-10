@@ -5,7 +5,7 @@ use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 it('belongs to campaign', function () {
@@ -106,7 +106,7 @@ it('scopes members with characters', function () {
     $membersWithCharacters = CampaignMember::withCharacters()->get();
 
     expect($membersWithCharacters)->toHaveCount(3);
-    expect($membersWithCharacters->every(fn($member) => $member->character_id !== null))->toBeTrue();
+    expect($membersWithCharacters->every(fn ($member) => $member->character_id !== null))->toBeTrue();
 });
 it('scopes members without characters', function () {
     $campaign = Campaign::factory()->create();
@@ -117,7 +117,7 @@ it('scopes members without characters', function () {
     $membersWithoutCharacters = CampaignMember::withoutCharacters()->get();
 
     expect($membersWithoutCharacters)->toHaveCount(2);
-    expect($membersWithoutCharacters->every(fn($member) => $member->character_id === null))->toBeTrue();
+    expect($membersWithoutCharacters->every(fn ($member) => $member->character_id === null))->toBeTrue();
 });
 it('casts joined at to datetime', function () {
     $timestamp = now()->subDays(5);

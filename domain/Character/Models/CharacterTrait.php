@@ -26,6 +26,7 @@ class CharacterTrait extends Model
 
     protected $casts = [
         'trait_value' => 'integer',
+        'is_marked' => 'boolean',
     ];
 
     /**
@@ -111,5 +112,37 @@ class CharacterTrait extends Model
     public function scopeNegative($query)
     {
         return $query->where('trait_value', '<', 0);
+    }
+
+    /**
+     * Scope for unmarked traits
+     */
+    public function scopeUnmarked($query)
+    {
+        return $query->where('is_marked', false);
+    }
+
+    /**
+     * Scope for marked traits
+     */
+    public function scopeMarked($query)
+    {
+        return $query->where('is_marked', true);
+    }
+
+    /**
+     * Mark this trait (used when trait advancement is selected)
+     */
+    public function markTrait(): void
+    {
+        $this->update(['is_marked' => true]);
+    }
+
+    /**
+     * Clear the mark on this trait (used during tier achievements)
+     */
+    public function clearMark(): void
+    {
+        $this->update(['is_marked' => false]);
     }
 }

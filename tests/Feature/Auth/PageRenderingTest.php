@@ -1,72 +1,72 @@
 <?php
 
 declare(strict_types=1);
-use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+use function Pest\Laravel\get;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('login page renders successfully', function () {
     $response = get('/login');
 
     $response->assertStatus(200)
-            ->assertSee('HeartfeltDagger')
-            ->assertSee('Enter the Realm')
-            ->assertSee('Email')
-            ->assertSee('Password')
-            ->assertSee('Enter the Realm')
-            ->assertSee('Create your legend');
+        ->assertSee('HeartfeltDagger')
+        ->assertSee('Enter the Realm')
+        ->assertSee('Email')
+        ->assertSee('Password')
+        ->assertSee('Enter the Realm')
+        ->assertSee('Create your legend');
 });
 test('register page renders successfully', function () {
     $response = get('/register');
 
     $response->assertStatus(200)
-            ->assertSee('HeartfeltDagger')
-            ->assertSee('Join the Adventure')
-            ->assertSee('Username')
-            ->assertSee('Email')
-            ->assertSee('Password')
-            ->assertSee('Confirm Password')
-            ->assertSee('Begin Adventure')
-            ->assertSee('Enter the realm');
+        ->assertSee('HeartfeltDagger')
+        ->assertSee('Join the Adventure')
+        ->assertSee('Username')
+        ->assertSee('Email')
+        ->assertSee('Password')
+        ->assertSee('Confirm Password')
+        ->assertSee('Begin Adventure')
+        ->assertSee('Enter the realm');
 });
 test('login page contains proper form elements', function () {
     $response = get('/login');
 
     $response->assertStatus(200)
-            ->assertSee('wire:submit="login"', false)
-            ->assertSee('wire:model="form.email"', false)
-            ->assertSee('wire:model="form.password"', false)
-            ->assertSee('wire:model="form.remember"', false)
-            ->assertSee('type="email"', false)
-            ->assertSee('type="password"', false)
-            ->assertSee('type="checkbox"', false);
+        ->assertSee('wire:submit="login"', false)
+        ->assertSee('wire:model="form.email"', false)
+        ->assertSee('wire:model="form.password"', false)
+        ->assertSee('wire:model="form.remember"', false)
+        ->assertSee('type="email"', false)
+        ->assertSee('type="password"', false)
+        ->assertSee('type="checkbox"', false);
 });
 test('register page contains proper form elements', function () {
     $response = get('/register');
 
     $response->assertStatus(200)
-            ->assertSee('wire:submit="register"', false)
-            ->assertSee('wire:model="form.username"', false)
-            ->assertSee('wire:model="form.email"', false)
-            ->assertSee('wire:model="form.password"', false)
-            ->assertSee('wire:model="form.password_confirmation"', false)
-            ->assertSee('type="text"', false)
-            ->assertSee('type="email"', false)
-            ->assertSee('type="password"', false);
+        ->assertSee('wire:submit="register"', false)
+        ->assertSee('wire:model="form.username"', false)
+        ->assertSee('wire:model="form.email"', false)
+        ->assertSee('wire:model="form.password"', false)
+        ->assertSee('wire:model="form.password_confirmation"', false)
+        ->assertSee('type="text"', false)
+        ->assertSee('type="email"', false)
+        ->assertSee('type="password"', false);
 });
 test('login page has proper navigation links', function () {
     $response = get('/login');
 
     $response->assertStatus(200)
-            ->assertSee('href="/register"', false)
-            ->assertSee('Create your legend');
+        ->assertSee('href="/register"', false)
+        ->assertSee('Create your legend');
 });
 test('register page has proper navigation links', function () {
     $response = get('/register');
 
     $response->assertStatus(200)
-            ->assertSee('href="/login"', false)
-            ->assertSee('Enter the realm');
+        ->assertSee('href="/login"', false)
+        ->assertSee('Enter the realm');
 });
 test('auth pages have proper css classes', function () {
     $loginResponse = get('/login');
@@ -112,12 +112,12 @@ test('auth pages have loading states', function () {
 
     // Check for wire:loading directives
     $loginResponse->assertSee('wire:loading.remove', false)
-                ->assertSee('wire:loading', false)
-                ->assertSee('wire:loading.attr="disabled"', false);
+        ->assertSee('wire:loading', false)
+        ->assertSee('wire:loading.attr="disabled"', false);
 
     $registerResponse->assertSee('wire:loading.remove', false)
-                    ->assertSee('wire:loading', false)
-                    ->assertSee('wire:loading.attr="disabled"', false);
+        ->assertSee('wire:loading', false)
+        ->assertSee('wire:loading.attr="disabled"', false);
 
     // Check for loading spinner
     $loginResponse->assertSee('animate-spin', false);

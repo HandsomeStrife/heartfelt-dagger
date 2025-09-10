@@ -6,7 +6,7 @@ use Domain\Room\Enums\RoomStatus;
 use Domain\Room\Models\Room;
 use Domain\User\Models\User;
 use Livewire\Wireable;
-use PHPUnit\Framework\Attributes\Test;
+
 it('implements wireable interface', function () {
     $room = Room::factory()->create();
     $roomData = RoomData::from($room);

@@ -15,7 +15,7 @@ test('authenticated user can delete their own character via API', function () {
     $response = $this->delete("/api/character/{$character->character_key}");
 
     $response->assertStatus(200)
-             ->assertJson(['message' => 'Character deleted successfully']);
+        ->assertJson(['message' => 'Character deleted successfully']);
 
     $this->assertDatabaseMissing('characters', ['id' => $character->id]);
 });
@@ -32,7 +32,7 @@ test('authenticated user cannot delete character owned by another user via API',
     $response = $this->delete("/api/character/{$character->character_key}");
 
     $response->assertStatus(403)
-             ->assertJson(['error' => 'Unauthorized']);
+        ->assertJson(['error' => 'Unauthorized']);
 
     $this->assertDatabaseHas('characters', ['id' => $character->id]);
 });
@@ -45,7 +45,7 @@ test('anonymous user can delete anonymous character via API', function () {
     $response = $this->delete("/api/character/{$character->character_key}");
 
     $response->assertStatus(200)
-             ->assertJson(['message' => 'Character deleted successfully']);
+        ->assertJson(['message' => 'Character deleted successfully']);
 
     $this->assertDatabaseMissing('characters', ['id' => $character->id]);
 });
@@ -59,7 +59,7 @@ test('anonymous user cannot delete character owned by authenticated user via API
     $response = $this->delete("/api/character/{$character->character_key}");
 
     $response->assertStatus(403)
-             ->assertJson(['error' => 'Unauthorized']);
+        ->assertJson(['error' => 'Unauthorized']);
 
     $this->assertDatabaseHas('characters', ['id' => $character->id]);
 });
@@ -71,5 +71,5 @@ test('API returns 404 for non-existent character', function () {
     $response = $this->delete('/api/character/non-existent-key');
 
     $response->assertStatus(404)
-             ->assertJson(['error' => 'Character not found']);
+        ->assertJson(['error' => 'Character not found']);
 });

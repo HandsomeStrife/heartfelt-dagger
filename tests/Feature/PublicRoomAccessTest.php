@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Domain\Room\Models\Room;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\get;
+use function Pest\Laravel\post;
 
 test('non-campaign rooms can be accessed without authentication', function () {
     $creator = User::factory()->create();
@@ -16,7 +18,7 @@ test('non-campaign rooms can be accessed without authentication', function () {
     // Unauthenticated users can view non-campaign rooms
     $response = get("/rooms/{$room->invite_code}");
     $response->assertOk();
-    
+
     // Should see room information
     $response->assertSee($room->name);
     $response->assertSee($room->description);
@@ -124,10 +126,10 @@ test('room show page handles unauthenticated users correctly', function () {
 
     $response = get("/rooms/{$room->invite_code}");
     $response->assertOk();
-    
+
     // Should show join button for unauthenticated users
     $response->assertSee('Join Room');
-    
+
     // Should not show creator/participant specific buttons
     $response->assertDontSee('Start Session');
     $response->assertDontSee('Delete Room');

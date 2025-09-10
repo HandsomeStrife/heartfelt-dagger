@@ -7,7 +7,7 @@ use Domain\Campaign\Models\Campaign;
 use Domain\User\Data\UserData;
 use Domain\User\Models\User;
 use Livewire\Wireable;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 it('implements wireable interface', function () {

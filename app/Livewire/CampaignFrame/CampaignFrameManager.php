@@ -8,14 +8,16 @@ use App\Livewire\Forms\CampaignFrame\CreateCampaignFrameForm;
 use App\Livewire\Forms\CampaignFrame\EditCampaignFrameForm;
 use Domain\CampaignFrame\Data\CampaignFrameData;
 use Domain\CampaignFrame\Enums\ComplexityRating;
-use Domain\CampaignFrame\Models\CampaignFrame;
 use Livewire\Component;
 
 class CampaignFrameManager extends Component
 {
     public string $mode = 'create'; // 'create' or 'edit'
+
     public ?CampaignFrameData $frame = null;
+
     public CreateCampaignFrameForm $create_form;
+
     public EditCampaignFrameForm $edit_form;
 
     public function mount(string $mode = 'create', ?CampaignFrameData $frame = null): void

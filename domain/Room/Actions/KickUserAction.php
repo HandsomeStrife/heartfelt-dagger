@@ -14,19 +14,19 @@ class KickUserAction
     public function execute(Room $room, User $kickingUser, int $participantId): void
     {
         $kickingUserId = $kickingUser->id;
-        
+
         Log::info('KickUserAction - Starting execution', [
             'room_id' => $room->id,
             'kicking_user_id' => $kickingUserId,
-            'participant_id' => $participantId
+            'participant_id' => $participantId,
         ]);
-        
+
         // Only room creators can kick participants
-        if (!$room->isCreator($kickingUser)) {
+        if (! $room->isCreator($kickingUser)) {
             Log::warning('KickUserAction - Non-creator tried to kick user', [
                 'room_id' => $room->id,
                 'kicking_user_id' => $kickingUserId,
-                'participant_id' => $participantId
+                'participant_id' => $participantId,
             ]);
             throw new Exception('Only the room creator can remove participants.');
         }
@@ -36,11 +36,11 @@ class KickUserAction
             ->where('id', $participantId)
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             Log::warning('KickUserAction - Participant not found or already inactive', [
                 'room_id' => $room->id,
                 'kicking_user_id' => $kickingUserId,
-                'participant_id' => $participantId
+                'participant_id' => $participantId,
             ]);
             throw new Exception('Participant not found or is no longer active in this room.');
         }
@@ -51,7 +51,7 @@ class KickUserAction
                 'room_id' => $room->id,
                 'kicking_user_id' => $kickingUserId,
                 'participant_id' => $participantId,
-                'participant_user_id' => $participant->user_id
+                'participant_user_id' => $participant->user_id,
             ]);
             throw new Exception('The room creator cannot be removed from their own room.');
         }
@@ -60,14 +60,14 @@ class KickUserAction
         $participant->update([
             'left_at' => now(),
         ]);
-        
+
         Log::info('KickUserAction - Participant kicked successfully', [
             'room_id' => $room->id,
             'kicking_user_id' => $kickingUserId,
             'participant_id' => $participantId,
             'participant_user_id' => $participant->user_id,
             'participant_character_name' => $participant->character_name ?? ($participant->user ? $participant->user->username : 'Anonymous'),
-            'kicked_at' => $participant->left_at
+            'kicked_at' => $participant->left_at,
         ]);
     }
 }

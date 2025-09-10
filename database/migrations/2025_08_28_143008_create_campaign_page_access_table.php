@@ -16,10 +16,10 @@ return new class extends Migration
             $table->foreignId('campaign_page_id')->constrained('campaign_pages')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
-            
+
             // Prevent duplicate access records
             $table->unique(['campaign_page_id', 'user_id']);
-            
+
             // Indexes for performance
             $table->index('campaign_page_id');
             $table->index('user_id');

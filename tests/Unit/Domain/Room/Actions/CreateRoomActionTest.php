@@ -6,11 +6,11 @@ use Domain\Room\Data\CreateRoomData;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new CreateRoomAction();
+    $this->action = new CreateRoomAction;
 });
 it('creates room successfully', function () {
     $user = User::factory()->create();
@@ -81,7 +81,7 @@ it('persists room to database', function () {
         'guest_count' => 3,
         'creator_id' => $user->id,
         'invite_code' => $roomData->invite_code,
-        'status' => 'active'
+        'status' => 'active',
     ]);
 });
 it('loads creator relationship', function () {

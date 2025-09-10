@@ -30,25 +30,25 @@ class CreateSessionMarkerForAllParticipants
     ): Collection {
         // Generate a shared UUID for all markers
         $uuid = Str::uuid()->toString();
-        
+
         // Get the room with its participants
         $room = Room::with('participants.user')->findOrFail($roomId);
-        
+
         // Find the current active recording for this room if any
         $recordingId = null;
         $activeRecording = RoomRecording::where('room_id', $roomId)
             ->where('status', 'recording')
             ->first();
-        
+
         if ($activeRecording) {
             $recordingId = $activeRecording->id;
         }
-        
+
         $markers = collect();
-        
+
         // Create a marker for each participant (including the creator)
         $participantUserIds = $room->participants->pluck('user_id')->filter()->unique();
-        
+
         foreach ($participantUserIds as $userId) {
             $marker = $this->createSessionMarker->execute(
                 uuid: $uuid,
@@ -60,10 +60,10 @@ class CreateSessionMarkerForAllParticipants
                 videoTime: $videoTime,
                 sttTime: $sttTime
             );
-            
+
             $markers->push($marker);
         }
-        
+
         return $markers;
     }
 }

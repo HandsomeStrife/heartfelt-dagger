@@ -18,7 +18,7 @@ return new class extends Migration
             $table->tinyInteger('complexity_rating');
             $table->boolean('is_public')->default(false);
             $table->foreignId('creator_id')->constrained('users')->cascadeOnDelete();
-            
+
             // Campaign frame content fields stored as JSON
             $table->json('pitch')->nullable();
             $table->json('tone_and_themes')->nullable();
@@ -29,9 +29,9 @@ return new class extends Migration
             $table->text('inciting_incident')->nullable();
             $table->json('special_mechanics')->nullable();
             $table->json('session_zero_questions')->nullable();
-            
+
             $table->timestamps();
-            
+
             // Indexes for performance
             $table->index(['is_public', 'name']);
             $table->index('creator_id');

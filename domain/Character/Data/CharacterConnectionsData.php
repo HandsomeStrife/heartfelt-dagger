@@ -11,7 +11,7 @@ use Spatie\LaravelData\Data;
 class CharacterConnectionsData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public array $connections,
     ) {}

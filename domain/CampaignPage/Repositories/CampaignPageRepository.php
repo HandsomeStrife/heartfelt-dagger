@@ -24,7 +24,7 @@ class CampaignPageRepository
             'children' => function ($query) {
                 $query->orderBy('display_order');
             },
-            'authorizedUsers'
+            'authorizedUsers',
         ])->find($id);
 
         return $page ? CampaignPageData::fromModel($page) : null;
@@ -32,7 +32,7 @@ class CampaignPageRepository
 
     /**
      * Get all pages for a campaign that a user can access
-     * 
+     *
      * @return Collection<CampaignPageData>
      */
     public function getAccessiblePagesForCampaign(Campaign $campaign, ?User $user): Collection
@@ -43,19 +43,19 @@ class CampaignPageRepository
             'children' => function ($query) {
                 $query->orderBy('display_order');
             },
-            'authorizedUsers'
+            'authorizedUsers',
         ])
-        ->inCampaign($campaign)
-        ->accessibleBy($user)
-        ->orderBy('display_order')
-        ->get();
+            ->inCampaign($campaign)
+            ->accessibleBy($user)
+            ->orderBy('display_order')
+            ->get();
 
         return $pages->map(fn ($page) => CampaignPageData::fromModel($page));
     }
 
     /**
      * Get root level pages for a campaign
-     * 
+     *
      * @return Collection<CampaignPageData>
      */
     public function getRootPagesForCampaign(Campaign $campaign, ?User $user): Collection
@@ -65,20 +65,20 @@ class CampaignPageRepository
             'children' => function ($query) {
                 $query->orderBy('display_order');
             },
-            'authorizedUsers'
+            'authorizedUsers',
         ])
-        ->inCampaign($campaign)
-        ->rootLevel()
-        ->accessibleBy($user)
-        ->orderBy('display_order')
-        ->get();
+            ->inCampaign($campaign)
+            ->rootLevel()
+            ->accessibleBy($user)
+            ->orderBy('display_order')
+            ->get();
 
         return $pages->map(fn ($page) => CampaignPageData::fromModel($page));
     }
 
     /**
      * Get child pages for a parent page
-     * 
+     *
      * @return Collection<CampaignPageData>
      */
     public function getChildPages(CampaignPage $parentPage, ?User $user): Collection
@@ -88,19 +88,19 @@ class CampaignPageRepository
             'children' => function ($query) {
                 $query->orderBy('display_order');
             },
-            'authorizedUsers'
+            'authorizedUsers',
         ])
-        ->where('parent_id', $parentPage->id)
-        ->accessibleBy($user)
-        ->orderBy('display_order')
-        ->get();
+            ->where('parent_id', $parentPage->id)
+            ->accessibleBy($user)
+            ->orderBy('display_order')
+            ->get();
 
         return $pages->map(fn ($page) => CampaignPageData::fromModel($page));
     }
 
     /**
      * Search pages within a campaign
-     * 
+     *
      * @return Collection<CampaignPageData>
      */
     public function searchPagesInCampaign(Campaign $campaign, string $searchTerm, ?User $user): Collection
@@ -108,20 +108,20 @@ class CampaignPageRepository
         $pages = CampaignPage::with([
             'creator',
             'parent',
-            'authorizedUsers'
+            'authorizedUsers',
         ])
-        ->inCampaign($campaign)
-        ->accessibleBy($user)
-        ->search($searchTerm)
-        ->orderByRaw('MATCH(title, content) AGAINST(? IN NATURAL LANGUAGE MODE) DESC', [$searchTerm])
-        ->get();
+            ->inCampaign($campaign)
+            ->accessibleBy($user)
+            ->search($searchTerm)
+            ->orderByRaw('MATCH(title, content) AGAINST(? IN NATURAL LANGUAGE MODE) DESC', [$searchTerm])
+            ->get();
 
         return $pages->map(fn ($page) => CampaignPageData::fromModel($page));
     }
 
     /**
      * Advanced search with filters
-     * 
+     *
      * @return Collection<CampaignPageData>
      */
     public function advancedSearch(Campaign $campaign, array $filters, ?User $user): Collection
@@ -129,33 +129,33 @@ class CampaignPageRepository
         $query = CampaignPage::with([
             'creator',
             'parent',
-            'authorizedUsers'
+            'authorizedUsers',
         ])
-        ->inCampaign($campaign)
-        ->accessibleBy($user);
+            ->inCampaign($campaign)
+            ->accessibleBy($user);
 
         // Apply search term
-        if (!empty($filters['query'])) {
+        if (! empty($filters['query'])) {
             $query->search($filters['query']);
         }
 
         // Apply category filter
-        if (!empty($filters['categories'])) {
+        if (! empty($filters['categories'])) {
             foreach ($filters['categories'] as $category) {
                 $query->whereJsonContains('category_tags', $category);
             }
         }
 
         // Apply access level filter
-        if (!empty($filters['access_level'])) {
+        if (! empty($filters['access_level'])) {
             $query->where('access_level', $filters['access_level']);
         }
 
         // Apply date range filter
-        if (!empty($filters['date_from'])) {
+        if (! empty($filters['date_from'])) {
             $query->where('created_at', '>=', $filters['date_from']);
         }
-        if (!empty($filters['date_to'])) {
+        if (! empty($filters['date_to'])) {
             $query->where('created_at', '<=', $filters['date_to']);
         }
 
@@ -175,7 +175,7 @@ class CampaignPageRepository
                 break;
             case 'relevance':
             default:
-                if (!empty($filters['query'])) {
+                if (! empty($filters['query'])) {
                     // Use LIKE search for better test compatibility instead of FULLTEXT
                     $query->orderBy('updated_at', 'desc');
                 } else {
@@ -191,7 +191,7 @@ class CampaignPageRepository
 
     /**
      * Get pages by category tags
-     * 
+     *
      * @return Collection<CampaignPageData>
      */
     public function getPagesByCategory(Campaign $campaign, string $category, ?User $user): Collection
@@ -199,13 +199,13 @@ class CampaignPageRepository
         $pages = CampaignPage::with([
             'creator',
             'parent',
-            'authorizedUsers'
+            'authorizedUsers',
         ])
-        ->inCampaign($campaign)
-        ->accessibleBy($user)
-        ->whereJsonContains('category_tags', $category)
-        ->orderBy('title')
-        ->get();
+            ->inCampaign($campaign)
+            ->accessibleBy($user)
+            ->whereJsonContains('category_tags', $category)
+            ->orderBy('title')
+            ->get();
 
         return $pages->map(fn ($page) => CampaignPageData::fromModel($page));
     }
@@ -228,16 +228,16 @@ class CampaignPageRepository
 
     /**
      * Get page hierarchy as nested structure
-     * 
+     *
      * @return Collection<CampaignPageData>
      */
     public function getPageHierarchy(Campaign $campaign, ?User $user): Collection
     {
         $allPages = $this->getAccessiblePagesForCampaign($campaign, $user);
-        
+
         // Group by parent_id
         $grouped = $allPages->groupBy('parent_id');
-        
+
         // Build tree starting from root pages (parent_id = null)
         return $this->buildPageTree($grouped, null);
     }
@@ -245,10 +245,11 @@ class CampaignPageRepository
     private function buildPageTree(Collection $groupedPages, ?int $parentId): Collection
     {
         $pages = $groupedPages->get($parentId, collect());
-        
+
         return $pages->map(function (CampaignPageData $page) use ($groupedPages) {
             $children = $this->buildPageTree($groupedPages, $page->id);
             $page->children = $children->isNotEmpty() ? $children : null;
+
             return $page;
         });
     }

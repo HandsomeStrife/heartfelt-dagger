@@ -13,7 +13,7 @@ use Spatie\LaravelData\Data;
 class CharacterTraitsData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public int $agility,
         public int $strength,

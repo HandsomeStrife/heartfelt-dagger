@@ -6,14 +6,15 @@ use Domain\Campaign\Models\Campaign;
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\CampaignFrame\Models\CampaignFrameVisibility;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get};
+
+use function Pest\Laravel\actingAs;
 
 describe('Campaign Frame Visibility', function () {
-    
+
     it('shows default visible sections to players', function () {
         $creator = User::factory()->create();
         $player = User::factory()->create();
-        
+
         $frame = CampaignFrame::create([
             'name' => 'Test Frame',
             'description' => 'Test frame description',
@@ -42,7 +43,7 @@ describe('Campaign Frame Visibility', function () {
             'creator_id' => $creator->id,
             'campaign_frame_id' => $frame->id,
         ]);
-        
+
         $campaign->members()->create(['user_id' => $player->id]);
 
         // Test that default visible sections are available
@@ -56,7 +57,7 @@ describe('Campaign Frame Visibility', function () {
 
     it('allows creators to see all sections', function () {
         $creator = User::factory()->create();
-        
+
         $frame = CampaignFrame::create([
             'name' => 'Test Frame',
             'description' => 'Test frame description',
@@ -88,14 +89,14 @@ describe('Campaign Frame Visibility', function () {
 
         $allSections = array_keys(CampaignFrameVisibility::getAvailableSections());
         $visibleSections = $campaign->getVisibleCampaignFrameSections($creator);
-        
+
         expect($visibleSections)->toBe($allSections);
     });
 
     it('allows custom visibility settings', function () {
         $creator = User::factory()->create();
         $player = User::factory()->create();
-        
+
         $frame = CampaignFrame::create([
             'name' => 'Test Frame',
             'description' => 'Test frame description',
@@ -137,7 +138,7 @@ describe('Campaign Frame Visibility', function () {
 
     it('displays campaign show page with frame content', function () {
         $creator = User::factory()->create();
-        
+
         $frame = CampaignFrame::create([
             'name' => 'Test Frame',
             'description' => 'Test frame description',

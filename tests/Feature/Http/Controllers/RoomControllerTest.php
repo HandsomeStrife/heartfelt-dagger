@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 use Domain\Campaign\Models\Campaign;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 use Domain\Campaign\Models\CampaignMember;
 use Domain\Character\Models\Character;
 use Domain\Room\Models\Room;
@@ -10,7 +9,14 @@ use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{assertDatabaseHas, assertDatabaseMissing, assertDatabaseCount};
+
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertDatabaseMissing;
+use function Pest\Laravel\delete;
+use function Pest\Laravel\get;
+use function Pest\Laravel\post;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('guest cannot access room routes', function () {
@@ -80,7 +86,7 @@ test('user can create room with valid data', function () {
         'name' => 'Epic Adventure Room',
         'description' => 'A room for our weekly session',
         'password' => 'secret123',
-        'guest_count' => 4
+        'guest_count' => 4,
     ];
 
     $response = actingAs($user)->post(route('rooms.store'), $roomData);
@@ -91,7 +97,7 @@ test('user can create room with valid data', function () {
         'description' => 'A room for our weekly session',
         'guest_count' => 4,
         'creator_id' => $user->id,
-        'status' => 'active'
+        'status' => 'active',
     ]);
 
     $room = Room::where('name', 'Epic Adventure Room')->first();
@@ -112,7 +118,7 @@ test('room creation validates field lengths', function () {
         'name' => str_repeat('A', 101), // Too long
         'description' => str_repeat('B', 501), // Too long
         'password' => str_repeat('P', 256), // Too long
-        'guest_count' => 2
+        'guest_count' => 2,
     ]);
 
     $response->assertSessionHasErrors(['name', 'description', 'password']);
@@ -125,7 +131,7 @@ test('room creation validates guest count range', function () {
         'name' => 'Test Room',
         'description' => 'Test Description',
         'password' => 'password',
-        'guest_count' => 1
+        'guest_count' => 1,
     ]);
     $response->assertSessionHasErrors(['guest_count']);
 
@@ -134,7 +140,7 @@ test('room creation validates guest count range', function () {
         'name' => 'Test Room',
         'description' => 'Test Description',
         'password' => 'password',
-        'guest_count' => 7
+        'guest_count' => 7,
     ]);
     $response->assertSessionHasErrors(['guest_count']);
 });
@@ -159,7 +165,7 @@ test('room show displays participant information', function () {
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_id' => $character->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->get(route('rooms.show', $room));
@@ -192,7 +198,7 @@ test('invite page redirects if already participating', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->get(route('rooms.invite', $room->invite_code));
@@ -207,11 +213,11 @@ test('invite page redirects if room at capacity', function () {
     // Fill the room to capacity (2 participants)
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->get(route('rooms.invite', $room->invite_code));
@@ -226,7 +232,7 @@ test('user can join room with character', function () {
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
         'password' => 'password', // Factory default
-        'character_id' => $character->id
+        'character_id' => $character->id,
     ]);
 
     $response->assertRedirect(route('rooms.session', $room));
@@ -235,7 +241,7 @@ test('user can join room with character', function () {
     assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'character_id' => $character->id
+        'character_id' => $character->id,
     ]);
 });
 test('user can join room with temporary character', function () {
@@ -245,7 +251,7 @@ test('user can join room with temporary character', function () {
     $response = actingAs($user)->post(route('rooms.join', $room), [
         'password' => 'password',
         'character_name' => 'Temp Hero',
-        'character_class' => 'Rogue'
+        'character_class' => 'Rogue',
     ]);
 
     $response->assertRedirect(route('rooms.session', $room));
@@ -255,7 +261,7 @@ test('user can join room with temporary character', function () {
         'user_id' => $user->id,
         'character_id' => null,
         'character_name' => 'Temp Hero',
-        'character_class' => 'Rogue'
+        'character_class' => 'Rogue',
     ]);
 });
 test('user can join room without character', function () {
@@ -265,7 +271,7 @@ test('user can join room without character', function () {
     $response = actingAs($user)->post(route('rooms.join', $room), [
         'password' => 'password',
         'character_name' => 'Test Character',
-        'character_class' => 'Warrior'
+        'character_class' => 'Warrior',
     ]);
 
     $response->assertRedirect(route('rooms.session', $room));
@@ -275,7 +281,7 @@ test('user can join room without character', function () {
         'user_id' => $user->id,
         'character_id' => null,
         'character_name' => 'Test Character',
-        'character_class' => 'Warrior'
+        'character_class' => 'Warrior',
     ]);
 });
 test('joining room validates password', function () {
@@ -283,13 +289,13 @@ test('joining room validates password', function () {
     $room = Room::factory()->create();
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'wrong_password'
+        'password' => 'wrong_password',
     ]);
 
     $response->assertSessionHasErrors(['password' => 'Invalid room password.']);
     assertDatabaseMissing('room_participants', [
         'room_id' => $room->id,
-        'user_id' => $user->id
+        'user_id' => $user->id,
     ]);
 });
 test('joining room validates character ownership', function () {
@@ -300,7 +306,7 @@ test('joining room validates character ownership', function () {
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
         'password' => 'password',
-        'character_id' => $otherCharacter->id
+        'character_id' => $otherCharacter->id,
     ]);
 
     $response->assertNotFound();
@@ -314,11 +320,11 @@ test('user cannot join room twice', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'password'
+        'password' => 'password',
     ]);
 
     $response->assertSessionHasErrors(['error' => 'You are already an active participant in this room.']);
@@ -330,15 +336,15 @@ test('user cannot join full room', function () {
     // Fill the room to capacity (2 participants)
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'password' => 'password'
+        'password' => 'password',
     ]);
 
     $response->assertSessionHasErrors(['error' => 'This room is at capacity.']);
@@ -349,7 +355,7 @@ test('user can leave room they joined', function () {
     $participant = RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->delete(route('rooms.leave', $room));
@@ -374,7 +380,7 @@ test('user can access session if participating', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->get(route('rooms.session', $room));
@@ -398,7 +404,7 @@ test('room session includes javascript context', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->get(route('rooms.session', $room));
@@ -414,11 +420,11 @@ test('rooms with different guest counts show correctly', function () {
     foreach ([1, 2, 3, 4, 5] as $guestCount) {
         $room = Room::factory()->create([
             'guest_count' => $guestCount,
-            'name' => "Room {$guestCount}"
+            'name' => "Room {$guestCount}",
         ]);
 
         $response = actingAs($user)->get(route('rooms.show', $room));
-        
+
         $response->assertSee("Max Guests: {$guestCount}");
     }
 });
@@ -446,7 +452,7 @@ test('room participant sees appropriate buttons', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     $response = actingAs($user)->get(route('rooms.show', $room));
@@ -852,20 +858,20 @@ test('room sharing modal shows different messages for campaign vs regular rooms'
 test('room creator can delete their room', function () {
     $creator = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $creator->id]);
-    
+
     // Add some participants
     RoomParticipant::factory()->count(2)->create(['room_id' => $room->id]);
-    
+
     $roomId = $room->id;
-    
+
     $response = actingAs($creator)->delete(route('rooms.destroy', $room));
-    
+
     $response->assertRedirect(route('rooms.index'));
     $response->assertSessionHas('success', 'Room deleted successfully.');
-    
+
     // Room should be deleted
     assertDatabaseMissing('rooms', ['id' => $roomId]);
-    
+
     // Participants should be deleted due to cascade
     assertDatabaseMissing('room_participants', ['room_id' => $roomId]);
 });
@@ -874,11 +880,11 @@ test('non-creator cannot delete room', function () {
     $creator = User::factory()->create();
     $otherUser = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $creator->id]);
-    
+
     $response = actingAs($otherUser)->delete(route('rooms.destroy', $room));
-    
+
     $response->assertSessionHasErrors(['error']);
-    
+
     // Room should still exist
     assertDatabaseHas('rooms', ['id' => $room->id]);
 });
@@ -886,23 +892,23 @@ test('non-creator cannot delete room', function () {
 test('room creator cannot leave their own room', function () {
     $creator = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $creator->id]);
-    
+
     // Manually add creator as participant (normally done by CreateRoomAction)
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $creator->id,
         'left_at' => null,
     ]);
-    
+
     $response = actingAs($creator)->delete(route('rooms.leave', $room));
-    
+
     $response->assertSessionHasErrors(['error']);
-    
+
     // Room and participation should still exist
     assertDatabaseHas('rooms', ['id' => $room->id]);
     assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $creator->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 });

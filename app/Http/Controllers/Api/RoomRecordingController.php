@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Domain\Room\Actions\ConfirmGoogleDriveUpload;
 use Domain\Room\Actions\CreateWasabiRecording;
 use Domain\Room\Actions\GenerateGoogleDriveDownloadUrl;
+use Domain\Room\Actions\GenerateGoogleDriveUploadUrl;
 use Domain\Room\Actions\GenerateWasabiDownloadUrl;
 use Domain\Room\Actions\GenerateWasabiPresignedUrl;
-use Domain\Room\Actions\GenerateGoogleDriveUploadUrl;
-use Domain\Room\Actions\ConfirmGoogleDriveUpload;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomRecording;
 use Illuminate\Http\JsonResponse;
@@ -39,7 +39,7 @@ class RoomRecordingController extends Controller
             \Log::info('Wasabi presign request received', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
             ]);
 
             $validated = $request->validate([
@@ -51,12 +51,12 @@ class RoomRecordingController extends Controller
 
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Additional check: user must be the room creator or an active participant
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+            if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
                 return response()->json(['error' => 'Only room participants can upload recordings'], 403);
             }
 
@@ -66,19 +66,19 @@ class RoomRecordingController extends Controller
                 ->whereNull('left_at')
                 ->first();
 
-            if (!$participant) {
+            if (! $participant) {
                 return response()->json([
                     'error' => 'User is not an active participant in this room',
-                    'requires_consent' => false
+                    'requires_consent' => false,
                 ], 403);
             }
 
             // Only require STT consent if STT is actually enabled for this room
             $room->load('recordingSettings');
-            if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && !$participant->hasSttConsent()) {
+            if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && ! $participant->hasSttConsent()) {
                 return response()->json([
                     'error' => 'Speech-to-text consent required for recording',
-                    'requires_consent' => true
+                    'requires_consent' => true,
                 ], 403);
             }
 
@@ -97,17 +97,17 @@ class RoomRecordingController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to generate Wasabi presigned URL', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -129,12 +129,12 @@ class RoomRecordingController extends Controller
 
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Additional check: user must be the room creator or an active participant
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+            if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
                 return response()->json(['error' => 'Only room participants can confirm recordings'], 403);
             }
 
@@ -144,10 +144,10 @@ class RoomRecordingController extends Controller
                 ->whereNull('left_at')
                 ->first();
 
-            if (!$participant || !$participant->hasRecordingConsent()) {
+            if (! $participant || ! $participant->hasRecordingConsent()) {
                 return response()->json([
                     'error' => 'Video recording consent required',
-                    'requires_consent' => true
+                    'requires_consent' => true,
                 ], 403);
             }
 
@@ -166,27 +166,26 @@ class RoomRecordingController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Recording confirmed and saved',
-                'recording_id' => $recording->id
+                'recording_id' => $recording->id,
             ], 201);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to confirm Wasabi upload', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
-
 
     /**
      * Generate a direct upload URL for Google Drive (recommended approach)
@@ -203,12 +202,12 @@ class RoomRecordingController extends Controller
 
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Additional check: user must be the room creator or an active participant
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+            if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
                 return response()->json(['error' => 'Only room participants can upload recordings'], 403);
             }
 
@@ -218,10 +217,10 @@ class RoomRecordingController extends Controller
                 ->whereNull('left_at')
                 ->first();
 
-            if (!$participant || !$participant->hasRecordingConsent()) {
+            if (! $participant || ! $participant->hasRecordingConsent()) {
                 return response()->json([
                     'error' => 'Video recording consent required',
-                    'requires_consent' => true
+                    'requires_consent' => true,
                 ], 403);
             }
 
@@ -240,17 +239,17 @@ class RoomRecordingController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to generate Google Drive upload URL', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -269,12 +268,12 @@ class RoomRecordingController extends Controller
 
             // Check if user has access to this room
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Additional check: user must be the room creator or an active participant
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+            if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
                 return response()->json(['error' => 'Only room participants can confirm uploads'], 403);
             }
 
@@ -284,10 +283,10 @@ class RoomRecordingController extends Controller
                 ->whereNull('left_at')
                 ->first();
 
-            if (!$participant || !$participant->hasRecordingConsent()) {
+            if (! $participant || ! $participant->hasRecordingConsent()) {
                 return response()->json([
                     'error' => 'Video recording consent required',
-                    'requires_consent' => true
+                    'requires_consent' => true,
                 ], 403);
             }
 
@@ -311,21 +310,20 @@ class RoomRecordingController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to confirm Google Drive upload', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
-
 
     /**
      * Get recordings for a room
@@ -335,12 +333,12 @@ class RoomRecordingController extends Controller
         try {
             // Check if user has access to this room and is an active participant
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Additional check: user must be the room creator or an active participant to view recordings
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+            if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
                 return response()->json(['error' => 'Only room participants can view recordings'], 403);
             }
 
@@ -373,23 +371,23 @@ class RoomRecordingController extends Controller
             return response()->json([
                 'success' => true,
                 'recordings' => $recordings,
-                'count' => $recordings->count()
+                'count' => $recordings->count(),
             ]);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to get room recordings', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to get recordings'
+                'error' => 'Failed to get recordings',
             ], 500);
         }
     }
@@ -402,12 +400,12 @@ class RoomRecordingController extends Controller
         try {
             // Check if user has access to this room and recording
             $user = $request->user();
-            if (!$room->canUserAccess($user)) {
+            if (! $room->canUserAccess($user)) {
                 return response()->json(['error' => 'Access denied'], 403);
             }
 
             // Additional check: user must be the room creator or an active participant
-            if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+            if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
                 return response()->json(['error' => 'Only room participants can download recordings'], 403);
             }
 
@@ -420,13 +418,15 @@ class RoomRecordingController extends Controller
             if ($recording->provider === 'wasabi') {
                 // Generate Wasabi download URL
                 $result = $this->generateWasabiDownloadUrl->execute($room, $recording, $user);
+
                 return response()->json($result);
-                
+
             } elseif ($recording->provider === 'google_drive') {
                 // Generate Google Drive download URL
                 $result = $this->generateGoogleDriveDownloadUrl->execute($room, $recording, $user);
+
                 return response()->json($result);
-                
+
             } elseif ($recording->provider === 'local') {
                 // Local file download
                 if (Storage::disk('local')->exists($recording->provider_file_id)) {
@@ -450,11 +450,11 @@ class RoomRecordingController extends Controller
                 'room_id' => $room->id,
                 'recording_id' => $recording->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to prepare download'
+                'error' => 'Failed to prepare download',
             ], 500);
         }
     }
@@ -470,18 +470,18 @@ class RoomRecordingController extends Controller
                 'multipart_upload_id' => 'required|string|max:2000', // Increased for Google Drive session URIs
                 'provider_file_id' => 'nullable|string|max:2000',    // Nullable for Google Drive (set after finalization)
                 'started_at_ms' => 'required|integer|min:0',
-                'mime_type' => 'required|string|max:100'
+                'mime_type' => 'required|string|max:100',
             ]);
 
             $user = $request->user();
-            if (!$user) {
+            if (! $user) {
                 return response()->json(['error' => 'Authentication required'], 401);
             }
 
             // Validate recording permissions (same as existing methods)
             $this->validateRecordingPermissions($room, $user);
 
-            $startAction = new \Domain\Room\Actions\StartRecordingSession();
+            $startAction = new \Domain\Room\Actions\StartRecordingSession;
             $recording = $startAction->execute(
                 $room,
                 $user,
@@ -496,29 +496,29 @@ class RoomRecordingController extends Controller
                 'recording_id' => $recording->id,
                 'room_id' => $room->id,
                 'user_id' => $user->id,
-                'multipart_upload_id' => $validated['multipart_upload_id']
+                'multipart_upload_id' => $validated['multipart_upload_id'],
             ]);
 
             return response()->json([
                 'recording_id' => $recording->id,
                 'status' => $recording->status->value,
-                'message' => 'Recording session started successfully'
+                'message' => 'Recording session started successfully',
             ]);
 
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to start recording session', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to start recording session'
+                'error' => 'Failed to start recording session',
             ], 500);
         }
     }
@@ -530,7 +530,7 @@ class RoomRecordingController extends Controller
     {
         try {
             $user = $request->user();
-            if (!$user) {
+            if (! $user) {
                 return response()->json(['error' => 'Authentication required'], 401);
             }
 
@@ -540,7 +540,7 @@ class RoomRecordingController extends Controller
             }
 
             // Only update if recording is still active
-            if (!$recording->isRecording()) {
+            if (! $recording->isRecording()) {
                 return response()->json(['error' => 'Recording is not active'], 400);
             }
 
@@ -550,10 +550,10 @@ class RoomRecordingController extends Controller
                     'part_number' => 'required|integer|min:1',
                     'etag' => 'required|string|max:255',
                     'part_size_bytes' => 'required|integer|min:1',
-                    'ended_at_ms' => 'required|integer|min:0'
+                    'ended_at_ms' => 'required|integer|min:0',
                 ]);
 
-                $updateAction = new \Domain\Room\Actions\UpdateRecordingProgress();
+                $updateAction = new \Domain\Room\Actions\UpdateRecordingProgress;
                 $updatedRecording = $updateAction->execute(
                     $recording,
                     $validated['part_number'],
@@ -567,7 +567,7 @@ class RoomRecordingController extends Controller
                     'room_id' => $room->id,
                     'user_id' => $user->id,
                     'part_number' => $validated['part_number'],
-                    'total_size' => $updatedRecording->size_bytes
+                    'total_size' => $updatedRecording->size_bytes,
                 ]);
 
                 return response()->json([
@@ -575,14 +575,14 @@ class RoomRecordingController extends Controller
                     'status' => $updatedRecording->status->value,
                     'total_size_bytes' => $updatedRecording->size_bytes,
                     'parts_count' => count($updatedRecording->uploaded_parts ?? []),
-                    'message' => 'Wasabi recording progress updated successfully'
+                    'message' => 'Wasabi recording progress updated successfully',
                 ]);
 
             } elseif ($recording->provider === 'google_drive') {
                 $validated = $request->validate([
                     'chunk_size_bytes' => 'required|integer|min:1',
                     'total_uploaded_bytes' => 'required|integer|min:1',
-                    'ended_at_ms' => 'required|integer|min:0'
+                    'ended_at_ms' => 'required|integer|min:0',
                 ]);
 
                 // For Google Drive, just update the total size and timestamp
@@ -596,37 +596,37 @@ class RoomRecordingController extends Controller
                     'room_id' => $room->id,
                     'user_id' => $user->id,
                     'chunk_size' => $validated['chunk_size_bytes'],
-                    'total_uploaded' => $validated['total_uploaded_bytes']
+                    'total_uploaded' => $validated['total_uploaded_bytes'],
                 ]);
 
                 return response()->json([
                     'recording_id' => $recording->id,
                     'status' => $recording->status->value,
                     'total_size_bytes' => $recording->size_bytes,
-                    'message' => 'Google Drive recording progress updated successfully'
+                    'message' => 'Google Drive recording progress updated successfully',
                 ]);
 
             } else {
                 return response()->json([
-                    'error' => 'Unsupported provider for progress updates: ' . $recording->provider
+                    'error' => 'Unsupported provider for progress updates: '.$recording->provider,
                 ], 400);
             }
 
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             \Log::error('Failed to update recording progress', [
                 'recording_id' => $recording->id,
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
-                'error' => 'Failed to update recording progress'
+                'error' => 'Failed to update recording progress',
             ], 500);
         }
     }
@@ -638,7 +638,7 @@ class RoomRecordingController extends Controller
     {
         // Check if recording is enabled
         $room->load('recordingSettings');
-        if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
+        if (! $room->recordingSettings || ! $room->recordingSettings->isRecordingEnabled()) {
             throw new \Exception('Video recording is not enabled for this room');
         }
 
@@ -648,12 +648,12 @@ class RoomRecordingController extends Controller
             ->whereNull('left_at')
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             throw new \Exception('User is not an active participant in this room');
         }
 
         // Only require STT consent if STT is actually enabled for this room
-        if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && !$participant->hasSttConsent()) {
+        if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && ! $participant->hasSttConsent()) {
             throw new \Exception('Speech-to-text consent required for recording');
         }
     }

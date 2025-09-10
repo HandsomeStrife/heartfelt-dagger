@@ -28,6 +28,22 @@ class CharacterExperience extends Model
     ];
 
     /**
+     * Accessor for 'name' - maps to 'experience_name'
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->experience_name;
+    }
+
+    /**
+     * Accessor for 'description' - maps to 'experience_description'
+     */
+    public function getDescriptionAttribute(): ?string
+    {
+        return $this->experience_description;
+    }
+
+    /**
      * Get the character that owns this experience
      */
     public function character(): BelongsTo

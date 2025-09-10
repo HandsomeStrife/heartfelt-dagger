@@ -129,7 +129,7 @@ class CampaignController extends Controller
 
         $campaign = Campaign::where('invite_code', $validated['invite_code'])->first();
 
-        if (!$campaign) {
+        if (! $campaign) {
             return redirect()->route('campaigns.index')
                 ->withErrors(['invite_code' => 'Invalid invite code. Please check the code and try again.']);
         }
@@ -143,7 +143,7 @@ class CampaignController extends Controller
 
         try {
             $this->join_campaign_action->execute($campaign, $user);
-            
+
             return redirect()->route('campaigns.show', $campaign->campaign_code)
                 ->with('success', 'Successfully joined the campaign!');
         } catch (\Exception $e) {
@@ -196,13 +196,13 @@ class CampaignController extends Controller
         $member = $campaign->members()->where('id', $validated['member_id'])->first();
 
         // Ensure the member belongs to the current user
-        if (!$member || $member->user_id !== $user->id) {
+        if (! $member || $member->user_id !== $user->id) {
             return back()->withErrors(['error' => 'You can only update your own character.']);
         }
 
         // Ensure the character belongs to the current user
         $character = $user->characters()->where('id', $validated['character_id'])->first();
-        if (!$character) {
+        if (! $character) {
             return back()->withErrors(['error' => 'Character not found or does not belong to you.']);
         }
 

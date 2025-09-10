@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Livewire\Forms;
 
 use Domain\User\Models\UserStorageAccount;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
-use Illuminate\Support\Facades\Auth;
 
 class AssemblyAIAccountForm extends Form
 {
@@ -55,7 +55,7 @@ class AssemblyAIAccountForm extends Form
     public function fillFromAccount(UserStorageAccount $account): void
     {
         $credentials = $account->encrypted_credentials;
-        
+
         $this->display_name = $account->display_name;
         $this->api_key = $credentials['api_key'] ?? '';
     }

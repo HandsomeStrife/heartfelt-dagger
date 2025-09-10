@@ -28,32 +28,43 @@ class EditCampaignFrameForm extends Form
     public bool $is_public = false;
 
     public array $pitch = [];
+
     public array $touchstones = [];
+
     public array $tone = [];
+
     public array $themes = [];
+
     public array $player_principles = [];
+
     public array $gm_principles = [];
+
     public array $community_guidance = [];
+
     public array $ancestry_guidance = [];
+
     public array $class_guidance = [];
 
     #[Validate('string|max:2000')]
     public string $background_overview = '';
 
     public array $setting_guidance = [];
+
     public array $setting_distinctions = [];
 
     #[Validate('string|max:1000')]
     public string $inciting_incident = '';
 
     public array $special_mechanics = [];
+
     public array $campaign_mechanics = [];
+
     public array $session_zero_questions = [];
 
     public function setFrame(CampaignFrameData $frame_data): void
     {
         $this->frame = CampaignFrame::find($frame_data->id);
-        
+
         $this->name = $frame_data->name;
         $this->description = $frame_data->description;
         $this->complexity_rating = $frame_data->complexity_rating->value;
@@ -78,7 +89,7 @@ class EditCampaignFrameForm extends Form
 
     public function save(): CampaignFrame
     {
-        if (!$this->frame) {
+        if (! $this->frame) {
             throw new \Exception('No campaign frame set for editing.');
         }
 
@@ -107,7 +118,8 @@ class EditCampaignFrameForm extends Form
             'session_zero_questions' => $this->session_zero_questions,
         ]);
 
-        $action = new UpdateCampaignFrameAction();
+        $action = new UpdateCampaignFrameAction;
+
         return $action->execute($this->frame, $data);
     }
 

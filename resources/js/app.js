@@ -31,6 +31,10 @@ window.characterViewerState = characterViewerState;
 import { characterBuilderComponent } from './character-builder';
 window.characterBuilderComponent = characterBuilderComponent;
 
+// Character Level Up component (Alpine)
+import { characterLevelUpComponent } from './character-level-up';
+window.characterLevelUpComponent = characterLevelUpComponent;
+
 // Character Image Uppy (for profile image uploads)
 import SimpleImageUploader from './character-image-simple';
 window.SimpleImageUploader = SimpleImageUploader;

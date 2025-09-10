@@ -6,6 +6,7 @@ use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 it('generates unique invite code on creation', function () {
@@ -58,13 +59,13 @@ it('has many active participants', function () {
     // Create active participants
     RoomParticipant::factory()->count(2)->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // Create participant who left
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => now()
+        'left_at' => now(),
     ]);
 
     $activeParticipants = $room->activeParticipants;
@@ -91,7 +92,7 @@ it('checks if user is active participant', function () {
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     expect($room->hasActiveParticipant($user))->toBeTrue();
@@ -111,13 +112,13 @@ it('gets active participant count', function () {
     // Add active participants
     RoomParticipant::factory()->count(3)->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     // Add participant who left
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => now()
+        'left_at' => now(),
     ]);
 
     expect($room->getActiveParticipantCount())->toEqual(3);
@@ -130,7 +131,7 @@ it('checks if at capacity', function () {
     // Add first participant
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     expect($room->isAtCapacity())->toBeFalse();
@@ -138,7 +139,7 @@ it('checks if at capacity', function () {
     // Add second participant
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     expect($room->isAtCapacity())->toBeFalse();
@@ -146,7 +147,7 @@ it('checks if at capacity', function () {
     // Add third participant (at capacity)
     RoomParticipant::factory()->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     expect($room->isAtCapacity())->toBeTrue();
@@ -167,7 +168,7 @@ it('scopes rooms by creator', function () {
     $foundRooms = Room::byCreator($creator)->get();
 
     expect($foundRooms)->toHaveCount(3);
-    expect($foundRooms->every(fn($room) => $room->creator_id === $creator->id))->toBeTrue();
+    expect($foundRooms->every(fn ($room) => $room->creator_id === $creator->id))->toBeTrue();
 });
 it('scopes rooms by invite code', function () {
     $room = Room::factory()->create();
@@ -190,7 +191,7 @@ it('scopes active rooms', function () {
     $activeRooms = Room::active()->get();
 
     expect($activeRooms)->toHaveCount(3);
-    expect($activeRooms->every(fn($room) => $room->status === RoomStatus::Active))->toBeTrue();
+    expect($activeRooms->every(fn ($room) => $room->status === RoomStatus::Active))->toBeTrue();
 });
 it('generates unique invite codes when duplicates exist', function () {
     // Mock the random generation to return a duplicate first, then unique

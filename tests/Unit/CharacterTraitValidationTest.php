@@ -21,7 +21,7 @@ test('character trait distribution must follow exact SRD requirements', function
 
     $traitValues = array_values($character->assigned_traits);
     sort($traitValues);
-    
+
     expect($traitValues)->toBe([-1, 0, 0, 1, 1, 2]);
 });
 
@@ -38,7 +38,7 @@ test('character trait validation rejects invalid distributions', function () {
 
     $traitValues = array_values($invalidTraits);
     sort($traitValues);
-    
+
     expect($traitValues)->not->toBe([-1, 0, 0, 1, 1, 2]);
 });
 
@@ -55,14 +55,14 @@ test('character trait validation rejects distribution with wrong total', functio
 
     $traitValues = array_values($invalidTraits);
     $sum = array_sum($traitValues);
-    
+
     // Valid distribution should sum to 3 (-1 + 0 + 0 + 1 + 1 + 2 = 3)
     expect($sum)->not->toBe(3);
 });
 
 test('all character traits are required and within valid bounds', function () {
     $requiredTraits = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
-    
+
     $validTraits = [
         'agility' => -1,
         'strength' => 0,
@@ -110,7 +110,7 @@ test('character starting statistics match SRD specifications', function () {
         expect($classData)->not->toBeNull();
         expect($classData['startingEvasion'])->toBe($expectedStats['evasion']);
         expect($classData['startingHitPoints'])->toBe($expectedStats['hp']);
-        
+
         // All characters start with 6 stress slots
         expect($expectedStats['stress'])->toBe(6);
     }
@@ -130,7 +130,7 @@ test('hope mechanics follow SRD specifications', function () {
 
     // All class Hope features cost 3 Hope
     $gameData = app(\App\Livewire\CharacterViewer::class)->loadGameData();
-    
+
     foreach ($gameData['classes'] as $classData) {
         if (isset($classData['hopeFeature']['hopeCost'])) {
             expect($classData['hopeFeature']['hopeCost'])->toBe(3);
@@ -186,7 +186,7 @@ test('domain access follows class restrictions', function () {
 
 test('damage thresholds calculate correctly based on level', function () {
     $level = 1;
-    
+
     // SRD specifies: Minor (7+level), Major (14+level), Severe (21+level)
     $expectedMinor = 7 + $level;
     $expectedMajor = 14 + $level;

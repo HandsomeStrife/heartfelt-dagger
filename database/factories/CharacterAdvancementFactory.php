@@ -22,7 +22,7 @@ class CharacterAdvancementFactory extends Factory
     {
         $tier = $this->faker->numberBetween(1, 4);
         $advancement_number = $this->faker->numberBetween(1, 2);
-        
+
         $advancement_types = [
             'trait_bonus',
             'hit_point',
@@ -52,7 +52,7 @@ class CharacterAdvancementFactory extends Factory
 
     private function getAdvancementData(string $type): array
     {
-        return match($type) {
+        return match ($type) {
             'trait_bonus' => [
                 'traits' => $this->faker->randomElements(['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'], 2),
                 'bonus' => 1,
@@ -90,7 +90,7 @@ class CharacterAdvancementFactory extends Factory
 
     private function getDescription(string $type): string
     {
-        return match($type) {
+        return match ($type) {
             'trait_bonus' => 'Gain a +1 bonus to two unmarked character traits and mark them.',
             'hit_point' => 'Permanently gain one Hit Point slot.',
             'stress' => 'Permanently gain one Stress slot.',
@@ -112,7 +112,7 @@ class CharacterAdvancementFactory extends Factory
                 'traits' => $traits,
                 'bonus' => 1,
             ],
-            'description' => 'Gain a +1 bonus to ' . implode(' and ', $traits) . ' and mark them.',
+            'description' => 'Gain a +1 bonus to '.implode(' and ', $traits).' and mark them.',
         ]);
     }
 

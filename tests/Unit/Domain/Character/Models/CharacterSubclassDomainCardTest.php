@@ -3,6 +3,7 @@
 declare(strict_types=1);
 use Domain\Character\Models\Character;
 use PHPUnit\Framework\Attributes\Test;
+
 test('school of knowledge provides domain card bonuses', function () {
     $character = Character::factory()->create([
         'subclass' => 'school of knowledge',

@@ -10,4 +10,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Schedule the job to finalize stale recordings every 30 seconds
-Schedule::job(new FinalizeStaleRecordings())->everyThirtySeconds();
+Schedule::job(new FinalizeStaleRecordings)->everyThirtySeconds();

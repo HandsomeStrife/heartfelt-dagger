@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 use Domain\Character\Models\Character;
-use PHPUnit\Framework\Attributes\Test;
+
 test('school of war battlemage provides hit point bonus', function () {
     $character = Character::factory()->create([
         'subclass' => 'school of war',

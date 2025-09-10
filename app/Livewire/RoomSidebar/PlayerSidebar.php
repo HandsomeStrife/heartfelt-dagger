@@ -21,10 +21,15 @@ use Livewire\Component;
 class PlayerSidebar extends Component
 {
     public ?RoomParticipantData $current_participant = null;
+
     public ?CharacterData $character = null;
+
     public ?CharacterStatusData $character_status = null;
+
     public array $game_data = [];
+
     public bool $can_edit = true;
+
     public string $character_notes = '';
 
     // Repository
@@ -33,14 +38,14 @@ class PlayerSidebar extends Component
     public function mount(?RoomParticipantData $currentParticipant): void
     {
         $this->current_participant = $currentParticipant;
-        
+
         // Initialize repository
-        $this->character_repository = new CharacterRepository();
-        
+        $this->character_repository = new CharacterRepository;
+
         // Load character data if participant has a linked character
         if ($this->current_participant?->character_id) {
             $this->character = $this->character_repository->findById($this->current_participant->character_id);
-            
+
             if ($this->character) {
                 $this->loadCharacterStatus();
                 $this->loadGameData();
@@ -51,7 +56,7 @@ class PlayerSidebar extends Component
 
     public function loadCharacterStatus(): void
     {
-        if (!$this->character) {
+        if (! $this->character) {
             return;
         }
 
@@ -59,7 +64,7 @@ class PlayerSidebar extends Component
         $computed_stats = $this->getComputedStats();
 
         // Load character status using Action
-        $load_action = new LoadCharacterStatusAction();
+        $load_action = new LoadCharacterStatusAction;
         $this->character_status = $load_action->execute($this->character->character_key, $computed_stats);
     }
 
@@ -92,7 +97,7 @@ class PlayerSidebar extends Component
      */
     public function getComputedStats(): array
     {
-        if (!$this->character) {
+        if (! $this->character) {
             return [];
         }
 
@@ -113,7 +118,7 @@ class PlayerSidebar extends Component
      */
     public function getClassData(): ?array
     {
-        if (!$this->character || empty($this->character->class) || !isset($this->game_data['classes'][$this->character->class])) {
+        if (! $this->character || empty($this->character->class) || ! isset($this->game_data['classes'][$this->character->class])) {
             return null;
         }
 
@@ -125,18 +130,18 @@ class PlayerSidebar extends Component
      */
     public function getFormattedTraitValues(): array
     {
-        if (!$this->character) {
+        if (! $this->character) {
             return [];
         }
 
         $trait_values = [];
         $trait_names = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
-        
+
         foreach ($trait_names as $trait) {
             $value = $this->character->traits->{$trait} ?? 0;
-            $trait_values[$trait] = $value >= 0 ? '+' . $value : (string) $value;
+            $trait_values[$trait] = $value >= 0 ? '+'.$value : (string) $value;
         }
-        
+
         return $trait_values;
     }
 
@@ -147,7 +152,7 @@ class PlayerSidebar extends Component
     {
         return [
             'agility' => 'Agility',
-            'strength' => 'Strength', 
+            'strength' => 'Strength',
             'finesse' => 'Finesse',
             'instinct' => 'Instinct',
             'presence' => 'Presence',
@@ -160,7 +165,7 @@ class PlayerSidebar extends Component
      */
     public function getSubclassData(): ?array
     {
-        if (!$this->character || empty($this->character->subclass) || !isset($this->game_data['subclasses'][$this->character->subclass])) {
+        if (! $this->character || empty($this->character->subclass) || ! isset($this->game_data['subclasses'][$this->character->subclass])) {
             return null;
         }
 
@@ -172,7 +177,7 @@ class PlayerSidebar extends Component
      */
     public function getAncestryData(): ?array
     {
-        if (!$this->character || empty($this->character->ancestry) || !isset($this->game_data['ancestries'][$this->character->ancestry])) {
+        if (! $this->character || empty($this->character->ancestry) || ! isset($this->game_data['ancestries'][$this->character->ancestry])) {
             return null;
         }
 
@@ -184,7 +189,7 @@ class PlayerSidebar extends Component
      */
     public function getCommunityData(): ?array
     {
-        if (!$this->character || empty($this->character->community) || !isset($this->game_data['communities'][$this->character->community])) {
+        if (! $this->character || empty($this->character->community) || ! isset($this->game_data['communities'][$this->character->community])) {
             return null;
         }
 
@@ -196,7 +201,7 @@ class PlayerSidebar extends Component
      */
     public function getOrganizedEquipment(): array
     {
-        if (!$this->character) {
+        if (! $this->character) {
             return [
                 'weapons' => [],
                 'armor' => [],
@@ -241,31 +246,31 @@ class PlayerSidebar extends Component
      */
     public function getDomainCardDetails(): array
     {
-        if (!$this->character) {
+        if (! $this->character) {
             return [];
         }
 
         $domain_cards = [];
-        
+
         foreach ($this->character->domain_cards as $card) {
             $ability_key = $card->ability_key ?? null;
             $domain = $card->domain ?? null;
             $ability_level = $card->level ?? 1;
-            
+
             if ($ability_key && isset($this->game_data['abilities'][$ability_key])) {
                 $ability_data = $this->game_data['abilities'][$ability_key];
                 $domain_cards[] = [
                     'domain' => $domain,
                     'ability_key' => $ability_key,
                     'ability_level' => $ability_level,
-                    'ability_data' => $ability_data
+                    'ability_data' => $ability_data,
                 ];
             } else {
                 $domain_cards[] = [
                     'domain' => $domain,
                     'ability_key' => $ability_key,
                     'ability_level' => $ability_level,
-                    'ability_data' => null
+                    'ability_data' => null,
                 ];
             }
         }
@@ -275,27 +280,27 @@ class PlayerSidebar extends Component
 
     public function saveCharacterState(array $state): void
     {
-        if (!$this->can_edit || !$this->character) {
+        if (! $this->can_edit || ! $this->character) {
             return;
         }
 
         try {
             // Convert Alpine.js state to CharacterStatusData
             $status_data = CharacterStatusData::fromAlpineState($this->character->id, $state);
-            
+
             // Save using Action
-            $save_action = new SaveCharacterStatusAction();
+            $save_action = new SaveCharacterStatusAction;
             $this->character_status = $save_action->execute($this->character->character_key, $status_data);
-            
+
         } catch (\Exception $e) {
             // Log error but don't break the UI
-            \Log::error('Failed to save character state: ' . $e->getMessage());
+            \Log::error('Failed to save character state: '.$e->getMessage());
         }
     }
 
     public function getCharacterState(): ?array
     {
-        if (!$this->character_status) {
+        if (! $this->character_status) {
             return null;
         }
 
@@ -306,16 +311,16 @@ class PlayerSidebar extends Component
     public function loadCharacterNotes(): void
     {
         $user = Auth::user();
-        if (!$user || !$this->character) {
+        if (! $user || ! $this->character) {
             return;
         }
 
         $character_model = Character::find($this->character->id);
-        if (!$character_model) {
+        if (! $character_model) {
             return;
         }
 
-        $load_action = new LoadCharacterNotesAction();
+        $load_action = new LoadCharacterNotesAction;
         $notes_record = $load_action->execute($character_model, $user);
         $this->character_notes = $notes_record->notes ?? '';
     }
@@ -323,31 +328,31 @@ class PlayerSidebar extends Component
     public function saveCharacterNotes(): void
     {
         $user = Auth::user();
-        if (!$user || !$this->character) {
+        if (! $user || ! $this->character) {
             return;
         }
 
         $character_model = Character::find($this->character->id);
-        if (!$character_model) {
+        if (! $character_model) {
             return;
         }
 
-        $save_action = new SaveCharacterNotesAction();
+        $save_action = new SaveCharacterNotesAction;
         $save_action->execute($character_model, $user, $this->character_notes);
-        
+
         // Dispatch a browser event to show success feedback
         $this->dispatch('character-notes-saved');
     }
 
     public function render()
     {
-        if (!$this->character) {
+        if (! $this->character) {
             return view('livewire.room-sidebar.player-sidebar-empty');
         }
 
         $class_data = $this->getClassData();
         $computed_stats = $this->getComputedStats();
-        
+
         return view('livewire.room-sidebar.player-sidebar', [
             'character' => $this->character,
             'character_status' => $this->character_status,

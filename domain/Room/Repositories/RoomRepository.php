@@ -21,7 +21,7 @@ class RoomRepository
             ->withCount(['activeParticipants'])
             ->find($id);
 
-        if (!$room) {
+        if (! $room) {
             return null;
         }
 
@@ -53,7 +53,7 @@ class RoomRepository
             ->where('invite_code', $inviteCode)
             ->first();
 
-        if (!$room) {
+        if (! $room) {
             return null;
         }
 

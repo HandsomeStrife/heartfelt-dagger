@@ -56,24 +56,24 @@ enum SubclassEnum: string
     {
         return match ($this) {
             self::SCHOOL_OF_KNOWLEDGE => [
-                ['type' => 'domain_card_bonus', 'value' => 1, 'timing' => 'permanent']
+                ['type' => 'domain_card_bonus', 'value' => 1, 'timing' => 'permanent'],
             ],
             self::SCHOOL_OF_WAR => [
-                ['type' => 'hit_point_bonus', 'value' => 1, 'timing' => 'permanent']
+                ['type' => 'hit_point_bonus', 'value' => 1, 'timing' => 'permanent'],
             ],
             self::NIGHTWALKER => [
-                ['type' => 'evasion_bonus', 'value' => 1, 'timing' => 'permanent']
+                ['type' => 'evasion_bonus', 'value' => 1, 'timing' => 'permanent'],
             ],
             self::STALWART => [
                 ['type' => 'damage_threshold_bonus', 'value' => 1, 'timing' => 'permanent'], // Foundation
                 ['type' => 'damage_threshold_bonus', 'value' => 2, 'timing' => 'permanent'], // Specialization
-                ['type' => 'damage_threshold_bonus', 'value' => 3, 'timing' => 'permanent']  // Mastery
+                ['type' => 'damage_threshold_bonus', 'value' => 3, 'timing' => 'permanent'],  // Mastery
             ],
             self::VENGEANCE => [
-                ['type' => 'stress_bonus', 'value' => 1, 'timing' => 'permanent']
+                ['type' => 'stress_bonus', 'value' => 1, 'timing' => 'permanent'],
             ],
             self::WINGED_SENTINEL => [
-                ['type' => 'severe_threshold_bonus', 'value' => 4, 'timing' => 'permanent']
+                ['type' => 'severe_threshold_bonus', 'value' => 4, 'timing' => 'permanent'],
             ],
             default => []
         };
@@ -113,55 +113,55 @@ enum SubclassEnum: string
         return match ($class) {
             ClassEnum::ASSASSIN => [
                 self::EXECUTIONERS_GUILD,
-                self::POISONERS_GUILD
+                self::POISONERS_GUILD,
             ],
             ClassEnum::BARD => [
                 self::TROUBADOUR,
-                self::WORDSMITH
+                self::WORDSMITH,
             ],
             ClassEnum::BRAWLER => [
                 self::JUGGERNAUT,
-                self::MARTIAL_ARTIST
+                self::MARTIAL_ARTIST,
             ],
             ClassEnum::DRUID => [
                 self::WARDEN_OF_RENEWAL,
-                self::WARDEN_OF_THE_ELEMENTS
+                self::WARDEN_OF_THE_ELEMENTS,
             ],
             ClassEnum::GUARDIAN => [
                 self::STALWART,
-                self::CALL_OF_THE_BRAVE
+                self::CALL_OF_THE_BRAVE,
             ],
             ClassEnum::RANGER => [
                 self::BEASTBOUND,
-                self::WAYFINDER
+                self::WAYFINDER,
             ],
             ClassEnum::ROGUE => [
                 self::NIGHTWALKER,
-                self::SYNDICATE
+                self::SYNDICATE,
             ],
             ClassEnum::SERAPH => [
                 self::DIVINE_WIELDER,
-                self::WINGED_SENTINEL
+                self::WINGED_SENTINEL,
             ],
             ClassEnum::SORCERER => [
                 self::ELEMENTAL_ORIGIN,
-                self::PRIMAL_ORIGIN
+                self::PRIMAL_ORIGIN,
             ],
             ClassEnum::WARLOCK => [
                 self::PACT_OF_THE_ENDLESS,
-                self::PACT_OF_THE_WRATHFUL
+                self::PACT_OF_THE_WRATHFUL,
             ],
             ClassEnum::WARRIOR => [
                 self::CALL_OF_THE_SLAYER,
-                self::VENGEANCE
+                self::VENGEANCE,
             ],
             ClassEnum::WITCH => [
                 self::HEDGE,
-                self::MOON
+                self::MOON,
             ],
             ClassEnum::WIZARD => [
                 self::SCHOOL_OF_KNOWLEDGE,
-                self::SCHOOL_OF_WAR
+                self::SCHOOL_OF_WAR,
             ],
         };
     }

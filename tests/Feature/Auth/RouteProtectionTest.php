@@ -1,7 +1,9 @@
 <?php
 
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 

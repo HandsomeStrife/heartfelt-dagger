@@ -68,5 +68,3 @@ it('ancestry numeric bonuses apply (galapa +2 thresholds, giant +1 hp, human +1 
     $simiahStats = $simiah->getComputedStats($guardian);
     expect($simiahStats['evasion'])->toBe(($guardian['startingEvasion'] ?? 0) + 1);
 });
-
-

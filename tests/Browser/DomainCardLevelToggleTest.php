@@ -17,14 +17,14 @@ it('validates domain card selection and level toggle functionality', function ()
         $page->click('[pest="next-step-button"]');
         $page->wait(1);
     }
-    
+
     $page->assertSee('Select Domain Cards');
     $page->wait(2);
-    
+
     // Verify domain cards section loads (basic functionality)
     $page->assertPresent('[pest="domain-card-selected-count"]');
     $page->assertPresent('[pest^="domain-card-"]');
-    
+
     // Verify domain cards can be selected (same as working tests)
     // Click on a specific domain card that should be available for Wizard (codex domain)
     $page->click('[pest="domain-card-codex-book of ava"]');

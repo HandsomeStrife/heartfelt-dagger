@@ -9,18 +9,22 @@ use Domain\Character\Actions\SaveCharacterStatusAction;
 use Domain\Character\Data\CharacterData;
 use Domain\Character\Data\CharacterStatusData;
 use Domain\Character\Models\Character;
+use Domain\Character\Repositories\CharacterAdvancementRepository;
 use Domain\Character\Repositories\CharacterRepository;
+use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
-use GrahamCampbell\Markdown\Facades\Markdown;
 
 class CharacterViewer extends Component
 {
     public string $public_key;
+
     public string $character_key;
+
     public bool $can_edit;
 
     public ?CharacterData $character = null;
+
     public ?CharacterStatusData $character_status = null;
 
     public ?string $pronouns = null;
@@ -28,8 +32,10 @@ class CharacterViewer extends Component
     // Game Data
     public array $game_data = [];
 
-    // Repository
+    // Repositories
     private CharacterRepository $character_repository;
+
+    private CharacterAdvancementRepository $advancement_repository;
 
     public function mount(string $publicKey, string $characterKey, bool $canEdit): void
     {
@@ -37,12 +43,13 @@ class CharacterViewer extends Component
         $this->character_key = $characterKey;
         $this->can_edit = $canEdit;
 
-        // Initialize repository
-        $this->character_repository = new CharacterRepository();
+        // Initialize repositories
+        $this->character_repository = new CharacterRepository;
+        $this->advancement_repository = new CharacterAdvancementRepository;
 
         // Load character data using repository
         $this->character = $this->character_repository->findByKey($characterKey);
-        
+
         if (! $this->character) {
             abort(404, 'Character not found');
         }
@@ -57,7 +64,7 @@ class CharacterViewer extends Component
 
     public function loadCharacterStatus(): void
     {
-        if (!$this->character) {
+        if (! $this->character) {
             return;
         }
 
@@ -65,7 +72,7 @@ class CharacterViewer extends Component
         $computed_stats = $this->getComputedStats();
 
         // Load character status using Action
-        $load_action = new LoadCharacterStatusAction();
+        $load_action = new LoadCharacterStatusAction;
         $this->character_status = $load_action->execute($this->character_key, $computed_stats);
     }
 
@@ -134,21 +141,48 @@ class CharacterViewer extends Component
     }
 
     /**
-     * Get computed character stats for display
+     * Get computed character stats for display including advancement bonuses
      */
     public function getComputedStats(): array
     {
-        if (!$this->character) {
+        if (! $this->character) {
             return [];
         }
 
-        // Convert CharacterStatsData to the array format expected by the frontend
-        // Use CharacterData methods for SRD-compliant threshold calculations
+        // Get the Character model to access advancement bonus methods
+        $character_model = Character::where('character_key', $this->character_key)->first();
+        if (! $character_model) {
+            // Fallback to basic stats if no model found
+            return [
+                'evasion' => $this->character->stats->evasion,
+                'hit_points' => $this->character->stats->hit_points,
+                'final_hit_points' => $this->character->stats->hit_points,
+                'stress' => $this->character->stats->stress,
+                'hope' => $this->character->stats->hope,
+                'major_threshold' => $this->character->getMajorThreshold(),
+                'severe_threshold' => $this->character->getSevereThreshold(),
+                'armor_score' => $this->character->getTotalArmorScore(),
+            ];
+        }
+
+        // Calculate stats with advancement bonuses
+        $base_evasion = $this->character->stats->evasion;
+        $evasion_bonuses = $character_model->getTotalEvasionBonuses();
+        $total_evasion = $base_evasion + array_sum($evasion_bonuses);
+
+        $base_hit_points = $this->character->stats->hit_points;
+        $hit_point_bonuses = $character_model->getTotalHitPointBonuses();
+        $total_hit_points = $base_hit_points + array_sum($hit_point_bonuses);
+
+        $base_stress = $this->character->stats->stress;
+        $stress_bonuses = $character_model->getTotalStressBonuses();
+        $total_stress = $base_stress + array_sum($stress_bonuses);
+
         return [
-            'evasion' => $this->character->stats->evasion,
-            'hit_points' => $this->character->stats->hit_points,
-            'final_hit_points' => $this->character->stats->hit_points,
-            'stress' => $this->character->stats->stress,
+            'evasion' => $total_evasion,
+            'hit_points' => $total_hit_points,
+            'final_hit_points' => $total_hit_points,
+            'stress' => $total_stress,
             'hope' => $this->character->stats->hope,
             'major_threshold' => $this->character->getMajorThreshold(),
             'severe_threshold' => $this->character->getSevereThreshold(),
@@ -161,7 +195,7 @@ class CharacterViewer extends Component
      */
     public function getClassData(): ?array
     {
-        if (empty($this->character->class) || !isset($this->game_data['classes'][$this->character->class])) {
+        if (empty($this->character->class) || ! isset($this->game_data['classes'][$this->character->class])) {
             return null;
         }
 
@@ -173,9 +207,10 @@ class CharacterViewer extends Component
      */
     public function getFormattedTraitValue(string $trait): string
     {
-        $trait_record = $this->character->traits()->where('trait_name', $trait)->first();
-        $value = $trait_record ? $trait_record->trait_value : 0;
-        return $value >= 0 ? '+' . $value : (string) $value;
+        $traits_array = $this->character->traits->toArray();
+        $value = $traits_array[$trait] ?? 0;
+
+        return $value >= 0 ? '+'.$value : (string) $value;
     }
 
     /**
@@ -185,12 +220,13 @@ class CharacterViewer extends Component
     {
         $trait_values = [];
         $trait_names = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
-        
+        $traits_array = $this->character->traits->toArray();
+
         foreach ($trait_names as $trait) {
-            $value = $this->character->traits->{$trait} ?? 0;
-            $trait_values[$trait] = $value >= 0 ? '+' . $value : (string) $value;
+            $value = $traits_array[$trait] ?? 0;
+            $trait_values[$trait] = $value >= 0 ? '+'.$value : (string) $value;
         }
-        
+
         return $trait_values;
     }
 
@@ -201,7 +237,7 @@ class CharacterViewer extends Component
     {
         return [
             'agility' => 'Agility',
-            'strength' => 'Strength', 
+            'strength' => 'Strength',
             'finesse' => 'Finesse',
             'instinct' => 'Instinct',
             'presence' => 'Presence',
@@ -214,7 +250,7 @@ class CharacterViewer extends Component
      */
     public function getSubclassData(): ?array
     {
-        if (empty($this->character->subclass) || !isset($this->game_data['subclasses'][$this->character->subclass])) {
+        if (empty($this->character->subclass) || ! isset($this->game_data['subclasses'][$this->character->subclass])) {
             return null;
         }
 
@@ -226,7 +262,7 @@ class CharacterViewer extends Component
      */
     public function getAncestryData(): ?array
     {
-        if (empty($this->character->ancestry) || !isset($this->game_data['ancestries'][$this->character->ancestry])) {
+        if (empty($this->character->ancestry) || ! isset($this->game_data['ancestries'][$this->character->ancestry])) {
             return null;
         }
 
@@ -238,7 +274,7 @@ class CharacterViewer extends Component
      */
     public function getCommunityData(): ?array
     {
-        if (empty($this->character->community) || !isset($this->game_data['communities'][$this->character->community])) {
+        if (empty($this->character->community) || ! isset($this->game_data['communities'][$this->character->community])) {
             return null;
         }
 
@@ -308,6 +344,7 @@ class CharacterViewer extends Component
                     }
                 }
                 $parts = array_filter($parts, fn ($p) => $p !== '');
+
                 return empty($parts) ? 'No feature present for the selected weapon.' : implode('; ', $parts);
             }
 
@@ -324,26 +361,26 @@ class CharacterViewer extends Component
     public function getDomainCardDetails(): array
     {
         $domain_cards = [];
-        
+
         foreach ($this->character->domain_cards as $card) {
             $ability_key = $card->ability_key ?? null;
             $domain = $card->domain ?? null;
             $ability_level = $card->level ?? 1;
-            
+
             if ($ability_key && isset($this->game_data['abilities'][$ability_key])) {
                 $ability_data = $this->game_data['abilities'][$ability_key];
                 $domain_cards[] = [
                     'domain' => $domain,
                     'ability_key' => $ability_key,
                     'ability_level' => $ability_level,
-                    'ability_data' => $ability_data
+                    'ability_data' => $ability_data,
                 ];
             } else {
                 $domain_cards[] = [
                     'domain' => $domain,
                     'ability_key' => $ability_key,
                     'ability_level' => $ability_level,
-                    'ability_data' => null
+                    'ability_data' => null,
                 ];
             }
         }
@@ -353,27 +390,27 @@ class CharacterViewer extends Component
 
     public function saveCharacterState(array $state): void
     {
-        if (!$this->can_edit || !$this->character) {
+        if (! $this->can_edit || ! $this->character) {
             return;
         }
 
         try {
             // Convert Alpine.js state to CharacterStatusData
             $status_data = CharacterStatusData::fromAlpineState($this->character->id, $state);
-            
+
             // Save using Action
-            $save_action = new SaveCharacterStatusAction();
+            $save_action = new SaveCharacterStatusAction;
             $this->character_status = $save_action->execute($this->character_key, $status_data);
-            
+
         } catch (\Exception $e) {
             // Log error but don't break the UI
-            \Log::error('Failed to save character state: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to save character state: '.$e->getMessage());
         }
     }
 
     public function getCharacterState(): ?array
     {
-        if (!$this->character_status) {
+        if (! $this->character_status) {
             return null;
         }
 
@@ -381,12 +418,81 @@ class CharacterViewer extends Component
         return $this->character_status->toAlpineState();
     }
 
+    /**
+     * Check if character can level up
+     */
+    public function canLevelUp(): bool
+    {
+        // Only enable for non-production environments for now
+        if (app()->environment('production')) {
+            return false;
+        }
+
+        if (! $this->character || ! $this->can_edit) {
+            return false;
+        }
+
+        // Ensure repository is initialized
+        if (! isset($this->advancement_repository)) {
+            $this->advancement_repository = new CharacterAdvancementRepository;
+        }
+
+        // Find the character model to access the level-up logic
+        $character_model = Character::where('character_key', $this->character_key)->first();
+        if (! $character_model) {
+            return false;
+        }
+
+        return $this->advancement_repository->canLevelUp($character_model);
+    }
+
+    /**
+     * Get character's current advancement status
+     */
+    public function getAdvancementStatus(): array
+    {
+        if (! $this->character) {
+            return [
+                'can_level_up' => false,
+                'current_tier' => 1,
+                'available_slots' => [],
+                'advancements' => [],
+            ];
+        }
+
+        // Ensure repository is initialized
+        if (! isset($this->advancement_repository)) {
+            $this->advancement_repository = new CharacterAdvancementRepository;
+        }
+
+        $character_model = Character::where('character_key', $this->character_key)->first();
+        if (! $character_model) {
+            return [
+                'can_level_up' => false,
+                'current_tier' => 1,
+                'available_slots' => [],
+                'advancements' => [],
+            ];
+        }
+
+        $current_tier = $character_model->getTier();
+        $available_slots = $this->advancement_repository->getAvailableSlots($character_model->id, $current_tier);
+        $advancements = $this->advancement_repository->getCharacterAdvancements($character_model->id);
+
+        return [
+            'can_level_up' => $this->advancement_repository->canLevelUp($character_model),
+            'current_tier' => $current_tier,
+            'available_slots' => $available_slots,
+            'advancements' => $advancements->toArray(),
+        ];
+    }
+
     public function render()
     {
         $class_data = $this->getClassData();
         $computed_stats = $this->getComputedStats();
         ray()->send($this->character);
-        
+
         return view('livewire.character-viewer', [
             'character' => $this->character,
             'character_status' => $this->character_status,
@@ -400,6 +506,8 @@ class CharacterViewer extends Component
             'organized_equipment' => $this->getOrganizedEquipment(),
             'domain_card_details' => $this->getDomainCardDetails(),
             'trait_values' => $this->getFormattedTraitValues(),
+            'advancement_status' => $this->getAdvancementStatus(),
+            'can_level_up' => $this->canLevelUp(),
         ]);
     }
 }

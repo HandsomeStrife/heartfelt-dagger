@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * S3 Multipart Upload Controller
- * 
+ *
  * Provides endpoints for Uppy @uppy/aws-s3-multipart integration
  * Supports Wasabi, AWS S3, and other S3-compatible storage providers
  */
@@ -26,7 +26,7 @@ class S3MultipartController extends Controller
 {
     /**
      * Create a new multipart upload
-     * 
+     *
      * POST /api/uploads/s3/multipart/create
      * Body: { filename, type, size, room_id, started_at_ms, ended_at_ms }
      * Returns: { uploadId, key }
@@ -90,24 +90,24 @@ class S3MultipartController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             Log::error('S3 CreateMultipartUpload failed', [
                 'room_id' => $request->input('room_id'),
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
-                'error' => 'Unable to start multipart upload'
+                'error' => 'Unable to start multipart upload',
             ], 502);
         }
     }
 
     /**
      * Sign a part for upload
-     * 
+     *
      * POST /api/uploads/s3/multipart/sign
      * Body: { uploadId, key, partNumber, room_id }
      * Returns: { url, headers }
@@ -157,24 +157,24 @@ class S3MultipartController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             Log::error('S3 UploadPart sign failed', [
                 'room_id' => $request->input('room_id'),
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
-                'error' => 'Unable to sign part'
+                'error' => 'Unable to sign part',
             ], 502);
         }
     }
 
     /**
      * Complete multipart upload
-     * 
+     *
      * POST /api/uploads/s3/multipart/complete
      * Body: { uploadId, key, parts: [{ PartNumber, ETag }], room_id, started_at_ms, ended_at_ms, filename, mime }
      * Returns: { location, key, bucket, etag, size }
@@ -183,9 +183,9 @@ class S3MultipartController extends Controller
     {
         Log::info('S3 multipart complete request received', [
             'user_id' => Auth::id(),
-            'request_data' => $request->all()
+            'request_data' => $request->all(),
         ]);
-        
+
         try {
             $validated = $request->validate([
                 'uploadId' => 'required|string',
@@ -216,14 +216,14 @@ class S3MultipartController extends Controller
             $s3Client = $wasabiService->createS3ClientWithCredentials($credentials);
 
             // Sort parts by PartNumber (AWS requirement)
-            usort($validated['parts'], fn($a, $b) => $a['PartNumber'] <=> $b['PartNumber']);
+            usort($validated['parts'], fn ($a, $b) => $a['PartNumber'] <=> $b['PartNumber']);
 
             Log::info('Attempting S3 multipart completion', [
                 'bucket' => $bucket,
                 'key' => $validated['key'],
                 'upload_id' => $validated['uploadId'],
                 'parts_count' => count($validated['parts']),
-                'parts' => $validated['parts']
+                'parts' => $validated['parts'],
             ]);
 
             // Complete multipart upload
@@ -255,10 +255,10 @@ class S3MultipartController extends Controller
                     'mime_type' => $validated['mime'] ?? ($head['ContentType'] ?? 'video/webm'),
                     'status' => 'uploaded',
                 ]);
-                
+
                 Log::info('Updated existing recording record', [
                     'recording_id' => $recording->id,
-                    'multipart_upload_id' => $validated['uploadId']
+                    'multipart_upload_id' => $validated['uploadId'],
                 ]);
             } else {
                 // Create new recording record (fallback)
@@ -275,10 +275,10 @@ class S3MultipartController extends Controller
                     'mime_type' => $validated['mime'] ?? ($head['ContentType'] ?? 'video/webm'),
                     'status' => 'uploaded',
                 ]);
-                
+
                 Log::info('Created new recording record', [
                     'recording_id' => $recording->id,
-                    'multipart_upload_id' => $validated['uploadId']
+                    'multipart_upload_id' => $validated['uploadId'],
                 ]);
             }
 
@@ -305,7 +305,7 @@ class S3MultipartController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             Log::error('S3 CompleteMultipart failed', [
@@ -315,19 +315,19 @@ class S3MultipartController extends Controller
                 'key' => $request->input('key'),
                 'parts_count' => count($request->input('parts', [])),
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return response()->json([
                 'error' => 'Unable to complete multipart upload',
-                'details' => $e->getMessage()
+                'details' => $e->getMessage(),
             ], 502);
         }
     }
 
     /**
      * Abort multipart upload
-     * 
+     *
      * POST /api/uploads/s3/multipart/abort
      * Body: { uploadId, key, room_id }
      */
@@ -374,15 +374,15 @@ class S3MultipartController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',
-                'messages' => $e->errors()
+                'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             Log::warning('S3 AbortMultipart failed', [
                 'room_id' => $request->input('room_id'),
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             // Don't hard fail UI; sometimes upload is already gone
             return response()->json(['aborted' => true]);
         }
@@ -395,11 +395,11 @@ class S3MultipartController extends Controller
     protected function buildKey(Room $room, int $userId, string $filename): string
     {
         $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION)) ?: 'webm';
-        
+
         // Clamp to allowed extensions
         $ext = in_array($ext, ['webm', 'mp4', 'mov', 'm4a', 'wav', 'mp3']) ? $ext : 'bin';
 
-        return "rooms/{$room->id}/users/{$userId}/" . Str::uuid() . '.' . $ext;
+        return "rooms/{$room->id}/users/{$userId}/".Str::uuid().'.'.$ext;
     }
 
     /**
@@ -407,11 +407,11 @@ class S3MultipartController extends Controller
      */
     protected function validateRoomAccess(Room $room, $user): void
     {
-        if (!$room->canUserAccess($user)) {
+        if (! $room->canUserAccess($user)) {
             throw new \Exception('Access denied to room');
         }
 
-        if (!$room->isCreator($user) && !$room->hasActiveParticipant($user)) {
+        if (! $room->isCreator($user) && ! $room->hasActiveParticipant($user)) {
             throw new \Exception('Only room participants can upload recordings');
         }
     }
@@ -423,7 +423,7 @@ class S3MultipartController extends Controller
     {
         // Check if recording is enabled
         $room->load('recordingSettings');
-        if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
+        if (! $room->recordingSettings || ! $room->recordingSettings->isRecordingEnabled()) {
             throw new \Exception('Video recording is not enabled for this room');
         }
 
@@ -433,12 +433,12 @@ class S3MultipartController extends Controller
             ->whereNull('left_at')
             ->first();
 
-        if (!$participant) {
+        if (! $participant) {
             throw new \Exception('User is not an active participant in this room');
         }
 
         // Only require STT consent if STT is actually enabled for this room
-        if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && !$participant->hasSttConsent()) {
+        if ($room->recordingSettings && $room->recordingSettings->isSttEnabled() && ! $participant->hasSttConsent()) {
             throw new \Exception('Speech-to-text consent required for recording');
         }
     }
@@ -453,7 +453,7 @@ class S3MultipartController extends Controller
         }
 
         $storageAccount = UserStorageAccount::find($room->recordingSettings->storage_account_id);
-        if (!$storageAccount || $storageAccount->provider !== 'wasabi') {
+        if (! $storageAccount || $storageAccount->provider !== 'wasabi') {
             throw new \Exception('Wasabi storage account not found or invalid');
         }
 
@@ -471,7 +471,7 @@ class S3MultipartController extends Controller
     {
         $allowedPrefix = "rooms/{$room->id}/users/{$user->id}/";
 
-        if (!str_starts_with($key, $allowedPrefix)) {
+        if (! str_starts_with($key, $allowedPrefix)) {
             throw new \Exception('Key not allowed for this user/room');
         }
     }

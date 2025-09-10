@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Domain\Room\Services;
 
-use Aws\S3\S3Client;
 use Aws\Exception\AwsException;
-use Domain\User\Models\UserStorageAccount;
+use Aws\S3\S3Client;
 use Domain\Room\Models\Room;
+use Domain\User\Models\UserStorageAccount;
 use Illuminate\Support\Facades\Log;
 
 class WasabiS3Service
 {
     private S3Client $s3Client;
+
     private UserStorageAccount $storageAccount;
 
     public function __construct(UserStorageAccount $storageAccount)
@@ -79,14 +80,14 @@ class WasabiS3Service
             $region = $credentials['region'] ?? 'us-east-1';
 
             $createBucketConfig = [];
-            
+
             // For regions other than us-east-1, we need to specify the LocationConstraint
             if ($region !== 'us-east-1') {
                 $createBucketConfig['LocationConstraint'] = $region;
             }
 
             $params = ['Bucket' => $bucketName];
-            if (!empty($createBucketConfig)) {
+            if (! empty($createBucketConfig)) {
                 $params['CreateBucketConfiguration'] = $createBucketConfig;
             }
 
@@ -108,7 +109,7 @@ class WasabiS3Service
                 'storage_account_id' => $this->storageAccount->id,
             ]);
 
-            throw new \Exception('Failed to create bucket: ' . $e->getMessage());
+            throw new \Exception('Failed to create bucket: '.$e->getMessage());
         }
     }
 
@@ -155,7 +156,7 @@ class WasabiS3Service
                 'key' => $key,
             ]);
 
-            throw new \Exception('Failed to generate upload URL: ' . $e->getMessage());
+            throw new \Exception('Failed to generate upload URL: '.$e->getMessage());
         }
     }
 
@@ -180,7 +181,7 @@ class WasabiS3Service
             ];
 
             // Add response override parameters if provided
-            if (!empty($responseOverrides)) {
+            if (! empty($responseOverrides)) {
                 $commandParams = array_merge($commandParams, $responseOverrides);
             }
 
@@ -205,7 +206,7 @@ class WasabiS3Service
                 'key' => $key,
             ]);
 
-            throw new \Exception('Failed to generate download URL: ' . $e->getMessage());
+            throw new \Exception('Failed to generate download URL: '.$e->getMessage());
         }
     }
 
@@ -328,7 +329,7 @@ class WasabiS3Service
         $timestamp = now()->format('Y/m/d');
         $roomId = $room->id;
         $sanitizedFilename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
-        
+
         return "recordings/{$timestamp}/room_{$roomId}/user_{$userId}/{$sanitizedFilename}";
     }
 
@@ -340,34 +341,34 @@ class WasabiS3Service
         try {
             $credentials = $this->storageAccount->encrypted_credentials;
             $bucket = $credentials['bucket_name'];
-            
+
             // Sort parts by part number to ensure correct order
-            usort($parts, fn($a, $b) => $a['PartNumber'] <=> $b['PartNumber']);
-            
+            usort($parts, fn ($a, $b) => $a['PartNumber'] <=> $b['PartNumber']);
+
             $result = $this->s3Client->completeMultipartUpload([
                 'Bucket' => $bucket,
                 'Key' => $key,
                 'UploadId' => $uploadId,
                 'MultipartUpload' => [
-                    'Parts' => $parts
-                ]
+                    'Parts' => $parts,
+                ],
             ]);
-            
+
             Log::info('Wasabi multipart upload completed', [
                 'bucket' => $bucket,
                 'key' => $key,
                 'upload_id' => $uploadId,
                 'parts_count' => count($parts),
                 'location' => $result['Location'] ?? null,
-                'etag' => $result['ETag'] ?? null
+                'etag' => $result['ETag'] ?? null,
             ]);
-            
+
             return [
                 'success' => true,
                 'location' => $result['Location'] ?? null,
                 'etag' => $result['ETag'] ?? null,
                 'bucket' => $result['Bucket'] ?? $bucket,
-                'key' => $result['Key'] ?? $key
+                'key' => $result['Key'] ?? $key,
             ];
         } catch (AwsException $e) {
             Log::error('Wasabi multipart upload completion failed', [
@@ -375,10 +376,10 @@ class WasabiS3Service
                 'key' => $key,
                 'upload_id' => $uploadId,
                 'parts_count' => count($parts),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
-            throw new \Exception('Failed to complete multipart upload: ' . $e->getMessage());
+
+            throw new \Exception('Failed to complete multipart upload: '.$e->getMessage());
         }
     }
 
@@ -390,30 +391,29 @@ class WasabiS3Service
         try {
             $credentials = $this->storageAccount->encrypted_credentials;
             $bucket = $credentials['bucket_name'];
-            
+
             $this->s3Client->abortMultipartUpload([
                 'Bucket' => $bucket,
                 'Key' => $key,
-                'UploadId' => $uploadId
+                'UploadId' => $uploadId,
             ]);
-            
+
             Log::info('Wasabi multipart upload aborted', [
                 'bucket' => $bucket,
                 'key' => $key,
-                'upload_id' => $uploadId
+                'upload_id' => $uploadId,
             ]);
-            
+
             return true;
         } catch (AwsException $e) {
             Log::error('Wasabi multipart upload abort failed', [
                 'bucket' => $bucket ?? 'unknown',
                 'key' => $key,
                 'upload_id' => $uploadId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             return false;
         }
     }
-
 }

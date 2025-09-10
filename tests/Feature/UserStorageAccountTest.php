@@ -8,7 +8,7 @@ use Domain\User\Models\UserStorageAccount;
 
 test('can create and save wasabi storage account with encrypted credentials', function () {
     $user = User::factory()->create();
-    
+
     $credentials = [
         'access_key_id' => 'AKIAIOSFODNN7EXAMPLE',
         'secret_access_key' => 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
@@ -41,7 +41,7 @@ test('can create and save wasabi storage account with encrypted credentials', fu
 
 test('credentials are actually encrypted in database', function () {
     $user = User::factory()->create();
-    
+
     $credentials = [
         'access_key_id' => 'AKIAIOSFODNN7EXAMPLE',
         'secret_access_key' => 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
@@ -61,19 +61,19 @@ test('credentials are actually encrypted in database', function () {
     // Check raw database value - should be encrypted, not plain text
     $rawRecord = \DB::table('user_storage_accounts')->find($storageAccount->id);
     $rawCredentials = $rawRecord->encrypted_credentials;
-    
+
     // Raw data should NOT contain the plain text credentials
     expect($rawCredentials)->not()->toContain('AKIAIOSFODNN7EXAMPLE');
     expect($rawCredentials)->not()->toContain('my-test-bucket');
     expect($rawCredentials)->not()->toContain('wJalrXUtnFEMI/K7MDENG');
-    
+
     // But the model should decrypt them properly
     expect($storageAccount->encrypted_credentials['access_key_id'])->toBe('AKIAIOSFODNN7EXAMPLE');
 });
 
 test('can retrieve user storage accounts by provider', function () {
     $user = User::factory()->create();
-    
+
     // Create a Wasabi account
     $wasabiAccount = UserStorageAccount::create([
         'user_id' => $user->id,
@@ -104,14 +104,14 @@ test('can retrieve user storage accounts by provider', function () {
 
     expect($userWasabiAccounts)->toHaveCount(1);
     expect($userWasabiAccounts->first()->id)->toBe($wasabiAccount->id);
-    
+
     expect($userGoogleAccounts)->toHaveCount(1);
     expect($userGoogleAccounts->first()->id)->toBe($googleAccount->id);
 });
 
 test('can initialize wasabi service with storage account', function () {
     $user = User::factory()->create();
-    
+
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'wasabi',
@@ -128,14 +128,14 @@ test('can initialize wasabi service with storage account', function () {
 
     // Test that WasabiS3Service can be initialized with this storage account
     $wasabiService = new WasabiS3Service($storageAccount);
-    
+
     expect($wasabiService)->toBeInstanceOf(WasabiS3Service::class);
     expect($wasabiService->getStorageAccount()->id)->toBe($storageAccount->id);
 });
 
 test('wasabi service rejects non-wasabi storage accounts', function () {
     $user = User::factory()->create();
-    
+
     $googleAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'google_drive', // Not Wasabi
@@ -154,7 +154,7 @@ test('wasabi service rejects non-wasabi storage accounts', function () {
 
 test('can update storage account credentials', function () {
     $user = User::factory()->create();
-    
+
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'wasabi',
@@ -193,7 +193,7 @@ test('can update storage account credentials', function () {
 
 test('can deactivate storage account', function () {
     $user = User::factory()->create();
-    
+
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'wasabi',
@@ -223,7 +223,7 @@ test('can deactivate storage account', function () {
 
 test('enforces unique constraint on user provider display name combination', function () {
     $user = User::factory()->create();
-    
+
     // Create first storage account
     UserStorageAccount::create([
         'user_id' => $user->id,
@@ -248,7 +248,7 @@ test('enforces unique constraint on user provider display name combination', fun
 test('allows same display name for different users or providers', function () {
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
-    
+
     // Same display name, different users - should work
     $account1 = UserStorageAccount::create([
         'user_id' => $user1->id,
@@ -279,4 +279,3 @@ test('allows same display name for different users or providers', function () {
     expect($account2)->toBeInstanceOf(UserStorageAccount::class);
     expect($account3)->toBeInstanceOf(UserStorageAccount::class);
 });
-

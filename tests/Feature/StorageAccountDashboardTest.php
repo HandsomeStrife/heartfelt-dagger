@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use Domain\User\Models\User;
 use Domain\User\Models\UserStorageAccount;
-use function Pest\Laravel\{actingAs, get};
+
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
@@ -33,7 +35,7 @@ test('storage account dashboard shows no accounts message when empty', function 
 
 test('storage account dashboard shows existing wasabi accounts', function () {
     $user = User::factory()->create();
-    
+
     UserStorageAccount::factory()->create([
         'user_id' => $user->id,
         'provider' => 'wasabi',
@@ -58,7 +60,7 @@ test('storage account dashboard shows existing wasabi accounts', function () {
 
 test('storage account dashboard shows existing google drive accounts', function () {
     $user = User::factory()->create();
-    
+
     UserStorageAccount::factory()->create([
         'user_id' => $user->id,
         'provider' => 'google_drive',
@@ -98,7 +100,7 @@ test('storage account dashboard loads add account modal correctly', function () 
 
 test('storage account dashboard can toggle account status', function () {
     $user = User::factory()->create();
-    
+
     $account = UserStorageAccount::factory()->create([
         'user_id' => $user->id,
         'provider' => 'wasabi',
@@ -118,7 +120,7 @@ test('storage account dashboard can toggle account status', function () {
 
 test('storage account dashboard can delete unused account', function () {
     $user = User::factory()->create();
-    
+
     $account = UserStorageAccount::factory()->create([
         'user_id' => $user->id,
         'provider' => 'wasabi',
@@ -137,7 +139,7 @@ test('storage account dashboard can delete unused account', function () {
 
 test('storage account dashboard can handle test connection calls', function () {
     $user = User::factory()->create();
-    
+
     $account = UserStorageAccount::factory()->wasabi()->create([
         'user_id' => $user->id,
         'display_name' => 'Test Wasabi Account',
@@ -150,13 +152,13 @@ test('storage account dashboard can handle test connection calls', function () {
         ->livewire(\App\Livewire\StorageAccountDashboard::class)
         ->call('testConnection', $account)
         ->assertHasNoErrors();
-        
+
     // That's sufficient - we've verified the method exists and doesn't crash
 });
 
 test('storage account dashboard shows test connection buttons', function () {
     $user = User::factory()->create();
-    
+
     UserStorageAccount::factory()->wasabi()->inactive()->create([
         'user_id' => $user->id,
         'display_name' => 'My Test Wasabi',

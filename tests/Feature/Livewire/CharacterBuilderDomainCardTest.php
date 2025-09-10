@@ -4,9 +4,9 @@ declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
+
 use function Pest\Livewire\livewire;
-use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 test('character builder allows correct number of domain cards for school of knowledge', function () {

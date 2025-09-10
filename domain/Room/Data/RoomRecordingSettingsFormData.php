@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Domain\Room\Data;
 
+use Livewire\Wireable;
 use Spatie\LaravelData\Attributes\Validation\In;
 use Spatie\LaravelData\Attributes\Validation\Nullable;
 use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
-use Livewire\Wireable;
 
 class RoomRecordingSettingsFormData extends Data implements Wireable
 {
@@ -16,36 +16,36 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
 
     public function __construct(
         public bool $recording_enabled,
-        
+
         public bool $stt_enabled,
-        
+
         #[Nullable]
         #[In(['local_device', 'wasabi', 'google_drive'])]
         public ?string $storage_provider,
-        
+
         #[Nullable]
         public ?int $storage_account_id,
-        
+
         #[Nullable]
         #[In(['browser', 'assemblyai'])]
         public ?string $stt_provider,
-        
+
         #[Nullable]
         public ?int $stt_account_id,
-        
+
         #[In(['optional', 'required'])]
-        public string $stt_consent_requirement = 'optional',
-        
+        public string $stt_consent_requirement,
+
         #[In(['optional', 'required'])]
-        public string $recording_consent_requirement = 'optional',
-        
+        public string $recording_consent_requirement,
+
         #[Nullable]
         public ?string $viewer_password,
     ) {}
 
     public static function fromRoomRecordingSettings(?RoomRecordingSettingsData $settings): self
     {
-        if (!$settings) {
+        if (! $settings) {
             return new self(
                 recording_enabled: false,
                 stt_enabled: false,
@@ -104,17 +104,17 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
     public function isValid(): bool
     {
         // If recording is enabled, must have a storage provider
-        if ($this->recording_enabled && !$this->storage_provider) {
+        if ($this->recording_enabled && ! $this->storage_provider) {
             return false;
         }
 
         // If storage provider requires an account, must have one selected
-        if ($this->recording_enabled && $this->requiresStorageAccount() && !$this->storage_account_id) {
+        if ($this->recording_enabled && $this->requiresStorageAccount() && ! $this->storage_account_id) {
             return false;
         }
 
         // If STT is enabled and requires an account, must have one selected
-        if ($this->stt_enabled && $this->requiresSttAccount() && !$this->stt_account_id) {
+        if ($this->stt_enabled && $this->requiresSttAccount() && ! $this->stt_account_id) {
             return false;
         }
 
@@ -123,11 +123,11 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
 
     public function getValidationMessage(): ?string
     {
-        if ($this->recording_enabled && !$this->storage_provider) {
+        if ($this->recording_enabled && ! $this->storage_provider) {
             return 'Please select a storage provider when recording is enabled.';
         }
 
-        if ($this->recording_enabled && $this->requiresStorageAccount() && !$this->storage_account_id) {
+        if ($this->recording_enabled && $this->requiresStorageAccount() && ! $this->storage_account_id) {
             return match ($this->storage_provider) {
                 'wasabi' => 'Please select a Wasabi storage account or create one.',
                 'google_drive' => 'Please select a Google Drive account or connect one.',
@@ -135,11 +135,10 @@ class RoomRecordingSettingsFormData extends Data implements Wireable
             };
         }
 
-        if ($this->stt_enabled && $this->requiresSttAccount() && !$this->stt_account_id) {
+        if ($this->stt_enabled && $this->requiresSttAccount() && ! $this->stt_account_id) {
             return 'Please select an AssemblyAI account or create one.';
         }
 
         return null;
     }
 }
-

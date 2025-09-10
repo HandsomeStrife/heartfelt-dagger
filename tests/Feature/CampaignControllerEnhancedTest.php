@@ -5,11 +5,10 @@ declare(strict_types=1);
 use Domain\Campaign\Models\Campaign;
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post};
 
+use function Pest\Laravel\actingAs;
 
-it('can create campaign without description', function ()
-{
+it('can create campaign without description', function () {
     $user = User::factory()->create();
 
     actingAs($user)
@@ -26,9 +25,7 @@ it('can create campaign without description', function ()
     expect($campaign->creator_id)->toBe($user->id);
 });
 
-
-it('can_create campaign with optional description', function ()
-{
+it('can_create campaign with optional description', function () {
     $user = User::factory()->create();
 
     actingAs($user)
@@ -44,9 +41,7 @@ it('can_create campaign with optional description', function ()
     expect($campaign->description)->toBe('This is a test campaign description.');
 });
 
-
-it('can_create campaign with campaign frame', function ()
-{
+it('can_create campaign with campaign frame', function () {
     $user = User::factory()->create();
     $campaignFrame = CampaignFrame::factory()->create();
 
@@ -64,9 +59,7 @@ it('can_create campaign with campaign frame', function ()
     expect($campaign->campaign_frame_id)->toBe($campaignFrame->id);
 });
 
-
-it('validates campaign frame exists', function ()
-{
+it('validates campaign frame exists', function () {
     $user = User::factory()->create();
 
     actingAs($user)
@@ -77,9 +70,7 @@ it('validates campaign frame exists', function ()
         ->assertSessionHasErrors(['campaign_frame_id']);
 });
 
-
-it('requires campaign name', function ()
-{
+it('requires campaign name', function () {
     $user = User::factory()->create();
 
     actingAs($user)
@@ -90,9 +81,7 @@ it('requires campaign name', function ()
         ->assertSessionHasErrors(['name']);
 });
 
-
-it('validates campaign name length', function ()
-{
+it('validates campaign name length', function () {
     $user = User::factory()->create();
 
     actingAs($user)
@@ -103,9 +92,7 @@ it('validates campaign name length', function ()
         ->assertSessionHasErrors(['name']);
 });
 
-
-it('validates description length', function ()
-{
+it('validates description length', function () {
     $user = User::factory()->create();
 
     actingAs($user)
@@ -116,9 +103,7 @@ it('validates description length', function ()
         ->assertSessionHasErrors(['description']);
 });
 
-
-it('accepts empty description', function ()
-{
+it('accepts empty description', function () {
     $user = User::factory()->create();
 
     actingAs($user)
@@ -133,13 +118,11 @@ it('accepts empty description', function ()
     expect($campaign->description)->toBe('');
 });
 
-
-it('shows_campaign pages link for members', function ()
-{
+it('shows_campaign pages link for members', function () {
     $creator = User::factory()->create();
     $campaign = Campaign::factory()->create([
         'creator_id' => $creator->id,
-        'name' => 'Test Campaign'
+        'name' => 'Test Campaign',
     ]);
 
     actingAs($creator)
@@ -150,9 +133,7 @@ it('shows_campaign pages link for members', function ()
         ->assertSee(route('campaigns.pages', $campaign->campaign_code));
 });
 
-
-it('can access campaign pages route', function ()
-{
+it('can access campaign pages route', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -163,9 +144,7 @@ it('can access campaign pages route', function ()
         ->assertSee($campaign->name);
 });
 
-
-it('prevents_unauthorized access to campaign pages', function ()
-{
+it('prevents_unauthorized access to campaign pages', function () {
     $creator = User::factory()->create();
     $otherUser = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
@@ -175,9 +154,7 @@ it('prevents_unauthorized access to campaign pages', function ()
         ->assertForbidden();
 });
 
-
-it('handles_campaign_creation with all optional fields', function ()
-{
+it('handles_campaign_creation with all optional fields', function () {
     $user = User::factory()->create();
     $campaignFrame = CampaignFrame::factory()->create();
 
@@ -197,9 +174,7 @@ it('handles_campaign_creation with all optional fields', function ()
     expect($campaign->creator_id)->toBe($user->id);
 });
 
-
-it('creates campaign with proper status', function ()
-{
+it('creates campaign with proper status', function () {
     $user = User::factory()->create();
 
     actingAs($user)
@@ -212,9 +187,7 @@ it('creates campaign with proper status', function ()
     expect($campaign->status->value)->toBe('active'); // Default status
 });
 
-
-it('generates unique campaign codes', function ()
-{
+it('generates unique campaign codes', function () {
     $user = User::factory()->create();
 
     // Create first campaign
@@ -235,9 +208,7 @@ it('generates unique campaign codes', function ()
     expect($firstCampaign->campaign_code)->not->toBe($secondCampaign->campaign_code);
 });
 
-
-it('generates unique invite codes', function ()
-{
+it('generates unique invite codes', function () {
     $user = User::factory()->create();
 
     // Create first campaign
@@ -258,9 +229,7 @@ it('generates unique invite codes', function ()
     expect($firstCampaign->invite_code)->not->toBe($secondCampaign->invite_code);
 });
 
-
-it('redirects_to_campaign show page after creation', function ()
-{
+it('redirects_to_campaign show page after creation', function () {
     $user = User::factory()->create();
 
     $response = actingAs($user)
@@ -269,6 +238,6 @@ it('redirects_to_campaign show page after creation', function ()
         ]);
 
     $campaign = Campaign::where('name', 'Redirect Test Campaign')->first();
-    
+
     $response->assertRedirect(route('campaigns.show', $campaign->campaign_code));
 });

@@ -6,9 +6,9 @@ namespace Domain\User\Models;
 
 use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
+use Domain\Character\Models\Character;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
-use Domain\Character\Models\Character;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;

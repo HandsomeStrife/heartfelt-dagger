@@ -4,7 +4,7 @@ declare(strict_types=1);
 use Domain\Campaign\Data\CreateCampaignData;
 use Illuminate\Validation\ValidationException;
 use Livewire\Wireable;
-use PHPUnit\Framework\Attributes\Test;
+
 it('implements wireable interface', function () {
     $createData = new CreateCampaignData(
         name: 'Test Campaign',
@@ -25,7 +25,7 @@ it('creates from valid array', function () {
     expect($createData->description)->toEqual('This campaign was created from an array');
 });
 it('validates required name field', function () {
-    expect(fn() => CreateCampaignData::validate([
+    expect(fn () => CreateCampaignData::validate([
         'description' => 'Missing name field',
     ]))->toThrow(ValidationException::class);
 });
@@ -37,13 +37,13 @@ it('allows optional description field', function () {
     expect($result)->not->toBeNull();
 });
 it('validates name max length', function () {
-    expect(fn() => CreateCampaignData::validate([
+    expect(fn () => CreateCampaignData::validate([
         'name' => str_repeat('A', 101), // Exceeds 100 character limit
         'description' => 'Valid description',
     ]))->toThrow(ValidationException::class);
 });
 it('validates description max length', function () {
-    expect(fn() => CreateCampaignData::validate([
+    expect(fn () => CreateCampaignData::validate([
         'name' => 'Valid Name',
         'description' => str_repeat('B', 1001), // Exceeds 1000 character limit
     ]))->toThrow(ValidationException::class);
@@ -100,13 +100,13 @@ it('handles special characters', function () {
     expect($createData->description)->toEqual('Description with àccénts, émojis 🎲, and other symbols: @#$%^&*()');
 });
 it('validates empty string as invalid', function () {
-    expect(fn() => CreateCampaignData::validate([
+    expect(fn () => CreateCampaignData::validate([
         'name' => '',
         'description' => 'Valid description',
     ]))->toThrow(ValidationException::class);
 });
 it('validates null values as invalid', function () {
-    expect(fn() => CreateCampaignData::validate([
+    expect(fn () => CreateCampaignData::validate([
         'name' => null,
         'description' => 'Valid description',
     ]))->toThrow(ValidationException::class);
@@ -167,7 +167,7 @@ it('handles numeric strings', function () {
     expect($createData->description)->toEqual('Campaign number 456');
 });
 it('rejects non string types', function () {
-    expect(fn() => CreateCampaignData::validate([
+    expect(fn () => CreateCampaignData::validate([
         'name' => 123, // Integer instead of string
         'description' => 'Valid description',
     ]))->toThrow(ValidationException::class);

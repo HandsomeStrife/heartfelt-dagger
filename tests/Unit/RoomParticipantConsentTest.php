@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
-use Domain\User\Models\User;
 
 describe('RoomParticipant STT Consent', function () {
     test('hasSttConsent returns false when consent is null', function () {
@@ -201,4 +199,3 @@ describe('RoomParticipant Independent Consent Fields', function () {
         expect($participant->hasRecordingConsentDenied())->toBeTrue();
     });
 });
-

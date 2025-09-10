@@ -6,7 +6,6 @@ use Domain\CampaignFrame\Data\CreateCampaignFrameData;
 use Domain\CampaignFrame\Enums\ComplexityRating;
 use Domain\CampaignFrame\Models\CampaignFrame;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 test('can create enhanced campaign frame with all new fields', function () {
     $user = User::factory()->create();
@@ -17,68 +16,68 @@ test('can create enhanced campaign frame with all new fields', function () {
         'is_public' => true,
         'pitch' => [
             'Fanewick was once a place of great abundance and peace',
-            'When Haven invaded the wilds, a dangerous bloom took hold'
+            'When Haven invaded the wilds, a dangerous bloom took hold',
         ],
         'touchstones' => [
             'Princess Mononoke',
             'The Legend of Zelda',
-            'The Dark Crystal'
+            'The Dark Crystal',
         ],
         'tone' => [
             'Adventurous',
             'Dynamic',
             'Epic',
-            'Heroic'
+            'Heroic',
         ],
         'themes' => [
             'Cultural Clash',
             'People vs. Nature',
-            'Transformation and Change'
+            'Transformation and Change',
         ],
         'player_principles' => [
             'Make the invasion personal',
             'Treat death with importance',
-            'Embrace vulnerability'
+            'Embrace vulnerability',
         ],
         'gm_principles' => [
             'Paint the world in contrast',
             'Show them true danger',
-            'Offer alternatives to violence'
+            'Offer alternatives to violence',
         ],
         'community_guidance' => [
             'Loreborne communities value knowledge above all',
-            'Ridgeborne are hardy mountain dwellers'
+            'Ridgeborne are hardy mountain dwellers',
         ],
         'ancestry_guidance' => [
             'Fungril have grown larger since the Witherwild',
-            'Drakona horns grow faster in this corrupted land'
+            'Drakona horns grow faster in this corrupted land',
         ],
         'class_guidance' => [
             'Druids feel the corruption of nature deeply',
-            'Warriors often come from Haven\'s army'
+            'Warriors often come from Haven\'s army',
         ],
         'background_overview' => 'Fanewick is a wild and untamed land, long avoided by outside forces...',
         'setting_guidance' => [
             'Focus on the contrast between nature and civilization',
-            'Emphasize the cost of magical intervention'
+            'Emphasize the cost of magical intervention',
         ],
         'setting_distinctions' => [
             'The weeks of day and night',
             'The Serpent\'s Sickness plague',
-            'The ever-growing Witherwild'
+            'The ever-growing Witherwild',
         ],
         'inciting_incident' => 'The Reaping Eye is stowed in a secure vault beneath Haven\'s wizarding school...',
         'special_mechanics' => [
-            'Corruption from the Witherwild'
+            'Corruption from the Witherwild',
         ],
         'campaign_mechanics' => [
             'Wither tokens accumulate from Withered adversaries',
-            'Weekly day/night cycles affect gameplay'
+            'Weekly day/night cycles affect gameplay',
         ],
         'session_zero_questions' => [
             'What dangerous animal comes out during the week of night?',
-            'What superstitions does your character have about traversing Fanewick?'
-        ]
+            'What superstitions does your character have about traversing Fanewick?',
+        ],
     ]);
 
     expect($campaign_frame_data->name)->toBe('The Witherwild Enhanced');
@@ -96,7 +95,7 @@ test('can create enhanced campaign frame with all new fields', function () {
 
 test('campaign frame model properly casts all enhanced fields', function () {
     $user = User::factory()->create();
-    
+
     $frame = CampaignFrame::create([
         'name' => 'Test Enhanced Frame',
         'description' => 'Testing enhanced fields',
@@ -118,7 +117,7 @@ test('campaign frame model properly casts all enhanced fields', function () {
         'inciting_incident' => 'Test incident',
         'special_mechanics' => ['Test special mechanic'],
         'campaign_mechanics' => ['Test campaign mechanic'],
-        'session_zero_questions' => ['Test question?']
+        'session_zero_questions' => ['Test question?'],
     ]);
 
     expect($frame->touchstones)->toBeArray()->toHaveCount(2);
@@ -135,7 +134,7 @@ test('campaign frame model properly casts all enhanced fields', function () {
 
 test('campaign frame data object correctly transforms from model', function () {
     $user = User::factory()->create();
-    
+
     $frame = CampaignFrame::create([
         'name' => 'Transform Test Frame',
         'description' => 'Testing data transformation',
@@ -157,7 +156,7 @@ test('campaign frame data object correctly transforms from model', function () {
         'inciting_incident' => 'The spark that starts it all',
         'special_mechanics' => ['Legacy mechanic'],
         'campaign_mechanics' => ['New enhanced mechanic'],
-        'session_zero_questions' => ['What drives your character?']
+        'session_zero_questions' => ['What drives your character?'],
     ]);
 
     $frame_data = \Domain\CampaignFrame\Data\CampaignFrameData::fromModel($frame);

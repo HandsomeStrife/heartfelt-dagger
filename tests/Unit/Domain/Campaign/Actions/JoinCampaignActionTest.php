@@ -7,11 +7,11 @@ use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new JoinCampaignAction();
+    $this->action = new JoinCampaignAction;
 });
 it('joins campaign with character successfully', function () {
     $campaign = Campaign::factory()->create();
@@ -92,7 +92,7 @@ it('prevents duplicate membership', function () {
         'user_id' => $user->id,
     ]);
 
-    expect(fn() => $this->action->execute($campaign, $user, null))
+    expect(fn () => $this->action->execute($campaign, $user, null))
         ->toThrow(Exception::class, 'User is already a member of this campaign');
 });
 it('validates character ownership', function () {
@@ -101,7 +101,7 @@ it('validates character ownership', function () {
     $otherUser = User::factory()->create();
     $character = Character::factory()->create(['user_id' => $otherUser->id]);
 
-    expect(fn() => $this->action->execute($campaign, $user, $character))
+    expect(fn () => $this->action->execute($campaign, $user, $character))
         ->toThrow(Exception::class, 'Character does not belong to the user');
 });
 it('allows creator to join their own campaign', function () {
@@ -168,6 +168,6 @@ it('validates character exists when provided', function () {
     $otherUser = User::factory()->create();
     $character = Character::factory()->create(['user_id' => $otherUser->id]);
 
-    expect(fn() => $this->action->execute($campaign, $user, $character))
+    expect(fn () => $this->action->execute($campaign, $user, $character))
         ->toThrow(Exception::class, 'Character does not belong to the user');
 });

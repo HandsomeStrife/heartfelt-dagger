@@ -10,7 +10,7 @@ use Domain\User\Models\User;
 test('it deletes a campaign frame successfully when not used by campaigns', function () {
     // Arrange
     $frame = CampaignFrame::factory()->create();
-    $action = new DeleteCampaignFrameAction();
+    $action = new DeleteCampaignFrameAction;
 
     // Act
     $action->execute($frame);
@@ -23,16 +23,16 @@ test('it throws an exception when trying to delete a frame used by campaigns', f
     // Arrange
     $user = User::factory()->create();
     $frame = CampaignFrame::factory()->create();
-    
+
     // Create a campaign that uses this frame
     Campaign::factory()->create([
         'creator_id' => $user->id,
         'campaign_frame_id' => $frame->id,
     ]);
 
-    $action = new DeleteCampaignFrameAction();
+    $action = new DeleteCampaignFrameAction;
 
     // Act & Assert
-    expect(fn() => $action->execute($frame))
+    expect(fn () => $action->execute($frame))
         ->toThrow(\Exception::class, 'Cannot delete campaign frame that is being used by active campaigns.');
 });

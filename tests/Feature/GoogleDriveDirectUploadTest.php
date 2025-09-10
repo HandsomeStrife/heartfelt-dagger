@@ -1,19 +1,19 @@
 <?php
 
-use Illuminate\Support\Facades\Http;
-use Domain\Room\Actions\GenerateGoogleDriveUploadUrl;
 use Domain\Room\Actions\ConfirmGoogleDriveUpload;
+use Domain\Room\Actions\GenerateGoogleDriveUploadUrl;
 use Domain\Room\Models\Room;
+use Domain\Room\Models\RoomParticipant;
 use Domain\Room\Models\RoomRecording;
 use Domain\Room\Models\RoomRecordingSettings;
-use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
 use Domain\User\Models\UserStorageAccount;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
     $this->room = Room::factory()->create(['creator_id' => $this->user->id]);
-    
+
     // Create recording settings for Google Drive
     $this->recordingSettings = RoomRecordingSettings::factory()->create([
         'room_id' => $this->room->id,
@@ -22,9 +22,9 @@ beforeEach(function () {
         'storage_provider' => 'google_drive',
         'storage_account_id' => null, // Will be set in tests
     ]);
-    
+
     $this->room->setRelation('recordingSettings', $this->recordingSettings);
-    
+
     // Create Google Drive storage account
     $this->storageAccount = UserStorageAccount::factory()->create([
         'user_id' => $this->user->id,
@@ -37,10 +37,10 @@ beforeEach(function () {
             'created_at' => now()->timestamp - 1800, // 30 minutes ago
         ],
     ]);
-    
+
     // Link storage account to room settings
     $this->recordingSettings->update(['storage_account_id' => $this->storageAccount->id]);
-    
+
     // Create participant with recording consent
     RoomParticipant::factory()->create([
         'room_id' => $this->room->id,
@@ -53,12 +53,12 @@ beforeEach(function () {
 
 describe('GenerateGoogleDriveUploadUrl Action', function () {
     test('generates upload URL successfully', function () {
-        $action = new GenerateGoogleDriveUploadUrl();
-        
+        $action = new GenerateGoogleDriveUploadUrl;
+
         // Mock Google Drive service response
         Http::fake([
             'https://www.googleapis.com/upload/drive/v3/files*' => Http::response('', 200, [
-                'Location' => 'https://www.googleapis.com/upload/drive/v3/files/resumable?uploadType=resumable&upload_id=test123'
+                'Location' => 'https://www.googleapis.com/upload/drive/v3/files/resumable?uploadType=resumable&upload_id=test123',
             ]),
             'https://www.googleapis.com/oauth2/v4/token' => Http::response([
                 'access_token' => 'new_access_token',
@@ -86,10 +86,10 @@ describe('GenerateGoogleDriveUploadUrl Action', function () {
 
     test('validates recording is enabled', function () {
         $this->recordingSettings->update(['recording_enabled' => false]);
-        
-        $action = new GenerateGoogleDriveUploadUrl();
-        
-        expect(fn() => $action->execute(
+
+        $action = new GenerateGoogleDriveUploadUrl;
+
+        expect(fn () => $action->execute(
             $this->room,
             $this->user,
             'test.webm',
@@ -100,10 +100,10 @@ describe('GenerateGoogleDriveUploadUrl Action', function () {
 
     test('validates storage provider', function () {
         $this->recordingSettings->update(['storage_provider' => 'wasabi']);
-        
-        $action = new GenerateGoogleDriveUploadUrl();
-        
-        expect(fn() => $action->execute(
+
+        $action = new GenerateGoogleDriveUploadUrl;
+
+        expect(fn () => $action->execute(
             $this->room,
             $this->user,
             'test.webm',
@@ -113,28 +113,28 @@ describe('GenerateGoogleDriveUploadUrl Action', function () {
     });
 
     test('validates file constraints', function () {
-        $action = new GenerateGoogleDriveUploadUrl();
-        
+        $action = new GenerateGoogleDriveUploadUrl;
+
         // Test oversized file
-        expect(fn() => $action->execute(
+        expect(fn () => $action->execute(
             $this->room,
             $this->user,
             'huge.webm',
             'video/webm',
             3 * 1024 * 1024 * 1024 // 3GB
         ))->toThrow(Exception::class, 'File size exceeds maximum');
-        
+
         // Test invalid content type
-        expect(fn() => $action->execute(
+        expect(fn () => $action->execute(
             $this->room,
             $this->user,
             'test.txt',
             'text/plain',
             1048576
         ))->toThrow(Exception::class, 'Invalid content type');
-        
+
         // Test empty filename
-        expect(fn() => $action->execute(
+        expect(fn () => $action->execute(
             $this->room,
             $this->user,
             '',
@@ -150,12 +150,12 @@ describe('GenerateGoogleDriveUploadUrl Action', function () {
             'user_id' => $otherUser->id,
             'provider' => 'google_drive',
         ]);
-        
+
         $this->recordingSettings->update(['storage_account_id' => $otherStorageAccount->id]);
-        
-        $action = new GenerateGoogleDriveUploadUrl();
-        
-        expect(fn() => $action->execute(
+
+        $action = new GenerateGoogleDriveUploadUrl;
+
+        expect(fn () => $action->execute(
             $this->room,
             $this->user,
             'test.webm',
@@ -167,8 +167,8 @@ describe('GenerateGoogleDriveUploadUrl Action', function () {
 
 describe('ConfirmGoogleDriveUpload Action', function () {
     test('confirms upload and creates recording record', function () {
-        $action = new ConfirmGoogleDriveUpload();
-        
+        $action = new ConfirmGoogleDriveUpload;
+
         // Mock Google Drive verification response
         Http::fake([
             'https://www.googleapis.com/upload/drive/v3/files/resumable*' => Http::response([
@@ -214,10 +214,10 @@ describe('ConfirmGoogleDriveUpload Action', function () {
 
     test('validates recording is enabled', function () {
         $this->recordingSettings->update(['recording_enabled' => false]);
-        
-        $action = new ConfirmGoogleDriveUpload();
-        
-        expect(fn() => $action->execute(
+
+        $action = new ConfirmGoogleDriveUpload;
+
+        expect(fn () => $action->execute(
             $this->room,
             $this->user,
             'https://googleapis.com/test',
@@ -226,12 +226,12 @@ describe('ConfirmGoogleDriveUpload Action', function () {
     });
 
     test('handles Google Drive API errors', function () {
-        $action = new ConfirmGoogleDriveUpload();
-        
+        $action = new ConfirmGoogleDriveUpload;
+
         // Mock failed verification response
         Http::fake([
             'https://www.googleapis.com/upload/drive/v3/files/resumable*' => Http::response([
-                'error' => ['message' => 'File not found']
+                'error' => ['message' => 'File not found'],
             ], 404),
             'https://www.googleapis.com/oauth2/v4/token' => Http::response([
                 'access_token' => 'new_access_token',
@@ -239,7 +239,7 @@ describe('ConfirmGoogleDriveUpload Action', function () {
             ]),
         ]);
 
-        expect(fn() => $action->execute(
+        expect(fn () => $action->execute(
             $this->room,
             $this->user,
             'https://googleapis.com/invalid',
@@ -265,12 +265,12 @@ describe('GoogleDriveService Integration', function () {
 
         Http::fake([
             'https://www.googleapis.com/upload/drive/v3/files*' => Http::response('', 200, [
-                'Location' => 'https://www.googleapis.com/upload/drive/v3/files/resumable?uploadType=resumable&upload_id=test123'
+                'Location' => 'https://www.googleapis.com/upload/drive/v3/files/resumable?uploadType=resumable&upload_id=test123',
             ]),
         ]);
 
         $service = new \Domain\Room\Services\GoogleDriveService($storageAccount);
-        
+
         $result = $service->generateDirectUploadUrl(
             'test.webm',
             'video/webm',

@@ -50,6 +50,7 @@ class UpdateCampaignPageAction
 
         // Check if proposed parent is a descendant
         $proposedParent = CampaignPage::find($proposedParentId);
+
         return $proposedParent && $proposedParent->isDescendantOf($page);
     }
 }

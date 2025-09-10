@@ -19,7 +19,7 @@ it('updates a campaign page successfully', function () {
         'access_level' => PageAccessLevel::GM_ONLY,
         'is_published' => false,
     ]);
-    
+
     $data = UpdateCampaignPageData::from([
         'parent_id' => null,
         'title' => 'Updated Title',
@@ -31,7 +31,7 @@ it('updates a campaign page successfully', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new UpdateCampaignPageAction();
+    $action = new UpdateCampaignPageAction;
     $updatedPage = $action->execute($page, $data);
 
     expect($updatedPage->title)->toBe('Updated Title');
@@ -46,12 +46,12 @@ it('updates parent page relationship', function () {
     $campaign = Campaign::factory()->create();
     $originalParent = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
     $newParent = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
-    
+
     $page = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $originalParent->id
+        'parent_id' => $originalParent->id,
     ]);
-    
+
     $data = UpdateCampaignPageData::from([
         'parent_id' => $newParent->id,
         'title' => $page->title,
@@ -63,7 +63,7 @@ it('updates parent page relationship', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new UpdateCampaignPageAction();
+    $action = new UpdateCampaignPageAction;
     $updatedPage = $action->execute($page, $data);
 
     expect($updatedPage->parent_id)->toBe($newParent->id);
@@ -73,12 +73,12 @@ it('updates parent page relationship', function () {
 it('can remove parent to make page root level', function () {
     $campaign = Campaign::factory()->create();
     $parent = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
-    
+
     $page = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $parent->id
+        'parent_id' => $parent->id,
     ]);
-    
+
     $data = UpdateCampaignPageData::from([
         'parent_id' => null,
         'title' => $page->title,
@@ -90,7 +90,7 @@ it('can remove parent to make page root level', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new UpdateCampaignPageAction();
+    $action = new UpdateCampaignPageAction;
     $updatedPage = $action->execute($page, $data);
 
     expect($updatedPage->parent_id)->toBeNull();
@@ -100,7 +100,7 @@ it('can remove parent to make page root level', function () {
 it('prevents circular references with self as parent', function () {
     $campaign = Campaign::factory()->create();
     $page = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
-    
+
     $data = UpdateCampaignPageData::from([
         'parent_id' => $page->id, // Trying to set self as parent
         'title' => $page->title,
@@ -112,25 +112,25 @@ it('prevents circular references with self as parent', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new UpdateCampaignPageAction();
-    
-    expect(fn() => $action->execute($page, $data))
+    $action = new UpdateCampaignPageAction;
+
+    expect(fn () => $action->execute($page, $data))
         ->toThrow(InvalidArgumentException::class, 'Cannot set parent: would create circular reference');
 });
 
 it('prevents circular references with descendant as parent', function () {
     $campaign = Campaign::factory()->create();
-    
+
     $grandparent = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
     $parent = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $grandparent->id
+        'parent_id' => $grandparent->id,
     ]);
     $child = CampaignPage::factory()->create([
         'campaign_id' => $campaign->id,
-        'parent_id' => $parent->id
+        'parent_id' => $parent->id,
     ]);
-    
+
     // Try to make child the parent of grandparent (would create circular reference)
     $data = UpdateCampaignPageData::from([
         'parent_id' => $child->id,
@@ -143,9 +143,9 @@ it('prevents circular references with descendant as parent', function () {
         'authorized_user_ids' => [],
     ]);
 
-    $action = new UpdateCampaignPageAction();
-    
-    expect(fn() => $action->execute($grandparent, $data))
+    $action = new UpdateCampaignPageAction;
+
+    expect(fn () => $action->execute($grandparent, $data))
         ->toThrow(InvalidArgumentException::class, 'Cannot set parent: would create circular reference');
 });
 
@@ -154,10 +154,10 @@ it('syncs authorized users for specific players', function () {
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
     $user3 = User::factory()->create();
-    
+
     $page = CampaignPage::factory()->specificPlayers()->create(['campaign_id' => $campaign->id]);
     $page->authorizedUsers()->attach([$user1->id, $user2->id]);
-    
+
     $data = UpdateCampaignPageData::from([
         'parent_id' => null,
         'title' => $page->title,
@@ -169,7 +169,7 @@ it('syncs authorized users for specific players', function () {
         'authorized_user_ids' => [$user2->id, $user3->id], // Replace user1 with user3
     ]);
 
-    $action = new UpdateCampaignPageAction();
+    $action = new UpdateCampaignPageAction;
     $updatedPage = $action->execute($page, $data);
 
     expect($updatedPage->authorizedUsers)->toHaveCount(2);
@@ -180,10 +180,10 @@ it('syncs authorized users for specific players', function () {
 it('clears authorized users when changing from specific players', function () {
     $campaign = Campaign::factory()->create();
     $user1 = User::factory()->create();
-    
+
     $page = CampaignPage::factory()->specificPlayers()->create(['campaign_id' => $campaign->id]);
     $page->authorizedUsers()->attach($user1->id);
-    
+
     $data = UpdateCampaignPageData::from([
         'parent_id' => null,
         'title' => $page->title,
@@ -195,7 +195,7 @@ it('clears authorized users when changing from specific players', function () {
         'authorized_user_ids' => [$user1->id], // Should be ignored
     ]);
 
-    $action = new UpdateCampaignPageAction();
+    $action = new UpdateCampaignPageAction;
     $updatedPage = $action->execute($page, $data);
 
     expect($updatedPage->authorizedUsers)->toHaveCount(0);
@@ -204,7 +204,7 @@ it('clears authorized users when changing from specific players', function () {
 it('updates page in database transaction', function () {
     $campaign = Campaign::factory()->create();
     $page = CampaignPage::factory()->create(['campaign_id' => $campaign->id]);
-    
+
     $data = UpdateCampaignPageData::from([
         'parent_id' => null,
         'title' => 'Updated Title',
@@ -216,12 +216,12 @@ it('updates page in database transaction', function () {
         'authorized_user_ids' => [999999], // Invalid user ID to force error
     ]);
 
-    $action = new UpdateCampaignPageAction();
-    
+    $action = new UpdateCampaignPageAction;
+
     // This should fail and rollback the transaction
-    expect(fn() => $action->execute($page, $data))
+    expect(fn () => $action->execute($page, $data))
         ->toThrow(Exception::class);
-    
+
     // Verify page wasn't updated
     $page->refresh();
     expect($page->title)->not->toBe('Updated Title');

@@ -6,13 +6,14 @@ use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomRecordingSettings;
 use Domain\Room\Models\RoomTranscript;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, postJson, getJson};
+
+use function Pest\Laravel\actingAs;
 
 describe('Room Transcript API Endpoints', function () {
     test('stores transcript with valid data', function () {
         $user = User::factory()->create();
         $room = Room::factory()->create(['creator_id' => $user->id]);
-        
+
         // Enable STT for the room
         RoomRecordingSettings::factory()->create([
             'room_id' => $room->id,
@@ -75,8 +76,8 @@ describe('Room Transcript API Endpoints', function () {
                 'messages' => [
                     'started_at_ms',
                     'ended_at_ms',
-                    'text'
-                ]
+                    'text',
+                ],
             ]);
     });
 
@@ -110,7 +111,7 @@ describe('Room Transcript API Endpoints', function () {
         $response->assertStatus(422)
             ->assertJsonStructure([
                 'error',
-                'messages' => ['ended_at_ms']
+                'messages' => ['ended_at_ms'],
             ]);
     });
 
@@ -144,7 +145,7 @@ describe('Room Transcript API Endpoints', function () {
         $response->assertStatus(422)
             ->assertJsonStructure([
                 'error',
-                'messages' => ['language']
+                'messages' => ['language'],
             ]);
     });
 
@@ -179,7 +180,7 @@ describe('Room Transcript API Endpoints', function () {
         $response->assertStatus(422)
             ->assertJsonStructure([
                 'error',
-                'messages' => ['confidence']
+                'messages' => ['confidence'],
             ]);
     });
 
@@ -239,7 +240,7 @@ describe('Room Transcript API Endpoints', function () {
 
         $response->assertStatus(403)
             ->assertJson([
-                'error' => 'Speech-to-text is not enabled for this room'
+                'error' => 'Speech-to-text is not enabled for this room',
             ]);
     });
 
@@ -309,7 +310,7 @@ describe('Room Transcript API Endpoints', function () {
                         'confidence',
                         'created_at',
                         'updated_at',
-                    ]
+                    ],
                 ],
                 'count',
             ]);
@@ -344,7 +345,7 @@ describe('Room Transcript API Endpoints', function () {
                 'user_id' => $user->id,
                 'character_name' => "Character {$user->id}",
                 'stt_consent_given' => true,
-            'stt_consent_at' => now(),
+                'stt_consent_at' => now(),
             ]);
         }
 

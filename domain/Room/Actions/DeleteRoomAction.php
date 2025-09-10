@@ -13,7 +13,7 @@ class DeleteRoomAction
     public function execute(Room $room, User $user): void
     {
         // Only room creators can delete their rooms
-        if (!$room->isCreator($user)) {
+        if (! $room->isCreator($user)) {
             throw new Exception('Only room creators can delete their rooms.');
         }
 

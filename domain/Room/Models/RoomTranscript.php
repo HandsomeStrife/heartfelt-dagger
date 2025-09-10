@@ -96,7 +96,7 @@ class RoomTranscript extends Model
             return $this->text;
         }
 
-        return substr($this->text, 0, $maxLength) . '...';
+        return substr($this->text, 0, $maxLength).'...';
     }
 
     /**
@@ -113,7 +113,7 @@ class RoomTranscript extends Model
     public function scopeInTimeRange($query, int $startMs, int $endMs)
     {
         return $query->where('started_at_ms', '>=', $startMs)
-                    ->where('ended_at_ms', '<=', $endMs);
+            ->where('ended_at_ms', '<=', $endMs);
     }
 
     /**
@@ -137,7 +137,7 @@ class RoomTranscript extends Model
      */
     public function scopeSearchText($query, string $searchTerm)
     {
-        return $query->where('text', 'LIKE', '%' . $searchTerm . '%');
+        return $query->where('text', 'LIKE', '%'.$searchTerm.'%');
     }
 
     protected static function newFactory()

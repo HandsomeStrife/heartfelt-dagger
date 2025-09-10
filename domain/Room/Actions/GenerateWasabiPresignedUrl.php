@@ -22,7 +22,7 @@ class GenerateWasabiPresignedUrl
     ): array {
         // Validate that recording is enabled for this room
         $room->load('recordingSettings');
-        if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
+        if (! $room->recordingSettings || ! $room->recordingSettings->isRecordingEnabled()) {
             throw new \Exception('Video recording is not enabled for this room');
         }
 
@@ -33,7 +33,7 @@ class GenerateWasabiPresignedUrl
 
         // Get the storage account
         $storageAccount = UserStorageAccount::find($room->recordingSettings->storage_account_id);
-        if (!$storageAccount || $storageAccount->provider !== 'wasabi') {
+        if (! $storageAccount || $storageAccount->provider !== 'wasabi') {
             throw new \Exception('Wasabi storage account not found or invalid');
         }
 
@@ -96,7 +96,7 @@ class GenerateWasabiPresignedUrl
                 'storage_account_id' => $storageAccount->id ?? null,
             ]);
 
-            throw new \Exception('Failed to generate upload URL: ' . $e->getMessage());
+            throw new \Exception('Failed to generate upload URL: '.$e->getMessage());
         }
     }
 
@@ -117,8 +117,8 @@ class GenerateWasabiPresignedUrl
                 break;
             }
         }
-        
-        if (!$isValidType) {
+
+        if (! $isValidType) {
             throw new \Exception('File type not allowed. Only WebM, MP4, and QuickTime videos are supported.');
         }
 
@@ -133,4 +133,3 @@ class GenerateWasabiPresignedUrl
         }
     }
 }
-

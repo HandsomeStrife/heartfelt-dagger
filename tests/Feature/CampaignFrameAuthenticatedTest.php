@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-use Domain\User\Models\User;
 use Domain\CampaignFrame\Models\CampaignFrame;
-use function Pest\Laravel\{actingAs, get};
+use Domain\User\Models\User;
+
+use function Pest\Laravel\actingAs;
+use function Pest\Laravel\get;
 
 test('authenticated user can view campaign frames index', function () {
     $user = User::factory()->create();
@@ -16,7 +18,7 @@ test('authenticated user can view campaign frames index', function () {
 
 test('authenticated user can view enhanced campaign frame details', function () {
     $user = User::factory()->create();
-    
+
     $frame = CampaignFrame::create([
         'name' => 'Enhanced Test Frame',
         'description' => 'Testing enhanced display functionality',
@@ -38,7 +40,7 @@ test('authenticated user can view enhanced campaign frame details', function () 
         'inciting_incident' => 'The High King has been assassinated by unknown forces, throwing the realm into chaos and uncertainty.',
         'special_mechanics' => [],
         'campaign_mechanics' => ['Political intrigue affects story outcomes', 'Magic corruption system'],
-        'session_zero_questions' => ['What drives your character to adventure?', 'What are you most afraid of losing?']
+        'session_zero_questions' => ['What drives your character to adventure?', 'What are you most afraid of losing?'],
     ]);
 
     actingAs($user)->get("/campaign-frames/{$frame->id}")
@@ -78,7 +80,7 @@ test('authenticated user can create campaign frame', function () {
 
 test('authenticated user can edit own campaign frame', function () {
     $user = User::factory()->create();
-    
+
     $frame = CampaignFrame::create([
         'name' => 'My Test Frame',
         'description' => 'Testing edit functionality',
@@ -100,7 +102,7 @@ test('authenticated user can edit own campaign frame', function () {
         'inciting_incident' => 'Test inciting incident',
         'special_mechanics' => [],
         'campaign_mechanics' => ['Test campaign mechanic'],
-        'session_zero_questions' => ['Test question?']
+        'session_zero_questions' => ['Test question?'],
     ]);
 
     actingAs($user)->get("/campaign-frames/{$frame->id}/edit")
@@ -112,7 +114,7 @@ test('authenticated user can edit own campaign frame', function () {
 test('authenticated user cannot edit others campaign frame', function () {
     $owner = User::factory()->create();
     $otherUser = User::factory()->create();
-    
+
     $frame = CampaignFrame::create([
         'name' => 'Others Frame',
         'description' => 'Not mine',
@@ -134,7 +136,7 @@ test('authenticated user cannot edit others campaign frame', function () {
         'inciting_incident' => '',
         'special_mechanics' => [],
         'campaign_mechanics' => [],
-        'session_zero_questions' => []
+        'session_zero_questions' => [],
     ]);
 
     actingAs($otherUser)->get("/campaign-frames/{$frame->id}/edit")
@@ -144,7 +146,7 @@ test('authenticated user cannot edit others campaign frame', function () {
 test('unauthenticated user cannot access campaign frames', function () {
     get('/campaign-frames')
         ->assertRedirect('/login');
-        
+
     get('/campaign-frames/create')
         ->assertRedirect('/login');
 });

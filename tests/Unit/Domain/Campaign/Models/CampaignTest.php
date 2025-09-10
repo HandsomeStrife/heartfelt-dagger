@@ -6,6 +6,7 @@ use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
 use Domain\User\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 it('generates unique invite code on creation', function () {
@@ -111,7 +112,7 @@ it('scopes campaigns by creator', function () {
     $result = Campaign::byCreator($creator)->get();
 
     expect($result)->toHaveCount(3);
-    expect($result->every(fn($campaign) => $campaign->creator_id === $creator->id))->toBeTrue();
+    expect($result->every(fn ($campaign) => $campaign->creator_id === $creator->id))->toBeTrue();
 });
 it('scopes campaigns by invite code', function () {
     $campaign = Campaign::factory()->create();
@@ -141,7 +142,7 @@ it('scopes active campaigns', function () {
     $result = Campaign::active()->get();
 
     expect($result)->toHaveCount(2);
-    expect($result->every(fn($campaign) => $campaign->status === CampaignStatus::ACTIVE))->toBeTrue();
+    expect($result->every(fn ($campaign) => $campaign->status === CampaignStatus::ACTIVE))->toBeTrue();
 });
 it('generates unique invite codes when duplicates exist', function () {
     // Test that the method handles collisions properly by creating many campaigns

@@ -9,6 +9,7 @@ use Domain\Room\Models\RoomRecordingSettings;
 use Domain\User\Models\User;
 use Domain\User\Models\UserStorageAccount;
 use GuzzleHttp\Client as HttpClient;
+
 use function Pest\Laravel\actingAs;
 
 beforeEach(function () {
@@ -71,7 +72,7 @@ describe('S3 Multipart Integration Tests', function () {
 
         $createResponse->assertStatus(200);
         $createData = $createResponse->json();
-        
+
         $uploadId = $createData['uploadId'];
         $key = $createData['key'];
 
@@ -79,7 +80,7 @@ describe('S3 Multipart Integration Tests', function () {
         expect($key)->toStartWith("rooms/{$room->id}/users/{$user->id}/");
 
         // Step 2: Sign and upload 3 parts
-        $httpClient = new HttpClient();
+        $httpClient = new HttpClient;
         $parts = [];
 
         for ($partNumber = 1; $partNumber <= 3; $partNumber++) {
@@ -95,7 +96,7 @@ describe('S3 Multipart Integration Tests', function () {
 
             $signResponse->assertStatus(200);
             $signData = $signResponse->json();
-            
+
             expect($signData['url'])->toBeString();
             expect($signData['url'])->toContain('minio:9000');
 
@@ -109,7 +110,7 @@ describe('S3 Multipart Integration Tests', function () {
             ]);
 
             expect($uploadResponse->getStatusCode())->toBe(200);
-            
+
             // Extract ETag from response
             $etag = $uploadResponse->getHeader('ETag')[0] ?? '';
             expect($etag)->not()->toBeEmpty();
@@ -136,8 +137,8 @@ describe('S3 Multipart Integration Tests', function () {
 
         // Debug completion failure
         if ($completeResponse->status() !== 200) {
-            dump('Complete response status: ' . $completeResponse->status());
-            dump('Complete response content: ' . $completeResponse->content());
+            dump('Complete response status: '.$completeResponse->status());
+            dump('Complete response content: '.$completeResponse->content());
             dump('Parts submitted:', $parts);
         }
 
@@ -327,9 +328,9 @@ describe('S3 Multipart Integration Tests', function () {
         $key = $createData['key'];
 
         // Upload 20 small parts to test sorting and stability
-        $httpClient = new HttpClient();
+        $httpClient = new HttpClient;
         $parts = [];
-        
+
         for ($partNumber = 1; $partNumber <= 20; $partNumber++) {
             $signResponse = actingAs($user)
                 ->withHeaders(['X-CSRF-TOKEN' => csrf_token()])

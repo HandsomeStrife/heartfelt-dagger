@@ -5,6 +5,7 @@ use Domain\Character\Enums\TraitName;
 use Domain\Character\Models\Character;
 use Domain\Character\Models\CharacterTrait;
 use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 it('belongs to a character', function () {

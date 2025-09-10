@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
+
 use function Pest\Livewire\livewire;
 
 test('background answers auto-save when updated via live model binding', function () {
@@ -70,7 +71,7 @@ test('background answers update independently', function () {
     $component->set('character.background_answers.0', 'First answer about my magical training.')
         ->assertSet('character.background_answers.0', 'First answer about my magical training.');
 
-    // Set second background answer independently  
+    // Set second background answer independently
     $component->set('character.background_answers.1', 'Second answer about my lost spellbook.')
         ->assertSet('character.background_answers.0', 'First answer about my magical training.')
         ->assertSet('character.background_answers.1', 'Second answer about my lost spellbook.');

@@ -11,13 +11,13 @@ test('transcript stores character information correctly', function () {
     $user = User::factory()->create();
     $character = Character::factory()->create(['user_id' => $user->id]);
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::factory()->create([
         'room_id' => $room->id,
         'stt_enabled' => true,
     ]);
-    
+
     // Create participant with character
     $participant = RoomParticipant::factory()->create([
         'room_id' => $room->id,
@@ -28,7 +28,7 @@ test('transcript stores character information correctly', function () {
         'stt_consent_given' => true,
         'stt_consent_at' => now(),
     ]);
-    
+
     // Test transcript upload with character information
     $response = $this->actingAs($user)->postJson("/api/rooms/{$room->id}/transcripts", [
         'user_id' => $user->id,
@@ -40,15 +40,15 @@ test('transcript stores character information correctly', function () {
         'text' => 'Hello, this is my character speaking!',
         'language' => 'en-US',
         'confidence' => 0.95,
-        'provider' => 'assemblyai'
+        'provider' => 'assemblyai',
     ]);
-    
+
     $response->assertStatus(201);
     $response->assertJson([
         'success' => true,
-        'message' => 'Transcript saved successfully'
+        'message' => 'Transcript saved successfully',
     ]);
-    
+
     // Verify the transcript was saved with character information
     $this->assertDatabaseHas('room_transcripts', [
         'room_id' => $room->id,
@@ -57,7 +57,7 @@ test('transcript stores character information correctly', function () {
         'character_name' => $character->name,
         'character_class' => $character->class,
         'text' => 'Hello, this is my character speaking!',
-        'provider' => 'assemblyai'
+        'provider' => 'assemblyai',
     ]);
 });
 
@@ -65,13 +65,13 @@ test('transcript works without character information', function () {
     // Create test data
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::factory()->create([
         'room_id' => $room->id,
         'stt_enabled' => true,
     ]);
-    
+
     // Create participant without character
     $participant = RoomParticipant::factory()->create([
         'room_id' => $room->id,
@@ -82,7 +82,7 @@ test('transcript works without character information', function () {
         'stt_consent_given' => true,
         'stt_consent_at' => now(),
     ]);
-    
+
     // Test transcript upload without character information
     $response = $this->actingAs($user)->postJson("/api/rooms/{$room->id}/transcripts", [
         'user_id' => $user->id,
@@ -91,15 +91,15 @@ test('transcript works without character information', function () {
         'text' => 'Hello, this is just a user speaking!',
         'language' => 'en-US',
         'confidence' => 0.95,
-        'provider' => 'browser'
+        'provider' => 'browser',
     ]);
-    
+
     $response->assertStatus(201);
     $response->assertJson([
         'success' => true,
-        'message' => 'Transcript saved successfully'
+        'message' => 'Transcript saved successfully',
     ]);
-    
+
     // Verify the transcript was saved without character information
     $this->assertDatabaseHas('room_transcripts', [
         'room_id' => $room->id,
@@ -108,7 +108,7 @@ test('transcript works without character information', function () {
         'character_name' => null,
         'character_class' => null,
         'text' => 'Hello, this is just a user speaking!',
-        'provider' => 'browser'
+        'provider' => 'browser',
     ]);
 });
 
@@ -116,13 +116,13 @@ test('transcript validates provider field', function () {
     // Create test data
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::factory()->create([
         'room_id' => $room->id,
         'stt_enabled' => true,
     ]);
-    
+
     // Create participant
     $participant = RoomParticipant::factory()->create([
         'room_id' => $room->id,
@@ -130,27 +130,27 @@ test('transcript validates provider field', function () {
         'stt_consent_given' => true,
         'stt_consent_at' => now(),
     ]);
-    
+
     // Test with invalid provider
     $response = $this->actingAs($user)->postJson("/api/rooms/{$room->id}/transcripts", [
         'user_id' => $user->id,
         'started_at_ms' => 1000,
         'ended_at_ms' => 2000,
         'text' => 'Test transcript',
-        'provider' => 'invalid_provider'
+        'provider' => 'invalid_provider',
     ]);
-    
+
     $response->assertStatus(422);
     $response->assertJsonStructure([
         'error',
         'messages' => [
-            'provider'
-        ]
+            'provider',
+        ],
     ]);
     $response->assertJson([
         'error' => 'Validation failed',
         'messages' => [
-            'provider' => ['The selected provider is invalid.']
-        ]
+            'provider' => ['The selected provider is invalid.'],
+        ],
     ]);
 });

@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
+use Domain\Character\Data\CharacterBackgroundData;
 use Domain\Character\Data\CharacterData;
+use Domain\Character\Data\CharacterEquipmentItemData;
 use Domain\Character\Data\CharacterExperienceData;
 use Domain\Character\Data\CharacterStatsData;
 use Domain\Character\Data\CharacterTraitsData;
-use Domain\Character\Data\CharacterEquipmentItemData;
-use Domain\Character\Data\CharacterDomainCardData;
-use Domain\Character\Data\CharacterBackgroundData;
-use Domain\Character\Data\CharacterConnectionData;
 use Domain\Character\Enums\EquipmentType;
 
 it('tests CharacterData Wireable serialization with collections', function () {
@@ -20,7 +18,7 @@ it('tests CharacterData Wireable serialization with collections', function () {
             description: '',
             modifier: 2,
             category: 'General'
-        )
+        ),
     ]);
 
     $equipment = collect([
@@ -31,7 +29,7 @@ it('tests CharacterData Wireable serialization with collections', function () {
             equipment_key: 'staff',
             equipment_data: ['name' => 'Staff', 'tier' => 1],
             is_equipped: true,
-        )
+        ),
     ]);
 
     $characterData = new CharacterData(
@@ -60,17 +58,17 @@ it('tests CharacterData Wireable serialization with collections', function () {
 
     // Step 1: Serialize to Livewire format
     $serialized = $characterData->toLivewire();
-    
+
     // Debug: Let's see what the serialized experiences look like
     dump('Original experiences structure:', $characterData->experiences->toArray());
     dump('Serialized structure:', $serialized);
-    
+
     // Step 2: Deserialize back from Livewire format
     $deserialized = CharacterData::fromLivewire($serialized);
-    
+
     // Debug: Let's see what the deserialized experiences look like
     dump('Deserialized experiences structure:', $deserialized->experiences->toArray());
-    
+
     // The test: experiences should maintain the same structure
     expect($deserialized->experiences)
         ->toBeInstanceOf(\Illuminate\Support\Collection::class)
@@ -80,7 +78,7 @@ it('tests CharacterData Wireable serialization with collections', function () {
         ->toBeInstanceOf(CharacterExperienceData::class)
         ->and($deserialized->experiences->first()->name)
         ->toBe('Another one');
-    
+
     // Verify it round-trips correctly
     expect($deserialized->experiences->first()->toArray())
         ->toBe($characterData->experiences->first()->toArray());
@@ -97,7 +95,7 @@ it('tests individual experience DTO serialization', function () {
     // Test that toArray works correctly
     $asArray = $experienceData->toArray();
     dump('Experience toArray:', $asArray);
-    
+
     expect($asArray)->toHaveKey('name');
     expect($asArray['name'])->toBe('Test Experience');
     expect($asArray['modifier'])->toBe(2);

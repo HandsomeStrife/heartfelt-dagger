@@ -12,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 describe('Character Status Integration', function () {
-    
+
     it('can load character with status via repository', function () {
         // Create a character
         $character = Character::factory()->create([
@@ -27,12 +27,12 @@ describe('Character Status Integration', function () {
             'armor_score' => 2,
         ]);
         $status_data->hit_points[0] = true; // Mark first HP
-        
-        $save_action = new SaveCharacterStatusAction();
+
+        $save_action = new SaveCharacterStatusAction;
         $save_action->execute('TESTKEY123', $status_data);
 
         // Load via repository
-        $repository = new CharacterRepository();
+        $repository = new CharacterRepository;
         $result = $repository->findByKeyWithStatus('TESTKEY123');
 
         expect($result)->not->toBeNull();
@@ -49,7 +49,7 @@ describe('Character Status Integration', function () {
         ]);
 
         // Load via repository using public key
-        $repository = new CharacterRepository();
+        $repository = new CharacterRepository;
         $result = $repository->findByPublicKeyWithStatus('PUBKEY5678');
 
         expect($result)->not->toBeNull();
@@ -71,11 +71,11 @@ describe('Character Status Integration', function () {
         ]);
         $initial_status->hit_points[2] = true; // Mark 3rd HP
 
-        $save_action = new SaveCharacterStatusAction();
+        $save_action = new SaveCharacterStatusAction;
         $save_action->execute('TESTKEY789', $initial_status);
 
         // Load with different stats (7 HP now)
-        $load_action = new LoadCharacterStatusAction();
+        $load_action = new LoadCharacterStatusAction;
         $adjusted_status = $load_action->execute('TESTKEY789', [
             'final_hit_points' => 7, // Increased from 5 to 7
             'stress' => 6,
@@ -88,5 +88,3 @@ describe('Character Status Integration', function () {
         expect($adjusted_status->hit_points[5])->toBe(false); // New slots should be false
     });
 });
-
-

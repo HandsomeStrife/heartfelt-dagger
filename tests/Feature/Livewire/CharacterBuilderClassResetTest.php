@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
-use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
+
+use function Pest\Laravel\actingAs;
 use function Pest\Livewire\livewire;
-use PHPUnit\Framework\Attributes\Test;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
@@ -29,14 +29,14 @@ it('resets all data except heritage when class changes', function () {
     $component->set('character.selected_community', 'wildborne');
     $component->set('character.assigned_traits', ['agility' => 2, 'strength' => 1]);
     $component->set('character.selected_equipment', [
-        ['key' => 'longsword', 'type' => 'weapon', 'data' => ['name' => 'Longsword']]
+        ['key' => 'longsword', 'type' => 'weapon', 'data' => ['name' => 'Longsword']],
     ]);
     $component->set('character.background_answers', [0 => 'Test background answer']);
     $component->set('character.experiences', [
-        ['name' => 'Test Experience', 'description' => 'Test Description', 'modifier' => 2]
+        ['name' => 'Test Experience', 'description' => 'Test Description', 'modifier' => 2],
     ]);
     $component->set('character.selected_domain_cards', [
-        ['domain' => 'blade', 'ability_key' => 'blade-strike', 'ability_level' => 1, 'ability_data' => []]
+        ['domain' => 'blade', 'ability_key' => 'blade-strike', 'ability_level' => 1, 'ability_data' => []],
     ]);
     $component->set('character.connection_answers', [0 => 'Test connection answer']);
 
@@ -74,14 +74,14 @@ it('resets all data except heritage and class when subclass changes', function (
     $component->set('character.selected_community', 'wildborne');
     $component->set('character.assigned_traits', ['agility' => 2, 'strength' => 1]);
     $component->set('character.selected_equipment', [
-        ['key' => 'longsword', 'type' => 'weapon', 'data' => ['name' => 'Longsword']]
+        ['key' => 'longsword', 'type' => 'weapon', 'data' => ['name' => 'Longsword']],
     ]);
     $component->set('character.background_answers', [0 => 'Test background answer']);
     $component->set('character.experiences', [
-        ['name' => 'Test Experience', 'description' => 'Test Description', 'modifier' => 2]
+        ['name' => 'Test Experience', 'description' => 'Test Description', 'modifier' => 2],
     ]);
     $component->set('character.selected_domain_cards', [
-        ['domain' => 'blade', 'ability_key' => 'blade-strike', 'ability_level' => 1, 'ability_data' => []]
+        ['domain' => 'blade', 'ability_key' => 'blade-strike', 'ability_level' => 1, 'ability_data' => []],
     ]);
     $component->set('character.connection_answers', [0 => 'Test connection answer']);
 

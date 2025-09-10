@@ -30,7 +30,7 @@ it('displays info buttons and opens slideouts for ancestry and community details
         'selected_equipment' => [],
     ];
 
-    $action = new SaveCharacterAction();
+    $action = new SaveCharacterAction;
     $character_data = CharacterBuilderData::from($character);
     $character_model = $action->execute($character_data);
 
@@ -54,7 +54,7 @@ it('displays info buttons and opens slideouts for ancestry and community details
     // Should not see the long descriptions in the main view
     $page->assertDontSee('sentient mechanical beings built from a variety of materials');
     $page->assertDontSee('lived on or near a large body of water');
-    
+
     // The slideouts should be present but hidden initially
     // We can't easily test the clicking and slideover opening in a simple browser test
     // but we can verify the structure is there

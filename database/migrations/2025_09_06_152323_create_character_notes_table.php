@@ -17,10 +17,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->longText('notes')->nullable();
             $table->timestamps();
-            
+
             // Ensure one notes record per character per user (owner should be the same as character owner)
             $table->unique(['character_id', 'user_id']);
-            
+
             // Indexes for performance
             $table->index(['character_id', 'user_id']);
         });

@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\Livewire\CharacterBuilder;
-use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Models\Character;
-use function Pest\Livewire\livewire;
 use PHPUnit\Framework\Attributes\Test;
+
+use function Pest\Laravel\get;
+use function Pest\Livewire\livewire;
 use function PHPUnit\Framework\assertArrayNotHasKey;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 test('character builder displays ancestry bonuses in stats', function () {
@@ -69,7 +69,7 @@ test('character builder shows galapa damage threshold info', function () {
     expect($computed_stats)->toHaveKey('major_threshold');
     expect($computed_stats)->toHaveKey('severe_threshold');
 
-    // At level 1, proficiency is 0, so thresholds get +0 bonus  
+    // At level 1, proficiency is 0, so thresholds get +0 bonus
     expect($computed_stats['major_threshold'])->toEqual(6);
     // 1 base armor + 0 prof + 3 + 2 from calculation
     expect($computed_stats['severe_threshold'])->toEqual(11);

@@ -20,7 +20,7 @@ return new class extends Migration
 
             // Ensure one setting per campaign per section
             $table->unique(['campaign_id', 'section_name']);
-            
+
             // Indexes for performance
             $table->index(['campaign_id']);
             $table->index(['campaign_id', 'is_visible_to_players'], 'cfv_campaign_visibility_idx');

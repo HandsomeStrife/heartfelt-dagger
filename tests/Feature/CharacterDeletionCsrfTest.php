@@ -11,11 +11,11 @@ test('character deletion API works in testing environment', function () {
     // This is expected behavior - CSRF protection works in real browsers
     $response = $this->delete("/api/character/{$character->character_key}", [], [
         'X-Requested-With' => 'XMLHttpRequest',
-        'Content-Type' => 'application/json'
+        'Content-Type' => 'application/json',
     ]);
 
     $response->assertStatus(200)
-             ->assertJson(['message' => 'Character deleted successfully']);
+        ->assertJson(['message' => 'Character deleted successfully']);
 
     // Verify character was deleted
     $this->assertDatabaseMissing('characters', ['id' => $character->id]);
@@ -30,11 +30,11 @@ test('character deletion API works with valid CSRF token', function () {
     $response = $this->delete("/api/character/{$character->character_key}", [], [
         'X-Requested-With' => 'XMLHttpRequest',
         'Content-Type' => 'application/json',
-        'X-CSRF-TOKEN' => csrf_token()
+        'X-CSRF-TOKEN' => csrf_token(),
     ]);
 
     $response->assertStatus(200)
-             ->assertJson(['message' => 'Character deleted successfully']);
+        ->assertJson(['message' => 'Character deleted successfully']);
 
     // Verify character was deleted
     $this->assertDatabaseMissing('characters', ['id' => $character->id]);
@@ -42,9 +42,9 @@ test('character deletion API works with valid CSRF token', function () {
 
 test('characters page includes CSRF token meta tag', function () {
     $page = visit('/characters');
-    
+
     $page->assertSee('Your Characters');
-    
+
     // Check that CSRF token meta tag exists in the page source
     $content = $page->content();
     expect($content)->toContain('meta name="csrf-token"');

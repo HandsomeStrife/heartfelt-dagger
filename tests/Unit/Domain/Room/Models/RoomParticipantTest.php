@@ -5,7 +5,7 @@ use Domain\Character\Models\Character;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 it('belongs to room', function () {
@@ -44,7 +44,7 @@ it('gets display name with character', function () {
 });
 it('gets display name with temporary character', function () {
     $participant = RoomParticipant::factory()->withTemporaryCharacter()->create([
-        'character_name' => 'Legolas'
+        'character_name' => 'Legolas',
     ]);
 
     expect($participant->getDisplayName())->toEqual('Legolas');
@@ -53,7 +53,7 @@ it('gets display name without character', function () {
     $user = User::factory()->create(['username' => 'unique_player_123']);
     $participant = RoomParticipant::factory()->withoutCharacter()->create([
         'user_id' => $user->id,
-        'character_name' => null
+        'character_name' => null,
     ]);
 
     expect($participant->getDisplayName())->toEqual('unique_player_123');
@@ -66,7 +66,7 @@ it('gets character class with character', function () {
 });
 it('gets character class with temporary character', function () {
     $participant = RoomParticipant::factory()->withTemporaryCharacter()->create([
-        'character_class' => 'Rogue'
+        'character_class' => 'Rogue',
     ]);
 
     expect($participant->getCharacterClass())->toEqual('Rogue');
@@ -121,17 +121,17 @@ it('scopes active participants', function () {
 
     RoomParticipant::factory()->count(3)->create([
         'room_id' => $room->id,
-        'left_at' => null
+        'left_at' => null,
     ]);
 
     RoomParticipant::factory()->count(2)->leftAt(now())->create([
-        'room_id' => $room->id
+        'room_id' => $room->id,
     ]);
 
     $activeParticipants = RoomParticipant::active()->where('room_id', $room->id)->get();
 
     expect($activeParticipants)->toHaveCount(3);
-    expect($activeParticipants->every(fn($p) => $p->left_at === null))->toBeTrue();
+    expect($activeParticipants->every(fn ($p) => $p->left_at === null))->toBeTrue();
 });
 it('scopes participants with characters', function () {
     $room = Room::factory()->create();
@@ -142,7 +142,7 @@ it('scopes participants with characters', function () {
     $withCharacters = RoomParticipant::withCharacters()->where('room_id', $room->id)->get();
 
     expect($withCharacters)->toHaveCount(2);
-    expect($withCharacters->every(fn($p) => $p->character_id !== null))->toBeTrue();
+    expect($withCharacters->every(fn ($p) => $p->character_id !== null))->toBeTrue();
 });
 it('scopes participants without characters', function () {
     $room = Room::factory()->create();
@@ -153,7 +153,7 @@ it('scopes participants without characters', function () {
     $withoutCharacters = RoomParticipant::withoutCharacters()->where('room_id', $room->id)->get();
 
     expect($withoutCharacters)->toHaveCount(3);
-    expect($withoutCharacters->every(fn($p) => $p->character_id === null))->toBeTrue();
+    expect($withoutCharacters->every(fn ($p) => $p->character_id === null))->toBeTrue();
 });
 it('casts joined at to datetime', function () {
     $participant = RoomParticipant::factory()->create();
@@ -168,7 +168,7 @@ it('casts left at to datetime', function () {
 it('handles missing character gracefully', function () {
     $participant = RoomParticipant::factory()->withoutCharacter()->create([
         'character_name' => null,
-        'character_class' => null
+        'character_class' => null,
     ]);
 
     expect($participant->getCharacterClass())->toBeNull();

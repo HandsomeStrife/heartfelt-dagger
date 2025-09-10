@@ -12,9 +12,9 @@ class CreateRoomTranscript
     public function execute(
         int $room_id,
         ?int $user_id,
-        ?int $character_id = null,
-        ?string $character_name = null,
-        ?string $character_class = null,
+        ?int $character_id,
+        ?string $character_name,
+        ?string $character_class,
         int $started_at_ms,
         int $ended_at_ms,
         string $text,

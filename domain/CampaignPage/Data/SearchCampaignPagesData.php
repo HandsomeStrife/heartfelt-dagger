@@ -27,9 +27,9 @@ class SearchCampaignPagesData extends Data implements Wireable
 
     public function hasFilters(): bool
     {
-        return !empty($this->query) || 
-               !empty($this->category_tags) || 
-               $this->access_level !== null || 
+        return ! empty($this->query) ||
+               ! empty($this->category_tags) ||
+               $this->access_level !== null ||
                $this->parent_id !== null;
     }
 
@@ -41,7 +41,7 @@ class SearchCampaignPagesData extends Data implements Wireable
 
         return array_filter(
             array_map('trim', explode(' ', $this->query)),
-            fn($term) => strlen($term) >= 2
+            fn ($term) => strlen($term) >= 2
         );
     }
 }

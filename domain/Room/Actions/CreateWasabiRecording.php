@@ -24,7 +24,7 @@ class CreateWasabiRecording
         try {
             // Validate that recording is enabled for this room
             $room->load('recordingSettings');
-            if (!$room->recordingSettings || !$room->recordingSettings->isRecordingEnabled()) {
+            if (! $room->recordingSettings || ! $room->recordingSettings->isRecordingEnabled()) {
                 throw new \Exception('Video recording is not enabled for this room');
             }
 
@@ -70,4 +70,3 @@ class CreateWasabiRecording
         }
     }
 }
-

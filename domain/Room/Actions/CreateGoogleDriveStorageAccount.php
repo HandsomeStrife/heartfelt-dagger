@@ -16,8 +16,8 @@ class CreateGoogleDriveStorageAccount
         try {
             // Exchange authorization code for tokens
             $tokens = GoogleDriveService::exchangeAuthorizationCode($authorizationCode);
-            
-            if (!isset($tokens['refresh_token'])) {
+
+            if (! isset($tokens['refresh_token'])) {
                 throw new \Exception('No refresh token received. User may need to re-authorize with forced approval.');
             }
 
@@ -42,7 +42,7 @@ class CreateGoogleDriveStorageAccount
 
             // Test the connection to ensure it works
             $driveService = new GoogleDriveService($storageAccount);
-            if (!$driveService->testConnection()) {
+            if (! $driveService->testConnection()) {
                 // If connection fails, delete the account and throw exception
                 $storageAccount->delete();
                 throw new \Exception('Failed to connect to Google Drive with provided credentials');
@@ -52,7 +52,7 @@ class CreateGoogleDriveStorageAccount
             $userInfo = $driveService->getUserInfo();
             if ($userInfo && empty($displayName)) {
                 $storageAccount->update([
-                    'display_name' => $userInfo['email'] . ' (Google Drive)'
+                    'display_name' => $userInfo['email'].' (Google Drive)',
                 ]);
             }
 
@@ -70,8 +70,7 @@ class CreateGoogleDriveStorageAccount
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \Exception('Failed to create Google Drive account: ' . $e->getMessage());
+            throw new \Exception('Failed to create Google Drive account: '.$e->getMessage());
         }
     }
 }
-

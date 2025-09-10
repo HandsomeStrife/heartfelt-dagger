@@ -13,9 +13,9 @@ test('room creator (GM) can view all transcripts in their room', function () {
     $gm = User::factory()->create();
     $player1 = User::factory()->create();
     $player2 = User::factory()->create();
-    
+
     $room = Room::factory()->create(['creator_id' => $gm->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -91,12 +91,12 @@ test('room creator (GM) can view all transcripts in their room', function () {
     $response->assertStatus(200)
         ->assertJson([
             'success' => true,
-            'count' => 3
+            'count' => 3,
         ]);
 
     $transcripts = $response->json('transcripts');
     expect($transcripts)->toHaveCount(3);
-    
+
     // Verify all transcripts are included
     $transcriptTexts = collect($transcripts)->pluck('text')->toArray();
     expect($transcriptTexts)->toContain('Welcome to the session, everyone!');
@@ -109,9 +109,9 @@ test('active players can view transcripts in their room', function () {
     $gm = User::factory()->create();
     $player1 = User::factory()->create();
     $player2 = User::factory()->create();
-    
+
     $room = Room::factory()->create(['creator_id' => $gm->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -168,12 +168,12 @@ test('active players can view transcripts in their room', function () {
     $response->assertStatus(200)
         ->assertJson([
             'success' => true,
-            'count' => 2
+            'count' => 2,
         ]);
 
     $transcripts = $response->json('transcripts');
     expect($transcripts)->toHaveCount(2);
-    
+
     // Verify transcripts contain expected data
     $transcript = $transcripts[0];
     expect($transcript)->toHaveKey('id');
@@ -190,9 +190,9 @@ test('non-participants cannot view transcripts', function () {
     $gm = User::factory()->create();
     $player = User::factory()->create();
     $outsider = User::factory()->create(); // Not in the room
-    
+
     $room = Room::factory()->create(['creator_id' => $gm->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -238,7 +238,7 @@ test('non-participants cannot view transcripts', function () {
 
     $response->assertStatus(403)
         ->assertJson([
-            'error' => 'Only room participants can view transcripts'
+            'error' => 'Only room participants can view transcripts',
         ]);
 });
 
@@ -248,10 +248,10 @@ test('users from other rooms cannot view transcripts', function () {
     $player1 = User::factory()->create();
     $gm2 = User::factory()->create();
     $player2 = User::factory()->create();
-    
+
     $room1 = Room::factory()->create(['creator_id' => $gm1->id]);
     $room2 = Room::factory()->create(['creator_id' => $gm2->id]);
-    
+
     // Enable STT for both rooms
     RoomRecordingSettings::create([
         'room_id' => $room1->id,
@@ -324,7 +324,7 @@ test('users from other rooms cannot view transcripts', function () {
 
     $response->assertStatus(403)
         ->assertJson([
-            'error' => 'Only room participants can view transcripts'
+            'error' => 'Only room participants can view transcripts',
         ]);
 
     // User from room 1 should not access room 2 transcripts
@@ -333,7 +333,7 @@ test('users from other rooms cannot view transcripts', function () {
 
     $response->assertStatus(403)
         ->assertJson([
-            'error' => 'Only room participants can view transcripts'
+            'error' => 'Only room participants can view transcripts',
         ]);
 });
 
@@ -341,9 +341,9 @@ test('transcript filtering works correctly for authorized users', function () {
     $gm = User::factory()->create();
     $player1 = User::factory()->create();
     $player2 = User::factory()->create();
-    
+
     $room = Room::factory()->create(['creator_id' => $gm->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -419,7 +419,7 @@ test('transcript filtering works correctly for authorized users', function () {
     $response->assertStatus(200);
     $transcripts = $response->json('transcripts');
     expect($transcripts)->toHaveCount(2);
-    
+
     foreach ($transcripts as $transcript) {
         expect($transcript['user_id'])->toBe($player1->id);
     }
@@ -462,9 +462,9 @@ test('players can filter transcripts to see only their own', function () {
     $gm = User::factory()->create();
     $player1 = User::factory()->create();
     $player2 = User::factory()->create();
-    
+
     $room = Room::factory()->create(['creator_id' => $gm->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -531,7 +531,7 @@ test('players can filter transcripts to see only their own', function () {
     $response->assertStatus(200);
     $transcripts = $response->json('transcripts');
     expect($transcripts)->toHaveCount(2);
-    
+
     foreach ($transcripts as $transcript) {
         expect($transcript['user_id'])->toBe($player1->id);
         expect($transcript['text'])->toContain('Player 1');
@@ -549,9 +549,9 @@ test('players can filter transcripts to see only their own', function () {
 test('transcript data includes all necessary fields', function () {
     $gm = User::factory()->create();
     $player = User::factory()->create();
-    
+
     $room = Room::factory()->create(['creator_id' => $gm->id]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -589,9 +589,9 @@ test('transcript data includes all necessary fields', function () {
     $response->assertStatus(200);
     $transcripts = $response->json('transcripts');
     expect($transcripts)->toHaveCount(1);
-    
+
     $transcript = $transcripts[0];
-    
+
     // Verify all expected fields are present
     expect($transcript)->toHaveKey('id');
     expect($transcript)->toHaveKey('room_id');
@@ -620,9 +620,9 @@ test('campaign room transcripts follow same access rules', function () {
     $gm = User::factory()->create();
     $campaignMember = User::factory()->create();
     $outsider = User::factory()->create();
-    
+
     $campaign = \Domain\Campaign\Models\Campaign::factory()->create([
-        'creator_id' => $gm->id
+        'creator_id' => $gm->id,
     ]);
 
     // Add member to campaign
@@ -639,7 +639,7 @@ test('campaign room transcripts follow same access rules', function () {
         'campaign_id' => $campaign->id,
         'password' => null, // Campaign rooms don't use passwords
     ]);
-    
+
     // Enable STT for the room
     RoomRecordingSettings::create([
         'room_id' => $room->id,

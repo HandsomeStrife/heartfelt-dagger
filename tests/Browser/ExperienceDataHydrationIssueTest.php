@@ -17,18 +17,18 @@ it('reproduces the specific "Unnamed Experience" issue after refresh', function 
         'character_id' => $character->id,
         'experience_name' => 'Academic Research',
         'experience_description' => 'Years of scholarly study',
-        'modifier' => 2
+        'modifier' => 2,
     ]);
-    
+
     \Domain\Character\Models\CharacterExperience::factory()->create([
         'character_id' => $character->id,
         'experience_name' => 'Noble Etiquette',
         'experience_description' => 'Court training',
-        'modifier' => 2
+        'modifier' => 2,
     ]);
 
     $page = visit("/character/{$character->public_key}");
-    
+
     // Verify initial state - should show proper experience names
     $page->assertSee('Academic Research', 'Initial load: Academic Research not found')
         ->assertSee('Noble Etiquette', 'Initial load: Noble Etiquette not found')
@@ -36,7 +36,7 @@ it('reproduces the specific "Unnamed Experience" issue after refresh', function 
 
     // Click refresh button
     $page->click('[pest="refresh-button"]');
-    
+
     // Wait longer to ensure hydration completes
     $page->wait(5);
 
@@ -64,11 +64,11 @@ it('tests different experience data scenarios that might trigger hydration issue
         'character_id' => $character->id,
         'experience_name' => 'Stealth Training',
         'experience_description' => null, // Null description to test edge case
-        'modifier' => 2
+        'modifier' => 2,
     ]);
 
     $page = visit("/character/{$character->public_key}");
-    
+
     $page->assertSee('Stealth Training', 'Initial: Stealth Training not found')
         ->assertDontSee('Unnamed Experience', 'Initial: Found "Unnamed Experience" with minimal data');
 
@@ -90,11 +90,11 @@ it('debugs the exact data structure being passed to experience component', funct
         'character_id' => $character->id,
         'experience_name' => 'Performance Skills',
         'experience_description' => 'Musical training',
-        'modifier' => 2
+        'modifier' => 2,
     ]);
 
     $page = visit("/character/{$character->public_key}");
-    
+
     // Before refresh, log the experience data structure
     $page->script('
         console.log("=== BEFORE REFRESH ===");
@@ -108,11 +108,11 @@ it('debugs the exact data structure being passed to experience component', funct
             console.log(`Experience ${index}:`, item.innerHTML);
         });
     ');
-    
+
     $page->assertSee('Performance Skills');
-    
+
     $page->click('[pest="refresh-button"]')->wait(3);
-    
+
     // After refresh, log the experience data structure again
     $page->script('
         console.log("=== AFTER REFRESH ===");
@@ -126,7 +126,7 @@ it('debugs the exact data structure being passed to experience component', funct
             console.log(`Experience ${index}:`, item.innerHTML);
         });
     ');
-    
+
     $page->assertSee('Performance Skills', 'Debug test: Performance Skills disappeared after refresh')
         ->assertDontSee('Unnamed Experience', 'Debug test: Found "Unnamed Experience" - check console logs for data structure differences');
 });

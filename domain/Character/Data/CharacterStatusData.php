@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Domain\Character\Data;
 
+use Carbon\Carbon;
 use Domain\Character\Models\CharacterStatus;
 use Livewire\Wireable;
 use Spatie\LaravelData\Concerns\WireableData;
-use Carbon\Carbon;
 use Spatie\LaravelData\Data;
 
 class CharacterStatusData extends Data implements Wireable
@@ -149,5 +149,3 @@ class CharacterStatusData extends Data implements Wireable
         );
     }
 }
-
-

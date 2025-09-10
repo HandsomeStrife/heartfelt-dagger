@@ -13,22 +13,22 @@ use Domain\User\Models\User;
 it('searches pages by text content', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     $page1 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Dragon Lair',
         'content' => '<p>Ancient red dragon lives here with treasure.</p>',
     ]);
-    
+
     $page2 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Village Market',
         'content' => '<p>Local merchants sell dragon scales.</p>',
     ]);
-    
+
     $page3 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Peaceful Forest',
@@ -40,13 +40,13 @@ it('searches pages by text content', function () {
         'sort_by' => 'relevance',
     ]);
 
-    $action = new SearchCampaignPagesAction();
-    
+    $action = new SearchCampaignPagesAction;
+
     // Debug: Check what we have before executing
     $totalPages = CampaignPage::where('campaign_id', $campaign->id)->count();
     $accessiblePages = CampaignPage::inCampaign($campaign)->accessibleBy($user)->count();
     $searchablePages = CampaignPage::inCampaign($campaign)->accessibleBy($user)->search('dragon')->count();
-    
+
     $results = $action->execute($campaign, $searchData, $user);
 
     expect($results)->toHaveCount(2, "Expected 2 results but got {$results->count()}. Debug: totalPages={$totalPages}, accessiblePages={$accessiblePages}, searchablePages={$searchablePages}");
@@ -57,20 +57,20 @@ it('searches pages by text content', function () {
 it('filters by category tags', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     $page1 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'category_tags' => ['NPCs', 'Villains'],
     ]);
-    
+
     $page2 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'category_tags' => ['Locations', 'NPCs'],
     ]);
-    
+
     $page3 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'category_tags' => ['Lore'],
@@ -80,7 +80,7 @@ it('filters by category tags', function () {
         'category_tags' => ['NPCs'],
     ]);
 
-    $action = new SearchCampaignPagesAction();
+    $action = new SearchCampaignPagesAction;
     $results = $action->execute($campaign, $searchData, $user);
 
     expect($results)->toHaveCount(2);
@@ -91,10 +91,10 @@ it('filters by category tags', function () {
 it('filters by access level', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     $gmPage = CampaignPage::factory()->gmOnly()->create(['campaign_id' => $campaign->id]);
     $playersPage = CampaignPage::factory()->allPlayers()->create(['campaign_id' => $campaign->id]);
     $specificPage = CampaignPage::factory()->specificPlayers()->create(['campaign_id' => $campaign->id]);
@@ -103,7 +103,7 @@ it('filters by access level', function () {
         'access_level' => PageAccessLevel::ALL_PLAYERS,
     ]);
 
-    $action = new SearchCampaignPagesAction();
+    $action = new SearchCampaignPagesAction;
     $results = $action->execute($campaign, $searchData, $user);
 
     expect($results)->toHaveCount(1);
@@ -113,10 +113,10 @@ it('filters by access level', function () {
 it('filters by parent id', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     $parent = CampaignPage::factory()->allPlayers()->create(['campaign_id' => $campaign->id]);
     $child1 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
@@ -132,7 +132,7 @@ it('filters by parent id', function () {
         'parent_id' => $parent->id,
     ]);
 
-    $action = new SearchCampaignPagesAction();
+    $action = new SearchCampaignPagesAction;
     $results = $action->execute($campaign, $searchData, $user);
 
     expect($results)->toHaveCount(2);
@@ -143,10 +143,10 @@ it('filters by parent id', function () {
 it('filters root pages only', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     $rootPage1 = CampaignPage::factory()->allPlayers()->create(['campaign_id' => $campaign->id]);
     $rootPage2 = CampaignPage::factory()->allPlayers()->create(['campaign_id' => $campaign->id]);
     $childPage = CampaignPage::factory()->allPlayers()->create([
@@ -158,7 +158,7 @@ it('filters root pages only', function () {
         'root_pages_only' => true,
     ]);
 
-    $action = new SearchCampaignPagesAction();
+    $action = new SearchCampaignPagesAction;
     $results = $action->execute($campaign, $searchData, $user);
 
     expect($results)->toHaveCount(2);
@@ -170,20 +170,20 @@ it('respects access permissions', function () {
     $campaignCreator = User::factory()->create();
     $player = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $campaignCreator->id]);
-    
+
     CampaignMember::create(['campaign_id' => $campaign->id, 'user_id' => $player->id]);
-    
+
     $gmPage = CampaignPage::factory()->gmOnly()->create(['campaign_id' => $campaign->id]);
     $playersPage = CampaignPage::factory()->allPlayers()->create(['campaign_id' => $campaign->id]);
 
     $searchData = SearchCampaignPagesData::from([]);
 
-    $action = new SearchCampaignPagesAction();
-    
+    $action = new SearchCampaignPagesAction;
+
     // Campaign creator should see all pages
     $creatorResults = $action->execute($campaign, $searchData, $campaignCreator);
     expect($creatorResults)->toHaveCount(2);
-    
+
     // Player should only see player-accessible pages
     $playerResults = $action->execute($campaign, $searchData, $player);
     expect($playerResults)->toHaveCount(1);
@@ -193,10 +193,10 @@ it('respects access permissions', function () {
 it('sorts by title', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     $pageC = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Charlie Page',
@@ -215,7 +215,7 @@ it('sorts by title', function () {
         'sort_direction' => 'asc',
     ]);
 
-    $action = new SearchCampaignPagesAction();
+    $action = new SearchCampaignPagesAction;
     $results = $action->execute($campaign, $searchData, $user);
 
     expect($results->first()->title)->toBe('Alpha Page');
@@ -225,10 +225,10 @@ it('sorts by title', function () {
 it('limits results', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     // Create 5 pages
     for ($i = 1; $i <= 5; $i++) {
         CampaignPage::factory()->allPlayers()->create([
@@ -241,7 +241,7 @@ it('limits results', function () {
         'limit' => 3,
     ]);
 
-    $action = new SearchCampaignPagesAction();
+    $action = new SearchCampaignPagesAction;
     $results = $action->execute($campaign, $searchData, $user);
 
     expect($results)->toHaveCount(3);
@@ -250,29 +250,29 @@ it('limits results', function () {
 it('gets search suggestions', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     $page1 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Pyraxis the Dragon',
         'content' => '<p>Ancient red dragon</p>',
     ]);
-    
+
     $page2 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Dragon Lair',
         'content' => '<p>Where Pyraxis lives</p>',
     ]);
-    
+
     $page3 = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Village Market',
         'content' => '<p>No dragons here</p>',
     ]);
 
-    $action = new SearchCampaignPagesAction();
+    $action = new SearchCampaignPagesAction;
     $suggestions = $action->getSuggestions($campaign, 'Pyr', $user, 2);
 
     expect($suggestions)->toHaveCount(2);
@@ -282,10 +282,10 @@ it('gets search suggestions', function () {
 it('gets popular categories', function () {
     $campaign = Campaign::factory()->create();
     $user = User::factory()->create();
-    
+
     // Add user as campaign member to allow access to ALL_PLAYERS pages
     $campaign->members()->create(['user_id' => $user->id, 'joined_at' => now()]);
-    
+
     // Create pages with different category combinations
     CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
@@ -300,11 +300,11 @@ it('gets popular categories', function () {
         'category_tags' => ['Lore'],
     ]);
 
-    $action = new SearchCampaignPagesAction();
+    $action = new SearchCampaignPagesAction;
     $categories = $action->getPopularCategories($campaign, $user);
 
     expect($categories)->toHaveCount(4);
-    
+
     // NPCs should be most popular (appears in 2 pages)
     $npcCategory = $categories->first();
     expect($npcCategory['tag'])->toBe('NPCs');

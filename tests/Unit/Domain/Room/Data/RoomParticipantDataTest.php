@@ -3,11 +3,10 @@
 declare(strict_types=1);
 use Domain\Character\Models\Character;
 use Domain\Room\Data\RoomParticipantData;
-use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomParticipant;
 use Domain\User\Models\User;
 use Livewire\Wireable;
-use PHPUnit\Framework\Attributes\Test;
+
 it('implements wireable interface', function () {
     $participant = RoomParticipant::factory()->create();
     $participantData = RoomParticipantData::from($participant);

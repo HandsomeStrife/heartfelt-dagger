@@ -12,7 +12,7 @@ use Spatie\LaravelData\Data;
 class CharacterExperiencesData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public array $experiences,
     ) {}

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 use Domain\Room\Models\Room;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs, get, post, put, patch, delete};
+
+use function Pest\Laravel\actingAs;
 
 test('joining room without character requires name and class', function () {
     $user = User::factory()->create();
@@ -23,7 +24,7 @@ test('joining room without character requires valid class', function () {
     // Joining with invalid character class should fail
     $response = actingAs($user)->post(route('rooms.join', $room), [
         'character_name' => 'Test Character',
-        'character_class' => 'InvalidClass'
+        'character_class' => 'InvalidClass',
     ]);
 
     $response->assertSessionHasErrors(['character_class']);
@@ -36,16 +37,16 @@ test('joining room with valid temporary character succeeds', function () {
     // Joining with valid temporary character should succeed
     $response = actingAs($user)->post(route('rooms.join', $room), [
         'character_name' => 'Valid Character',
-        'character_class' => 'Warrior'
+        'character_class' => 'Warrior',
     ]);
 
     $response->assertRedirect(route('rooms.session', $room));
-    
+
     assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $user->id,
         'character_name' => 'Valid Character',
-        'character_class' => 'Warrior'
+        'character_class' => 'Warrior',
     ]);
 });
 
@@ -56,14 +57,14 @@ test('joining room with existing character does not require name and class', fun
 
     // Joining with existing character should not require name/class
     $response = actingAs($user)->post(route('rooms.join', $room), [
-        'character_id' => $character->id
+        'character_id' => $character->id,
     ]);
 
     $response->assertRedirect(route('rooms.session', $room));
-    
+
     assertDatabaseHas('room_participants', [
         'room_id' => $room->id,
         'user_id' => $user->id,
-        'character_id' => $character->id
+        'character_id' => $character->id,
     ]);
 });

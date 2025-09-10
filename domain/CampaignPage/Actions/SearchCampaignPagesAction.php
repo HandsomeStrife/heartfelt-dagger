@@ -15,7 +15,7 @@ class SearchCampaignPagesAction
 {
     /**
      * Search campaign pages with advanced filtering
-     * 
+     *
      * @return Collection<CampaignPageData>
      */
     public function execute(Campaign $campaign, SearchCampaignPagesData $searchData, ?User $user): Collection
@@ -26,18 +26,18 @@ class SearchCampaignPagesAction
             'children' => function ($query) {
                 $query->orderBy('display_order');
             },
-            'authorizedUsers'
+            'authorizedUsers',
         ])
-        ->inCampaign($campaign)
-        ->accessibleBy($user);
+            ->inCampaign($campaign)
+            ->accessibleBy($user);
 
         // Apply full-text search if query provided
-        if (!empty($searchData->query)) {
+        if (! empty($searchData->query)) {
             $query->search($searchData->query);
         }
 
         // Filter by category tags
-        if (!empty($searchData->category_tags)) {
+        if (! empty($searchData->category_tags)) {
             foreach ($searchData->category_tags as $tag) {
                 $query->whereJsonContains('category_tags', $tag);
             }
@@ -79,7 +79,7 @@ class SearchCampaignPagesAction
             ->accessibleBy($user)
             ->where(function ($query) use ($partialQuery) {
                 $query->where('title', 'LIKE', "%{$partialQuery}%")
-                      ->orWhere('content', 'LIKE', "%{$partialQuery}%");
+                    ->orWhere('content', 'LIKE', "%{$partialQuery}%");
             })
             ->select(['id', 'title', 'parent_id'])
             ->with('parent:id,title')
@@ -90,7 +90,7 @@ class SearchCampaignPagesAction
             return [
                 'id' => $page->id,
                 'title' => $page->title,
-                'breadcrumb' => $page->parent ? $page->parent->title . ' > ' . $page->title : $page->title,
+                'breadcrumb' => $page->parent ? $page->parent->title.' > '.$page->title : $page->title,
             ];
         });
     }
@@ -119,8 +119,8 @@ class SearchCampaignPagesAction
 
     /**
      * Search across multiple campaigns (for global search)
-     * 
-     * @param Collection<Campaign> $campaigns
+     *
+     * @param  Collection<Campaign>  $campaigns
      * @return Collection<CampaignPageData>
      */
     public function searchAcrossCampaigns(Collection $campaigns, SearchCampaignPagesData $searchData, ?User $user): Collection
@@ -133,7 +133,7 @@ class SearchCampaignPagesAction
         }
 
         // Sort results globally if needed
-        if ($searchData->sort_by === 'relevance' && !empty($searchData->query)) {
+        if ($searchData->sort_by === 'relevance' && ! empty($searchData->query)) {
             return $this->sortByRelevance($allResults, $searchData->query);
         }
 
@@ -154,7 +154,7 @@ class SearchCampaignPagesAction
                 break;
             case 'relevance':
             default:
-                if (!empty($searchData->query)) {
+                if (! empty($searchData->query)) {
                     // MySQL FULLTEXT score ordering
                     $query->orderByRaw('MATCH(title, content) AGAINST(? IN NATURAL LANGUAGE MODE) DESC', [$searchData->query]);
                 } else {

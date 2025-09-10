@@ -1,21 +1,21 @@
 <?php
 
 use Domain\Room\Models\Room;
-use Domain\Room\Models\RoomRecordingSettings; 
 use Domain\Room\Models\RoomParticipant;
+use Domain\Room\Models\RoomRecordingSettings;
 use Domain\User\Models\User;
 use Domain\User\Models\UserStorageAccount;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 describe('Direct Upload Integration Tests', function () {
     uses(RefreshDatabase::class);
-    
+
     beforeEach(function () {
         $this->user = User::factory()->create();
         $this->room = Room::factory()->create([
             'creator_id' => $this->user->id,
         ]);
-        
+
         // Create participant with consent
         RoomParticipant::factory()->create([
             'room_id' => $this->room->id,
@@ -30,9 +30,9 @@ describe('Direct Upload Integration Tests', function () {
         // This test verifies that our room-uppy.js file compiles successfully
         // The build was run in the previous command and succeeded
         expect(file_exists(public_path('build/manifest.json')))->toBe(true, 'Vite manifest should exist');
-        
+
         $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
-        
+
         // Check that room-uppy.js was built successfully
         $hasRoomUppyBundle = false;
         foreach ($manifest as $asset) {
@@ -41,7 +41,7 @@ describe('Direct Upload Integration Tests', function () {
                 break;
             }
         }
-        
+
         expect($hasRoomUppyBundle)->toBe(true, 'Room Uppy JavaScript bundle should be built');
     });
 
@@ -53,13 +53,13 @@ describe('Direct Upload Integration Tests', function () {
             'is_active' => true,
             'encrypted_credentials' => [
                 'access_key_id' => 'test_access_key',
-                'secret_access_key' => 'test_secret_key', 
+                'secret_access_key' => 'test_secret_key',
                 'bucket_name' => 'test-bucket',
                 'region' => 'us-east-1',
                 'endpoint' => 'https://s3.wasabisys.com',
             ],
         ]);
-        
+
         // Create recording settings
         RoomRecordingSettings::factory()->create([
             'room_id' => $this->room->id,
@@ -77,16 +77,16 @@ describe('Direct Upload Integration Tests', function () {
                 'metadata' => [
                     'started_at_ms' => now()->timestamp * 1000 - 30000,
                     'ended_at_ms' => now()->timestamp * 1000,
-                ]
+                ],
             ]);
-        
+
         // Should get a presigned URL (even if we can't actually use it without real credentials)
         expect($response->status())->toBe(200);
-        
+
         $data = $response->json();
         expect($data)->toHaveKey('presigned_url');
         expect($data)->toHaveKey('metadata');
-        
+
         // Verify the URL points to external storage, not our server
         $url = parse_url($data['presigned_url']);
         expect($url['host'])->not()->toContain(config('app.url'));
@@ -106,7 +106,7 @@ describe('Direct Upload Integration Tests', function () {
             ]);
 
         expect($response->status())->toBe(200);
-        
+
         $data = $response->json();
         expect($data)->toHaveKey('uploadId');
         expect($data)->toHaveKey('key');
@@ -127,7 +127,7 @@ describe('Direct Upload Integration Tests', function () {
                 'created_at' => now()->timestamp - 1800,
             ],
         ]);
-        
+
         // Create recording settings for Google Drive
         RoomRecordingSettings::factory()->create([
             'room_id' => $this->room->id,
@@ -143,7 +143,7 @@ describe('Direct Upload Integration Tests', function () {
                 'id' => 'test_file_id',
                 'name' => 'test-recording.webm',
             ], 200, [
-                'Location' => 'https://www.googleapis.com/upload/drive/v3/files/uploadid_test123?upload_token=test456'
+                'Location' => 'https://www.googleapis.com/upload/drive/v3/files/uploadid_test123?upload_token=test456',
             ]),
         ]);
 
@@ -151,21 +151,21 @@ describe('Direct Upload Integration Tests', function () {
         $response = $this->actingAs($this->user)
             ->postJson("/api/rooms/{$this->room->id}/recordings/google-drive-upload-url", [
                 'filename' => 'test-recording.webm',
-                'content_type' => 'video/webm', 
+                'content_type' => 'video/webm',
                 'size' => 1024 * 1024, // 1MB
                 'metadata' => [
                     'started_at_ms' => now()->timestamp * 1000 - 30000,
                     'ended_at_ms' => now()->timestamp * 1000,
-                ]
+                ],
             ]);
 
         expect($response->status())->toBe(200);
-        
+
         $data = $response->json();
         expect($data)->toHaveKey('upload_url');
         expect($data)->toHaveKey('session_uri');
         expect($data)->toHaveKey('metadata');
-        
+
         // Verify the upload URL points to Google Drive, not our server
         $url = parse_url($data['upload_url']);
         expect($url['host'])->toContain('googleapis.com');
@@ -173,16 +173,16 @@ describe('Direct Upload Integration Tests', function () {
 
     test('direct upload architecture ensures no data through server', function () {
         // This test verifies our architectural decisions ensure direct uploads
-        
+
         // 1. Wasabi uses @uppy/aws-s3 with getUploadParameters() returning external URLs
         expect(true)->toBe(true, 'Wasabi configured with @uppy/aws-s3 unified plugin');
-        
-        // 2. Google Drive uses XHRUpload with direct upload URLs from Google's resumable API  
+
+        // 2. Google Drive uses XHRUpload with direct upload URLs from Google's resumable API
         expect(true)->toBe(true, 'Google Drive configured with XHRUpload to googleapis.com URLs');
-        
+
         // 3. No video data ever hits our Laravel controllers - only metadata coordination
         expect(true)->toBe(true, 'Laravel only handles metadata, not video file data');
-        
+
         // 4. All upload endpoints return external URLs for direct client-to-storage upload
         expect(true)->toBe(true, 'All endpoints return external storage URLs');
     });

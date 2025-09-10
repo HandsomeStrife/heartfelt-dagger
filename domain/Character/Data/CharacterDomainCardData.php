@@ -11,7 +11,7 @@ use Spatie\LaravelData\Data;
 class CharacterDomainCardData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public string $ability_key,
         public string $domain,

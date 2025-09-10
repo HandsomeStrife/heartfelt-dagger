@@ -8,12 +8,11 @@ use Domain\Campaign\Models\CampaignMember;
 use Domain\CampaignPage\Enums\PageAccessLevel;
 use Domain\CampaignPage\Models\CampaignPage;
 use Domain\User\Models\User;
-use function Pest\Laravel\{actingAs};
+
+use function Pest\Laravel\actingAs;
 use function Pest\Livewire\livewire;
 
-
-it('can render create form', function ()
-{
+it('can render create form', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -26,9 +25,7 @@ it('can render create form', function ()
         ->assertSee('Access Level');
 });
 
-
-it('can render edit form', function ()
-{
+it('can render edit form', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $page = CampaignPage::factory()->create([
@@ -47,9 +44,7 @@ it('can render edit form', function ()
         ->assertSet('form.content', '<p>Test content</p>');
 });
 
-
-it('validates required fields', function ()
-{
+it('validates required fields', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -61,9 +56,7 @@ it('validates required fields', function ()
         ->assertHasErrors(['form.title']);
 });
 
-
-it('validates title length', function ()
-{
+it('validates title length', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -75,9 +68,7 @@ it('validates title length', function ()
         ->assertHasErrors(['form.title']);
 });
 
-
-it('creates page successfully', function ()
-{
+it('creates page successfully', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -94,7 +85,7 @@ it('creates page successfully', function ()
         ->assertDispatched('page-saved');
 
     expect(CampaignPage::where('title', 'Test Page')->exists())->toBeTrue();
-    
+
     $page = CampaignPage::where('title', 'Test Page')->first();
     expect($page->campaign_id)->toBe($campaign->id);
     expect($page->creator_id)->toBe($user->id);
@@ -103,9 +94,7 @@ it('creates page successfully', function ()
     expect($page->access_level)->toBe(PageAccessLevel::ALL_PLAYERS);
 });
 
-
-it('updates page successfully', function ()
-{
+it('updates page successfully', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
     $page = CampaignPage::factory()->create([
@@ -129,9 +118,7 @@ it('updates page successfully', function ()
     expect($page->content)->toBe('<p>Updated content</p>');
 });
 
-
-it('can add category tags', function ()
-{
+it('can add category tags', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -143,9 +130,7 @@ it('can add category tags', function ()
         ->assertSet('form.category_tags', ['NPCs', 'Villains']);
 });
 
-
-it('can remove category tags', function ()
-{
+it('can remove category tags', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -157,9 +142,7 @@ it('can remove category tags', function ()
         ->assertSet('form.category_tags', ['NPCs', 'Lore']);
 });
 
-
-it('does_not add duplicate category tags', function ()
-{
+it('does_not add duplicate category tags', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 
@@ -171,14 +154,12 @@ it('does_not add duplicate category tags', function ()
         ->assertSet('form.category_tags', ['NPCs']);
 });
 
-
-it('handles specific player access', function ()
-{
+it('handles specific player access', function () {
     $user = User::factory()->create();
     $player1 = User::factory()->create();
     $player2 = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
-    
+
     CampaignMember::create(['campaign_id' => $campaign->id, 'user_id' => $player1->id]);
     CampaignMember::create(['campaign_id' => $campaign->id, 'user_id' => $player2->id]);
 
@@ -196,12 +177,10 @@ it('handles specific player access', function ()
     expect($page->authorizedUsers->first()->id)->toBe($player1->id);
 });
 
-
-it('loads parent page options', function ()
-{
+it('loads parent page options', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
-    
+
     $rootPage = CampaignPage::factory()->allPlayers()->create([
         'campaign_id' => $campaign->id,
         'title' => 'Root Page',
@@ -215,24 +194,22 @@ it('loads parent page options', function ()
     actingAs($user);
 
     $component = livewire(CampaignPageForm::class, ['campaign' => $campaign]);
-    
+
     expect($component->get('parentPageOptions'))->toContain([
         'value' => null,
-        'label' => 'No Parent (Root Level)'
+        'label' => 'No Parent (Root Level)',
     ]);
     expect($component->get('parentPageOptions'))->toContain([
         'value' => $rootPage->id,
-        'label' => 'Root Page'
+        'label' => 'Root Page',
     ]);
     expect($component->get('parentPageOptions'))->toContain([
         'value' => $childPage->id,
-        'label' => '— Child Page'
+        'label' => '— Child Page',
     ]);
 });
 
-
-it('prevents_non authorized users from editing', function ()
-{
+it('prevents_non authorized users from editing', function () {
     $creator = User::factory()->create();
     $otherUser = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
@@ -247,9 +224,7 @@ it('prevents_non authorized users from editing', function ()
         ->assertSee('No permission to edit');
 });
 
-
-it('campaign_creator can edit any page', function ()
-{
+it('campaign_creator can edit any page', function () {
     $campaignCreator = User::factory()->create();
     $pageCreator = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $campaignCreator->id]);
@@ -266,9 +241,7 @@ it('campaign_creator can edit any page', function ()
         ->assertSet('form.title', 'Test Page');
 });
 
-
-it('can cancel form', function ()
-{
+it('can cancel form', function () {
     $user = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $user->id]);
 

@@ -9,7 +9,6 @@ use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomRecording;
 use Domain\Room\Services\GoogleDriveService;
 use Domain\User\Models\User;
-use Domain\User\Models\UserStorageAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -20,13 +19,13 @@ class RecordingDownloadController extends Controller
     public function download(Request $request, Room $room, RoomRecording $recording): \Symfony\Component\HttpFoundation\Response
     {
         $user = Auth::user();
-        
-        if (!$user instanceof User) {
+
+        if (! $user instanceof User) {
             abort(401, 'Authentication required');
         }
 
         // Verify user has access to this room
-        if (!$this->userCanAccessRoom($room, $user)) {
+        if (! $this->userCanAccessRoom($room, $user)) {
             abort(403, 'Access denied');
         }
 
@@ -36,7 +35,7 @@ class RecordingDownloadController extends Controller
         }
 
         // Verify recording is ready
-        if (!in_array($recording->status, ['ready', 'uploaded'])) {
+        if (! in_array($recording->status, ['ready', 'uploaded'])) {
             abort(400, 'Recording not available for download');
         }
 
@@ -51,24 +50,24 @@ class RecordingDownloadController extends Controller
                 abort(400, 'Download not supported for this storage provider');
             }
         } catch (\Exception $e) {
-            abort(500, 'Download failed: ' . $e->getMessage());
+            abort(500, 'Download failed: '.$e->getMessage());
         }
     }
 
     private function downloadFromLocal(RoomRecording $recording, User $user): Response
     {
         // Check if file exists in local storage
-        if (!Storage::disk('local')->exists($recording->provider_file_id)) {
+        if (! Storage::disk('local')->exists($recording->provider_file_id)) {
             abort(404, 'Recording file not found');
         }
 
         // Get file content
         $fileContent = Storage::disk('local')->get($recording->provider_file_id);
-        
+
         // Return file as download response
         return response($fileContent)
             ->header('Content-Type', $recording->mime_type)
-            ->header('Content-Disposition', 'attachment; filename="' . $recording->filename . '"')
+            ->header('Content-Disposition', 'attachment; filename="'.$recording->filename.'"')
             ->header('Content-Length', (string) $recording->size_bytes);
     }
 
@@ -80,42 +79,42 @@ class RecordingDownloadController extends Controller
             ->where('is_active', true)
             ->first();
 
-        if (!$storageAccount) {
+        if (! $storageAccount) {
             abort(400, 'No active Google Drive account found');
         }
 
         $googleDriveService = new GoogleDriveService($storageAccount);
-        
+
         // Get the file content from Google Drive
         $fileContent = $googleDriveService->downloadFile($recording->provider_file_id);
-        
-        if (!$fileContent) {
+
+        if (! $fileContent) {
             abort(404, 'File not found in Google Drive');
         }
 
         return response($fileContent)
             ->header('Content-Type', $recording->mime_type)
-            ->header('Content-Disposition', 'attachment; filename="' . $recording->filename . '"')
+            ->header('Content-Disposition', 'attachment; filename="'.$recording->filename.'"')
             ->header('Content-Length', (string) $recording->size_bytes);
     }
 
     private function downloadFromWasabi(RoomRecording $recording, User $user): \Illuminate\Http\RedirectResponse
     {
-        // Find user's active Wasabi account  
+        // Find user's active Wasabi account
         $storageAccount = $user->storageAccounts()
             ->where('provider', 'wasabi')
             ->where('is_active', true)
             ->first();
 
-        if (!$storageAccount) {
+        if (! $storageAccount) {
             abort(400, 'No active Wasabi account found');
         }
 
         $wasabiService = new \Domain\Room\Services\WasabiS3Service($storageAccount);
-        
+
         // Generate a presigned download URL and redirect
         $downloadData = $wasabiService->generatePresignedDownloadUrl($recording->provider_file_id, 3600);
-        
+
         return redirect($downloadData['download_url']);
     }
 
@@ -130,4 +129,3 @@ class RecordingDownloadController extends Controller
         return $room->participants()->where('user_id', $user->id)->exists();
     }
 }
-

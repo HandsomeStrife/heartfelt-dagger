@@ -20,7 +20,7 @@ class FearTrackerData extends Data implements Wireable
     ) {
         // Ensure fear level is within bounds
         $this->fear_level = max(0, min($this->max_fear_level, $this->fear_level));
-        
+
         // Set capability flags based on current level
         $this->can_increase = $this->fear_level < $this->max_fear_level;
         $this->can_decrease = $this->fear_level > 0;

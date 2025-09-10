@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Domain\Character\Data;
 
+use Carbon\Carbon;
 use Domain\Character\Models\Character;
 use Illuminate\Support\Collection;
 use Livewire\Wireable;
 use Spatie\LaravelData\Concerns\WireableData;
-use Carbon\Carbon;
 use Spatie\LaravelData\Data;
 
 class CharacterData extends Data implements Wireable
 {
     use WireableData;
-    
+
     public function __construct(
         public ?int $id,
         public string $character_key,
@@ -27,6 +27,7 @@ class CharacterData extends Data implements Wireable
         public string $ancestry,
         public string $community,
         public int $level,
+        public int $proficiency,
         public ?string $profile_image_path,
         public CharacterStatsData $stats,
         public CharacterTraitsData $traits,
@@ -57,6 +58,7 @@ class CharacterData extends Data implements Wireable
             ancestry: $character->ancestry ?: 'Human',
             community: $character->community ?: 'Wanderborne',
             level: $character->level,
+            proficiency: $character->proficiency ?? 0,
             profile_image_path: $character->profile_image_path,
             stats: CharacterStatsData::fromModel($character),
             traits: CharacterTraitsData::fromModel($character),
@@ -75,6 +77,7 @@ class CharacterData extends Data implements Wireable
     public function getBanner(): string
     {
         $class = $this->class ?: 'warrior'; // Defensive check, should not be needed since fromModel provides default
+
         return asset('img/banners/'.strtolower($class).'.webp');
     }
 
@@ -138,7 +141,7 @@ class CharacterData extends Data implements Wireable
     {
         $baseArmorScore = 1; // Base armor score for all characters
         $equippedArmorScore = $this->getEquippedArmor()->sum(fn ($armor) => $armor->getArmorScore());
-        
+
         return $baseArmorScore + $equippedArmorScore;
     }
 
@@ -148,19 +151,19 @@ class CharacterData extends Data implements Wireable
     public function getMajorThreshold(): int
     {
         $equippedArmor = $this->getEquippedArmor();
-        
+
         if ($equippedArmor->isEmpty()) {
             // Unarmored: Major threshold = character level
             return max(1, $this->level);
         }
-        
+
         // With armor: Use armor's base threshold + level bonus (level - 1) + other bonuses
         $baseThreshold = $this->getHighestArmorMajorThreshold($equippedArmor);
         $levelBonus = max(0, $this->level - 1); // Level bonus starts at 0 for level 1
-        
+
         // Get bonuses from ancestry, subclass, and advancements (if any)
         $damageThresholdBonus = 0; // Placeholder for future implementation
-        
+
         return max(1, $baseThreshold + $levelBonus + $damageThresholdBonus);
     }
 
@@ -170,19 +173,19 @@ class CharacterData extends Data implements Wireable
     public function getSevereThreshold(): int
     {
         $equippedArmor = $this->getEquippedArmor();
-        
+
         if ($equippedArmor->isEmpty()) {
             // Unarmored: Severe threshold = 2 × character level
             return max(1, $this->level * 2);
         }
-        
+
         // With armor: Use armor's base severe threshold + level bonus + other bonuses
         $baseThreshold = $this->getHighestArmorSevereThreshold($equippedArmor);
         $levelBonus = max(0, $this->level - 1); // Level bonus starts at 0 for level 1
-        
+
         // Get severe threshold bonuses from subclass (if any)
         $severeThresholdBonus = 0; // Placeholder for future implementation
-        
+
         return max(1, $baseThreshold + $levelBonus + $severeThresholdBonus);
     }
 
@@ -192,14 +195,14 @@ class CharacterData extends Data implements Wireable
     private function getHighestArmorMajorThreshold(Collection $equippedArmor): int
     {
         $highestThreshold = 0;
-        
+
         foreach ($equippedArmor as $armor) {
             $thresholds = $armor->getThresholds();
             if ($thresholds && isset($thresholds['lower'])) {
                 $highestThreshold = max($highestThreshold, $thresholds['lower']);
             }
         }
-        
+
         return $highestThreshold;
     }
 
@@ -209,14 +212,14 @@ class CharacterData extends Data implements Wireable
     private function getHighestArmorSevereThreshold(Collection $equippedArmor): int
     {
         $highestThreshold = 0;
-        
+
         foreach ($equippedArmor as $armor) {
             $thresholds = $armor->getThresholds();
             if ($thresholds && isset($thresholds['higher'])) {
                 $highestThreshold = max($highestThreshold, $thresholds['higher']);
             }
         }
-        
+
         return $highestThreshold;
     }
 
@@ -291,7 +294,7 @@ class CharacterData extends Data implements Wireable
     private static function buildConnectionsCollection(array $characterData): Collection
     {
         $connections = $characterData['connections'] ?? [];
-        
+
         return collect($connections)->map(function ($connection) {
             return new CharacterConnectionData(
                 character_name: $connection['character_name'] ?? '',

@@ -21,7 +21,7 @@ class GameStateRepository
     {
         // Load campaign if room belongs to one
         $room->load('campaign');
-        
+
         // If room belongs to a campaign, use campaign game state
         if ($room->campaign_id && $room->campaign) {
             return GameStateData::fromCampaign($room->campaign);
@@ -45,7 +45,7 @@ class GameStateRepository
     public function getFearTrackerForRoom(Room $room): FearTrackerData
     {
         $room->load('campaign');
-        
+
         if ($room->campaign_id && $room->campaign) {
             return FearTrackerData::fromCampaign($room->campaign);
         }
@@ -55,13 +55,13 @@ class GameStateRepository
 
     /**
      * Get countdown trackers for a room session
-     * 
+     *
      * @return Collection<CountdownTrackerData>
      */
     public function getCountdownTrackersForRoom(Room $room): Collection
     {
         $room->load('campaign');
-        
+
         if ($room->campaign_id && $room->campaign) {
             return collect($room->campaign->getCountdownTrackers())
                 ->map(fn (array $data, string $id) => CountdownTrackerData::fromArray($id, $data))
@@ -75,7 +75,7 @@ class GameStateRepository
 
     /**
      * Get countdown trackers for a campaign
-     * 
+     *
      * @return Collection<CountdownTrackerData>
      */
     public function getCountdownTrackersForCampaign(Campaign $campaign): Collection
@@ -91,13 +91,15 @@ class GameStateRepository
     public function findCountdownTrackerForRoom(Room $room, string $trackerId): ?CountdownTrackerData
     {
         $room->load('campaign');
-        
+
         if ($room->campaign_id && $room->campaign) {
             $tracker = $room->campaign->getCountdownTracker($trackerId);
+
             return $tracker ? CountdownTrackerData::fromArray($trackerId, $tracker) : null;
         }
 
         $tracker = $room->getCountdownTracker($trackerId);
+
         return $tracker ? CountdownTrackerData::fromArray($trackerId, $tracker) : null;
     }
 
@@ -115,7 +117,7 @@ class GameStateRepository
     public function getGameStateSource(Room $room): array
     {
         $room->load('campaign');
-        
+
         if ($room->campaign_id && $room->campaign) {
             return [
                 'type' => 'campaign',

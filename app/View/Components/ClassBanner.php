@@ -3,10 +3,9 @@
 namespace App\View\Components;
 
 use Closure;
+use Domain\Character\Enums\ClassEnum;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
-use Domain\Character\Enums\ClassEnum;
-use Domain\Character\Enums\DomainEnum;
 
 class ClassBanner extends Component
 {

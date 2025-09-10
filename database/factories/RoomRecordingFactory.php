@@ -16,14 +16,14 @@ class RoomRecordingFactory extends Factory
     public function definition(): array
     {
         $startedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween('-1 month', 'now'));
-        $endedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween($startedAt, $startedAt->format('Y-m-d H:i:s') . ' +2 hours'));
+        $endedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween($startedAt, $startedAt->format('Y-m-d H:i:s').' +2 hours'));
 
         return [
             'room_id' => Room::factory(),
             'user_id' => User::factory(),
             'provider' => fake()->randomElement(['wasabi', 'google_drive', 'local']),
             'provider_file_id' => fake()->uuid(),
-            'filename' => fake()->words(3, true) . '_recording.webm',
+            'filename' => fake()->words(3, true).'_recording.webm',
             'size_bytes' => fake()->numberBetween(1000000, 500000000), // 1MB to 500MB
             'started_at_ms' => $startedAt->getTimestamp() * 1000,
             'ended_at_ms' => $endedAt->getTimestamp() * 1000,
@@ -98,8 +98,8 @@ class RoomRecordingFactory extends Factory
     public function recent(): static
     {
         $startedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween('-1 week', 'now'));
-        $endedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween($startedAt, $startedAt->format('Y-m-d H:i:s') . ' +2 hours'));
-        
+        $endedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween($startedAt, $startedAt->format('Y-m-d H:i:s').' +2 hours'));
+
         return $this->state(fn (array $attributes) => [
             'started_at_ms' => $startedAt->getTimestamp() * 1000,
             'ended_at_ms' => $endedAt->getTimestamp() * 1000,
@@ -109,8 +109,8 @@ class RoomRecordingFactory extends Factory
     public function old(): static
     {
         $startedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween('-3 months', '-1 month'));
-        $endedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween($startedAt, $startedAt->format('Y-m-d H:i:s') . ' +2 hours'));
-        
+        $endedAt = \Carbon\Carbon::instance(fake()->dateTimeBetween($startedAt, $startedAt->format('Y-m-d H:i:s').' +2 hours'));
+
         return $this->state(fn (array $attributes) => [
             'started_at_ms' => $startedAt->getTimestamp() * 1000,
             'ended_at_ms' => $endedAt->getTimestamp() * 1000,
@@ -127,7 +127,7 @@ class RoomRecordingFactory extends Factory
     public function withStreamUrl(): static
     {
         return $this->state(fn (array $attributes) => [
-            'stream_url' => fake()->url() . '/video.webm',
+            'stream_url' => fake()->url().'/video.webm',
         ]);
     }
 }

@@ -4,8 +4,10 @@ declare(strict_types=1);
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
 use Domain\User\Models\User;
-use function Pest\Livewire\livewire;
 use PHPUnit\Framework\Attributes\Test;
+
+use function Pest\Livewire\livewire;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
@@ -23,12 +25,12 @@ it('can set and retrieve pronouns via direct property', function () {
     foreach ($pronouns as $pronoun) {
         $component->set('pronouns', $pronoun);
         $retrieved = $component->get('pronouns');
-        
+
         expect($retrieved)->toEqual($pronoun, "Failed to preserve pronoun in property: {$pronoun}");
-        
+
         // Trigger a save operation to persist to database
         $component->call('updatePronouns', $pronoun);
-        
+
         // Verify it's saved to the database
         $character = Character::where('character_key', 'PRON123456')->first();
         expect($character->pronouns)->toEqual($pronoun, "Failed to save pronoun to database: {$pronoun}");

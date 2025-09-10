@@ -1,9 +1,10 @@
 <?php
 
+use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\VideoRoomController;
+use App\Http\Controllers\ResetPasswordController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,12 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [RegisterController::class, 'index'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+
+    // Password reset routes
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'index'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'index'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
@@ -45,10 +52,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
-    
+
     // TipTap editor test route
     Route::get('/tiptap-test', App\Livewire\TiptapTest::class)->name('tiptap-test');
-    
+
     // Campaign routes
     Route::prefix('campaigns')->name('campaigns.')->group(function () {
         Route::get('/', [App\Http\Controllers\CampaignController::class, 'index'])->name('index');
@@ -61,24 +68,25 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{campaign}/leave', [App\Http\Controllers\CampaignController::class, 'leave'])->name('leave');
         Route::get('/{campaign}/rooms/create', [App\Http\Controllers\RoomController::class, 'createForCampaign'])->name('rooms.create');
         Route::post('/{campaign}/rooms', [App\Http\Controllers\RoomController::class, 'storeForCampaign'])->name('rooms.store');
-        
+
         // Campaign Pages routes
         Route::get('/{campaign}/pages', function (Domain\Campaign\Models\Campaign $campaign) {
             return view('campaigns.pages', compact('campaign'));
         })->name('pages');
-        
+
         Route::get('/{campaign}/pages/{page}', function (Domain\Campaign\Models\Campaign $campaign, Domain\CampaignPage\Models\CampaignPage $page) {
             // Verify the page belongs to the campaign
             if ($page->campaign_id !== $campaign->id) {
                 abort(404);
             }
+
             return view('campaigns.page-show', compact('campaign', 'page'));
         })->name('page.show');
-        
+
         // Campaign invite routes (separate from auth to allow invite sharing)
         Route::get('/join/{invite_code}', [App\Http\Controllers\CampaignController::class, 'showJoin'])->name('invite');
     });
-    
+
     // Campaign Frame routes
     Route::prefix('campaign-frames')->name('campaign-frames.')->group(function () {
         Route::get('/', [App\Http\Controllers\CampaignFrameController::class, 'index'])->name('index');
@@ -90,7 +98,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/{campaign_frame}', [App\Http\Controllers\CampaignFrameController::class, 'update'])->name('update');
         Route::delete('/{campaign_frame}', [App\Http\Controllers\CampaignFrameController::class, 'destroy'])->name('destroy');
     });
-    
+
     // Authenticated room routes (creation, management)
     Route::prefix('rooms')->name('rooms.')->group(function () {
         Route::get('/', [App\Http\Controllers\RoomController::class, 'index'])->name('index');
@@ -119,6 +127,7 @@ Route::get('/characters', [App\Http\Controllers\CharacterBuilderController::clas
 Route::get('/character-builder', [App\Http\Controllers\CharacterBuilderController::class, 'create'])->name('character-builder');
 Route::get('/character-builder/{character_key}', [App\Http\Controllers\CharacterBuilderController::class, 'edit'])->name('character-builder.edit');
 Route::get('/character/{public_key}', [App\Http\Controllers\CharacterBuilderController::class, 'show'])->name('character.show');
+Route::get('/character/{public_key}/{character_key}/level-up', [App\Http\Controllers\CharacterLevelUpController::class, 'show'])->name('character.level-up');
 
 // API routes for character data
 Route::get('/api/character/{character_key}', [App\Http\Controllers\CharacterBuilderController::class, 'apiShow'])->name('api.character.show');
@@ -130,6 +139,7 @@ Route::get('/range-check', function () {
 
 Route::get('/actual-plays', function () {
     $actual_plays_data = json_decode(file_get_contents(resource_path('json/actual-plays.json')), true);
+
     return view('actual-plays', compact('actual_plays_data'));
 })->name('actual-plays');
 
@@ -150,7 +160,7 @@ Route::prefix('api/rooms')->name('api.rooms.')->group(function () {
     Route::post('/{room}/recordings/confirm-wasabi', [App\Http\Controllers\Api\RoomRecordingController::class, 'confirmWasabiUpload'])->name('recordings.confirm-wasabi');
     Route::post('/{room}/recordings/google-drive-upload-url', [App\Http\Controllers\Api\RoomRecordingController::class, 'generateGoogleDriveUploadUrl'])->name('recordings.google-drive-upload-url');
     Route::post('/{room}/recordings/confirm-google-drive', [App\Http\Controllers\Api\RoomRecordingController::class, 'confirmGoogleDriveUpload'])->name('recordings.confirm-google-drive');
-    
+
     // New recording session management routes
     Route::post('/{room}/recordings/start-session', [App\Http\Controllers\Api\RoomRecordingController::class, 'startSession'])->name('recordings.start-session');
     Route::post('/{room}/recordings/{recording}/progress', [App\Http\Controllers\Api\RoomRecordingController::class, 'updateProgress'])->name('recordings.update-progress');
@@ -169,7 +179,6 @@ Route::prefix('api/uploads/s3/multipart')->name('api.uploads.s3.multipart.')->mi
     Route::post('/complete', [App\Http\Controllers\Api\S3MultipartController::class, 'complete'])->name('complete');
     Route::post('/abort', [App\Http\Controllers\Api\S3MultipartController::class, 'abort'])->name('abort');
 });
-
 
 // Google Drive OAuth routes
 Route::prefix('google-drive')->name('google-drive.')->middleware('auth')->group(function () {
@@ -191,7 +200,7 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('/rooms/{room}/stt-config', [App\Http\Controllers\Api\SttConfigController::class, 'getConfig'])
         ->name('rooms.stt-config')
         ->middleware('auth');
-    
+
     // Recording thumbnail and streaming routes
     Route::post('/recordings/thumbnail', [App\Http\Controllers\Api\RecordingThumbnailController::class, 'store'])
         ->name('recordings.thumbnail.store')
@@ -214,4 +223,4 @@ Route::get('/simple-test', function () {
 });
 
 // Character image upload routes
-require __DIR__ . '/character-image-upload.php';
+require __DIR__.'/character-image-upload.php';

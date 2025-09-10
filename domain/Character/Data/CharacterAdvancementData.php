@@ -20,7 +20,7 @@ class CharacterAdvancementData extends Data
     {
         $trait_names = count($traits) === 1 ? $traits[0] : implode(' and ', $traits);
         $mark_text = count($traits) === 1 ? 'mark them.' : 'and mark them.';
-        
+
         return new self(
             tier: $tier,
             advancement_number: $advancement_number,
@@ -42,7 +42,7 @@ class CharacterAdvancementData extends Data
             advancement_data: [
                 'bonus' => $bonus,
             ],
-            description: "Gain an additional Hit Point slot",
+            description: 'Gain an additional Hit Point slot',
         );
     }
 
@@ -55,7 +55,7 @@ class CharacterAdvancementData extends Data
             advancement_data: [
                 'bonus' => $bonus,
             ],
-            description: "Gain an additional Stress slot",
+            description: 'Gain an additional Stress slot',
         );
     }
 
@@ -68,7 +68,7 @@ class CharacterAdvancementData extends Data
             advancement_data: [
                 'bonus' => $bonus,
             ],
-            description: "Your experiences now provide a +3 modifier instead of +2",
+            description: 'Your experiences now provide a +3 modifier instead of +2',
         );
     }
 
@@ -107,7 +107,7 @@ class CharacterAdvancementData extends Data
             advancement_data: [
                 'type' => $type,
             ],
-            description: "Take an upgraded subclass card",
+            description: 'Take an upgraded subclass card',
         );
     }
 

@@ -10,13 +10,15 @@ use Domain\User\Models\UserStorageAccount;
 use Google\Client as GoogleClient;
 use Google\Service\Drive as GoogleDrive;
 use Google\Service\Drive\DriveFile;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class GoogleDriveService
 {
     private GoogleClient $client;
+
     private GoogleDrive $driveService;
+
     private UserStorageAccount $storageAccount;
 
     public function __construct(UserStorageAccount $storageAccount)
@@ -34,27 +36,27 @@ class GoogleDriveService
      */
     private function initializeGoogleClient(): void
     {
-        $this->client = new GoogleClient();
-        
+        $this->client = new GoogleClient;
+
         // Set application credentials from config
         $this->client->setClientId(config('services.google_drive.client_id'));
         $this->client->setClientSecret(config('services.google_drive.client_secret'));
         $this->client->setRedirectUri(config('services.google_drive.redirect_uri'));
-        
+
         // Set required scopes for Drive API
         $this->client->addScope(GoogleDrive::DRIVE_FILE);
-        
+
         // Set access type to offline to get refresh tokens
         $this->client->setAccessType('offline');
         $this->client->setApprovalPrompt('force');
-        
+
         // Set stored credentials if available
         $credentials = $this->storageAccount->encrypted_credentials;
         if (isset($credentials['refresh_token'])) {
             // Try to refresh the access token using the refresh token
             try {
                 $token = $this->client->fetchAccessTokenWithRefreshToken($credentials['refresh_token']);
-                
+
                 // If we got a new access token, we can optionally store it
                 if (isset($token['access_token'])) {
                     // Token successfully refreshed
@@ -72,7 +74,7 @@ class GoogleDriveService
             // If we have an access token but no refresh token, set it directly
             $this->client->setAccessToken($credentials['access_token']);
         }
-        
+
         $this->driveService = new GoogleDrive($this->client);
     }
 
@@ -81,14 +83,14 @@ class GoogleDriveService
      */
     public static function getAuthorizationUrl(): string
     {
-        $client = new GoogleClient();
+        $client = new GoogleClient;
         $client->setClientId(config('services.google_drive.client_id'));
         $client->setClientSecret(config('services.google_drive.client_secret'));
         $client->setRedirectUri(config('services.google_drive.redirect_uri'));
         $client->addScope(GoogleDrive::DRIVE_FILE);
         $client->setAccessType('offline');
         $client->setApprovalPrompt('force');
-        
+
         return $client->createAuthUrl();
     }
 
@@ -97,17 +99,17 @@ class GoogleDriveService
      */
     public static function exchangeAuthorizationCode(string $code): array
     {
-        $client = new GoogleClient();
+        $client = new GoogleClient;
         $client->setClientId(config('services.google_drive.client_id'));
         $client->setClientSecret(config('services.google_drive.client_secret'));
         $client->setRedirectUri(config('services.google_drive.redirect_uri'));
-        
+
         $token = $client->fetchAccessTokenWithAuthCode($code);
-        
+
         if (isset($token['error'])) {
-            throw new \Exception('Failed to exchange authorization code: ' . $token['error_description']);
+            throw new \Exception('Failed to exchange authorization code: '.$token['error_description']);
         }
-        
+
         return $token;
     }
 
@@ -117,11 +119,11 @@ class GoogleDriveService
     private function getAuthenticatedClient(): \GuzzleHttp\Client
     {
         $accessToken = $this->getAccessToken();
-        
+
         return new \GuzzleHttp\Client([
             'timeout' => 30,
             'headers' => [
-                'Authorization' => 'Bearer ' . $accessToken,
+                'Authorization' => 'Bearer '.$accessToken,
             ],
         ]);
     }
@@ -140,21 +142,21 @@ class GoogleDriveService
     private function getAccessToken(): string
     {
         $credentials = $this->storageAccount->encrypted_credentials;
-        
+
         // Check if we have a valid access token
-        if (isset($credentials['access_token']) && 
-            isset($credentials['expires_in']) && 
+        if (isset($credentials['access_token']) &&
+            isset($credentials['expires_in']) &&
             isset($credentials['created_at'])) {
-            
+
             $expiresAt = $credentials['created_at'] + $credentials['expires_in'];
             $now = now()->timestamp;
-            
+
             // If token is still valid (with 5 minute buffer), use it
             if ($expiresAt > ($now + 300)) {
                 return $credentials['access_token'];
             }
         }
-        
+
         // Token is expired or missing, refresh it
         return $this->refreshAccessToken();
     }
@@ -165,21 +167,21 @@ class GoogleDriveService
     private function refreshAccessToken(): string
     {
         $credentials = $this->storageAccount->encrypted_credentials;
-        
-        if (!isset($credentials['refresh_token'])) {
+
+        if (! isset($credentials['refresh_token'])) {
             throw new \Exception('No refresh token available. User needs to re-authorize.');
         }
 
-        $client = new GoogleClient();
+        $client = new GoogleClient;
         $client->setClientId(config('services.google_drive.client_id'));
         $client->setClientSecret(config('services.google_drive.client_secret'));
         $client->refreshToken($credentials['refresh_token']);
 
         $newToken = $client->getAccessToken();
-        
-        if (!$newToken || isset($newToken['error'])) {
+
+        if (! $newToken || isset($newToken['error'])) {
             $error = $newToken['error_description'] ?? 'Unknown error refreshing token';
-            throw new \Exception('Failed to refresh access token: ' . $error);
+            throw new \Exception('Failed to refresh access token: '.$error);
         }
 
         // Update stored credentials with new token
@@ -195,7 +197,7 @@ class GoogleDriveService
         }
 
         $this->storageAccount->update([
-            'encrypted_credentials' => $updatedCredentials
+            'encrypted_credentials' => $updatedCredentials,
         ]);
 
         return $newToken['access_token'];
@@ -216,24 +218,24 @@ class GoogleDriveService
             $fileMetadata = [
                 'name' => $filename,
             ];
-            
+
             // Add parent folder if specified
-            if (!empty($metadata['folder_id'])) {
+            if (! empty($metadata['folder_id'])) {
                 $fileMetadata['parents'] = [$metadata['folder_id']];
             }
-            
+
             // Get authenticated HTTP client
             $httpClient = $this->getAuthenticatedClient();
-            
+
             // Create resumable upload session with Origin header for CORS
             $origin = $origin ?: config('app.url', 'http://localhost:8090');
-            
+
             Log::info('Creating Google Drive resumable session with origin', [
                 'origin' => $origin,
                 'filename' => $filename,
-                'storage_account_id' => $this->storageAccount->id
+                'storage_account_id' => $this->storageAccount->id,
             ]);
-            
+
             $response = $httpClient->post('https://www.googleapis.com/upload/drive/v3/files', [
                 'query' => ['uploadType' => 'resumable'],
                 'headers' => [
@@ -246,12 +248,12 @@ class GoogleDriveService
             ]);
 
             if ($response->getStatusCode() !== 200) {
-                throw new \Exception('Failed to create resumable upload session: ' . $response->getBody());
+                throw new \Exception('Failed to create resumable upload session: '.$response->getBody());
             }
 
             $sessionUri = $response->getHeader('Location')[0] ?? null;
-            
-            if (!$sessionUri) {
+
+            if (! $sessionUri) {
                 throw new \Exception('No session URI returned from Google Drive');
             }
 
@@ -259,7 +261,7 @@ class GoogleDriveService
                 'storage_account_id' => $this->storageAccount->id,
                 'filename' => $filename,
                 'session_uri_length' => strlen($sessionUri),
-                'estimated_size' => $estimatedSize
+                'estimated_size' => $estimatedSize,
             ]);
 
             return [
@@ -273,9 +275,9 @@ class GoogleDriveService
             Log::error('Failed to generate Google Drive upload URL', [
                 'storage_account_id' => $this->storageAccount->id,
                 'filename' => $filename,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            
+
             throw $e;
         }
     }
@@ -333,12 +335,12 @@ class GoogleDriveService
             Log::info('Finalizing Google Drive resumable session', [
                 'storage_account_id' => $this->storageAccount->id,
                 'session_uri_length' => strlen($sessionUri),
-                'uploaded_bytes' => $uploadedBytes
+                'uploaded_bytes' => $uploadedBytes,
             ]);
 
             // First, check the session status to see what Google Drive thinks
             $statusResponse = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                'Authorization' => 'Bearer '.$this->getAccessToken(),
                 'Content-Range' => 'bytes */*',
                 'Content-Length' => '0',
             ])->put($sessionUri);
@@ -347,14 +349,14 @@ class GoogleDriveService
                 'storage_account_id' => $this->storageAccount->id,
                 'status' => $statusResponse->status(),
                 'range_header' => $statusResponse->header('Range'),
-                'body_preview' => substr($statusResponse->body(), 0, 500)
+                'body_preview' => substr($statusResponse->body(), 0, 500),
             ]);
 
             // If status check returns 200/201, the upload is already complete
             if ($statusResponse->status() === 200 || $statusResponse->status() === 201) {
                 $fileData = $statusResponse->json();
-                
-                if (!$fileData || !isset($fileData['id'])) {
+
+                if (! $fileData || ! isset($fileData['id'])) {
                     throw new \Exception('Upload appears complete but no file ID returned');
                 }
 
@@ -362,7 +364,7 @@ class GoogleDriveService
                     'storage_account_id' => $this->storageAccount->id,
                     'file_id' => $fileData['id'],
                     'filename' => $fileData['name'] ?? 'unknown',
-                    'size' => $fileData['size'] ?? 0
+                    'size' => $fileData['size'] ?? 0,
                 ]);
 
                 return [
@@ -387,7 +389,7 @@ class GoogleDriveService
                         Log::info('Adjusting uploaded bytes based on server range', [
                             'original_bytes' => $uploadedBytes,
                             'actual_bytes' => $actualUploadedBytes,
-                            'range_header' => $rangeHeader
+                            'range_header' => $rangeHeader,
                         ]);
                         $uploadedBytes = $actualUploadedBytes;
                     }
@@ -395,27 +397,27 @@ class GoogleDriveService
 
                 // Send the final commit request with the correct total bytes
                 $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                    'Authorization' => 'Bearer '.$this->getAccessToken(),
                     'Content-Range' => "bytes */{$uploadedBytes}",
                     'Content-Type' => 'application/octet-stream',
                     'Content-Length' => '0',
                 ])->put($sessionUri);
             } else {
                 // Session might be expired or invalid
-                throw new \Exception("Session status check returned unexpected status: {$statusResponse->status()}, body: " . $statusResponse->body());
+                throw new \Exception("Session status check returned unexpected status: {$statusResponse->status()}, body: ".$statusResponse->body());
             }
 
             Log::info('Google Drive finalization response', [
                 'storage_account_id' => $this->storageAccount->id,
                 'status' => $response->status(),
                 'headers' => $response->headers(),
-                'body_preview' => substr($response->body(), 0, 500)
+                'body_preview' => substr($response->body(), 0, 500),
             ]);
 
             if ($response->status() === 200 || $response->status() === 201) {
                 $fileData = $response->json();
-                
-                if (!$fileData || !isset($fileData['id'])) {
+
+                if (! $fileData || ! isset($fileData['id'])) {
                     throw new \Exception('Finalization succeeded but no file ID returned');
                 }
 
@@ -423,7 +425,7 @@ class GoogleDriveService
                     'storage_account_id' => $this->storageAccount->id,
                     'file_id' => $fileData['id'],
                     'filename' => $fileData['name'] ?? 'unknown',
-                    'size' => $fileData['size'] ?? 0
+                    'size' => $fileData['size'] ?? 0,
                 ]);
 
                 return [
@@ -441,21 +443,20 @@ class GoogleDriveService
             if ($response->status() === 308) {
                 // Still incomplete - get the range
                 $rangeHeader = $response->header('Range');
-                throw new \Exception("Upload still incomplete after finalization attempt. Range: " . ($rangeHeader ?? 'unknown'));
+                throw new \Exception('Upload still incomplete after finalization attempt. Range: '.($rangeHeader ?? 'unknown'));
             }
 
             // Other status codes indicate errors
-            throw new \Exception("Finalization failed with status: {$response->status()}, body: " . $response->body());
-
+            throw new \Exception("Finalization failed with status: {$response->status()}, body: ".$response->body());
         } catch (\Exception $e) {
             Log::error('Failed to finalize Google Drive resumable session', [
                 'error' => $e->getMessage(),
                 'storage_account_id' => $this->storageAccount->id,
                 'session_uri' => $sessionUri,
-                'uploaded_bytes' => $uploadedBytes
+                'uploaded_bytes' => $uploadedBytes,
             ]);
 
-            throw new \Exception('Failed to finalize resumable session: ' . $e->getMessage());
+            throw new \Exception('Failed to finalize resumable session: '.$e->getMessage());
         }
     }
 
@@ -468,7 +469,7 @@ class GoogleDriveService
         try {
             // Query the session URI to get upload status
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->getAccessToken(),
+                'Authorization' => 'Bearer '.$this->getAccessToken(),
                 'Content-Length' => '0',
                 'Content-Range' => 'bytes */*', // Query current status
             ])->put($sessionUri);
@@ -477,20 +478,20 @@ class GoogleDriveService
                 'storage_account_id' => $this->storageAccount->id,
                 'status' => $response->status(),
                 'headers' => $response->headers(),
-                'body_preview' => substr($response->body(), 0, 500)
+                'body_preview' => substr($response->body(), 0, 500),
             ]);
 
             if ($response->status() === 308) {
                 // Upload is still in progress, get the range that's been uploaded
                 $rangeHeader = $response->header('Range');
-                throw new \Exception("Upload still in progress. Range: " . ($rangeHeader ?? 'unknown'));
+                throw new \Exception('Upload still in progress. Range: '.($rangeHeader ?? 'unknown'));
             }
 
             if ($response->status() === 200 || $response->status() === 201) {
                 // Upload completed successfully
                 $fileData = $response->json();
-                
-                if (!$fileData || !isset($fileData['id'])) {
+
+                if (! $fileData || ! isset($fileData['id'])) {
                     throw new \Exception('Upload verification failed: No file ID returned');
                 }
 
@@ -514,7 +515,6 @@ class GoogleDriveService
 
             // Other status codes indicate errors
             throw new \Exception("Upload verification failed with status: {$response->status()}");
-
         } catch (\Exception $e) {
             Log::error('Failed to verify Google Drive upload', [
                 'error' => $e->getMessage(),
@@ -522,10 +522,9 @@ class GoogleDriveService
                 'session_uri' => $sessionUri,
             ]);
 
-            throw new \Exception('Failed to verify upload completion: ' . $e->getMessage());
+            throw new \Exception('Failed to verify upload completion: '.$e->getMessage());
         }
     }
-
 
     /**
      * Get download URL for a file
@@ -534,7 +533,7 @@ class GoogleDriveService
     {
         try {
             $file = $this->driveService->files->get($fileId, [
-                'fields' => 'id,name,size,webViewLink,webContentLink,createdTime'
+                'fields' => 'id,name,size,webViewLink,webContentLink,createdTime',
             ]);
 
             return [
@@ -553,7 +552,7 @@ class GoogleDriveService
                 'error' => $e->getMessage(),
             ]);
 
-            throw new \Exception('Failed to get download URL: ' . $e->getMessage());
+            throw new \Exception('Failed to get download URL: '.$e->getMessage());
         }
     }
 
@@ -591,12 +590,12 @@ class GoogleDriveService
         try {
             // Try to get information about the user's Drive
             $about = $this->driveService->about->get(['fields' => 'user']);
-            
+
             Log::info('Google Drive connection test successful', [
                 'storage_account_id' => $this->storageAccount->id,
                 'user_email' => $about->getUser()->getEmailAddress(),
             ]);
-            
+
             return true;
 
         } catch (\Exception $e) {
@@ -644,8 +643,8 @@ class GoogleDriveService
     {
         try {
             $folderName = "DaggerHeart Room {$room->id} - {$room->name}";
-            
-            $driveFile = new DriveFile();
+
+            $driveFile = new DriveFile;
             $driveFile->setName($folderName);
             $driveFile->setMimeType('application/vnd.google-apps.folder');
             $driveFile->setDescription("Recordings for DaggerHeart room: {$room->name}");
@@ -706,8 +705,8 @@ class GoogleDriveService
     {
         try {
             // Build query to find folder
-            $query = "mimeType='application/vnd.google-apps.folder' and name='" . str_replace("'", "\\'", $folderName) . "' and trashed=false";
-            
+            $query = "mimeType='application/vnd.google-apps.folder' and name='".str_replace("'", "\\'", $folderName)."' and trashed=false";
+
             if ($parentId) {
                 $query .= " and '{$parentId}' in parents";
             } else {
@@ -729,6 +728,7 @@ class GoogleDriveService
                     'folder_id' => $files[0]->getId(),
                     'parent_id' => $parentId,
                 ]);
+
                 return $files[0]->getId();
             }
 
@@ -752,10 +752,10 @@ class GoogleDriveService
     private function createFolder(string $folderName, ?string $parentId = null): ?string
     {
         try {
-            $driveFile = new DriveFile();
+            $driveFile = new DriveFile;
             $driveFile->setName($folderName);
             $driveFile->setMimeType('application/vnd.google-apps.folder');
-            
+
             // Set parent folder if specified
             if ($parentId) {
                 $driveFile->setParents([$parentId]);
@@ -791,7 +791,7 @@ class GoogleDriveService
     {
         try {
             $file = $this->driveService->files->get($fileId, [
-                'fields' => 'id,name,size,mimeType,createdTime,modifiedTime'
+                'fields' => 'id,name,size,mimeType,createdTime,modifiedTime',
             ]);
 
             return [
@@ -822,7 +822,7 @@ class GoogleDriveService
         try {
             // Use the Drive service to get the file content with 'alt=media'
             $response = $this->driveService->files->get($fileId, ['alt' => 'media']);
-            
+
             Log::info('Downloaded file from Google Drive', [
                 'storage_account_id' => $this->storageAccount->id,
                 'file_id' => $fileId,

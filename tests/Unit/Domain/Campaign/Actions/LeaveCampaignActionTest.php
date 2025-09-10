@@ -5,11 +5,11 @@ use Domain\Campaign\Actions\LeaveCampaignAction;
 use Domain\Campaign\Models\Campaign;
 use Domain\Campaign\Models\CampaignMember;
 use Domain\User\Models\User;
-use PHPUnit\Framework\Attributes\Test;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->action = new LeaveCampaignAction();
+    $this->action = new LeaveCampaignAction;
 });
 it('allows member to leave campaign', function () {
     $campaign = Campaign::factory()->create();
@@ -53,14 +53,14 @@ it('prevents creator from leaving own campaign', function () {
     $creator = User::factory()->create();
     $campaign = Campaign::factory()->create(['creator_id' => $creator->id]);
 
-    expect(fn() => $this->action->execute($campaign, $creator))
+    expect(fn () => $this->action->execute($campaign, $creator))
         ->toThrow(Exception::class, 'Campaign creator cannot leave their own campaign');
 });
 it('prevents non member from leaving', function () {
     $campaign = Campaign::factory()->create();
     $nonMember = User::factory()->create();
 
-    expect(fn() => $this->action->execute($campaign, $nonMember))
+    expect(fn () => $this->action->execute($campaign, $nonMember))
         ->toThrow(Exception::class, 'User is not a member of this campaign');
 });
 it('allows multiple members to leave independently', function () {
@@ -206,7 +206,7 @@ it('prevents double leaving', function () {
     expect($result1)->toBeTrue();
 
     // Second leave should fail
-    expect(fn() => $this->action->execute($campaign, $member))
+    expect(fn () => $this->action->execute($campaign, $member))
         ->toThrow(Exception::class, 'User is not a member of this campaign');
 });
 it('maintains campaign integrity after leave', function () {

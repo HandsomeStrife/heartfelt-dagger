@@ -88,9 +88,9 @@ class CampaignFrameController extends Controller
     public function show(CampaignFrame $campaign_frame)
     {
         $user = Auth::user();
-        
+
         // Check if user can view this frame
-        if (!$campaign_frame->canBeViewedBy($user)) {
+        if (! $campaign_frame->canBeViewedBy($user)) {
             abort(403, 'You do not have permission to view this campaign frame.');
         }
 
@@ -111,9 +111,9 @@ class CampaignFrameController extends Controller
     public function edit(CampaignFrame $campaign_frame)
     {
         $user = Auth::user();
-        
+
         // Check if user can edit this frame
-        if (!$campaign_frame->canBeEditedBy($user)) {
+        if (! $campaign_frame->canBeEditedBy($user)) {
             abort(403, 'You do not have permission to edit this campaign frame.');
         }
 
@@ -130,9 +130,9 @@ class CampaignFrameController extends Controller
     public function update(Request $request, CampaignFrame $campaign_frame)
     {
         $user = Auth::user();
-        
+
         // Check if user can edit this frame
-        if (!$campaign_frame->canBeEditedBy($user)) {
+        if (! $campaign_frame->canBeEditedBy($user)) {
             abort(403, 'You do not have permission to edit this campaign frame.');
         }
 
@@ -173,15 +173,15 @@ class CampaignFrameController extends Controller
     public function destroy(CampaignFrame $campaign_frame)
     {
         $user = Auth::user();
-        
+
         // Check if user can delete this frame
-        if (!$campaign_frame->canBeEditedBy($user)) {
+        if (! $campaign_frame->canBeEditedBy($user)) {
             abort(403, 'You do not have permission to delete this campaign frame.');
         }
 
         try {
             $this->delete_campaign_frame_action->execute($campaign_frame);
-            
+
             return redirect()
                 ->route('campaign-frames.index')
                 ->with('success', 'Campaign frame deleted successfully.');
@@ -198,7 +198,7 @@ class CampaignFrameController extends Controller
     public function browse(Request $request)
     {
         $search = $request->get('search');
-        
+
         if ($search) {
             $frames = $this->campaign_frame_repository->searchPublicFrames($search);
         } else {

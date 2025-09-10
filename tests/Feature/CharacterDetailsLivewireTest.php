@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Livewire\CharacterBuilder;
 use Domain\Character\Models\Character;
+
 use function Pest\Livewire\livewire;
 
 test('character name auto-saves when updated via live model binding', function () {
@@ -124,7 +125,7 @@ test('special characters in name and pronouns are preserved', function () {
     ]);
 
     $specialName = "Àlex O'Reilly-Smith & Co. (3rd)";
-    $specialPronouns = "ze/zir/zirs";
+    $specialPronouns = 'ze/zir/zirs';
 
     // Test special characters
     livewire(CharacterBuilder::class, ['characterKey' => $character->character_key])

@@ -12,8 +12,8 @@ test('room creator can update recording settings', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     $settings = $action->execute(
         $room,
         $user,
@@ -35,8 +35,8 @@ test('non-creator cannot update recording settings', function () {
     $otherUser = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $creator->id]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     expect(function () use ($action, $room, $otherUser) {
         $action->execute(
             $room,
@@ -52,7 +52,7 @@ test('non-creator cannot update recording settings', function () {
 test('can configure wasabi storage for recording', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Create Wasabi storage account
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
@@ -68,8 +68,8 @@ test('can configure wasabi storage for recording', function () {
         'is_active' => true,
     ]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     $settings = $action->execute(
         $room,
         $user,
@@ -88,7 +88,7 @@ test('can configure wasabi storage for recording', function () {
 test('can configure google drive storage for recording', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Create Google Drive storage account
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
@@ -102,8 +102,8 @@ test('can configure google drive storage for recording', function () {
         'is_active' => true,
     ]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     $settings = $action->execute(
         $room,
         $user,
@@ -123,7 +123,7 @@ test('validates storage account belongs to user', function () {
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user1->id]);
-    
+
     // Create storage account for user2
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user2->id,
@@ -137,8 +137,8 @@ test('validates storage account belongs to user', function () {
         'is_active' => true,
     ]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     expect(function () use ($action, $room, $user1, $storageAccount) {
         $action->execute(
             $room,
@@ -154,7 +154,7 @@ test('validates storage account belongs to user', function () {
 test('disabling recording clears storage settings', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'wasabi',
@@ -167,8 +167,8 @@ test('disabling recording clears storage settings', function () {
         'is_active' => true,
     ]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     // First enable recording with storage
     $action->execute(
         $room,
@@ -178,7 +178,7 @@ test('disabling recording clears storage settings', function () {
         storageProvider: 'wasabi',
         storageAccountId: $storageAccount->id
     );
-    
+
     // Then disable recording
     $settings = $action->execute(
         $room,
@@ -199,8 +199,8 @@ test('defaults to local storage when recording enabled without provider', functi
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     $settings = $action->execute(
         $room,
         $user,
@@ -218,7 +218,7 @@ test('defaults to local storage when recording enabled without provider', functi
 test('can update existing room recording settings', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     // Create initial settings
     RoomRecordingSettings::create([
         'room_id' => $room->id,
@@ -228,8 +228,8 @@ test('can update existing room recording settings', function () {
         'storage_account_id' => null,
     ]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     $settings = $action->execute(
         $room,
         $user,
@@ -242,7 +242,7 @@ test('can update existing room recording settings', function () {
     expect($settings->recording_enabled)->toBeTrue();
     expect($settings->stt_enabled)->toBeTrue();
     expect($settings->storage_provider)->toBe('local_device');
-    
+
     // Verify only one settings record exists
     expect(RoomRecordingSettings::where('room_id', $room->id)->count())->toBe(1);
 });
@@ -250,7 +250,7 @@ test('can update existing room recording settings', function () {
 test('validates storage provider matches account provider', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
-    
+
     $storageAccount = UserStorageAccount::create([
         'user_id' => $user->id,
         'provider' => 'wasabi',
@@ -263,8 +263,8 @@ test('validates storage provider matches account provider', function () {
         'is_active' => true,
     ]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     expect(function () use ($action, $room, $user, $storageAccount) {
         $action->execute(
             $room,
@@ -281,8 +281,8 @@ test('can enable speech-to-text without video recording', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     $settings = $action->execute(
         $room,
         $user,
@@ -302,8 +302,8 @@ test('can enable both recording and speech-to-text independently', function () {
     $user = User::factory()->create();
     $room = Room::factory()->create(['creator_id' => $user->id]);
 
-    $action = new UpdateRoomRecordingSettings();
-    
+    $action = new UpdateRoomRecordingSettings;
+
     // First enable only STT
     $settings = $action->execute(
         $room,
@@ -316,7 +316,7 @@ test('can enable both recording and speech-to-text independently', function () {
 
     expect($settings->recording_enabled)->toBeFalse();
     expect($settings->stt_enabled)->toBeTrue();
-    
+
     // Then enable recording while keeping STT
     $settings = $action->execute(
         $room,
@@ -330,7 +330,7 @@ test('can enable both recording and speech-to-text independently', function () {
     expect($settings->recording_enabled)->toBeTrue();
     expect($settings->stt_enabled)->toBeTrue();
     expect($settings->storage_provider)->toBe('local_device');
-    
+
     // Then disable recording while keeping STT
     $settings = $action->execute(
         $room,
@@ -345,4 +345,3 @@ test('can enable both recording and speech-to-text independently', function () {
     expect($settings->stt_enabled)->toBeTrue();
     expect($settings->storage_provider)->toBeNull();
 });
-

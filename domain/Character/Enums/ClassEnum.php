@@ -17,7 +17,7 @@ enum ClassEnum: string
     case WARRIOR = 'warrior';
     case WITCH = 'witch';
     case WIZARD = 'wizard';
-    
+
     public function getDomains(): array
     {
         return match ($this) {

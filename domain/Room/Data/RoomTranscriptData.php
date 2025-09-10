@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Domain\Room\Data;
 
+use Livewire\Wireable;
 use Spatie\LaravelData\Concerns\WireableData;
 use Spatie\LaravelData\Data;
-use Livewire\Wireable;
 
 class RoomTranscriptData extends Data implements Wireable
 {

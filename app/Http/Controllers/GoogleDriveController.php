@@ -23,7 +23,7 @@ class GoogleDriveController extends Controller
     public function authorize(Request $request): RedirectResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login')
                 ->with('error', 'You must be logged in to connect Google Drive');
         }
@@ -31,7 +31,7 @@ class GoogleDriveController extends Controller
         try {
             // Get the authorization URL
             $authUrl = GoogleDriveService::getAuthorizationUrl();
-            
+
             // Store the intended redirect URL in session for after authorization
             if ($request->has('redirect_to')) {
                 session(['google_drive_redirect_to' => $request->get('redirect_to')]);
@@ -60,15 +60,15 @@ class GoogleDriveController extends Controller
     public function callback(Request $request): RedirectResponse
     {
         // Ensure user is authenticated
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login')
                 ->with('error', 'Authentication session expired. Please log in and try again.');
         }
 
         // Check for authorization code
-        if (!$request->has('code')) {
+        if (! $request->has('code')) {
             $error = $request->get('error', 'Authorization was denied');
-            
+
             Log::warning('Google Drive authorization failed or denied', [
                 'user_id' => Auth::id(),
                 'error' => $error,
@@ -81,7 +81,7 @@ class GoogleDriveController extends Controller
         try {
             $user = Auth::user();
             $authorizationCode = $request->get('code');
-            
+
             // Create storage account with the authorization code
             $storageAccount = $this->createGoogleDriveStorageAccount->execute(
                 $user,
@@ -107,7 +107,7 @@ class GoogleDriveController extends Controller
             ]);
 
             return redirect()->route('dashboard') // or appropriate route
-                ->with('error', 'Failed to connect Google Drive account: ' . $e->getMessage());
+                ->with('error', 'Failed to connect Google Drive account: '.$e->getMessage());
         }
     }
 
@@ -127,7 +127,7 @@ class GoogleDriveController extends Controller
                 ->where('provider', 'google_drive')
                 ->first();
 
-            if (!$storageAccount) {
+            if (! $storageAccount) {
                 return redirect()->back()
                     ->with('error', 'Google Drive account not found.');
             }
@@ -155,4 +155,3 @@ class GoogleDriveController extends Controller
         }
     }
 }
-
