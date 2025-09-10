@@ -43,7 +43,7 @@ describe('Character Level Up - Basic Integration Tests', function () {
         expect($advancementChoices['tier_experience']['name'])->toBe('Leadership');
 
         // Verify we can select domain card
-        $availableCards = $component->call('getAvailableDomainCards', 2);
+        $availableCards = $component->instance()->getAvailableDomainCards(2);
         expect($availableCards)->toBeArray();
         expect(count($availableCards))->toBeGreaterThan(0);
 
@@ -55,7 +55,7 @@ describe('Character Level Up - Basic Integration Tests', function () {
         expect($advancementChoices['tier_domain_card'])->toBe($firstCard['key']);
 
         // Test validation passes with both requirements met
-        $isValid = $component->call('validateTierAchievements');
+        $isValid = $component->instance()->validateTierAchievements();
         expect($isValid)->toBe(true);
     });
 
@@ -96,15 +96,17 @@ describe('Character Level Up - Basic Integration Tests', function () {
         ]);
 
         $viewer = livewire(CharacterViewer::class, [
+            'publicKey' => $this->character->public_key,
             'characterKey' => $this->character->character_key,
+            'canEdit' => true,
         ]);
 
         // Test that computed stats are calculated
-        $computedStats = $viewer->call('getComputedStats');
+        $computedStats = $viewer->instance()->getComputedStats();
         expect($computedStats)->toBeArray();
 
         // Test advancement status
-        $advancementStatus = $viewer->call('getAdvancementStatus');
+        $advancementStatus = $viewer->instance()->getAdvancementStatus();
         expect($advancementStatus)->toBeArray();
         expect($advancementStatus['current_tier'])->toBe(2);
         expect($advancementStatus['advancements'])->toBeArray();
@@ -171,7 +173,7 @@ describe('Character Level Up - Basic Integration Tests', function () {
                 'canEdit' => true,
             ]);
 
-            $availableCards = $component->call('getAvailableDomainCards', $level);
+            $availableCards = $component->instance()->getAvailableDomainCards($level);
             expect($availableCards)->toBeArray();
             expect(count($availableCards))->toBeGreaterThan(0, "Should have domain cards available for level $level");
 

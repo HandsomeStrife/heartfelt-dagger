@@ -25,7 +25,7 @@
         @foreach($cardsByDomain as $domain => $cards)
         <div>
             <h6 class="text-amber-400 font-medium mb-2 capitalize">{{ $domain }} Domain</h6>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 @foreach($cards as $card)
                 <div @click="$wire.selectDomainCard({{ $index }}, '{{ $card['key'] }}')"
                      class="relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] bg-slate-900 border-2 border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20 rounded-xl overflow-hidden shadow-lg flex flex-col min-h-[400px] max-w-[360px] mx-auto"

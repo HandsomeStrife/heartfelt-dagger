@@ -11,10 +11,10 @@ echo "🚀 Starting Sail containers..."
 echo "⏳ Waiting for containers to be ready..."
 sleep 10
 
-echo "🎭 Installing Playwright in user context..."
-./vendor/bin/sail npx playwright install
-
 echo "🔧 Installing Playwright with system dependencies in root context..."
 ./vendor/bin/sail root-shell -c "npx playwright install-deps"
+
+echo "🎭 Installing Playwright in user context..."
+./vendor/bin/sail npx playwright install
 
 echo "✅ Playwright reset complete! Your browser tests should now work."

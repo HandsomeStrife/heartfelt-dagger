@@ -417,9 +417,10 @@ class CharacterLevelUp extends Component
     private function advancementRequiresChoices(string $description): bool
     {
         return str_contains(strtolower($description), 'trait') ||
-               str_contains(strtolower($description), 'multiclass') ||
+               str_contains(strtolower($description), 'multiclass:') ||
                str_contains(strtolower($description), 'domain card') ||
-               str_contains(strtolower($description), 'experience');
+               str_contains(strtolower($description), 'experience') ||
+               str_contains(strtolower($description), 'upgraded subclass');
     }
 
     private function hasRequiredChoices(int $option_index, string $description): bool
@@ -432,16 +433,22 @@ class CharacterLevelUp extends Component
                    count($choices['traits']) === 2;
         }
 
-        if (str_contains(strtolower($description), 'multiclass')) {
-            return isset($choices['class']) && ! empty($choices['class']);
-        }
-
         if (str_contains(strtolower($description), 'domain card')) {
             return isset($choices['domain_card']) && ! empty($choices['domain_card']);
         }
 
         if (str_contains(strtolower($description), 'experience')) {
-            return isset($choices['experiences']) && count($choices['experiences']) === 2;
+            return isset($choices['experience_bonuses']) && count($choices['experience_bonuses']) === 2;
+        }
+
+        // Check for multiclass FIRST since it's more specific
+        if (str_contains(strtolower($description), 'multiclass:')) {
+            return isset($choices['class']) && ! empty($choices['class']);
+        }
+
+        // Check for subclass (but not when it's part of multiclass description)
+        if (str_contains(strtolower($description), 'upgraded subclass') && !str_contains(strtolower($description), 'multiclass:')) {
+            return isset($choices['subclass']) && ! empty($choices['subclass']);
         }
 
         return true;
@@ -464,6 +471,7 @@ class CharacterLevelUp extends Component
 
             // Apply each selected advancement
             $selected_advancements = array_filter([$this->first_advancement, $this->second_advancement], fn ($x) => $x !== null);
+            
             foreach ($selected_advancements as $index => $option_index) {
                 $advancement_number = $index + 1;
                 $option = $this->tier_options['options'][$option_index];
@@ -521,7 +529,7 @@ class CharacterLevelUp extends Component
                     tier: $this->current_tier,
                     advancement_number: $advancement_number,
                     advancement_type: 'experience_bonus',
-                    advancement_data: ['experiences' => $selectedExperiences],
+                    advancement_data: ['experience_bonuses' => $selectedExperiences],
                     description: $description
                 );
             }
@@ -544,13 +552,47 @@ class CharacterLevelUp extends Component
             $abilities = $this->game_data['abilities'] ?? [];
             $cardLevel = $abilities[$selectedCard]['level'] ?? 1;
 
-            return CharacterAdvancementData::domainCard($this->current_tier, $advancement_number, $cardLevel);
+            return new CharacterAdvancementData(
+                tier: $this->current_tier,
+                advancement_number: $advancement_number,
+                advancement_type: 'domain_card',
+                advancement_data: [
+                    'ability_key' => $selectedCard,
+                    'level' => $cardLevel
+                ],
+                description: $description
+            );
         }
 
         if (str_contains($description, 'Multiclass')) {
             $class_key = $choices['class'] ?? 'warrior'; // fallback
 
             return CharacterAdvancementData::multiclass($this->current_tier, $advancement_number, $class_key);
+        }
+
+        if (str_contains($description, 'Proficiency')) {
+            return new CharacterAdvancementData(
+                tier: $this->current_tier,
+                advancement_number: $advancement_number,
+                advancement_type: 'proficiency_advancement',
+                advancement_data: ['bonus' => 1],
+                description: $description
+            );
+        }
+
+        if (str_contains($description, 'subclass')) {
+            $selectedSubclass = $choices['subclass'] ?? null;
+            if (! $selectedSubclass) {
+                throw new \InvalidArgumentException('Subclass selection is required for this advancement');
+            }
+
+            return new CharacterAdvancementData(
+                tier: $this->current_tier,
+                advancement_number: $advancement_number,
+                advancement_type: 'subclass_upgrade',
+                advancement_data: ['subclass' => $selectedSubclass],
+                description: $description
+            );
         }
 
         // Default fallback
@@ -750,13 +792,7 @@ class CharacterLevelUp extends Component
             'character_id' => $this->character->id,
             'ability_key' => $abilityKey,
             'domain' => $abilityData['domain'] ?? '',
-            'level' => $abilityData['level'] ?? 1,
-            'card_data' => [
-                'name' => $abilityData['name'] ?? '',
-                'type' => $abilityData['type'] ?? '',
-                'recall_cost' => $abilityData['recallCost'] ?? 0,
-                'descriptions' => $abilityData['descriptions'] ?? [],
-            ],
+            'ability_level' => $abilityData['level'] ?? 1,
         ]);
     }
 

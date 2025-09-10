@@ -244,6 +244,24 @@ class ApplyAdvancementAction
             case 'stress':
                 $this->applyStressEffects($character, $advancement_data);
                 break;
+            case 'domain_card':
+                $this->applyDomainCardEffects($character, $advancement_data);
+                break;
+            case 'proficiency_advancement':
+                $this->applyProficiencyAdvancementEffects($character, $advancement_data);
+                break;
+            case 'subclass_upgrade':
+                $this->applySubclassUpgradeEffects($character, $advancement_data);
+                break;
+            case 'multiclass':
+                $this->applyMulticlassEffects($character, $advancement_data);
+                break;
+            case 'experience_bonus':
+                $this->applyExperienceBonusEffects($character, $advancement_data);
+                break;
+            case 'evasion':
+                $this->applyEvasionEffects($character, $advancement_data);
+                break;
                 // Add other advancement types as needed
         }
     }
@@ -278,6 +296,97 @@ class ApplyAdvancementAction
     private function applyStressEffects(Character $character, CharacterAdvancementData $advancement_data): void
     {
         // Stress bonuses are handled through the advancement record itself
+        // No additional database changes needed
+    }
+
+    /**
+     * Apply domain card advancement effects (create domain card record)
+     */
+    private function applyDomainCardEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        $ability_key = $advancement_data->advancement_data['ability_key'] ?? null;
+        
+        if (!$ability_key) {
+            throw new \InvalidArgumentException('Domain card advancement requires ability_key in advancement_data');
+        }
+
+        // Load abilities data to get domain and level information
+        $abilities_path = resource_path('json/abilities.json');
+        if (!file_exists($abilities_path)) {
+            throw new \RuntimeException('Abilities data file not found');
+        }
+
+        $abilities = json_decode(file_get_contents($abilities_path), true);
+        $ability_data = $abilities[$ability_key] ?? null;
+
+        if (!$ability_data) {
+            throw new \InvalidArgumentException("Invalid ability key: {$ability_key}");
+        }
+
+        // Create the domain card record
+        \Domain\Character\Models\CharacterDomainCard::create([
+            'character_id' => $character->id,
+            'ability_key' => $ability_key,
+            'domain' => $ability_data['domain'] ?? '',
+            'ability_level' => $ability_data['level'] ?? 1,
+        ]);
+    }
+
+    /**
+     * Apply proficiency advancement effects
+     */
+    private function applyProficiencyAdvancementEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        // Proficiency advancements are handled through the advancement record itself
+        // The proficiency bonus is calculated by summing all proficiency advancement bonuses
+        // No additional database changes needed
+    }
+
+    /**
+     * Apply subclass upgrade effects
+     */
+    private function applySubclassUpgradeEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        // For now, this is tracked through the advancement record
+        // Future implementation could update character subclass progression state
+        // No additional database changes needed currently
+    }
+
+    /**
+     * Apply multiclass effects
+     */
+    private function applyMulticlassEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        // For now, this is tracked through the advancement record
+        // Future implementation could create multiclass records and update character domains
+        // No additional database changes needed currently
+    }
+
+    /**
+     * Apply experience bonus effects
+     */
+    private function applyExperienceBonusEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        $experience_bonuses = $advancement_data->advancement_data['experience_bonuses'] ?? [];
+        
+        foreach ($experience_bonuses as $experience_name) {
+            // Find the experience and apply +1 bonus
+            $experience = $character->experiences()
+                ->where('experience_name', $experience_name)
+                ->first();
+                
+            if ($experience) {
+                $experience->increment('modifier', 1);
+            }
+        }
+    }
+
+    /**
+     * Apply evasion advancement effects
+     */
+    private function applyEvasionEffects(Character $character, CharacterAdvancementData $advancement_data): void
+    {
+        // Evasion bonuses are handled through the advancement record itself
         // No additional database changes needed
     }
 }
