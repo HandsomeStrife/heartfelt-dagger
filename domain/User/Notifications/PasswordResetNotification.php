@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Domain\User\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PasswordResetNotification extends Notification
+class PasswordResetNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
 
     public function __construct(
         private string $token

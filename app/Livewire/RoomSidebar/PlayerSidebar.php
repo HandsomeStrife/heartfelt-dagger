@@ -136,9 +136,10 @@ class PlayerSidebar extends Component
 
         $trait_values = [];
         $trait_names = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+        $traits_array = $this->character->traits->toArray();
 
         foreach ($trait_names as $trait) {
-            $value = $this->character->traits->{$trait} ?? 0;
+            $value = $traits_array[$trait] ?? 0;
             $trait_values[$trait] = $value >= 0 ? '+'.$value : (string) $value;
         }
 
@@ -294,7 +295,7 @@ class PlayerSidebar extends Component
 
         } catch (\Exception $e) {
             // Log error but don't break the UI
-            \Log::error('Failed to save character state: '.$e->getMessage());
+            Log::error('Failed to save character state: '.$e->getMessage());
         }
     }
 

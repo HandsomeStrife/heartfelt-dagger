@@ -115,3 +115,48 @@ test('weapon trait values are correctly calculated in livewire component', funct
     expect($trait_values['strength'])->toBe('+2');
     expect($trait_values['finesse'])->toBe('+1');
 });
+
+test('player sidebar weapon trait values are correctly calculated', function () {
+    $character = Character::factory()->create([
+        'name' => 'Test Character',
+        'class' => 'warrior',
+        'ancestry' => 'human',
+        'community' => 'wanderborne',
+    ]);
+
+    // Create traits with specific values
+    CharacterTrait::factory()->create([
+        'character_id' => $character->id,
+        'trait_name' => 'strength',
+        'trait_value' => 2,
+    ]);
+
+    CharacterTrait::factory()->create([
+        'character_id' => $character->id,
+        'trait_name' => 'finesse',
+        'trait_value' => -1,
+    ]);
+    
+    // Fill in other required traits
+    foreach (['agility', 'instinct', 'presence', 'knowledge'] as $trait) {
+        CharacterTrait::factory()->create([
+            'character_id' => $character->id,
+            'trait_name' => $trait,
+            'trait_value' => 0,
+        ]);
+    }
+
+    // Create the player sidebar component with CharacterData
+    $characterData = \Domain\Character\Data\CharacterData::fromModel($character);
+    $component = Livewire::test(\App\Livewire\RoomSidebar\PlayerSidebar::class, [
+        'character' => $characterData,
+        'can_edit' => true,
+    ]);
+
+    // Get the formatted trait values
+    $trait_values = $component->instance()->getFormattedTraitValues();
+
+    expect($trait_values['strength'])->toBe('+2');
+    expect($trait_values['finesse'])->toBe('-1');
+    expect($trait_values['agility'])->toBe('+0');
+});
