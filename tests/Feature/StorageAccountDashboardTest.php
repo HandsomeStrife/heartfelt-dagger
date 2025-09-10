@@ -16,10 +16,11 @@ test('storage account dashboard loads for authenticated user', function () {
     $response = actingAs($user)->get('/storage-accounts');
 
     $response->assertOk()
-        ->assertSee('Storage Accounts')
-        ->assertSee('Manage your cloud storage connections')
-        ->assertSee('Wasabi Accounts')
-        ->assertSee('Google Drive Accounts');
+        ->assertSee(['Storage', 'Services'])
+        ->assertSee('Manage your cloud storage and transcription services')
+        ->assertSee('Cloud Storage')
+        ->assertSee('Transcription')
+        ->assertSee('Statistics');
 });
 
 test('storage account dashboard shows no accounts message when empty', function () {
@@ -28,9 +29,8 @@ test('storage account dashboard shows no accounts message when empty', function 
     $response = actingAs($user)->get('/storage-accounts');
 
     $response->assertOk()
-        ->assertSee('No Wasabi accounts connected')
-        ->assertSee('No Google Drive accounts connected')
-        ->assertSee('Add First Account');
+        ->assertSee('No accounts connected')
+        ->assertSee('Connect');
 });
 
 test('storage account dashboard shows existing wasabi accounts', function () {
@@ -77,8 +77,7 @@ test('storage account dashboard shows existing google drive accounts', function 
     $response->assertOk()
         ->assertSee('My Google Drive')
         ->assertSee('Active')
-        ->assertSee('test@example.com')
-        ->assertSee('Connected');
+        ->assertSee('test@example.com');
 });
 
 test('storage account dashboard requires authentication', function () {
@@ -95,7 +94,7 @@ test('storage account dashboard loads add account modal correctly', function () 
         ->call('showAddAccount', 'wasabi')
         ->assertSet('showAddAccountModal', true)
         ->assertSet('selectedProvider', 'wasabi')
-        ->assertSee('Add Wasabi Account');
+        ->assertSee('Add Wasabi');
 });
 
 test('storage account dashboard can toggle account status', function () {
@@ -171,4 +170,100 @@ test('storage account dashboard shows test connection buttons', function () {
         ->assertSee('Test')
         ->assertSee('Activate') // Account is explicitly inactive
         ->assertSee('Delete');
+});
+
+test('storage account dashboard shows existing assemblyai accounts', function () {
+    $user = User::factory()->create();
+
+    UserStorageAccount::factory()->create([
+        'user_id' => $user->id,
+        'provider' => 'assemblyai',
+        'display_name' => 'My AssemblyAI Account',
+        'is_active' => true,
+        'encrypted_credentials' => [
+            'api_key' => 'test-api-key-12345',
+        ],
+    ]);
+
+    $response = actingAs($user)->get('/storage-accounts');
+
+    $response->assertOk()
+        ->assertSee('My AssemblyAI Account')
+        ->assertSee('Active');
+});
+
+test('storage account dashboard can show assemblyai add account modal', function () {
+    $user = User::factory()->create();
+
+    actingAs($user)
+        ->livewire(\App\Livewire\StorageAccountDashboard::class)
+        ->call('showAddAccount', 'assemblyai')
+        ->assertSet('showAddAccountModal', true)
+        ->assertSet('selectedProvider', 'assemblyai')
+        ->assertSee('Add AssemblyAI');
+});
+
+test('storage account dashboard can test assemblyai connection', function () {
+    $user = User::factory()->create();
+
+    $account = UserStorageAccount::factory()->create([
+        'user_id' => $user->id,
+        'provider' => 'assemblyai',
+        'display_name' => 'Test AssemblyAI Account',
+        'encrypted_credentials' => [
+            'api_key' => 'test-api-key',
+        ],
+    ]);
+
+    // Test that the connection test method exists and can be called without PHP errors
+    // The actual connection test will be skipped in test environment
+    actingAs($user)
+        ->livewire(\App\Livewire\StorageAccountDashboard::class)
+        ->call('testConnection', $account)
+        ->assertHasNoErrors();
+});
+
+test('storage account dashboard can save assemblyai account', function () {
+    $user = User::factory()->create();
+
+    actingAs($user)
+        ->livewire(\App\Livewire\StorageAccountDashboard::class)
+        ->call('showAddAccount', 'assemblyai')
+        ->set('assemblyaiForm.display_name', 'My Test AssemblyAI')
+        ->set('assemblyaiForm.api_key', 'test-api-key-12345')
+        ->call('saveAssemblyAIAccount')
+        ->assertHasNoErrors()
+        ->assertSet('showAddAccountModal', false);
+
+    $this->assertDatabaseHas('user_storage_accounts', [
+        'user_id' => $user->id,
+        'provider' => 'assemblyai',
+        'display_name' => 'My Test AssemblyAI',
+        'is_active' => true,
+    ]);
+});
+
+test('storage account dashboard validates assemblyai form', function () {
+    $user = User::factory()->create();
+
+    actingAs($user)
+        ->livewire(\App\Livewire\StorageAccountDashboard::class)
+        ->call('showAddAccount', 'assemblyai')
+        ->set('assemblyaiForm.display_name', '') // Empty name
+        ->set('assemblyaiForm.api_key', '') // Empty API key
+        ->call('saveAssemblyAIAccount')
+        ->assertHasErrors(['assemblyaiForm.display_name', 'assemblyaiForm.api_key']);
+});
+
+test('storage account dashboard can test assemblyai form connection', function () {
+    $user = User::factory()->create();
+
+    actingAs($user)
+        ->livewire(\App\Livewire\StorageAccountDashboard::class)
+        ->call('showAddAccount', 'assemblyai')
+        ->set('assemblyaiForm.display_name', 'Test Account')
+        ->set('assemblyaiForm.api_key', 'test-api-key')
+        ->call('testAssemblyAIFormConnection')
+        ->assertHasNoErrors()
+        ->assertSet('connectionResult', 'success'); // Should succeed in test environment
 });

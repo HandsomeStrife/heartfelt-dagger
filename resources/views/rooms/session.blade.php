@@ -442,7 +442,7 @@
                                     </div>
                                 </div>
                                 @if($participant->user_id !== $room->creator_id)
-                                    <form action="{{ route('rooms.kick', [$room, $participant->id]) }}" method="POST" onsubmit="return confirm('Remove {{ $participant->character_name ?: ($participant->user ? $participant->user->username : 'this participant') }} from the room?')" class="inline">
+                                    <form action="{{ route('rooms.kick', [$room, $participant->id]) }}" method="POST" onsubmit="return confirm('Remove {{ e($participant->character_name ?: ($participant->user ? $participant->user->username : 'this participant')) }} from the room?')" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded transition-colors">
@@ -466,17 +466,17 @@
         // Pass room and participant data to the WebRTC script
         window.roomData = {
             id: {{ $room->id }},
-            name: "{{ $room->name }}",
+            name: @json($room->name),
             creator_id: {{ $room->creator_id }},
             campaign_id: {{ $room->campaign_id ?? 'null' }},
             guest_count: {{ $room->guest_count }},
             total_capacity: {{ $room->getTotalCapacity() }},
             stt_enabled: {{ ($room->recordingSettings && $room->recordingSettings->isSttEnabled()) ? 'true' : 'false' }},
-            stt_provider: "{{ $room->recordingSettings ? ($room->recordingSettings->stt_provider ?? 'browser') : 'browser' }}",
+            stt_provider: @json($room->recordingSettings ? ($room->recordingSettings->stt_provider ?? 'browser') : 'browser'),
             stt_account_id: {{ $room->recordingSettings && $room->recordingSettings->stt_account_id ? $room->recordingSettings->stt_account_id : 'null' }},
             recording_enabled: {{ ($room->recordingSettings && $room->recordingSettings->isRecordingEnabled()) ? 'true' : 'false' }},
             recording_settings: {
-                storage_provider: "{{ $room->recordingSettings ? $room->recordingSettings->storage_provider : 'local_device' }}",
+                storage_provider: @json($room->recordingSettings ? $room->recordingSettings->storage_provider : 'local_device'),
                 stt_enabled: {{ ($room->recordingSettings && $room->recordingSettings->isSttEnabled()) ? 'true' : 'false' }},
                 recording_enabled: {{ ($room->recordingSettings && $room->recordingSettings->isRecordingEnabled()) ? 'true' : 'false' }}
             },
@@ -484,12 +484,12 @@
                 @foreach($participants as $p)
                 {
                     user_id: {{ $p->user_id ?? 'null' }},
-                    username: "{{ $p->user ? $p->user->username : 'Unknown' }}",
-                    character_name: "{{ $p->character ? $p->character->name : ($p->character_name ?? ($p->user ? $p->user->username : 'Unknown')) }}",
-                    character_class: "{{ $p->character ? $p->character->class : ($p->character_class ?? 'Unknown') }}",
-                    character_subclass: "{{ $p->character ? $p->character->subclass : '' }}",
-                    character_ancestry: "{{ $p->character ? $p->character->ancestry : '' }}",
-                    character_community: "{{ $p->character ? $p->character->community : '' }}",
+                    username: @json($p->user ? $p->user->username : 'Unknown'),
+                    character_name: @json($p->character ? $p->character->name : ($p->character_name ?? ($p->user ? $p->user->username : 'Unknown'))),
+                    character_class: @json($p->character ? $p->character->class : ($p->character_class ?? 'Unknown')),
+                    character_subclass: @json($p->character ? $p->character->subclass : ''),
+                    character_ancestry: @json($p->character ? $p->character->ancestry : ''),
+                    character_community: @json($p->character ? $p->character->community : ''),
                     is_host: {{ $p->user_id === $room->creator_id ? 'true' : 'false' }}
                 }{{ !$loop->last ? ',' : '' }}
                 @endforeach
