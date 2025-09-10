@@ -25,13 +25,17 @@ class FinalizeStaleRecordings implements ShouldQueue
      */
     public function handle(): void
     {
-        Log::info('Starting stale recordings finalization job');
+        //Log::info('Starting stale recordings finalization job');
 
         $staleRecordings = RoomRecording::needingFinalization()->get();
 
-        Log::info('Found stale recordings to finalize', [
-            'count' => $staleRecordings->count(),
-        ]);
+        if ($staleRecordings->count() > 0) {
+            Log::info('Found stale recordings to finalize', [
+                'count' => $staleRecordings->count(),
+             ]);
+        } else {
+            return;
+        }
 
         $finalizeAction = new FinalizeRecording;
         $successCount = 0;
