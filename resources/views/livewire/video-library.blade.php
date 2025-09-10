@@ -1,27 +1,39 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950" x-data="{ slideoverOpen: false }">
-    {{-- Dark Header --}}
-    <div class="bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                {{-- Title --}}
+    <!-- Compact Navigation -->
+    <x-sub-navigation>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a 
+                    href="{{ route('dashboard') }}"
+                    class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                    title="Back to dashboard"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
                 <div>
-                    <h1 class="text-xl font-outfit font-bold text-white">Video Library</h1>
-                    <p class="text-slate-400 text-xs mt-0.5">Manage your recorded sessions</p>
+                    <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                        Video Library
+                    </h1>
+                    <p class="text-slate-400 text-xs">
+                        Manage your recorded sessions
+                    </p>
                 </div>
+            </div>
 
-                {{-- View Toggle & Actions --}}
-                <div class="flex items-center space-x-3">
+            <div class="flex items-center gap-2">
                     {{-- View Mode Toggle --}}
                     <div class="bg-slate-800/50 rounded-lg p-1 flex items-center">
                         <button wire:click="setViewMode('list')" 
-                                class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5
+                                class="px-2 py-1 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1
                                     {{ $viewMode === 'list' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                             <x-icons.video class="w-3 h-3" />
                             <span>List</span>
                         </button>
                         
                         <button wire:click="setViewMode('grid')" 
-                                class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5
+                                class="px-2 py-1 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1
                                     {{ $viewMode === 'grid' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -30,7 +42,7 @@
                         </button>
                         
                         <button wire:click="setViewMode('rooms')" 
-                                class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center space-x-1.5
+                                class="px-2 py-1 rounded text-xs font-medium transition-all duration-200 flex items-center gap-1
                                     {{ $viewMode === 'rooms' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -39,29 +51,28 @@
                         </button>
                     </div>
 
-                    {{-- Analytics Button --}}
-                    <button wire:click="toggleAnalytics" 
-                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 border
-                                {{ $showAnalytics ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg border-violet-500/30' : 'bg-slate-800/50 text-slate-300 hover:text-white hover:bg-slate-700/50 border-slate-600/50' }}">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                            <span>Analytics</span>
-                        </button>
+                {{-- Analytics Button --}}
+                <button wire:click="toggleAnalytics" 
+                        class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center gap-1.5 border
+                            {{ $showAnalytics ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg border-violet-500/30' : 'bg-slate-800/50 text-slate-300 hover:text-white hover:bg-slate-700/50 border-slate-600/50' }}">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    <span>Analytics</span>
+                </button>
 
-                    {{-- Filters Button --}}
-                    <button wire:click="toggleFilters" 
-                            class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1.5 border
-                                {{ $showFilters ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg border-emerald-500/30' : 'bg-slate-800/50 text-slate-300 hover:text-white hover:bg-slate-700/50 border-slate-600/50' }}">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                            </svg>
-                            <span>Filters</span>
-                        </button>
-                </div>
+                {{-- Filters Button --}}
+                <button wire:click="toggleFilters" 
+                        class="px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 flex items-center gap-1.5 border
+                            {{ $showFilters ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg border-emerald-500/30' : 'bg-slate-800/50 text-slate-300 hover:text-white hover:bg-slate-700/50 border-slate-600/50' }}">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    <span>Filters</span>
+                </button>
             </div>
         </div>
-    </div>
+    </x-sub-navigation>
 
     {{-- Main Content --}}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

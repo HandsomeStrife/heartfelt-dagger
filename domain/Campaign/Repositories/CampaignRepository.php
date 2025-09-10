@@ -109,4 +109,37 @@ class CampaignRepository
 
         return $created->merge($joined)->sortByDesc('created_at')->values();
     }
+
+    /**
+     * Get recent campaigns for dashboard
+     * @return Collection<CampaignData>
+     */
+    public function getRecentByUser(User $user, int $limit = 3): Collection
+    {
+        // Get both created and joined campaigns, then limit the result
+        $created = Campaign::with(['creator', 'campaignFrame'])
+            ->withCount('members')
+            ->byCreator($user)
+            ->get()
+            ->map(fn ($campaign) => CampaignData::from([
+                ...$campaign->toArray(),
+                'member_count' => $campaign->members_count,
+            ]));
+
+        $joined = Campaign::with(['creator', 'campaignFrame'])
+            ->withCount('members')
+            ->whereHas('members', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->get()
+            ->map(fn ($campaign) => CampaignData::from([
+                ...$campaign->toArray(),
+                'member_count' => $campaign->members_count,
+            ]));
+
+        return $created->merge($joined)
+            ->sortByDesc('created_at')
+            ->take($limit)
+            ->values();
+    }
 }

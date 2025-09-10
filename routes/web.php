@@ -50,7 +50,21 @@ Route::get('/privacy-policy', function () {
 // Protected routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $user = auth()->user();
+        
+        $characterRepository = new \Domain\Character\Repositories\CharacterRepository();
+        $campaignRepository = new \Domain\Campaign\Repositories\CampaignRepository();
+        $roomRepository = new \Domain\Room\Repositories\RoomRepository();
+        
+        $recent_characters = $characterRepository->getRecentByUser($user, 3);
+        $recent_campaigns = $campaignRepository->getRecentByUser($user, 3);
+        $recent_rooms = $roomRepository->getRecentByUser($user, 3);
+        
+        return view('dashboard', [
+            'recent_characters' => $recent_characters,
+            'recent_campaigns' => $recent_campaigns,
+            'recent_rooms' => $recent_rooms,
+        ]);
     })->name('dashboard');
 
     // TipTap editor test route

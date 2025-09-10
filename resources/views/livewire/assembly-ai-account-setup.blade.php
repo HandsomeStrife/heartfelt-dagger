@@ -1,19 +1,37 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
-    <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-        <div class="max-w-2xl mx-auto">
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-amber-500/30 mb-4 mx-auto">
-                    <svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+    <!-- Compact Navigation -->
+    <x-sub-navigation>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a 
+                    href="{{ route('storage-accounts') }}"
+                    class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                    title="Back to storage accounts"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
+                </a>
+                <div class="flex items-center gap-2">
+                    <x-icons.brands.assembly-ai class="w-6 h-6" />
+                    <div>
+                        <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                            Connect AssemblyAI Account
+                        </h1>
+                        <p class="text-slate-400 text-xs">
+                            Add your API key for professional speech-to-text transcription
+                        </p>
+                    </div>
                 </div>
-                <h1 class="font-outfit text-3xl font-bold text-white mb-2">Connect AssemblyAI Account</h1>
-                <p class="text-slate-400">Add your AssemblyAI API key for professional speech-to-text transcription</p>
             </div>
+        </div>
+    </x-sub-navigation>
+
+    <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        <div class="max-w-2xl mx-auto space-y-6">
 
             <!-- Main Form -->
-            <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-xl p-6">
+            <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-xl p-4">
                 
                 <!-- Instructions -->
                 <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">

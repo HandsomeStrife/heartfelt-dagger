@@ -1,19 +1,37 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
-    <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-        <div class="max-w-2xl mx-auto">
-            <!-- Header -->
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-xl flex items-center justify-center border border-amber-500/30 mb-4 mx-auto">
-                    <svg class="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+    <!-- Compact Navigation -->
+    <x-sub-navigation>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a 
+                    href="{{ route('storage-accounts') }}"
+                    class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                    title="Back to storage accounts"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
+                </a>
+                <div class="flex items-center gap-2">
+                    <x-icons.brands.wasabi class="w-6 h-6" />
+                    <div>
+                        <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                            Connect Wasabi Account
+                        </h1>
+                        <p class="text-slate-400 text-xs">
+                            Add your cloud storage credentials for video recording
+                        </p>
+                    </div>
                 </div>
-                <h1 class="font-outfit text-3xl font-bold text-white mb-2">Connect Wasabi Account</h1>
-                <p class="text-slate-400">Add your Wasabi cloud storage credentials for video recording storage</p>
             </div>
+        </div>
+    </x-sub-navigation>
+
+    <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        <div class="max-w-2xl mx-auto space-y-6">
 
             <!-- Main Form -->
-            <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-xl p-6">
+            <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-xl p-4">
                 <form wire:submit="save" class="space-y-6">
                     {{-- Display Name --}}
                     <div>

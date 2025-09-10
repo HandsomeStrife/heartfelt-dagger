@@ -1,15 +1,37 @@
 <x-layouts.app>
-    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 py-12">
-        <div class="container mx-auto px-4 max-w-4xl">
-            <div class="bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-slate-700/50 p-8 md:p-12">
-                <div class="text-center mb-12">
-                    <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 font-outfit">
-                        Terms of Service
-                    </h1>
-                    <p class="text-slate-300 text-lg">
-                        Last updated: {{ date('F j, Y') }}
-                    </p>
+    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+        <!-- Compact Navigation -->
+        <x-sub-navigation>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a 
+                        href="{{ route('home') }}"
+                        class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                        title="Back to home"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                            Terms of Service
+                        </h1>
+                        <p class="text-slate-400 text-xs">
+                            Last updated: {{ date('F j, Y') }}
+                        </p>
+                    </div>
                 </div>
+
+                <div class="text-xs text-slate-400">
+                    Legal Documents
+                </div>
+            </div>
+        </x-sub-navigation>
+
+        <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-6 md:p-8">
 
                 <div class="prose prose-invert prose-slate max-w-none">
                     <div class="space-y-8">
@@ -189,14 +211,15 @@
                     </div>
                 </div>
 
-                <div class="mt-12 pt-8 border-t border-slate-700">
-                    <div class="text-center">
-                        <a href="{{ route('home') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-200">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
-                            Back to Home
-                        </a>
+                    <div class="mt-8 pt-6 border-t border-slate-700">
+                        <div class="text-center">
+                            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all duration-200 text-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                                Back to Home
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

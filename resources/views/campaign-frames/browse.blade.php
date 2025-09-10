@@ -1,53 +1,58 @@
 <x-layout>
     <div class="min-h-screen">
-        <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-            <div class="max-w-6xl mx-auto">
-                <!-- Header -->
-                <div class="text-center mb-12">
-                    <h1 class="font-outfit text-4xl text-white tracking-wide mb-2">
-                        Browse Public Campaign Frames
-                    </h1>
-                    <p class="text-slate-300 text-lg">
-                        Discover inspiring foundations created by the community
-                    </p>
+        <!-- Compact Navigation -->
+        <x-sub-navigation>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a 
+                        href="{{ route('campaign-frames.index') }}"
+                        class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                        title="Back to my frames"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                            Browse Public Campaign Frames
+                        </h1>
+                        <p class="text-slate-400 text-xs">
+                            Discover inspiring foundations created by the community
+                        </p>
+                    </div>
                 </div>
 
-                <!-- Navigation -->
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                    <div>
-                        <a href="{{ route('campaign-frames.index') }}" class="inline-flex items-center text-slate-400 hover:text-white transition-colors">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <!-- Search in Navigation -->
+                <div class="flex items-center gap-2">
+                    <form method="GET" action="{{ route('campaign-frames.browse') }}" class="flex items-center">
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                name="search" 
+                                value="{{ $search ?? '' }}" 
+                                placeholder="Search frames..."
+                                class="w-48 bg-slate-800/50 border border-slate-700/50 rounded-lg px-3 py-1.5 pl-8 text-white text-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50"
+                            >
+                            <svg class="absolute left-2.5 top-2 w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                            Back to My Frames
+                        </div>
+                        <button type="submit" class="ml-2 bg-violet-600 hover:bg-violet-700 text-white px-3 py-1.5 rounded-lg text-sm transition-colors">
+                            Search
+                        </button>
+                    </form>
+                    @if($search)
+                        <a href="{{ route('campaign-frames.browse') }}" class="ml-1 bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-sm transition-colors">
+                            Clear
                         </a>
-                    </div>
-                    
-                    <!-- Search -->
-                    <div class="relative">
-                        <form method="GET" action="{{ route('campaign-frames.browse') }}" class="flex items-center space-x-2">
-                            <div class="relative">
-                                <input 
-                                    type="text" 
-                                    name="search" 
-                                    value="{{ $search ?? '' }}" 
-                                    placeholder="Search frames..."
-                                    class="w-full sm:w-64 bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2 pl-10 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50"
-                                >
-                                <svg class="absolute left-3 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </div>
-                            <button type="submit" class="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-xl transition-colors">
-                                Search
-                            </button>
-                            @if($search)
-                                <a href="{{ route('campaign-frames.browse') }}" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-xl transition-colors">
-                                    Clear
-                                </a>
-                            @endif
-                        </form>
-                    </div>
+                    @endif
+                </div>
+            </div>
+        </x-sub-navigation>
+
+        <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+            <div class="max-w-6xl mx-auto space-y-6">
                 </div>
 
                 <!-- Results -->

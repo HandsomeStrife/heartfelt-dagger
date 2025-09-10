@@ -1,54 +1,68 @@
 <x-layout>
-    <div class="min-h-screen">
-        <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-            <div class="max-w-6xl mx-auto">
-                <!-- Header -->
-                <div class="flex items-center justify-between mb-8">
+    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+        <!-- Compact Navigation -->
+        <x-sub-navigation>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a 
+                        href="{{ route('dashboard') }}"
+                        class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                        title="Back to dashboard"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
                     <div>
-                        <h1 class="font-outfit text-3xl text-white tracking-wide">
+                        <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
                             Campaigns
                         </h1>
-                        <p class="text-slate-300 text-lg">
+                        <p class="text-slate-400 text-xs">
                             Manage your epic adventures
                         </p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button onclick="showModal('joinCampaignModal')" class="inline-flex items-center bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-blue-500/25">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM12 14c-1.49 0-2.92.6-4 1.67V19h8v-3.33c-1.08-1.07-2.51-1.67-4-1.67z" />
-                            </svg>
-                            Join Campaign
-                        </button>
-                        <a href="{{ route('campaigns.create') }}" class="inline-flex items-center bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-violet-500/25">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            Create Campaign
-                        </a>
-                    </div>
                 </div>
 
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="showModal('joinCampaignModal')" 
+                            class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-sm font-medium rounded-md transition-all duration-200">
+                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM12 14c-1.49 0-2.92.6-4 1.67V19h8v-3.33c-1.08-1.07-2.51-1.67-4-1.67z" />
+                        </svg>
+                        Join Campaign
+                    </button>
+                    <a href="{{ route('campaigns.create') }}" 
+                       class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white text-sm font-medium rounded-md transition-all duration-200">
+                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        Create Campaign
+                    </a>
+                </div>
+            </div>
+        </x-sub-navigation>
+
+        <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+            <div class="max-w-6xl mx-auto space-y-6">
+
                 <!-- Development Notice -->
-                <div class="mb-8 bg-amber-500/10 border border-amber-500/30 rounded-xl p-6 backdrop-blur-sm">
-                    <div class="flex items-start space-x-4">
-                        <div class="flex-shrink-0">
-                            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                            </svg>
-                        </div>
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 text-amber-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
                         <div>
-                            <h3 class="text-amber-300 font-semibold text-lg mb-2">🚧 Development Notice</h3>
-                            <p class="text-amber-200/90 text-sm leading-relaxed">
-                                The Campaigns feature is currently under active development. While functional, you may encounter bugs, data loss, or breaking changes. 
-                                Please use with caution and report any issues you discover.
+                            <h3 class="text-amber-400 font-outfit font-medium text-sm">🚧 Under Development</h3>
+                            <p class="text-amber-300/80 text-xs">
+                                Campaigns are functional but may have bugs or breaking changes. Use with caution.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- My Campaigns -->
-                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
+                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4">
                         <div class="flex items-center mb-6">
                             <div class="w-10 h-10 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-xl flex items-center justify-center border border-violet-500/30 mr-3">
                                 <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +121,7 @@
                     </div>
 
                     <!-- Joined Campaigns -->
-                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
+                    <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4">
                         <div class="flex items-center mb-6">
                             <div class="w-10 h-10 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-xl flex items-center justify-center border border-emerald-500/30 mr-3">
                                 <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

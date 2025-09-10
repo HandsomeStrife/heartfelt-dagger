@@ -1,19 +1,35 @@
 <x-layout>
     <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
-        <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-            <div class="max-w-3xl mx-auto">
-                <!-- Header -->
-                <div class="text-center mb-8">
-                    <h1 class="font-outfit text-3xl text-white tracking-wide mb-2">
-                        Create New Room
-                    </h1>
-                    <p class="text-slate-300 text-lg">
-                        Set up a video chat room for your gaming session
-                    </p>
+        <!-- Compact Navigation -->
+        <x-sub-navigation>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a 
+                        href="{{ route('rooms.index') }}"
+                        class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                        title="Back to rooms"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                            Create New Room
+                        </h1>
+                        <p class="text-slate-400 text-xs">
+                            Set up a video chat room for your gaming session
+                        </p>
+                    </div>
                 </div>
+            </div>
+        </x-sub-navigation>
+
+        <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+            <div class="max-w-3xl mx-auto space-y-6">
 
                 <!-- Form -->
-                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
+                <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
                     <form action="{{ route('rooms.store') }}" method="POST" class="space-y-6">
                         @csrf
 

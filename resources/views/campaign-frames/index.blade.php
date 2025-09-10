@@ -1,44 +1,59 @@
 <x-layout>
-    <div class="min-h-screen">
-        <div class="px-4 sm:px-6 lg:px-8 pt-12 pb-16">
-            <div class="max-w-6xl mx-auto">
-                <!-- Header -->
-                <div class="text-center mb-12">
-                    <h1 class="font-outfit text-4xl text-white tracking-wide mb-2">
-                        Campaign Frames
-                    </h1>
-                    <p class="text-slate-300 text-lg">
-                        Craft and discover inspiring campaign foundations
-                    </p>
-                </div>
-
-                <!-- Action Bar -->
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-                    <div class="flex space-x-4">
-                        <a href="{{ route('campaign-frames.create') }}" class="inline-flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Create Frame
-                        </a>
-                        <a href="{{ route('campaign-frames.browse') }}" class="inline-flex items-center justify-center bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-400 hover:to-purple-400 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Browse Public
-                        </a>
+    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+        <!-- Compact Navigation -->
+        <x-sub-navigation>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a 
+                        href="{{ route('dashboard') }}"
+                        class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                        title="Back to dashboard"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                            Campaign Frames
+                        </h1>
+                        <p class="text-slate-400 text-xs">
+                            Craft and discover inspiring campaign foundations
+                        </p>
                     </div>
                 </div>
 
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ route('campaign-frames.create') }}" 
+                       class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium rounded-md transition-all duration-200">
+                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Create Frame
+                    </a>
+                    <a href="{{ route('campaign-frames.browse') }}" 
+                       class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white text-sm font-medium rounded-md transition-all duration-200">
+                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        Browse Public
+                    </a>
+                </div>
+            </div>
+        </x-sub-navigation>
+
+        <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+            <div class="max-w-6xl mx-auto space-y-6">
+
                 <!-- My Campaign Frames -->
                 @if($user_frames->count() > 0)
-                    <div class="mb-12">
-                        <h2 class="font-outfit text-2xl text-white mb-6">My Campaign Frames</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div>
+                        <h2 class="font-outfit text-lg text-white mb-4">My Campaign Frames</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($user_frames as $frame)
                                 <div class="group relative">
                                     <div class="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 hover:border-amber-500/30 rounded-2xl p-6 transition-all duration-300">
+                                    <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 hover:border-amber-500/30 rounded-2xl p-4 transition-all duration-300">
                                         <div class="flex justify-between items-start mb-4">
                                             <div class="flex-1">
                                                 <h3 class="font-outfit text-lg font-bold text-white mb-2 line-clamp-1">{{ $frame->name }}</h3>
@@ -87,17 +102,17 @@
                 <!-- Popular Public Frames -->
                 @if($public_frames->count() > 0)
                     <div>
-                        <div class="flex items-center justify-between mb-6">
-                            <h2 class="font-outfit text-2xl text-white">Popular Public Frames</h2>
-                            <a href="{{ route('campaign-frames.browse') }}" class="text-violet-400 hover:text-violet-300 transition-colors font-semibold">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="font-outfit text-lg text-white">Popular Public Frames</h2>
+                            <a href="{{ route('campaign-frames.browse') }}" class="text-violet-400 hover:text-violet-300 transition-colors text-sm font-medium">
                                 View All →
                             </a>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($public_frames->take(6) as $frame)
                                 <div class="group relative">
                                     <div class="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 hover:border-violet-500/30 rounded-2xl p-6 transition-all duration-300">
+                                    <div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 hover:border-violet-500/30 rounded-2xl p-4 transition-all duration-300">
                                         <div class="mb-4">
                                             <h3 class="font-outfit text-lg font-bold text-white mb-2 line-clamp-1">{{ $frame->name }}</h3>
                                             <p class="text-slate-400 text-sm line-clamp-2 mb-3">{{ $frame->description }}</p>

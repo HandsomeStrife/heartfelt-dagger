@@ -1,56 +1,48 @@
 <x-layout>
-    <!-- Hero Section -->
-    <section class="py-12 sm:py-12 relative overflow-hidden">        
-        <div class="container mx-auto px-4 relative z-10">
-            <div class="text-center">
-                <!-- Logo and Title -->
-                <div class="mb-8">
-                    <div class="flex items-center justify-center mb-6 gap-3 sm:gap-4">
-                        <img src="{{ asset('img/logo.png') }}" alt="Heartfelt Dagger Logo" class="w-auto h-12 sm:h-16 drop-shadow-2xl">
-                        <h1 class="text-4xl sm:text-6xl font-bold text-white font-outfit tracking-tight">
-                            Actual Plays
-                        </h1>
-                    </div>
-                    
-                    <!-- Tagline -->
-                    <p class="text-lg sm:text-xl text-slate-200 font-light mb-4 font-outfit">
-                        Discover Amazing Daggerheart Adventures
-                    </p>
-                </div>
-                
-                <!-- Description -->
-                <div class="mb-10 space-y-6 max-w-4xl mx-auto">
-                    <p class="text-base sm:text-lg text-slate-300 leading-relaxed">
-                        Explore the rich world of Daggerheart through these incredible actual play campaigns and series. 
-                        From epic adventures to intimate character stories, discover new ways to experience the game.
-                    </p>
-                    
-                    <!-- Contact Notice -->
-                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/80 border border-slate-600/50 rounded-xl text-slate-300 backdrop-blur-sm text-sm">
+    <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
+        <!-- Compact Navigation -->
+        <x-sub-navigation>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a 
+                        href="{{ route('dashboard') }}"
+                        class="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md transition-colors"
+                        title="Back to dashboard"
+                    >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                         </svg>
-                        <span class="font-medium">Want to be added, removed, or updated? </span>
-                        <a href="mailto:thepartywipes@gmail.com" class="text-amber-300 hover:text-amber-200 transition-colors">Send us an email</a>
-                        or <a href="{{ route('discord') }}" class="text-amber-300 hover:text-amber-200 transition-colors">join our Discord</a>
-                        to contact us.
+                    </a>
+                    <div class="flex items-center gap-2">
+                        <img src="{{ asset('img/logo.png') }}" alt="Heartfelt Dagger Logo" class="w-auto h-6 drop-shadow-lg">
+                        <div>
+                            <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                                Actual Plays
+                            </h1>
+                            <p class="text-slate-400 text-xs">
+                                Discover Amazing Daggerheart Adventures
+                            </p>
+                        </div>
                     </div>
+                </div>
+
+                <div class="text-xs text-slate-400 text-right">
+                    <span class="font-medium">Want to be listed? </span>
+                    <a href="mailto:thepartywipes@gmail.com" class="text-amber-300 hover:text-amber-200 transition-colors">Email us</a>
+                    or <a href="{{ route('discord') }}" class="text-amber-300 hover:text-amber-200 transition-colors">join Discord</a>
                 </div>
             </div>
-        </div>
-    </section>
+        </x-sub-navigation>
 
-    <!-- Visual Separator -->
-    <div class="h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
+        <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
     
-    <!-- Video Actual Plays Section -->
-    <section class="py-20 relative bg-gradient-to-b from-slate-900/50 to-slate-800/30">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl sm:text-4xl font-bold text-white mb-4 font-outfit">
+            <!-- Video Actual Plays Section -->
+            <section class="relative">
+                <div class="text-center mb-8">
+                <h2 class="text-xl font-bold text-white mb-2 font-outfit">
                     Video Actual Plays
                 </h2>
-                <p class="text-lg text-slate-300 max-w-3xl mx-auto">
+                <p class="text-sm text-slate-300 max-w-3xl mx-auto">
                     Watch these incredible Daggerheart adventures unfold in video format
                 </p>
             </div>
@@ -262,7 +254,7 @@
                         </p>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
-    </section>
+    </div>
 </x-layout>

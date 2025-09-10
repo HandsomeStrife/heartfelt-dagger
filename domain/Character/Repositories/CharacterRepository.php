@@ -131,4 +131,17 @@ class CharacterRepository
 
         return $characters->map(fn ($character) => CharacterData::from($character));
     }
+
+    /**
+     * Get recent characters for dashboard
+     */
+    public function getRecentByUser(User $user, int $limit = 3): Collection
+    {
+        $characters = Character::where('user_id', $user->id)
+            ->orderBy('updated_at', 'desc')
+            ->limit($limit)
+            ->get();
+
+        return $characters->map(fn ($character) => CharacterData::from($character));
+    }
 }
