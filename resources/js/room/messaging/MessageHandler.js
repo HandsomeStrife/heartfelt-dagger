@@ -88,12 +88,24 @@ export class MessageHandler {
             isLocal: false
         });
 
+        const currentPeerId = this.roomWebRTC.ablyManager.getCurrentPeerId();
+        const shouldInitiate = currentPeerId && currentPeerId < senderId;
+
         // If we're also in a slot, initiate WebRTC connection
-        // Fix #2: Prevent offer "glare" - only lower peerId initiates
         if (this.roomWebRTC.isJoined && this.roomWebRTC.currentSlotId && this.roomWebRTC.currentSlotId !== data.slotId) {
-            const currentPeerId = this.roomWebRTC.ablyManager.getCurrentPeerId();
-            if (currentPeerId && currentPeerId < senderId) {
+            if (shouldInitiate) {
+                console.log(`🤝 Initiating connection: ${currentPeerId} -> ${senderId} (peer ID precedence)`);
                 this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
+            } else {
+                console.log(`⏳ Waiting for connection: ${senderId} -> ${currentPeerId} (peer ID precedence)`);
+                
+                // FALLBACK: If no connection after 5 seconds, ignore peer ID ordering and initiate anyway
+                setTimeout(() => {
+                    if (!this.roomWebRTC.peerConnectionManager.hasActiveConnection(senderId)) {
+                        console.log(`🔄 Fallback: ${currentPeerId} -> ${senderId} (timeout override)`);
+                        this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
+                    }
+                }, 5000);
             }
         } 
         // Viewer mode: Always initiate receive-only connections to see all participants (ignore peer ID ordering)
@@ -101,6 +113,12 @@ export class MessageHandler {
             console.log('👁️ Viewer initiating receive-only connection to:', senderId);
             this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
         }
+        
+        // CRITICAL FIX: Show character overlay immediately when someone joins
+        this.roomWebRTC.slotManager.showCharacterOverlay(
+            document.querySelector(`[data-slot-id="${data.slotId}"]`), 
+            data.participantData
+        );
     }
 
     /**

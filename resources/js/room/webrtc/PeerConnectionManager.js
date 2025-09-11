@@ -124,6 +124,12 @@ export class PeerConnectionManager {
     async initiateWebRTCConnection(remotePeerId) {
         console.log('🤝 Initiating WebRTC connection with:', remotePeerId);
         
+        // Prevent duplicate connections
+        if (this.peerConnections.has(remotePeerId)) {
+            console.log('⚠️ Connection already exists for:', remotePeerId);
+            return;
+        }
+        
         try {
             const peerConnection = this.createPeerConnection(remotePeerId);
             
@@ -138,6 +144,13 @@ export class PeerConnectionManager {
             console.log('🔍 Peer connection state after offer:', peerConnection.connectionState);
             console.log('🔍 ICE gathering state after offer:', peerConnection.iceGatheringState);
             console.log('🔍 ICE connection state after offer:', peerConnection.iceConnectionState);
+            
+            // Add timeout for connection establishment
+            setTimeout(() => {
+                if (peerConnection.connectionState === 'new' || peerConnection.connectionState === 'connecting') {
+                    console.warn(`⏰ WebRTC connection timeout for ${remotePeerId}, state: ${peerConnection.connectionState}`);
+                }
+            }, 15000); // 15 second timeout
             
             this.roomWebRTC.ablyManager.publishToAbly('webrtc-offer', { offer }, remotePeerId);
             
@@ -404,5 +417,16 @@ export class PeerConnectionManager {
      */
     getPeerConnections() {
         return this.peerConnections;
+    }
+
+    /**
+     * Checks if there's an active connection to a peer
+     */
+    hasActiveConnection(peerId) {
+        const connection = this.peerConnections.get(peerId);
+        return connection && (
+            connection.connectionState === 'connected' || 
+            connection.connectionState === 'connecting'
+        );
     }
 }

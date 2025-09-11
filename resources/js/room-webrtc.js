@@ -165,6 +165,16 @@ export default class RoomWebRTC {
                 participantData: participantData
             });
 
+            // CRITICAL FIX: Initiate connections to ALL existing participants
+            const currentPeerId = this.ablyManager.getCurrentPeerId();
+            for (const [existingSlotId, occupant] of this.slotOccupants) {
+                if (existingSlotId !== slotId && !occupant.isLocal && occupant.peerId) {
+                    // Always initiate if we're joining (regardless of peer ID ordering)
+                    console.log(`🤝 New joiner initiating connection to existing peer: ${currentPeerId} -> ${occupant.peerId}`);
+                    this.peerConnectionManager.initiateWebRTCConnection(occupant.peerId);
+                }
+            }
+
             // Hide loading state and show controls
             this.slotManager.hideLoadingState(slotContainer);
             this.slotManager.showVideoControls(slotContainer);
