@@ -14,21 +14,56 @@ export class VideoSlotControls {
      * Set up event listeners for video slot control buttons
      */
     setupEventListeners() {
+        console.log('🎛️ Setting up video slot control event listeners');
+        
         // Refresh connection buttons
         document.addEventListener('click', (event) => {
-            if (event.target.closest('.refresh-connection-btn')) {
+            const refreshBtn = event.target.closest('.refresh-connection-btn');
+            if (refreshBtn) {
+                console.log('🔄 Refresh button clicked:', {
+                    target: event.target,
+                    button: refreshBtn,
+                    peerId: refreshBtn.dataset.peerId,
+                    participantName: refreshBtn.dataset.participantName,
+                    buttonClasses: Array.from(refreshBtn.classList),
+                    parentClasses: Array.from(refreshBtn.parentElement.classList)
+                });
+                
                 event.preventDefault();
-                this.handleRefreshConnection(event.target.closest('.refresh-connection-btn'));
+                this.handleRefreshConnection(refreshBtn);
             }
         });
 
         // Kick participant buttons (existing functionality - could be moved here)
         document.addEventListener('click', (event) => {
-            if (event.target.closest('.kick-participant-btn')) {
+            const kickBtn = event.target.closest('.kick-participant-btn');
+            if (kickBtn) {
+                console.log('👢 Kick button clicked:', {
+                    target: event.target,
+                    button: kickBtn,
+                    participantId: kickBtn.dataset.participantId,
+                    participantName: kickBtn.dataset.participantName
+                });
+                
                 event.preventDefault();
-                this.handleKickParticipant(event.target.closest('.kick-participant-btn'));
+                this.handleKickParticipant(kickBtn);
             }
         });
+        
+        // Add hover logging to debug visibility issues
+        document.addEventListener('mouseenter', (event) => {
+            if (event.target.closest('.video-slot')) {
+                const slot = event.target.closest('.video-slot');
+                const controls = slot.querySelector('.video-controls');
+                const slotId = slot.dataset.slotId;
+                
+                console.log(`🐭 Mouse entered slot ${slotId}:`, {
+                    hasControls: !!controls,
+                    controlsVisible: controls ? !controls.classList.contains('hidden') : false,
+                    controlsClasses: controls ? Array.from(controls.classList) : 'no-controls'
+                });
+            }
+        }, true);
     }
 
     /**
@@ -37,6 +72,14 @@ export class VideoSlotControls {
     async handleRefreshConnection(button) {
         const peerId = button.dataset.peerId;
         const participantName = button.dataset.participantName || 'Unknown';
+
+        console.log(`🔄 Starting refresh connection:`, {
+            peerId,
+            participantName,
+            button,
+            buttonEnabled: !button.disabled,
+            buttonVisible: getComputedStyle(button).display !== 'none'
+        });
 
         // Show loading state
         this.setButtonLoading(button, true);
@@ -53,10 +96,11 @@ export class VideoSlotControls {
             }
             
             // Show success feedback
+            console.log(`✅ Refresh successful for ${participantName}`);
             this.showRefreshFeedback(button, 'success');
             
         } catch (error) {
-            console.error(`❌ Failed to refresh connection:`, error);
+            console.error(`❌ Failed to refresh connection for ${participantName}:`, error);
             this.showRefreshFeedback(button, 'error');
         } finally {
             // Remove loading state after a moment

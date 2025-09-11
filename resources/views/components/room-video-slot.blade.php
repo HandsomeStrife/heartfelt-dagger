@@ -75,7 +75,7 @@
             </div>
 
             <!-- Video Controls (Top Right) - Always present, shown/hidden by JavaScript based on slot occupancy -->
-            <div class="video-controls absolute top-2 right-2 pointer-events-auto gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden">
+            <div class="video-controls absolute top-2 right-2 pointer-events-auto gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden z-50">
                 <!-- Refresh Connection Button - Always available when slot is occupied -->
                 <button 
                     class="refresh-connection-btn bg-blue-600/90 hover:bg-blue-500 text-white text-xs px-2 py-1 rounded transition-all duration-200 flex items-center gap-1 shadow-lg backdrop-blur-sm"

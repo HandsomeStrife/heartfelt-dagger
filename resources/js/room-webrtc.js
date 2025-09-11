@@ -717,6 +717,31 @@ export default class RoomWebRTC {
                 const config = this.iceManager.getIceConfig();
                 console.log('🧊 Current ICE configuration:', config);
                 console.log('🧊 ICE ready:', this.iceManager.isReady());
+            },
+            
+            // Debug video controls visibility
+            checkVideoControls: () => {
+                console.log('🎛️ Checking video controls status:');
+                document.querySelectorAll('.video-slot').forEach(slot => {
+                    const slotId = slot.dataset.slotId;
+                    const controls = slot.querySelector('.video-controls');
+                    const overlay = slot.querySelector('.character-overlay');
+                    const refreshBtn = controls?.querySelector('.refresh-connection-btn');
+                    
+                    console.log(`🎛️ Slot ${slotId}:`, {
+                        hasControls: !!controls,
+                        controlsVisible: controls ? !controls.classList.contains('hidden') : false,
+                        controlsClasses: controls ? Array.from(controls.classList) : 'no-controls',
+                        hasOverlay: !!overlay,
+                        overlayVisible: overlay ? !overlay.classList.contains('hidden') : false,
+                        hasRefreshBtn: !!refreshBtn,
+                        refreshBtnData: refreshBtn ? {
+                            peerId: refreshBtn.dataset.peerId,
+                            participantName: refreshBtn.dataset.participantName,
+                            disabled: refreshBtn.disabled
+                        } : 'no-button'
+                    });
+                });
             }
         };
         
@@ -725,5 +750,6 @@ export default class RoomWebRTC {
         console.log('  - window.roomDebug.refreshConnection(peerId) - Refresh specific connection');
         console.log('  - window.roomDebug.showState() - Show current room state');
         console.log('  - window.roomDebug.testIce() - Test ICE configuration');
+        console.log('  - window.roomDebug.checkVideoControls() - Debug video controls visibility');
     }
 }

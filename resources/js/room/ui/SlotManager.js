@@ -17,14 +17,28 @@ export class SlotManager {
      * Initialize video controls for slots that already have server-side participant data
      */
     initializeExistingVideoControls() {
+        console.log('🎛️ Initializing existing video controls...');
+        
         // Wait for DOM to be ready
         setTimeout(() => {
-            document.querySelectorAll('.video-slot').forEach(slotContainer => {
+            const slots = document.querySelectorAll('.video-slot');
+            console.log(`🎛️ Found ${slots.length} video slots to check`);
+            
+            slots.forEach(slotContainer => {
+                const slotId = slotContainer.dataset.slotId;
                 const characterOverlay = slotContainer.querySelector('.character-overlay');
+                
+                console.log(`🎛️ Checking slot ${slotId}:`, {
+                    hasOverlay: !!characterOverlay,
+                    overlayHidden: characterOverlay ? characterOverlay.classList.contains('hidden') : 'no-overlay'
+                });
                 
                 // If character overlay exists and is not hidden, show video controls
                 if (characterOverlay && !characterOverlay.classList.contains('hidden')) {
+                    console.log(`🎛️ Slot ${slotId} has visible character overlay, showing video controls`);
                     this.showVideoControls(slotContainer);
+                } else {
+                    console.log(`🎛️ Slot ${slotId} has no visible character overlay, skipping`);
                 }
             });
         }, 100);
@@ -208,24 +222,52 @@ export class SlotManager {
      * Shows video controls for an occupied slot
      */
     showVideoControls(slotContainer) {
+        const slotId = slotContainer.dataset.slotId;
+        console.log(`🎛️ Showing video controls for slot ${slotId}`);
+        
         const videoControls = slotContainer.querySelector('.video-controls');
         if (videoControls) {
+            console.log(`🎛️ Video controls element found for slot ${slotId}`);
+            
             videoControls.classList.remove('hidden');
             videoControls.classList.add('flex');
+            
+            console.log(`🎛️ Video controls classes updated for slot ${slotId}:`, {
+                hidden: videoControls.classList.contains('hidden'),
+                flex: videoControls.classList.contains('flex'),
+                allClasses: Array.from(videoControls.classList)
+            });
             
             // Update refresh button with current slot data if available
             const refreshBtn = videoControls.querySelector('.refresh-connection-btn');
             if (refreshBtn) {
+                console.log(`🔄 Refresh button found for slot ${slotId}`);
+                
                 // Try to get peer ID from slot occupant data
-                const slotId = parseInt(slotContainer.dataset.slotId);
-                const occupantData = this.roomWebRTC.slotOccupants.get(slotId);
+                const slotIdNum = parseInt(slotContainer.dataset.slotId);
+                const occupantData = this.roomWebRTC.slotOccupants.get(slotIdNum);
                 
                 if (occupantData) {
-                    refreshBtn.dataset.peerId = occupantData.peerId || '';
-                    refreshBtn.dataset.participantName = this.getParticipantDisplayName(occupantData.participantData);
-                    refreshBtn.title = `Refresh video connection for ${refreshBtn.dataset.participantName}`;
+                    const peerId = occupantData.peerId || '';
+                    const participantName = this.getParticipantDisplayName(occupantData.participantData);
+                    
+                    refreshBtn.dataset.peerId = peerId;
+                    refreshBtn.dataset.participantName = participantName;
+                    refreshBtn.title = `Refresh video connection for ${participantName}`;
+                    
+                    console.log(`🔄 Refresh button data updated for slot ${slotId}:`, {
+                        peerId,
+                        participantName,
+                        title: refreshBtn.title
+                    });
+                } else {
+                    console.log(`⚠️ No occupant data found for slot ${slotId}`);
                 }
+            } else {
+                console.log(`❌ Refresh button not found for slot ${slotId}`);
             }
+        } else {
+            console.log(`❌ Video controls element not found for slot ${slotId}`);
         }
     }
 
@@ -233,10 +275,23 @@ export class SlotManager {
      * Hides video controls for an empty slot
      */
     hideVideoControls(slotContainer) {
+        const slotId = slotContainer.dataset.slotId;
+        console.log(`🎛️ Hiding video controls for slot ${slotId}`);
+        
         const videoControls = slotContainer.querySelector('.video-controls');
         if (videoControls) {
+            console.log(`🎛️ Video controls element found for hiding on slot ${slotId}`);
+            
             videoControls.classList.add('hidden');
             videoControls.classList.remove('flex');
+            
+            console.log(`🎛️ Video controls hidden for slot ${slotId}:`, {
+                hidden: videoControls.classList.contains('hidden'),
+                flex: videoControls.classList.contains('flex'),
+                allClasses: Array.from(videoControls.classList)
+            });
+        } else {
+            console.log(`❌ Video controls element not found for hiding on slot ${slotId}`);
         }
     }
 

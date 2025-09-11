@@ -62,23 +62,54 @@ class JoinRoomAction
             throw new Exception('Character does not belong to the user.');
         }
 
-        // Create the room participant
-        Log::info('JoinRoomAction - Creating participant record', [
-            'room_id' => $room->id,
-            'user_id' => $userId,
-            'character_id' => $character?->id,
-            'character_name' => $temporaryCharacterName,
-            'character_class' => $temporaryCharacterClass,
-        ]);
+        // Check if user has an existing participant record (including those who left)
+        $existingParticipant = null;
+        if ($user) {
+            $existingParticipant = RoomParticipant::where('room_id', $room->id)
+                ->where('user_id', $user->id)
+                ->first();
+        }
 
-        $participant = RoomParticipant::create([
-            'room_id' => $room->id,
-            'user_id' => $user?->id,
-            'character_id' => $character?->id,
-            'character_name' => $temporaryCharacterName,
-            'character_class' => $temporaryCharacterClass,
-            'joined_at' => now(),
-        ]);
+        if ($existingParticipant) {
+            // Update existing participant to rejoin
+            Log::info('JoinRoomAction - Updating existing participant record', [
+                'room_id' => $room->id,
+                'user_id' => $userId,
+                'participant_id' => $existingParticipant->id,
+                'character_id' => $character?->id,
+                'character_name' => $temporaryCharacterName,
+                'character_class' => $temporaryCharacterClass,
+                'previous_left_at' => $existingParticipant->left_at,
+            ]);
+
+            $existingParticipant->update([
+                'character_id' => $character?->id,
+                'character_name' => $temporaryCharacterName,
+                'character_class' => $temporaryCharacterClass,
+                'joined_at' => now(),
+                'left_at' => null, // Clear the left_at timestamp to make them active again
+            ]);
+
+            $participant = $existingParticipant;
+        } else {
+            // Create new participant record
+            Log::info('JoinRoomAction - Creating new participant record', [
+                'room_id' => $room->id,
+                'user_id' => $userId,
+                'character_id' => $character?->id,
+                'character_name' => $temporaryCharacterName,
+                'character_class' => $temporaryCharacterClass,
+            ]);
+
+            $participant = RoomParticipant::create([
+                'room_id' => $room->id,
+                'user_id' => $user?->id,
+                'character_id' => $character?->id,
+                'character_name' => $temporaryCharacterName,
+                'character_class' => $temporaryCharacterClass,
+                'joined_at' => now(),
+            ]);
+        }
 
         $participant->load(['user', 'character']);
 
