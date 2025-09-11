@@ -31,12 +31,16 @@ export class PeerConnectionManager {
             this.roomWebRTC.iceManager.updatePeerConnection(peerId, peerConnection);
         }
 
-        // Add local stream tracks
-        const localStream = this.roomWebRTC.mediaManager.getLocalStream();
-        if (localStream) {
-            localStream.getTracks().forEach(track => {
-                peerConnection.addTrack(track, localStream);
-            });
+        // Add local stream tracks (skip for viewer mode - receive-only connections)
+        if (!this.roomWebRTC.roomData.viewer_mode) {
+            const localStream = this.roomWebRTC.mediaManager.getLocalStream();
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+            }
+        } else {
+            console.log('👁️ Viewer mode: Creating receive-only connection for', peerId);
         }
 
         // Handle remote stream

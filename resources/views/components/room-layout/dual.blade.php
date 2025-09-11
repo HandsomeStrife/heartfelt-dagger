@@ -1,4 +1,4 @@
-@props(['participants', 'room', 'userIsCreator' => false])
+@props(['participants', 'room', 'userIsCreator' => false, 'viewerMode' => false])
 
 <!-- 2 Participants - Side by Side -->
 <div class="h-full w-full grid grid-cols-2 gap-1">
@@ -8,7 +8,8 @@
             :participant="$participant" 
             :isHost="$loop->first" 
             :userIsCreator="$userIsCreator"
-            :isGmReservedSlot="$index === 0" />
+            :isGmReservedSlot="$index === 0"
+            :viewerMode="$viewerMode" />
     @endforeach
     @for($i = $participants->count(); $i < 2; $i++)
         <x-room-video-slot 
@@ -16,6 +17,7 @@
             :participant="null" 
             :isHost="false" 
             :userIsCreator="$userIsCreator"
-            :isGmReservedSlot="($i + 1) === 1" />
+            :isGmReservedSlot="($i + 1) === 1"
+            :viewerMode="$viewerMode" />
     @endfor
 </div>

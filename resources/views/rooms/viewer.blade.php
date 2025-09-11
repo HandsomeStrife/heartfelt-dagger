@@ -2,42 +2,25 @@
     <!-- Viewer Room Layout (no sidebar, no status bar) -->
     <div x-data="{ sidebarVisible: false }" class="h-screen w-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-800 flex flex-col">
         
-        <!-- Header Bar -->
-        <div class="bg-slate-900/95 backdrop-blur-sm border-b border-slate-700 p-3">
-            <div class="max-w-7xl mx-auto flex items-center justify-between text-sm">
-                <div class="flex items-center space-x-3 text-slate-400 text-xs">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        <span class="text-white font-medium text-xs">VIEWING</span>
-                    </div>
-                    <span>•</span>
-                    <span>{{ $room->name }}</span>
-                    <span>•</span>
-                    <span>{{ $participants->count() }}/{{ $room->getTotalCapacity() }} participants</span>
-                    <span>•</span>
-                    <span class="text-slate-500">Read-only access</span>
-                </div>
-            </div>
-        </div>
         
         <!-- Main Video Area -->
         <div class="flex-1 p-1">
-            <!-- Dynamic Grid Layout Based on Total Capacity -->
+            <!-- Dynamic Grid Layout Based on Total Capacity (Viewer Mode - No Join Buttons) -->
             @if($room->getTotalCapacity() == 1)
-                <x-room-layout.single :participants="$participants" :room="$room" />
+                <x-room-layout.single :participants="$participants" :room="$room" :userIsCreator="false" :viewerMode="true" />
             @elseif($room->getTotalCapacity() == 2)
-                <x-room-layout.dual :participants="$participants" :room="$room" />
+                <x-room-layout.dual :participants="$participants" :room="$room" :userIsCreator="false" :viewerMode="true" />
             @elseif($room->getTotalCapacity() == 3)
-                <x-room-layout.triangle :participants="$participants" :room="$room" />
+                <x-room-layout.triangle :participants="$participants" :room="$room" :userIsCreator="false" :viewerMode="true" />
             @elseif($room->getTotalCapacity() == 4)
-                <x-room-layout.quad :participants="$participants" :room="$room" />
+                <x-room-layout.quad :participants="$participants" :room="$room" :userIsCreator="false" :viewerMode="true" />
             @elseif($room->getTotalCapacity() == 5)
-                <x-room-layout.penta :participants="$participants" :room="$room" />
+                <x-room-layout.penta :participants="$participants" :room="$room" :userIsCreator="false" :viewerMode="true" />
             @elseif($room->getTotalCapacity() == 6)
-                <x-room-layout.grid :participants="$participants" :room="$room" />
+                <x-room-layout.grid :participants="$participants" :room="$room" :userIsCreator="false" :viewerMode="true" />
             @else
                 {{-- Fallback for 7+ participants (shouldn't happen with current validation) --}}
-                <x-room-layout.grid :participants="$participants" :room="$room" />
+                <x-room-layout.grid :participants="$participants" :room="$room" :userIsCreator="false" :viewerMode="true" />
             @endif
         </div>
     </div>

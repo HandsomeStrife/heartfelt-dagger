@@ -1,4 +1,4 @@
-@props(['participants', 'room', 'userIsCreator' => false])
+@props(['participants', 'room', 'userIsCreator' => false, 'viewerMode' => false])
 
 <!-- 5-6 Participants - Responsive Grid Layout -->
 <div class="h-full w-full grid gap-1 grid-cols-2 grid-rows-3 xl:grid-cols-3 xl:grid-rows-2" 
@@ -11,6 +11,7 @@
             :participant="null" 
             :isHost="$i === 1" 
             :userIsCreator="$userIsCreator"
-            :isGmReservedSlot="$i === 1" />
+            :isGmReservedSlot="$i === 1"
+            :viewerMode="$viewerMode" />
     @endfor
 </div>

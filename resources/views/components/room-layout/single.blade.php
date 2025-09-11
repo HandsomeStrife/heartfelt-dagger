@@ -1,4 +1,4 @@
-@props(['participants', 'room', 'userIsCreator' => false])
+@props(['participants', 'room', 'userIsCreator' => false, 'viewerMode' => false])
 
 <!-- Single Participant Layout -->
 <div class="h-full w-full">
@@ -8,13 +8,15 @@
             :participant="$participants->first()" 
             :isHost="true" 
             :userIsCreator="$userIsCreator"
-            :isGmReservedSlot="true" />
+            :isGmReservedSlot="true"
+            :viewerMode="$viewerMode" />
     @else
         <x-room-video-slot 
             :slot-id="1" 
             :participant="null" 
             :isHost="false" 
             :userIsCreator="$userIsCreator"
-            :isGmReservedSlot="true" />
+            :isGmReservedSlot="true"
+            :viewerMode="$viewerMode" />
     @endif
 </div>

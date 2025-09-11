@@ -1,4 +1,4 @@
-@props(['slotId', 'participant' => null, 'isHost' => false, 'userIsCreator' => false, 'isGmReservedSlot' => false])
+@props(['slotId', 'participant' => null, 'isHost' => false, 'userIsCreator' => false, 'isGmReservedSlot' => false, 'viewerMode' => false])
 
 <div class="video-slot h-full w-full bg-gradient-to-br from-slate-800 to-slate-900 border {{ $isHost ? 'border-emerald-500/30' : 'border-amber-500/30' }} overflow-hidden hover:border-{{ $isHost ? 'emerald' : 'amber' }}-400/60 transition-all duration-300" data-slot-id="{{ $slotId }}" data-testid="video-slot">
     <div class="h-full w-full bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 flex items-center justify-center relative">
@@ -77,16 +77,16 @@
         
         <!-- ALL POSSIBLE SLOT STATES (shown/hidden dynamically by JavaScript) -->
         
-        <!-- State 1: GM Reserved Slot (for non-GM users) -->
-        <div class="slot-state slot-gm-reserved {{ $isGmReservedSlot && !$userIsCreator ? '' : 'hidden' }} text-center text-slate-500">
+        <!-- State 1: GM Reserved Slot (for non-GM users) - Hidden in viewer mode -->
+        <div class="slot-state slot-gm-reserved {{ $viewerMode ? 'hidden' : ($isGmReservedSlot && !$userIsCreator ? '' : 'hidden') }} text-center text-slate-500">
             <svg class="w-12 h-12 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             <p class="text-sm font-semibold opacity-75">Reserved for GM</p>
         </div>
 
-        <!-- State 2: GM Join Button (for GM users) -->
-        <button class="slot-state slot-gm-join {{ $isGmReservedSlot && $userIsCreator ? '' : 'hidden' }} join-btn bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-emerald-500/50 transform hover:scale-105">
+        <!-- State 2: GM Join Button (for GM users) - Hidden in viewer mode -->
+        <button class="slot-state slot-gm-join {{ $viewerMode ? 'hidden' : ($isGmReservedSlot && $userIsCreator ? '' : 'hidden') }} join-btn bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-emerald-500/50 transform hover:scale-105">
             <span class="flex items-center gap-2">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/>
@@ -95,8 +95,8 @@
             </span>
         </button>
 
-        <!-- State 3: Player Join Button (for non-GM slots, when user can join) -->
-        <button class="slot-state slot-player-join {{ !$isGmReservedSlot && !$userIsCreator ? '' : 'hidden' }} join-btn player-join-btn bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 transform hover:scale-105">
+        <!-- State 3: Player Join Button (for non-GM slots, when user can join) - Hidden in viewer mode -->
+        <button class="slot-state slot-player-join {{ $viewerMode ? 'hidden' : (!$isGmReservedSlot && !$userIsCreator ? '' : 'hidden') }} join-btn player-join-btn bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-bold py-3 px-6 rounded-lg text-lg transition-all duration-300 shadow-lg hover:shadow-amber-500/50 transform hover:scale-105">
             <span class="flex items-center gap-2">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"/>
@@ -105,12 +105,20 @@
             </span>
         </button>
 
-        <!-- State 4: Waiting for Player (for empty non-GM slots, shown when no join button is available) -->
-        <div class="slot-state slot-waiting {{ !$isGmReservedSlot && $userIsCreator ? '' : 'hidden' }} text-center text-slate-400">
+        <!-- State 4: Waiting for Player (for empty non-GM slots, shown when no join button is available) - Hidden in viewer mode -->
+        <div class="slot-state slot-waiting {{ $viewerMode ? 'hidden' : (!$isGmReservedSlot && $userIsCreator ? '' : 'hidden') }} text-center text-slate-400">
             <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
             <p class="text-sm font-semibold opacity-75">Waiting for Player</p>
+        </div>
+
+        <!-- State 5: Viewer Mode - Empty Slot Display -->
+        <div class="slot-state slot-viewer-empty {{ $viewerMode && !$participant ? '' : 'hidden' }} text-center text-slate-500">
+            <svg class="w-12 h-12 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <p class="text-sm font-semibold opacity-75">{{ $isGmReservedSlot ? 'GM Slot' : 'Player Slot' }}</p>
         </div>
 
         

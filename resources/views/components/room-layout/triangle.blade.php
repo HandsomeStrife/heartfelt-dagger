@@ -1,4 +1,4 @@
-@props(['participants', 'room', 'userIsCreator' => false])
+@props(['participants', 'room', 'userIsCreator' => false, 'viewerMode' => false])
 
 <!-- 3 Participants - Triangle Layout -->
 <div class="h-full w-full">
@@ -11,14 +11,16 @@
                     :participant="$participants->first()" 
                     :isHost="true" 
                     :userIsCreator="$userIsCreator"
-                    :isGmReservedSlot="true" />
+                    :isGmReservedSlot="true"
+                    :viewerMode="$viewerMode" />
             @else
                 <x-room-video-slot 
                     :slot-id="1" 
                     :participant="null" 
                     :isHost="false" 
                     :userIsCreator="$userIsCreator"
-                    :isGmReservedSlot="true" />
+                    :isGmReservedSlot="true"
+                    :viewerMode="$viewerMode" />
             @endif
         </div>
     </div>
@@ -30,7 +32,8 @@
                 :participant="$participant" 
                 :isHost="false" 
                 :userIsCreator="$userIsCreator"
-                :isGmReservedSlot="false" />
+                :isGmReservedSlot="false"
+                :viewerMode="$viewerMode" />
         @endforeach
         @for($i = $participants->skip(1)->count(); $i < 2; $i++)
             <x-room-video-slot 
@@ -38,7 +41,8 @@
                 :participant="null" 
                 :isHost="false" 
                 :userIsCreator="$userIsCreator"
-                :isGmReservedSlot="false" />
+                :isGmReservedSlot="false"
+                :viewerMode="$viewerMode" />
         @endfor
     </div>
 </div>

@@ -1,4 +1,4 @@
-@props(['participants', 'room', 'userIsCreator' => false])
+@props(['participants', 'room', 'userIsCreator' => false, 'viewerMode' => false])
 
 <!-- 5 Participants - Responsive Grid Layout -->
 <div class="h-full w-full grid gap-1 grid-cols-2 grid-rows-3 xl:grid-cols-3 xl:grid-rows-2" 
@@ -11,7 +11,8 @@
             :participant="$participant" 
             :isHost="$loop->first" 
             :userIsCreator="$userIsCreator"
-            :isGmReservedSlot="$index === 0" />
+            :isGmReservedSlot="$index === 0"
+            :viewerMode="$viewerMode" />
     @endforeach
     
     <!-- Fill remaining slots with empty slots -->
@@ -21,6 +22,7 @@
             :participant="null" 
             :isHost="false" 
             :userIsCreator="$userIsCreator"
-            :isGmReservedSlot="($i + 1) === 1" />
+            :isGmReservedSlot="($i + 1) === 1"
+            :viewerMode="$viewerMode" />
     @endfor
 </div>
