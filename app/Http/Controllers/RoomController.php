@@ -462,34 +462,34 @@ class RoomController extends Controller
         }
     }
 
-    public function kickParticipant(Room $room, int $participant)
-    {
-        $user = Auth::user();
+    // public function kickParticipant(Room $room, int $participant)
+    // {
+    //     $user = Auth::user();
 
-        Log::info('Room kick participant request', [
-            'room_id' => $room->id,
-            'kicking_user_id' => $user->id,
-            'participant_id' => $participant,
-            'ip' => request()->ip(),
-        ]);
+    //     Log::info('Room kick participant request', [
+    //         'room_id' => $room->id,
+    //         'kicking_user_id' => $user->id,
+    //         'participant_id' => $participant,
+    //         'ip' => request()->ip(),
+    //     ]);
 
-        try {
-            $this->kick_user_action->execute($room, $user, $participant);
+    //     try {
+    //         $this->kick_user_action->execute($room, $user, $participant);
 
-            return redirect()
-                ->back()
-                ->with('success', 'Participant has been removed from the room.');
-        } catch (\Exception $e) {
-            Log::error('Room kick participant failed', [
-                'room_id' => $room->id,
-                'kicking_user_id' => $user->id,
-                'participant_id' => $participant,
-                'error' => $e->getMessage(),
-            ]);
+    //         return redirect()
+    //             ->back()
+    //             ->with('success', 'Participant has been removed from the room.');
+    //     } catch (\Exception $e) {
+    //         Log::error('Room kick participant failed', [
+    //             'room_id' => $room->id,
+    //             'kicking_user_id' => $user->id,
+    //             'participant_id' => $participant,
+    //             'error' => $e->getMessage(),
+    //         ]);
 
-            return back()->withErrors(['error' => $e->getMessage()]);
-        }
-    }
+    //         return back()->withErrors(['error' => $e->getMessage()]);
+    //     }
+    // }
 
     public function destroy(Room $room)
     {
