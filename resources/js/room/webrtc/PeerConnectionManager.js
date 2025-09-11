@@ -58,9 +58,18 @@ export class PeerConnectionManager {
             this.handleRemoteStream(event.streams[0], peerId);
         };
 
-        // Handle ICE candidates
+        // Handle ICE candidates with basic rate limiting
+        let lastCandidateTime = 0;
         peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
+                const now = Date.now();
+                // Basic rate limiting: max 10 candidates per second
+                if (now - lastCandidateTime < 100) {
+                    console.log(`🧊 Rate limiting ICE candidate for ${peerId}`);
+                    return;
+                }
+                lastCandidateTime = now;
+                
                 console.log(`🧊 Sending ICE candidate to ${peerId}:`, event.candidate.type);
                 this.roomWebRTC.ablyManager.publishToAbly('webrtc-ice-candidate', {
                     candidate: event.candidate

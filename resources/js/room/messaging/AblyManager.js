@@ -36,6 +36,18 @@ export class AblyManager {
         const channelName = `room-${this.roomWebRTC.roomData.id}`;
         this.ablyChannel = window.AblyClient.channels.get(channelName);
         
+        // Add error handling for channel operations
+        this.ablyChannel.on('failed', (error) => {
+            console.error('❌ Ably channel failed:', error);
+            if (error.message && error.message.includes('rate limit')) {
+                console.warn('⚠️ Ably channel rate limit - this may affect video connectivity');
+            }
+        });
+
+        this.ablyChannel.on('suspended', (error) => {
+            console.warn('⚠️ Ably channel suspended:', error);
+        });
+        
         // Subscribe to signaling messages only (filter out other app messages)
         this.ablyChannel.subscribe((message) => {
             // Fix #1: Gate Ably to signaling messages only
@@ -71,7 +83,7 @@ export class AblyManager {
     }
 
     /**
-     * Publishes a message to the Ably channel with proper structure
+     * Publishes a message to the Ably channel with proper structure and rate limiting
      */
     publishToAbly(type, data, targetPeerId = null) {
         if (!this.ablyChannel) {
@@ -89,8 +101,18 @@ export class AblyManager {
             timestamp: Date.now()
         };
 
-        this.ablyChannel.publish('webrtc-signal', message);
-        console.log(`📤 Published ${type} to room channel`);
+        // Add error handling for rate limit issues
+        this.ablyChannel.publish('webrtc-signal', message, (err) => {
+            if (err) {
+                console.error('❌ Ably publish failed:', err);
+                if (err.message && err.message.includes('rate limit')) {
+                    console.warn('⚠️ Ably rate limit hit - consider reducing message frequency');
+                    // Could implement exponential backoff retry here if needed
+                }
+            } else {
+                console.log(`📤 Published ${type} to room channel`);
+            }
+        });
     }
 
     /**

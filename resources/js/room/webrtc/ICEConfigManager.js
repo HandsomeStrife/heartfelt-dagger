@@ -13,6 +13,7 @@ export class ICEConfigManager {
             ]
         };
         this.iceReady = false;
+        this.lastConfigLoad = null;
         this.peerConnections = new Map(); // Reference to peer connections for updates
     }
 
@@ -20,11 +21,17 @@ export class ICEConfigManager {
      * Loads ICE configuration from backend API with Cloudflare STUN/TURN support
      */
     async loadIceServers() {
+        // Don't reload if we already have valid config and it's recent
+        if (this.iceReady && this.lastConfigLoad && (Date.now() - this.lastConfigLoad) < 120000) { // 2 minutes
+            console.log('🧊 Using cached ICE configuration');
+            return;
+        }
+
         try {
             console.log('🧊 Loading ICE configuration from backend...');
             
             const response = await fetch('/api/webrtc/ice-config', { 
-                cache: 'no-store',
+                cache: 'default', // Allow browser caching to reduce requests
                 headers: {
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
@@ -37,6 +44,7 @@ export class ICEConfigManager {
                 if (config && Array.isArray(config.iceServers) && config.iceServers.length > 0) {
                     this.iceConfig = config;
                     this.iceReady = true;
+                    this.lastConfigLoad = Date.now();
                     
                     console.log('🧊 ICE configuration loaded successfully:', {
                         serversCount: config.iceServers.length,
