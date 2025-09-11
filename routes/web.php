@@ -157,6 +157,12 @@ Route::get('/actual-plays', function () {
     return view('actual-plays', compact('actual_plays_data'));
 })->name('actual-plays');
 
+// Reference routes (public access)
+Route::prefix('reference')->name('reference.')->group(function () {
+    Route::get('/', [App\Http\Controllers\ReferenceController::class, 'index'])->name('index');
+    Route::get('/{page}', [App\Http\Controllers\ReferenceController::class, 'show'])->name('page');
+});
+
 // WebRTC ICE configuration route
 Route::get('/api/webrtc/ice-config', [App\Http\Controllers\Api\WebRTCController::class, 'iceConfig'])->name('api.webrtc.ice-config');
 

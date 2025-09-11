@@ -1,0 +1,463 @@
+# DaggerHeart Website Design Philosophy
+
+## Overview
+
+The DaggerHeart Character Builder is a comprehensive digital companion for the DaggerHeart TTRPG system. This document outlines the design philosophy, architectural patterns, and development guidelines that should be followed for all future pages and additions to maintain consistency and quality.
+
+## Core Design Principles
+
+### 1. **SRD-First Approach**
+- **All game mechanics must strictly adhere to the official DaggerHeart System Reference Document (SRD)**
+- Features should enhance the tabletop experience, never replace or modify core rules
+- When in doubt, reference the SRD documentation in `/resources/rules/contents/`
+- Validate all implementations against official DaggerHeart sources
+
+### 2. **Progressive Enhancement**
+- Core functionality works without JavaScript
+- Enhanced UX through Livewire and Alpine.js
+- Graceful degradation for accessibility
+- Mobile-first responsive design
+
+### 3. **User-Centric Design**
+- **No authentication barriers for core functionality** - anyone can create characters
+- Enhanced features for registered users (persistent storage, sharing)
+- Intuitive, guided workflows that match tabletop character creation
+- Clear visual feedback and validation
+
+## Technical Architecture
+
+### Domain-Driven Design (DDD)
+
+```
+domain/
+├── Character/           # Character management domain
+│   ├── Models/         # Eloquent models
+│   ├── Data/           # DTOs using Spatie Laravel Data
+│   ├── Actions/        # Business logic operations
+│   ├── Repositories/   # Data retrieval (returns DTOs)
+│   └── Enums/          # Domain-specific enumerations
+├── Campaign/           # Campaign management
+├── Room/              # Virtual tabletop rooms
+└── User/              # User management
+```
+
+**Key Rules:**
+- **NEVER create `app/Domain`** - all domain logic goes in `/domain/`
+- Models reside in `domain/*/Models` with namespace `Domain\{Context}\Models`
+- Business logic in Actions: `(new SomeAction())->execute(...)`
+- Repositories return DTOs, never raw models
+- Use `protected $guarded = [];` on all models
+
+### Frontend Architecture
+
+**Stack:**
+- **Laravel Blade** for templating
+- **Livewire** for dynamic interfaces
+- **Alpine.js** for simple client-side interactions
+- **TailwindCSS** for styling
+
+**Component Structure:**
+```
+resources/views/components/
+├── layout/             # Layout components
+├── form/              # Form elements
+├── character-builder/ # Character creation components
+├── character-viewer/  # Character display components
+└── ui/               # Reusable UI components
+```
+
+## Visual Design System
+
+### Color Palette
+
+**Primary Theme:** Dark fantasy with warm accents
+```css
+/* Background Gradients */
+bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950
+
+/* Card Backgrounds */
+bg-slate-900/80 backdrop-blur-xl
+
+/* Primary Actions */
+from-amber-500 to-orange-500
+
+/* Success States */
+emerald-400, emerald-500
+
+/* Domain-Specific Colors */
+/* Each of the 9 magical domains has its own color */
+```
+
+**Domain Colors:**
+- **Arcana**: `#4e345b` - Raw magical forces
+- **Blade**: `#af231c` - Combat and weapons
+- **Bone**: `#a4a9a8` - Death and necromancy
+- **Codex**: `#24395d` - Knowledge and lore
+- **Grace**: `#8d3965` - Social and performance
+- **Midnight**: `#1e201f` - Stealth and shadows
+- **Sage**: `#244e30` - Nature and healing
+- **Splendor**: `#b8a342` - Light and divine power
+- **Valor**: `#e2680e` - Courage and leadership
+
+### Typography
+
+```css
+/* Headers */
+font-outfit         /* Primary headings */
+
+/* Fantasy Elements */
+font-fantasy        /* MedievalSharp for thematic text */
+
+/* Body Text */
+font-roboto         /* Clean, readable body text */
+
+/* UI Elements */
+/* Default sans-serif for forms and interfaces */
+```
+
+### Component Patterns
+
+#### Card-Based Selection
+- **Default**: Translucent slate with subtle borders
+- **Hover**: Increased opacity, enhanced borders, gentle scaling
+- **Selected**: Amber/orange glow with checkmark indicators
+
+#### Interactive States
+```html
+<!-- Standard interactive card -->
+<div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700 
+            hover:border-amber-400 hover:bg-slate-800/90 
+            selected:border-amber-400 selected:ring-2 selected:ring-amber-400/50
+            transition-all duration-200">
+```
+
+#### Domain Cards
+Special styling that mimics physical game cards:
+- Colored banner with level indicator
+- Recall cost badge with Hope cost
+- Gradient effects and sparkle overlays
+- Consistent card dimensions and layout
+
+## Development Guidelines
+
+### Code Standards
+
+**PHP (PSR-12 Compliance):**
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Domain\Character\Actions;
+
+use Domain\Character\Models\Character;
+
+class ExampleAction
+{
+    public function execute(Character $character, array $data): bool
+    {
+        // Implementation
+        return true;
+    }
+}
+```
+
+**Blade Templates:**
+- **NO `@php` directives** - use proper Blade syntax
+- Use existing component system
+- Snake_case for variables, camelCase for methods
+- Prefer `<livewire:component-name>` over `@livewire('component-name')`
+
+**Livewire Components:**
+```php
+class ExampleComponent extends Component
+{
+    public string $character_key;
+    public bool $can_edit;
+    
+    public function mount(string $characterKey, bool $canEdit): void
+    {
+        $this->character_key = $characterKey;
+        $this->can_edit = $canEdit;
+    }
+}
+```
+
+### Data Flow Patterns
+
+#### Character Creation Flow
+1. **Step-by-step progression** following SRD exactly
+2. **Progressive validation** with real-time feedback
+3. **State persistence** in localStorage (anonymous) + database (authenticated)
+4. **Undo/redo capability** where appropriate
+
+#### Form Handling
+```php
+// Use Livewire Forms for data persistence
+// Forms call Actions for business logic
+// Actions interact with Repositories for data
+// Repositories return DTOs to maintain type safety
+```
+
+### Testing Philosophy
+
+**Comprehensive Test Coverage:**
+- **Unit Tests**: Domain logic and calculations
+- **Feature Tests**: Complete user workflows
+- **Integration Tests**: Cross-domain interactions
+- **Browser Tests**: End-to-end user journeys
+
+**Test Structure:**
+```php
+// Use Pest for all tests
+describe('Feature Name', function () {
+    beforeEach(function () {
+        // Setup
+    });
+    
+    test('specific behavior description', function () {
+        // Arrange, Act, Assert
+    });
+});
+```
+
+**No Mocks Policy** (except external APIs):
+- Use real database interactions
+- Factory-based test data
+- Test actual business logic, not abstractions
+
+## UI Component Guidelines
+
+### Layout Components
+
+**Primary Layouts:**
+- `<x-layout.default>` - Standard page layout
+- `<x-layout.default.sidebar>` - Layout with sidebar navigation
+
+**Never use `<x-app-layout>` - this is deprecated**
+
+### Form Components
+
+```html
+<x-form>
+    <x-form.label for="example">Label Text</x-form.label>
+    <x-form.input 
+        id="example" 
+        wire:model="property"
+        placeholder="Placeholder text" />
+</x-form>
+```
+
+### Interactive Components
+
+**Buttons:**
+```html
+<!-- Primary action -->
+<x-button variant="primary">Save Character</x-button>
+
+<!-- Secondary action -->
+<x-button variant="secondary">Cancel</x-button>
+
+<!-- Danger action -->
+<x-button variant="danger">Delete</x-button>
+```
+
+**Modals:**
+```html
+<!-- Slide-over modal -->
+<x-modal.slideover>
+    <x-slot name="title">Modal Title</x-slot>
+    <!-- Content -->
+</x-modal.slideover>
+
+<!-- Popup modal -->
+<x-modal.popup>
+    <!-- Content -->
+</x-modal.popup>
+```
+
+**Tooltips:**
+```html
+<div x-tooltip="Tooltip content">
+    Hover target
+</div>
+```
+
+### Character-Specific Components
+
+#### Domain Cards
+```html
+<x-character-builder.domain-card 
+    :card="$card"
+    :selected="$isSelected"
+    wire:click="selectCard('{{ $card['key'] }}')" />
+```
+
+#### Character Sheet Elements
+```html
+<x-character-viewer.stat-block
+    :character="$character"
+    :editable="$canEdit" />
+
+<x-character-viewer.trait-display
+    :traits="$character->traits"
+    :show-bonuses="true" />
+```
+
+## Content Management
+
+### JSON Data Structure
+
+All game data stored in `/resources/json/`:
+- `classes.json` - All 9 classes with tier options
+- `subclasses.json` - Subclass progression data
+- `ancestries.json` - All 13 ancestries
+- `communities.json` - All 9 communities
+- `domains.json` - 9 magical domains
+- `abilities.json` - Domain cards/abilities
+- Equipment files: `weapons.json`, `armor.json`, `items.json`, `consumables.json`
+
+### Data Validation Requirements
+
+**When updating game data:**
+1. **Verify SRD Source** - Confirm changes match official documentation
+2. **Maintain Structure** - Keep consistent naming and organization
+3. **Test Integration** - Run character creation flow tests
+4. **Validate Calculations** - Ensure statistics remain accurate
+5. **Check Visual Elements** - Confirm UI renders correctly
+
+## Accessibility Requirements
+
+### Mandatory Standards
+- **ARIA labels** for all interactive elements
+- **Keyboard navigation** support throughout
+- **Screen reader** compatibility
+- **Focus management** between form steps
+- **Color-blind friendly** indicators (not color-only)
+
+### Implementation Examples
+```html
+<!-- Proper form labeling -->
+<label for="trait-selection" class="sr-only">Select Character Trait</label>
+<select id="trait-selection" aria-describedby="trait-help">
+    <!-- options -->
+</select>
+<div id="trait-help" class="text-sm text-slate-400">
+    Choose a trait that reflects your character's strengths
+</div>
+
+<!-- Keyboard-accessible cards -->
+<div class="trait-card" 
+     role="button" 
+     tabindex="0"
+     aria-pressed="false"
+     @keydown.enter="selectTrait"
+     @keydown.space.prevent="selectTrait">
+```
+
+## Performance Guidelines
+
+### Frontend Optimization
+- **Lazy loading** for non-critical components
+- **Image optimization** with WebP format
+- **Minimal JavaScript** - prefer server-side rendering
+- **Efficient Livewire updates** - target specific DOM elements
+
+### Backend Optimization
+- **Eager loading** relationships to prevent N+1 queries
+- **DTO pattern** for data transfer
+- **Repository caching** where appropriate
+- **Database indexing** for character lookups
+
+## Security Considerations
+
+### Data Protection
+- **No sensitive data in localStorage** 
+- **Sanitize all user inputs**
+- **Validate file uploads** strictly
+- **Rate limiting** on character creation
+
+### Access Control
+- **Public character viewing** with unique keys
+- **Edit permissions** based on ownership/sharing
+- **API endpoint protection**
+
+## Mobile Experience
+
+### Responsive Design Patterns
+```css
+/* Mobile-first approach */
+.character-grid {
+    @apply grid grid-cols-1;
+    @apply md:grid-cols-2;
+    @apply lg:grid-cols-3;
+}
+
+/* Touch-friendly interactions */
+.touch-target {
+    @apply min-h-[44px] min-w-[44px];
+}
+```
+
+### Mobile-Specific Features
+- **Swipe navigation** between character creation steps
+- **Touch-optimized** card selection
+- **Simplified layouts** for small screens
+- **Offline capability** for character viewing
+
+## Future Development Guidelines
+
+### When Adding New Features
+
+1. **SRD Compliance Check**
+   - Does this feature align with official DaggerHeart rules?
+   - Have you consulted the relevant SRD documentation?
+
+2. **Architecture Review**
+   - Does it follow the established domain structure?
+   - Are you using Actions for business logic?
+   - Are you returning DTOs from repositories?
+
+3. **Design Consistency**
+   - Does it match the established visual patterns?
+   - Are you using the existing component library?
+   - Does it work across all device sizes?
+
+4. **Testing Requirements**
+   - Have you written comprehensive tests?
+   - Does it integrate with existing test suites?
+   - Have you tested edge cases?
+
+### When Modifying Existing Features
+
+1. **Regression Testing**
+   - Run the full test suite
+   - Verify character creation still works end-to-end
+   - Check that existing characters display correctly
+
+2. **Backward Compatibility**
+   - Ensure existing character data remains valid
+   - Provide migration paths if data structure changes
+   - Maintain API compatibility
+
+3. **Performance Impact**
+   - Profile before and after changes
+   - Ensure no performance degradation
+   - Consider caching implications
+
+## Conclusion
+
+This design philosophy prioritizes **SRD accuracy**, **user experience**, and **maintainable code**. Every decision should be filtered through these lenses:
+
+1. **Does this serve the DaggerHeart community effectively?**
+2. **Does this maintain strict adherence to official game rules?**
+3. **Is this accessible and intuitive for all users?**
+4. **Will this be maintainable and extensible long-term?**
+
+By following these guidelines, we ensure that the DaggerHeart Character Builder remains a valuable, accurate, and delightful tool for the TTRPG community.
+
+---
+
+*Last Updated: September 2025*
+*For questions or clarifications, refer to the codebase examples and existing implementations.*
+

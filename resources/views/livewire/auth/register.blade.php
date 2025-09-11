@@ -36,6 +36,7 @@
                         wire:model="form.username"
                         class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors font-roboto"
                         placeholder="Choose your hero name"
+                        autocomplete="nickname"
                         required
                     >
                     @error('form.username') 
@@ -51,6 +52,7 @@
                         wire:model="form.email"
                         class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors font-roboto"
                         placeholder="Enter your email"
+                        autocomplete="email"
                         required
                     >
                     @error('form.email') 
@@ -66,6 +68,7 @@
                         wire:model="form.password"
                         class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors font-roboto"
                         placeholder="Create a strong password"
+                        autocomplete="new-password"
                         required
                     >
                     @error('form.password') 
@@ -81,6 +84,7 @@
                         wire:model="form.password_confirmation"
                         class="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors font-roboto"
                         placeholder="Confirm your password"
+                        autocomplete="new-password"
                         required
                     >
                     @error('form.password_confirmation') 

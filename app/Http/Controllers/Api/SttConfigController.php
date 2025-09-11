@@ -61,3 +61,4 @@ class SttConfigController extends Controller
         return response()->json(['error' => 'Unknown STT provider'], 400);
     }
 }
+

@@ -260,6 +260,20 @@
                     @endif
                 </div>
             </div>
+
+            <!-- Quick Reference -->
+            <div class="bg-slate-800/50 rounded-lg p-4">
+                <x-reference.sidebar-quick-ref 
+                    title="GM Quick Reference"
+                    :items="[
+                        ['title' => 'Core GM Mechanics', 'url' => route('reference.page', 'core-gm-mechanics')],
+                        ['title' => 'Adversaries', 'url' => route('reference.page', 'adversaries')],
+                        ['title' => 'GM Guidance', 'url' => route('reference.page', 'gm-guidance')],
+                        ['title' => 'Action Roll Results', 'url' => route('reference.page', 'making-moves-and-taking-action')],
+                        ['title' => 'Conditions', 'url' => route('reference.page', 'conditions')],
+                        ['title' => 'Combat Rules', 'url' => route('reference.page', 'combat')],
+                    ]" />
+            </div>
         </div>
 
         <!-- Notes Tab -->

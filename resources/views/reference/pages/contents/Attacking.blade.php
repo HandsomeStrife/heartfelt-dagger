@@ -1,0 +1,27 @@
+<h1 class="font-outfit text-2xl font-bold text-white border-b border-slate-700 pb-3 mb-6 mt-0">ATTACKING</h1>
+<h2 class="font-outfit text-xl font-bold text-amber-400 mt-8 mb-4">ATTACK ROLLS</h2>
+<p class="text-slate-300 leading-relaxed mb-4">An <strong class="text-white font-semibold">attack roll</strong> is an action roll intended to inflict harm. The trait that applies to an attack roll is specified by the weapon or spell being used. Unarmed attack rolls use either Strength or Finesse (GM’s choice). An attack roll’s Difficulty, unless otherwise noted, is equal to the Difficulty score of its target.</p>
+<h2 class="font-outfit text-xl font-bold text-amber-400 mt-8 mb-4">DAMAGE ROLLS</h2>
+<p class="text-slate-300 leading-relaxed mb-4">On a successful attack, roll damage. Damage is calculated from the <strong class="text-white font-semibold">damage roll</strong> listed in the attack’s description with the format “xdy+[modifier]” <em class="text-amber-300 not-italic">(e.g., for a spell that inflicts “1d8+2” damage, you roll an eight-sided die and add 2 to the result; the damage dealt is equal to the total).</em></p>
+<p class="text-slate-300 leading-relaxed mb-4">Any time an effect says to deal damage using your Spellcast trait, you roll a number of dice equal to your Spellcast trait.</p>
+<blockquote class="border-l-4 border-amber-500 bg-amber-500/10 py-2 px-4 rounded-r text-amber-100 mb-4">
+<p class="text-slate-300 leading-relaxed mb-4"><em class="text-amber-300 not-italic"><strong class="text-white font-semibold">Note:</strong></em> <em class="text-amber-300 not-italic">If your Spellcast trait is +0 or lower, you don’t roll anything.</em></p>
+</blockquote>
+<p class="text-slate-300 leading-relaxed mb-4">For weapons, the number of damage dice you roll is equal to your <strong class="text-white font-semibold">Proficiency</strong>. <em class="text-amber-300 not-italic">Note that your Proficiency multiplies the number of dice you roll, but doesn’t affect the modifier. For example, a PC with Proficiency 2 and wielding a weapon with a damage rating of “d8+2” deals damage equal to “2d8+2” on a successful attack.</em></p>
+<p class="text-slate-300 leading-relaxed mb-4">Successful unarmed attacks inflict [Proficiency]d4 damage.</p>
+<h2 class="font-outfit text-xl font-bold text-amber-400 mt-8 mb-4">CRITICAL DAMAGE</h2>
+<p class="text-slate-300 leading-relaxed mb-4">When you get a critical success (i.e., you roll matching values on your Duality Dice) on an attack roll, you deal extra damage. Make the damage roll as usual, but add the maximum possible result of the damage dice to the final total. For instance, if an attack would normally deal 2d8+1 damage, a critical success would deal 2d8+1+16.</p>
+<h2 class="font-outfit text-xl font-bold text-amber-400 mt-8 mb-4">DAMAGE TYPES</h2>
+<p class="text-slate-300 leading-relaxed mb-4">There are two damage types: <strong class="text-white font-semibold">physical damage (phy)</strong> and <strong class="text-white font-semibold">magic damage (mag)</strong>. Unless stated otherwise, mundane weapons and unarmed attacks deal physical damage, and spells deal magic damage.</p>
+<h2 class="font-outfit text-xl font-bold text-amber-400 mt-8 mb-4">RESISTANCE, IMMUNITY, AND DIRECT DAMAGE</h2>
+<p class="text-slate-300 leading-relaxed mb-4">If a target has <strong class="text-white font-semibold">resistance</strong> to a damage type, they reduce incoming damage of that type by half before comparing it to their Hit Point Thresholds. If the target has additional ways of reducing incoming damage, such as marking Armor Slots, they apply the resistance effect first. The effects of multiple resistances to the same damage type do not stack.</p>
+<p class="text-slate-300 leading-relaxed mb-4">If a target has <strong class="text-white font-semibold">immunity</strong> to a damage type, they ignore incoming damage of that type.</p>
+<p class="text-slate-300 leading-relaxed mb-4">If an attack deals both physical and magic damage, a character can only benefit from resistance or immunity if they are resistant or immune to both damage types.</p>
+<p class="text-slate-300 leading-relaxed mb-4"><strong class="text-white font-semibold">Direct damage</strong> is damage that can’t be reduced by marking Armor Slots.</p>
+<h2 class="font-outfit text-xl font-bold text-amber-400 mt-8 mb-4">MULTI-TARGET ATTACK ROLLS</h2>
+<p class="text-slate-300 leading-relaxed mb-4">If a spell or ability allows you to target multiple adversaries, make one attack roll and one damage roll, then apply the same attack roll result individually.</p>
+<h2 class="font-outfit text-xl font-bold text-amber-400 mt-8 mb-4">MULTIPLE DAMAGE SOURCES</h2>
+<p class="text-slate-300 leading-relaxed mb-4">Damage dealt simultaneously from multiple sources is always totaled before it’s compared to its target’s damage thresholds.</p>
+<blockquote class="border-l-4 border-amber-500 bg-amber-500/10 py-2 px-4 rounded-r text-amber-100 mb-4">
+<p class="text-slate-300 leading-relaxed mb-4"><em class="text-amber-300 not-italic">For example, if a PC with or ancestry makes a successful attack against a target in Melee range and decides to spend a Hope to use their “Tusks” feature (which gives them an extra 1d6 damage on a damage roll), they would roll their normal weapon damage and add a d6 to the result, then deal that total damage to the adversary.</em></p>
+</blockquote>

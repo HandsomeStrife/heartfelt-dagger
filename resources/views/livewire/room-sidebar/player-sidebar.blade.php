@@ -308,6 +308,18 @@
                     </div>
                 </div>
             @endif
+
+            <!-- Quick Reference -->
+            <x-reference.sidebar-quick-ref 
+                title="Player Quick Reference"
+                :items="[
+                    ['title' => 'Action Rolls', 'url' => route('reference.page', 'making-moves-and-taking-action')],
+                    ['title' => 'Combat Basics', 'url' => route('reference.page', 'combat')],
+                    ['title' => 'Conditions', 'url' => route('reference.page', 'conditions')],
+                    ['title' => 'Stress & Damage', 'url' => route('reference.page', 'stress')],
+                    ['title' => 'Domain Cards', 'url' => route('reference.page', 'domain-card-reference')],
+                    ['title' => 'Equipment', 'url' => route('reference.page', 'equipment')],
+                ]" />
         </div>
 
         <!-- Notes Tab -->

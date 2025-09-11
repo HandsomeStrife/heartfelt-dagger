@@ -39,6 +39,8 @@
                                 </svg>
                             </button>
                             <div x-show="open" x-cloak @click.away="open = false" x-transition class="absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[9999]">
+                                <a href="{{ route('reference.index') }}" class="block px-4 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">DaggerHeart Reference</a>
+                                <hr class="my-1 border-slate-600">
                                 <a href="{{ route('range-check') }}" class="block px-4 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Visual Range Checker</a>
                                 <a href="{{ route('actual-plays') }}" class="block px-4 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Actual Plays</a>
                             </div>
@@ -83,6 +85,7 @@
                                 <a href="{{ route('characters') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Your Characters</a>
                                 <a href="{{ route('character-builder') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Character Builder</a>
                                 <div class="px-4 pt-3 pb-2 text-xs uppercase tracking-wider text-slate-400">Resources</div>
+                                <a href="{{ route('reference.index') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">DaggerHeart Reference</a>
                                 <a href="{{ route('range-check') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Visual Range Checker</a>
                                 <a href="{{ route('actual-plays') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Actual Plays</a>
                                 <hr class="my-2 border-slate-600">
@@ -158,6 +161,7 @@
                                 <a href="{{ route('characters') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Your Characters</a>
                                 <a href="{{ route('character-builder') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Character Builder</a>
                                 <div class="px-4 pt-3 pb-2 text-xs uppercase tracking-wider text-slate-400">Tools</div>
+                                <a href="{{ route('reference.index') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">DaggerHeart Reference</a>
                                 <a href="{{ route('range-check') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Visual Range Checker</a>
                                 <a href="{{ route('actual-plays') }}" class="block px-6 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Actual Plays</a>
                                 <hr class="my-2 border-slate-600">
