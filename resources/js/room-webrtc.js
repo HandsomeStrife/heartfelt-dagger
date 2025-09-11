@@ -465,6 +465,12 @@ export default class RoomWebRTC {
     }
 
     displayTranscript(text) {
+        // Hide live transcript popup when STT is enabled
+        if (this.roomData.stt_enabled) {
+            console.log('🎤 Live transcript popup hidden - STT is enabled');
+            return;
+        }
+        
         // Find or create transcript display area
         let transcriptDisplay = document.querySelector('.transcript-display');
         
