@@ -31,31 +31,49 @@ export class PeerConnectionManager {
             this.roomWebRTC.iceManager.updatePeerConnection(peerId, peerConnection);
         }
 
-        // Add local stream tracks (skip for viewer mode - receive-only connections)
-        if (!this.roomWebRTC.roomData.viewer_mode) {
+        // Add local stream tracks (only skip for viewers, participants always share)
+        if (this.roomWebRTC.roomData.viewer_mode) {
+            console.log('👁️ Viewer mode: Creating receive-only connection for', peerId);
+        } else {
             const localStream = this.roomWebRTC.mediaManager.getLocalStream();
             if (localStream) {
                 localStream.getTracks().forEach(track => {
                     peerConnection.addTrack(track, localStream);
                 });
+                console.log('📡 Added local tracks to connection for', peerId);
+            } else {
+                console.log('⚠️ No local stream available to share with', peerId);
             }
-        } else {
-            console.log('👁️ Viewer mode: Creating receive-only connection for', peerId);
         }
 
         // Handle remote stream
         peerConnection.ontrack = (event) => {
             console.log('📡 Received remote stream from:', peerId);
+            console.log('📡 Stream details:', {
+                streamId: event.streams[0]?.id,
+                trackCount: event.streams[0]?.getTracks().length,
+                audioTracks: event.streams[0]?.getAudioTracks().length,
+                videoTracks: event.streams[0]?.getVideoTracks().length
+            });
             this.handleRemoteStream(event.streams[0], peerId);
         };
 
         // Handle ICE candidates
         peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
+                console.log(`🧊 Sending ICE candidate to ${peerId}:`, event.candidate.type);
                 this.roomWebRTC.ablyManager.publishToAbly('webrtc-ice-candidate', {
                     candidate: event.candidate
                 }, peerId);
+            } else {
+                console.log(`🧊 ICE candidate gathering complete for ${peerId}`);
             }
+        };
+
+        // Monitor ICE connection state
+        peerConnection.oniceconnectionstatechange = () => {
+            const iceState = peerConnection.iceConnectionState;
+            console.log(`🧊 ICE connection state for ${peerId}: ${iceState}`);
         };
 
         // Monitor connection state for cleanup and telemetry
@@ -101,8 +119,16 @@ export class PeerConnectionManager {
             const peerConnection = this.createPeerConnection(remotePeerId);
             
             // Create and send offer
-            const offer = await peerConnection.createOffer();
+            console.log('📋 Creating offer for:', remotePeerId);
+            const offerOptions = this.roomWebRTC.roomData.viewer_mode ? 
+                { offerToReceiveAudio: true, offerToReceiveVideo: true } : {};
+            const offer = await peerConnection.createOffer(offerOptions);
+            console.log('📋 Setting local description for:', remotePeerId);
             await peerConnection.setLocalDescription(offer);
+            console.log('📋 Local description set, publishing offer to:', remotePeerId);
+            console.log('🔍 Peer connection state after offer:', peerConnection.connectionState);
+            console.log('🔍 ICE gathering state after offer:', peerConnection.iceGatheringState);
+            console.log('🔍 ICE connection state after offer:', peerConnection.iceConnectionState);
             
             this.roomWebRTC.ablyManager.publishToAbly('webrtc-offer', { offer }, remotePeerId);
             
@@ -121,7 +147,9 @@ export class PeerConnectionManager {
             const peerConnection = this.createPeerConnection(senderId);
             
             // Set remote description and create answer
+            console.log('📋 Setting remote description for:', senderId);
             await peerConnection.setRemoteDescription(data.offer);
+            console.log('📋 Remote description set for:', senderId);
             
             // Fix #3: Drain queued ICE candidates after setting remote description
             const drain = this.pendingIce.get(senderId);
@@ -137,8 +165,14 @@ export class PeerConnectionManager {
                 this.pendingIce.delete(senderId);
             }
             
+            console.log('📋 Creating answer for:', senderId);
             const answer = await peerConnection.createAnswer();
+            console.log('📋 Setting local description for answer:', senderId);
             await peerConnection.setLocalDescription(answer);
+            console.log('📋 Answer local description set, publishing answer to:', senderId);
+            console.log('🔍 Peer connection state after answer:', peerConnection.connectionState);
+            console.log('🔍 ICE gathering state after answer:', peerConnection.iceGatheringState);
+            console.log('🔍 ICE connection state after answer:', peerConnection.iceConnectionState);
 
             this.roomWebRTC.ablyManager.publishToAbly('webrtc-answer', { answer }, senderId);
             
@@ -156,7 +190,9 @@ export class PeerConnectionManager {
         try {
             const peerConnection = this.peerConnections.get(senderId);
             if (peerConnection) {
+                console.log('📋 Setting remote description for answer:', senderId);
                 await peerConnection.setRemoteDescription(data.answer);
+                console.log('📋 Answer remote description set for:', senderId);
                 
                 // Fix #3: Drain queued ICE candidates after setting remote description
                 const drain = this.pendingIce.get(senderId);
@@ -184,6 +220,7 @@ export class PeerConnectionManager {
      */
     async handleIceCandidate(data, senderId) {
         try {
+            console.log(`🧊 Received ICE candidate from ${senderId}:`, data.candidate.type);
             const peerConnection = this.peerConnections.get(senderId);
             if (!peerConnection) {
                 console.warn(`⚠️ No peer connection found for ICE candidate from ${senderId}`);

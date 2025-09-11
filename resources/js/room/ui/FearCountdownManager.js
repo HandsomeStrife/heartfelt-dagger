@@ -30,7 +30,7 @@ export class FearCountdownManager {
         this.countdownDisplayElements = new Map();
         this.gameStateOverlays = [];
         
-        console.log('🎭 FearCountdownManager initialized for room:', this.roomData.name);
+        // console.log('🎭 FearCountdownManager initialized for room:', this.roomData.name);
         
         this.init();
     }
@@ -49,7 +49,7 @@ export class FearCountdownManager {
             // Initial UI update
             this.updateAllUI();
             
-            console.log('🎭 FearCountdownManager ready');
+            // console.log('🎭 FearCountdownManager ready');
         } catch (error) {
             console.error('🎭 ❌ Failed to initialize FearCountdownManager:', error);
         }
@@ -99,7 +99,7 @@ export class FearCountdownManager {
         // Find all game state overlay elements
         this.gameStateOverlays = Array.from(document.querySelectorAll('[data-game-state-overlay]'));
 
-        console.log(`🎭 Found ${fearElements.length} fear display elements, ${countdownElements.length} countdown display elements, and ${this.gameStateOverlays.length} game state overlays`);
+        // console.log(`🎭 Found ${fearElements.length} fear display elements, ${countdownElements.length} countdown display elements, and ${this.gameStateOverlays.length} game state overlays`);
         
         // Set up slot monitoring to track GM presence
         this.setupSlotMonitoring();
@@ -119,7 +119,7 @@ export class FearCountdownManager {
 
         // For now, we'll just set up the event listeners
         // Ably integration will be handled in the main message handler
-        console.log('🎭 Ably handlers setup completed (using Livewire events for now)');
+        // console.log('🎭 Ably handlers setup completed (using Livewire events for now)');
     }
 
     /**
@@ -128,25 +128,25 @@ export class FearCountdownManager {
     setupLivewireHandlers() {
         // Listen for fear level updates from Livewire
         window.addEventListener('fear-level-updated', (event) => {
-            console.log('🎭 Livewire fear level updated:', event.detail);
+            //console.log('🎭 Livewire fear level updated:', event.detail);
             this.handleFearUpdate(event.detail);
         });
 
         // Listen for countdown tracker updates from Livewire
         window.addEventListener('countdown-tracker-updated', (event) => {
-            console.log('🎭 Livewire countdown tracker updated:', event.detail);
+            // console.log('🎭 Livewire countdown tracker updated:', event.detail);
             this.handleCountdownUpdate(event.detail);
         });
 
         // Listen for countdown tracker deletion from Livewire
         window.addEventListener('countdown-tracker-deleted', (event) => {
-            console.log('🎭 Livewire countdown tracker deleted:', event.detail);
+            //console.log('🎭 Livewire countdown tracker deleted:', event.detail);
             this.handleCountdownDeletion(event.detail);
         });
 
         // Listen for Ably message dispatch requests from Livewire
         window.addEventListener('send-ably-message', (event) => {
-            console.log('🎭 Sending Ably message:', event.detail);
+            //console.log('🎭 Sending Ably message:', event.detail);
             this.sendAblyMessage(event.detail);
         });
     }
@@ -210,7 +210,7 @@ export class FearCountdownManager {
         
         // If GM presence changed, update overlay visibility and notify others
         if (this.gmJoined !== wasGmJoined) {
-            console.log(`🎭 GM presence changed: ${wasGmJoined} → ${this.gmJoined}`);
+            // console.log(`🎭 GM presence changed: ${wasGmJoined} → ${this.gmJoined}`);
             this.updateGameStateOverlayVisibility();
             
             // Send Ably message to notify other participants
@@ -228,12 +228,12 @@ export class FearCountdownManager {
      * Show or hide game state overlays based on GM presence - only on GM's slot for participants, all slots for viewers
      */
     updateGameStateOverlayVisibility() {
-        console.log(`🎭 Updating game state overlay visibility. GM joined: ${this.gmJoined}`);
+        // console.log(`🎭 Updating game state overlay visibility. GM joined: ${this.gmJoined}`);
         
         // Find which slot the GM is in
         const gmSlotId = this.findGmSlotId();
         if (gmSlotId) {
-            console.log(`🎭 GM found in slot ${gmSlotId}`);
+            // console.log(`🎭 GM found in slot ${gmSlotId}`);
         }
         
         // Check if we're in viewer mode
@@ -244,21 +244,20 @@ export class FearCountdownManager {
             const slotContainer = overlay.closest('[data-slot-id]');
             const slotId = slotContainer ? parseInt(slotContainer.dataset.slotId) : null;
             
-            // Viewer mode: Show on all slots when GM is present
-            // Participant mode: Only show on GM's slot when GM is present
-            if (this.gmJoined && (isViewerMode || slotId === gmSlotId)) {
+            // Show only on GM's slot when GM is present (same for participants and viewers)
+            if (this.gmJoined && slotId === gmSlotId) {
                 overlay.classList.remove('hidden');
-                console.log(`🎭 Showing game state overlay on slot ${slotId} ${isViewerMode ? '(viewer mode)' : '(GM slot)'}`);
+                // console.log(`🎭 Showing game state overlay on GM slot ${slotId} ${isViewerMode ? '(viewer mode)' : '(participant mode)'}`);
             } else {
                 overlay.classList.add('hidden');
-                console.log(`🎭 Hiding game state overlay on slot ${slotId} (${isViewerMode ? 'viewer mode but GM not present' : 'not GM slot or GM not present'})`);
+                //console.log(`🎭 Hiding game state overlay on slot ${slotId} (${isViewerMode ? 'viewer mode - ' : ''}not GM slot or GM not present)`);
             }
         });
         
         // Also re-scan for overlays in case DOM changed
         const currentOverlays = Array.from(document.querySelectorAll('[data-game-state-overlay]'));
         if (currentOverlays.length !== this.gameStateOverlays.length) {
-            console.log(`🎭 Overlay count changed: ${this.gameStateOverlays.length} → ${currentOverlays.length}. Updating cache.`);
+            // console.log(`🎭 Overlay count changed: ${this.gameStateOverlays.length} → ${currentOverlays.length}. Updating cache.`);
             this.gameStateOverlays = currentOverlays;
         }
     }
@@ -267,7 +266,7 @@ export class FearCountdownManager {
      * Handle fear level update
      */
     handleFearUpdate(data) {
-        console.log('🎭 Processing fear update:', data);
+        //console.log('🎭 Processing fear update:', data);
         
         // Handle Livewire event data format (array wrapper)
         let fearData = data;
@@ -290,7 +289,7 @@ export class FearCountdownManager {
      * Handle countdown tracker update
      */
     handleCountdownUpdate(data) {
-        console.log('🎭 Processing countdown update:', data);
+        // console.log('🎭 Processing countdown update:', data);
         
         // Handle Livewire event data format (array wrapper)
         let trackerData = data;
@@ -312,7 +311,7 @@ export class FearCountdownManager {
         
         if (existingTracker && existingTracker.value !== tracker.value) {
             rotationDirection = tracker.value > existingTracker.value ? 'right' : 'left';
-            console.log(`🎭 Tracker ${tracker.id} value changed from ${existingTracker.value} to ${tracker.value} - rotating ${rotationDirection}`);
+            // console.log(`🎭 Tracker ${tracker.id} value changed from ${existingTracker.value} to ${tracker.value} - rotating ${rotationDirection}`);
         }
         
         this.countdownTrackers.set(tracker.id, tracker);
@@ -323,7 +322,7 @@ export class FearCountdownManager {
      * Handle countdown tracker deletion
      */
     handleCountdownDeletion(data) {
-        console.log('🎭 Processing countdown deletion:', data);
+        // console.log('🎭 Processing countdown deletion:', data);
         
         // Handle Livewire event data format (array wrapper)
         let deletionData = data;
@@ -346,7 +345,7 @@ export class FearCountdownManager {
      * Handle GM presence change from Ably
      */
     handleGmPresenceChanged(data) {
-        console.log('🎭 Processing GM presence change:', data);
+        // console.log('🎭 Processing GM presence change:', data);
         
         const { gm_present, gm_slot_id } = data;
         this.gmJoined = gm_present;
@@ -419,7 +418,7 @@ export class FearCountdownManager {
             }
         });
 
-        console.log(`🎭 Updated fear UI to level ${currentFearLevel}`);
+        // console.log(`🎭 Updated fear UI to level ${currentFearLevel}`);
     }
 
     /**
@@ -462,7 +461,7 @@ export class FearCountdownManager {
             });
         });
 
-        console.log(`🎭 Updated countdown UI with ${this.countdownTrackers.size} trackers`);
+        // console.log(`🎭 Updated countdown UI with ${this.countdownTrackers.size} trackers`);
     }
 
     /**
@@ -484,7 +483,7 @@ export class FearCountdownManager {
         trackerElement.dataset.currentRotation = newRotation.toString();
         hexagonBackground.style.transform = `rotate(${newRotation}deg)`;
         
-        console.log(`🎭 Rotated hexagon ${direction} to ${newRotation}°`);
+        // console.log(`🎭 Rotated hexagon ${direction} to ${newRotation}°`);
     }
 
     /**
@@ -525,7 +524,7 @@ export class FearCountdownManager {
                 return;
             }
 
-            console.log(`🎭 Publishing Ably message: ${type}`, data);
+            // console.log(`🎭 Publishing Ably message: ${type}`, data);
             
             // Send the message to all room participants
             this.roomWebRTC.ablyManager.publishToAbly(type, data);
@@ -540,7 +539,7 @@ export class FearCountdownManager {
      */
     async updateFearLevel(newLevel) {
         try {
-            console.log(`🎭 Updating fear level to ${newLevel}`);
+            // console.log(`🎭 Updating fear level to ${newLevel}`);
             
             // Optimistic update
             this.fearLevel = newLevel;
@@ -569,7 +568,7 @@ export class FearCountdownManager {
      */
     async updateCountdownTracker(trackerId, name, value) {
         try {
-            console.log(`🎭 Updating countdown tracker ${trackerId}: ${name} = ${value}`);
+            // console.log(`🎭 Updating countdown tracker ${trackerId}: ${name} = ${value}`);
             
             // Optimistic update
             const tracker = { id: trackerId, name, value, updated_at: new Date().toISOString() };
@@ -598,7 +597,7 @@ export class FearCountdownManager {
      */
     async createCountdownTracker(name, value) {
         try {
-            console.log(`🎭 Creating countdown tracker: ${name} = ${value}`);
+            // console.log(`🎭 Creating countdown tracker: ${name} = ${value}`);
             
             // Create the tracker object
             const tracker = { 
@@ -627,7 +626,7 @@ export class FearCountdownManager {
      */
     async deleteCountdownTracker(trackerId) {
         try {
-            console.log(`🎭 Deleting countdown tracker ${trackerId}`);
+            // console.log(`🎭 Deleting countdown tracker ${trackerId}`);
             
             // Optimistic update
             this.countdownTrackers.delete(trackerId);

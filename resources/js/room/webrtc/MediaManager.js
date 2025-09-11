@@ -104,9 +104,12 @@ export class MediaManager {
      * Sets up remote video display
      */
     setupRemoteVideo(slotContainer, stream, participantData) {
+        console.log('📺 setupRemoteVideo called for slot:', slotContainer.dataset.slotId, 'participant:', participantData?.character_name);
+        
         // Create or get remote video element
         let videoElement = slotContainer.querySelector('.remote-video');
         if (!videoElement) {
+            console.log('📺 Creating new video element');
             videoElement = document.createElement('video');
             videoElement.className = 'remote-video w-full h-full object-cover';
             videoElement.autoplay = true;
@@ -114,9 +117,15 @@ export class MediaManager {
             
             const remoteContainer = slotContainer.querySelector('.remote-videos');
             if (remoteContainer) {
+                console.log('📺 Found remote container, appending video and showing container');
                 remoteContainer.appendChild(videoElement);
                 remoteContainer.classList.remove('hidden');
+                videoElement._remoteContainer = remoteContainer; // Store reference for debugging
+            } else {
+                console.error('📺 ❌ No .remote-videos container found in slot!');
             }
+        } else {
+            console.log('📺 Using existing video element');
         }
 
         // Fix: Set dataset.peerId for proper cleanup
@@ -126,13 +135,138 @@ export class MediaManager {
             videoElement.dataset.peerId = peerId;
         }
 
+        console.log('📺 Setting video srcObject, stream has tracks:', stream.getTracks().length);
         videoElement.srcObject = stream;
         
-        // Hide join button since slot is occupied
+        // Add extensive debugging
+        videoElement.onloadeddata = () => {
+            console.log('📺 ✅ Video loaded successfully! Dimensions:', videoElement.videoWidth, 'x', videoElement.videoHeight);
+            
+            // Try to autoplay video
+            videoElement.play().then(() => {
+                console.log('📺 ✅ Video autoplay succeeded - no user interaction needed');
+            }).catch(error => {
+                console.log('📺 ⚠️ Video autoplay failed, will show start button for viewers:', error.name);
+                
+                // Only show button for viewers if autoplay actually fails
+                if (this.roomWebRTC.roomData.viewer_mode) {
+                    this.showViewerStartButton(slotContainer, videoElement);
+                } else {
+                    console.log('📺 Participant mode - autoplay failure may be expected');
+                }
+            });
+            console.log('📺 Video element styles:', {
+                display: videoElement.style.display,
+                visibility: videoElement.style.visibility,
+                opacity: videoElement.style.opacity,
+                zIndex: videoElement.style.zIndex,
+                position: videoElement.style.position
+            });
+            console.log('📺 Video element computed styles:', {
+                display: getComputedStyle(videoElement).display,
+                visibility: getComputedStyle(videoElement).visibility,
+                opacity: getComputedStyle(videoElement).opacity,
+                zIndex: getComputedStyle(videoElement).zIndex,
+                width: getComputedStyle(videoElement).width,
+                height: getComputedStyle(videoElement).height
+            });
+            const container = videoElement._remoteContainer;
+            if (container) {
+                console.log('📺 Remote container styles:', {
+                    display: getComputedStyle(container).display,
+                    visibility: getComputedStyle(container).visibility,
+                    opacity: getComputedStyle(container).opacity,
+                    position: getComputedStyle(container).position
+                });
+                console.log('📺 Remote container classes:', container.classList.toString());
+            }
+            console.log('📺 Video element in DOM:', document.contains(videoElement));
+            
+            // Debug slot states that might be covering the video
+            const slotContainer = videoElement.closest('[data-slot-id]');
+            if (slotContainer) {
+                console.log('📺 Slot container debug:');
+                const slotStates = slotContainer.querySelectorAll('.slot-state');
+                slotStates.forEach((state, index) => {
+                    const isHidden = state.classList.contains('hidden');
+                    const stateClasses = Array.from(state.classList).join(' ');
+                    console.log(`📺 Slot state ${index}: ${stateClasses} - Hidden: ${isHidden}`);
+                });
+                
+                // Check if there are any overlapping elements
+                const characterOverlay = slotContainer.querySelector('.character-overlay');
+                if (characterOverlay) {
+                    console.log('📺 Character overlay classes:', characterOverlay.classList.toString());
+                    console.log('📺 Character overlay z-index:', getComputedStyle(characterOverlay).zIndex);
+                    console.log('📺 Video element z-index:', getComputedStyle(videoElement).zIndex);
+                    console.log('📺 Remote container z-index:', getComputedStyle(container).zIndex);
+                }
+            }
+        };
+        
+        videoElement.onerror = (error) => {
+            console.error('📺 ❌ Video error:', error);
+        };
+        
+        // Hide join button and viewer empty state since slot is occupied
         const joinBtn = slotContainer.querySelector('.join-btn');
         if (joinBtn) {
             joinBtn.style.display = 'none';
         }
+        
+        // Hide viewer empty state when video is set up
+        const viewerEmptyState = slotContainer.querySelector('.slot-viewer-empty');
+        if (viewerEmptyState) {
+            viewerEmptyState.classList.add('hidden');
+            console.log('📺 Hidden viewer empty state for occupied slot');
+        }
+        
+        // Ensure video is visible by setting explicit styles
+        videoElement.style.zIndex = '10';
+        videoElement.style.position = 'relative';
+        
+        // Remove debug styling - we found the issue!
+        // videoElement.style.backgroundColor = 'red';
+        // videoElement.style.border = '5px solid yellow';
+        
+        console.log('📺 Applied explicit z-index and position to video element');
+        console.log('📺 Video playing state:', !videoElement.paused);
+        console.log('📺 Video current time:', videoElement.currentTime);
+        console.log('📺 Video readyState:', videoElement.readyState);
+    }
+
+    /**
+     * Shows a "Click to Start Viewing" button for viewers when autoplay fails
+     */
+    showViewerStartButton(slotContainer, videoElement) {
+        console.log('📺 Creating viewer start button due to autoplay restriction');
+        
+        // Create start button
+        const startButton = document.createElement('button');
+        startButton.className = 'viewer-start-btn absolute inset-0 z-20 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg transition-all duration-300 flex items-center justify-center';
+        startButton.innerHTML = `
+            <div class="text-center">
+                <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <div>Click to Start Viewing</div>
+                <div class="text-sm opacity-75 mt-2">Browser requires interaction to play video</div>
+            </div>
+        `;
+        
+        // Add click handler
+        startButton.onclick = () => {
+            console.log('📺 Viewer clicked start button, attempting to play video');
+            videoElement.play().then(() => {
+                console.log('📺 ✅ Video play() succeeded after user interaction');
+                startButton.remove(); // Remove the button
+            }).catch(error => {
+                console.error('📺 ❌ Video play() still failed after user interaction:', error);
+            });
+        };
+        
+        // Add to slot container
+        slotContainer.appendChild(startButton);
     }
 
     /**

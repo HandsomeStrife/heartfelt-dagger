@@ -242,7 +242,8 @@ class RoomRepository
                 'active_participant_count' => $room->active_participants_count,
             ]));
 
-        return $created->merge($joined)
+        return collect($created->all())
+            ->concat($joined->all())
             ->sortByDesc('created_at')
             ->take($limit)
             ->values();

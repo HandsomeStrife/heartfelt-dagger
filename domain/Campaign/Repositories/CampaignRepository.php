@@ -107,7 +107,10 @@ class CampaignRepository
         $created = $this->getCreatedByUser($user);
         $joined = $this->getJoinedByUser($user);
 
-        return $created->merge($joined)->sortByDesc('created_at')->values();
+        return collect($created->all())
+            ->concat($joined->all())
+            ->sortByDesc('created_at')
+            ->values();
     }
 
     /**
@@ -137,7 +140,8 @@ class CampaignRepository
                 'member_count' => $campaign->members_count,
             ]));
 
-        return $created->merge($joined)
+        return collect($created->all())
+            ->concat($joined->all())
             ->sortByDesc('created_at')
             ->take($limit)
             ->values();
