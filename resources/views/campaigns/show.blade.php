@@ -97,6 +97,14 @@
                             </svg>
                             Pages
                         </button>
+                        <button @click="activeTab = 'handouts'" 
+                                :class="activeTab === 'handouts' ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-400 hover:text-slate-300'"
+                                class="flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            Handouts
+                        </button>
                         <button @click="activeTab = 'rooms'" 
                                 :class="activeTab === 'rooms' ? 'border-purple-500 text-purple-400' : 'border-transparent text-slate-400 hover:text-slate-300'"
                                 class="flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors">
@@ -261,6 +269,56 @@
                                     Start Building
                                 </a>
                             @endif
+                        </div>
+                    </div>
+
+                    <!-- Handouts Tab -->
+                    <div x-show="activeTab === 'handouts'" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 transform translate-y-2"
+                         x-transition:enter-end="opacity-100 transform translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 transform translate-y-0"
+                         x-transition:leave-end="opacity-0 transform translate-y-2"
+                         x-cloak
+                         class="absolute inset-0 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 class="font-outfit text-lg font-semibold text-white">Campaign Handouts</h2>
+                                <p class="text-slate-400 text-sm">Documents, images, and files for your campaign</p>
+                            </div>
+                            @if($user_is_creator)
+                                <a href="{{ route('campaigns.handouts', $campaign->campaign_code) }}" 
+                                   class="inline-flex items-center bg-blue-500 hover:bg-blue-400 text-white font-semibold py-2 px-4 rounded-xl transition-colors text-sm">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                    Manage Handouts
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="bg-slate-800/30 rounded-xl p-6 border border-slate-700/50">
+                            <div class="text-center">
+                                <svg class="w-16 h-16 mx-auto text-slate-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                <h3 class="text-white font-medium mb-2">Campaign Handouts</h3>
+                                <p class="text-slate-400 mb-4 max-w-md mx-auto">
+                                    Share documents, images, maps, character portraits, and other files with your players. Control who can see what with flexible access permissions.
+                                </p>
+                                @if($user_is_creator)
+                                    <a href="{{ route('campaigns.handouts', $campaign->campaign_code) }}"
+                                       class="inline-flex items-center bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded-xl transition-colors text-sm">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Get Started
+                                    </a>
+                                @else
+                                    <p class="text-slate-500 text-sm">Only the Game Master can manage handouts</p>
+                                @endif
+                            </div>
                         </div>
                     </div>
 

@@ -41,10 +41,14 @@
                             :room="$room"
                             :campaign="$campaign"
                             :campaign-pages="$campaign_pages"
+                            :campaign-handouts="$campaign_handouts"
                             :participants="$participants" />
                     @else
                         <!-- Player Sidebar -->
-                        <livewire:room-sidebar.player-sidebar :current-participant="$current_participant" />
+                        <livewire:room-sidebar.player-sidebar 
+                            :current-participant="$current_participant"
+                            :campaign="$campaign"
+                            :campaign-handouts="$campaign_handouts" />
                     @endif
                 </div>
                 

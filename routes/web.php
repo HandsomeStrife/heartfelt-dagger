@@ -97,6 +97,11 @@ Route::middleware('auth')->group(function () {
             return view('campaigns.page-show', compact('campaign', 'page'));
         })->name('page.show');
 
+        // Campaign Handouts routes
+        Route::get('/{campaign}/handouts', function (Domain\Campaign\Models\Campaign $campaign) {
+            return view('campaigns.handouts', compact('campaign'));
+        })->name('handouts');
+
         // Campaign invite routes (separate from auth to allow invite sharing)
         Route::get('/join/{invite_code}', [App\Http\Controllers\CampaignController::class, 'showJoin'])->name('invite');
     });

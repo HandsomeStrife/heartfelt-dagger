@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use Domain\Campaign\Models\Campaign;
 use Domain\CampaignPage\Repositories\CampaignPageRepository;
+use Domain\CampaignHandout\Repositories\CampaignHandoutRepository;
 use Domain\Character\Models\Character;
 use Domain\Character\Repositories\CharacterRepository;
 use Domain\Room\Actions\CreateRoomAction;
@@ -27,6 +28,7 @@ class RoomController extends Controller
         private RoomRepository $room_repository,
         private CharacterRepository $character_repository,
         private CampaignPageRepository $campaign_page_repository,
+        private CampaignHandoutRepository $campaign_handout_repository,
         private CreateRoomAction $create_room_action,
         private DeleteRoomAction $delete_room_action,
         private JoinRoomAction $join_room_action,
@@ -607,6 +609,7 @@ class RoomController extends Controller
         $user_is_creator = $room->isCreator($user);
         $current_participant = null;
         $campaign_pages = collect();
+        $campaign_handouts = collect();
         $campaign = null;
 
         // Find current user's participant record
@@ -624,9 +627,14 @@ class RoomController extends Controller
         if ($room->campaign_id) {
             $campaign = Campaign::with(['creator', 'members'])->find($room->campaign_id);
 
-            // Load campaign pages for GM
-            if ($user_is_creator && $campaign) {
-                $campaign_pages = $this->campaign_page_repository->getRootPagesForCampaign($campaign, $user);
+            if ($campaign) {
+                // Load campaign pages for GM
+                if ($user_is_creator) {
+                    $campaign_pages = $this->campaign_page_repository->getRootPagesForCampaign($campaign, $user);
+                }
+
+                // Load handouts visible in sidebar (for both GM and players)
+                $campaign_handouts = $this->campaign_handout_repository->getVisibleInSidebar($campaign, $user);
             }
         }
 
@@ -656,7 +664,8 @@ class RoomController extends Controller
             'user_is_creator',
             'current_participant',
             'campaign',
-            'campaign_pages'
+            'campaign_pages',
+            'campaign_handouts'
         ));
     }
 

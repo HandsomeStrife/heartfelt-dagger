@@ -24,6 +24,10 @@ class PlayerSidebar extends Component
 
     public ?CharacterData $character = null;
 
+    public ?\Domain\Campaign\Models\Campaign $campaign = null;
+
+    public \Illuminate\Support\Collection $campaign_handouts;
+
     public ?CharacterStatusData $character_status = null;
 
     public array $game_data = [];
@@ -35,9 +39,11 @@ class PlayerSidebar extends Component
     // Repository
     private CharacterRepository $character_repository;
 
-    public function mount(?RoomParticipantData $currentParticipant): void
+    public function mount(?RoomParticipantData $currentParticipant, ?\Domain\Campaign\Models\Campaign $campaign = null, ?\Illuminate\Support\Collection $campaignHandouts = null): void
     {
         $this->current_participant = $currentParticipant;
+        $this->campaign = $campaign;
+        $this->campaign_handouts = $campaignHandouts ?? collect();
 
         // Initialize repository
         $this->character_repository = new CharacterRepository;

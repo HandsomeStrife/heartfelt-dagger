@@ -12,6 +12,7 @@
                     class="w-full flex items-center justify-between px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition-colors">
                 <span x-text="activeTab === 'players' ? 'Players' : 
                             activeTab === 'pages' ? 'Pages' : 
+                            activeTab === 'handouts' ? 'Handouts' : 
                             activeTab === 'notes' ? 'Notes' : 
                             activeTab === 'gamestate' ? 'Game State' : 'Select Tab'"></span>
                 <svg class="w-4 h-4 transition-transform" :class="dropdownOpen ? 'rotate-180' : ''" 
@@ -47,6 +48,17 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     Pages
+                </button>
+                @endif
+                
+                @if($campaign && $campaign_handouts->count() > 0)
+                <button @click="activeTab = 'handouts'; dropdownOpen = false" 
+                        :class="activeTab === 'handouts' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700'"
+                        class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Handouts
                 </button>
                 @endif
                 
@@ -121,6 +133,66 @@
                         {{ $page->access_level->value }} • 
                         Updated {{ \Carbon\Carbon::parse($page->updated_at)->diffForHumans() }}
                     </p>
+                </div>
+            @endforeach
+        </div>
+        @endif
+
+        <!-- Handouts Tab -->
+        @if($campaign && $campaign_handouts->count() > 0)
+        <div x-show="activeTab === 'handouts'" x-cloak class="p-4 space-y-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-outfit text-lg text-white">Campaign Handouts</h3>
+                <a href="{{ route('campaigns.handouts', $campaign) }}" 
+                   target="_blank"
+                   class="text-amber-400 hover:text-amber-300 text-sm flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Manage
+                </a>
+            </div>
+            
+            @foreach($campaign_handouts as $handout)
+                <div class="bg-slate-800/50 rounded-lg p-3 hover:bg-slate-800/70 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <h4 class="text-white font-medium text-sm truncate">{{ $handout->title }}</h4>
+                                <span class="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
+                                    {{ strtoupper($handout->file_type->value) }}
+                                </span>
+                            </div>
+                            @if($handout->description)
+                                <p class="text-slate-400 text-xs line-clamp-1">{{ $handout->description }}</p>
+                            @endif
+                            <p class="text-slate-500 text-xs mt-1">
+                                {{ $handout->formatted_file_size }} • 
+                                {{ \Carbon\Carbon::parse($handout->created_at)->diffForHumans() }}
+                            </p>
+                        </div>
+                        
+                        <div class="flex items-center space-x-1 ml-2">
+                            @if($handout->isPreviewable())
+                                <button onclick="showHandoutPreview({{ $handout->id }})"
+                                        class="p-1 text-slate-400 hover:text-blue-400 transition-colors"
+                                        title="Preview">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            @endif
+                            
+                            <button onclick="window.open('{{ $handout->file_url }}', '_blank')"
+                                    class="p-1 text-slate-400 hover:text-green-400 transition-colors"
+                                    title="Download">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             @endforeach
         </div>

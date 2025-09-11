@@ -146,7 +146,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <a href="{{ route('campaigns.show', $campaign->id) }}" 
+                                        <a href="{{ route('campaigns.show', $campaign->campaign_code) }}" 
                                            class="text-violet-400 hover:text-violet-300 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -204,7 +204,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <a href="{{ route('rooms.show', $room->id) }}" 
+                                        <a href="{{ route('rooms.show', $room->invite_code) }}" 
                                            class="text-emerald-400 hover:text-emerald-300 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

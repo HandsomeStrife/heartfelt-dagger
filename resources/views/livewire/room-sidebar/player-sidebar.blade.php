@@ -48,6 +48,7 @@
                 <span x-text="activeTab === 'health' ? 'Overview' : 
                             activeTab === 'equipment' ? 'Equipment' : 
                             activeTab === 'abilities' ? 'Abilities' : 
+                            activeTab === 'handouts' ? 'Handouts' : 
                             activeTab === 'notes' ? 'Notes' : 'Select Tab'"></span>
                 <svg class="w-4 h-4 transition-transform" :class="dropdownOpen ? 'rotate-180' : ''" 
                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,6 +90,17 @@
                     </svg>
                     Abilities
                 </button>
+                @if($campaign && $campaign_handouts->count() > 0)
+                <button @click="activeTab = 'handouts'; dropdownOpen = false" 
+                        :class="activeTab === 'handouts' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700'"
+                        class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Handouts
+                </button>
+                @endif
+                
                 <button @click="activeTab = 'notes'; dropdownOpen = false" 
                         :class="activeTab === 'notes' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-300 hover:bg-slate-700'"
                         class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center rounded-b-lg">
@@ -321,6 +333,56 @@
                     ['title' => 'Equipment', 'url' => route('reference.page', 'equipment')],
                 ]" />
         </div>
+
+        <!-- Handouts Tab -->
+        @if($campaign && $campaign_handouts->count() > 0)
+        <div x-show="activeTab === 'handouts'" x-cloak class="p-4 space-y-3">
+            <h3 class="font-outfit text-lg text-white mb-4">Campaign Handouts</h3>
+            
+            @foreach($campaign_handouts as $handout)
+                <div class="bg-slate-800/50 rounded-lg p-3 hover:bg-slate-800/70 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <h4 class="text-white font-medium text-sm truncate">{{ $handout->title }}</h4>
+                                <span class="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded">
+                                    {{ strtoupper($handout->file_type->value) }}
+                                </span>
+                            </div>
+                            @if($handout->description)
+                                <p class="text-slate-400 text-xs line-clamp-1">{{ $handout->description }}</p>
+                            @endif
+                            <p class="text-slate-500 text-xs mt-1">
+                                {{ $handout->formatted_file_size }} • 
+                                {{ \Carbon\Carbon::parse($handout->created_at)->diffForHumans() }}
+                            </p>
+                        </div>
+                        
+                        <div class="flex items-center space-x-1 ml-2">
+                            @if($handout->isPreviewable())
+                                <button onclick="showHandoutPreview({{ $handout->id }})"
+                                        class="p-1 text-slate-400 hover:text-blue-400 transition-colors"
+                                        title="Preview">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                            @endif
+                            
+                            <button onclick="window.open('{{ $handout->file_url }}', '_blank')"
+                                    class="p-1 text-slate-400 hover:text-green-400 transition-colors"
+                                    title="Download">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        @endif
 
         <!-- Notes Tab -->
         <div x-show="activeTab === 'notes'" x-cloak class="p-4">

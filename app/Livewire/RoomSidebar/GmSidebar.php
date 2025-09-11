@@ -41,11 +41,14 @@ class GmSidebar extends Component
 
     public int $new_countdown_value = 0;
 
-    public function mount(Room $room, ?Campaign $campaign, Collection $campaignPages, Collection $participants): void
+    public Collection $campaign_handouts;
+
+    public function mount(Room $room, ?Campaign $campaign, Collection $campaignPages, Collection $campaignHandouts, Collection $participants): void
     {
         $this->room = $room;
         $this->campaign = $campaign;
         $this->campaign_pages = $campaignPages;
+        $this->campaign_handouts = $campaignHandouts;
         $this->participants = $participants;
 
         // Load existing session notes
