@@ -10,6 +10,8 @@ export class PeerConnectionManager {
         this.roomWebRTC = roomWebRTC;
         this.peerConnections = new Map(); // Map of peerId -> RTCPeerConnection
         this.pendingIce = new Map(); // Map<peerId, RTCIceCandidateInit[]>
+        this.iceCandidateTimers = new Map(); // Rate limiting for ICE candidates
+        this.connectionRetryTimers = new Map(); // Track retry attempts
     }
 
     /**
@@ -58,24 +60,14 @@ export class PeerConnectionManager {
             this.handleRemoteStream(event.streams[0], peerId);
         };
 
-        // Handle ICE candidates with basic rate limiting
-        let lastCandidateTime = 0;
+        // Handle ICE candidates with batching and rate limiting
         peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
-                const now = Date.now();
-                // Basic rate limiting: max 10 candidates per second
-                if (now - lastCandidateTime < 100) {
-                    console.log(`🧊 Rate limiting ICE candidate for ${peerId}`);
-                    return;
-                }
-                lastCandidateTime = now;
-                
-                console.log(`🧊 Sending ICE candidate to ${peerId}:`, event.candidate.type);
-                this.roomWebRTC.ablyManager.publishToAbly('webrtc-ice-candidate', {
-                    candidate: event.candidate
-                }, peerId);
+                this.batchIceCandidate(peerId, event.candidate);
             } else {
                 console.log(`🧊 ICE candidate gathering complete for ${peerId}`);
+                // Send any remaining batched candidates
+                this.flushIceCandidates(peerId);
             }
         };
 
@@ -172,10 +164,25 @@ export class PeerConnectionManager {
         console.log('📞 Received WebRTC offer from:', senderId);
 
         try {
-            const peerConnection = this.createPeerConnection(senderId);
+            // Check if we already have a connection for this peer
+            let peerConnection = this.peerConnections.get(senderId);
+            
+            if (peerConnection) {
+                console.log(`🔄 Existing connection found for ${senderId}, state: ${peerConnection.signalingState}`);
+                
+                // If connection is closed or failed, create a new one
+                if (peerConnection.signalingState === 'closed' || peerConnection.connectionState === 'failed') {
+                    console.log(`🔄 Cleaning up failed connection for ${senderId}`);
+                    this.cleanupPeerConnection(senderId);
+                    peerConnection = this.createPeerConnection(senderId);
+                }
+            } else {
+                peerConnection = this.createPeerConnection(senderId);
+            }
             
             // Set remote description and create answer
             console.log('📋 Setting remote description for:', senderId);
+            console.log(`📋 Signaling state before offer: ${peerConnection.signalingState}`);
             await peerConnection.setRemoteDescription(data.offer);
             console.log('📋 Remote description set for:', senderId);
             
@@ -217,29 +224,52 @@ export class PeerConnectionManager {
 
         try {
             const peerConnection = this.peerConnections.get(senderId);
-            if (peerConnection) {
-                console.log('📋 Setting remote description for answer:', senderId);
-                await peerConnection.setRemoteDescription(data.answer);
-                console.log('📋 Answer remote description set for:', senderId);
-                
-                // Fix #3: Drain queued ICE candidates after setting remote description
-                const drain = this.pendingIce.get(senderId);
-                if (drain && drain.length) {
-                    console.log(`🧊 Draining ${drain.length} queued ICE candidates for ${senderId}`);
-                    for (const candidate of drain) {
-                        try {
-                            await peerConnection.addIceCandidate(candidate);
-                        } catch (error) {
-                            console.warn('Failed to add queued ICE candidate:', error);
-                        }
-                    }
-                    this.pendingIce.delete(senderId);
-                }
-            } else {
+            if (!peerConnection) {
                 console.warn(`⚠️ No peer connection found for ${senderId}`);
+                return;
+            }
+
+            // Check signaling state before setting remote description
+            console.log(`📋 Signaling state before answer: ${peerConnection.signalingState}`);
+            
+            if (peerConnection.signalingState !== 'have-local-offer') {
+                console.warn(`⚠️ Unexpected signaling state for answer: ${peerConnection.signalingState}`);
+                
+                // If we're in a bad state, try to recover by creating a new connection
+                if (peerConnection.signalingState === 'closed') {
+                    console.log(`🔄 Recreating closed connection for ${senderId}`);
+                    this.cleanupPeerConnection(senderId);
+                    return;
+                }
+            }
+
+            console.log('📋 Setting remote description for answer:', senderId);
+            await peerConnection.setRemoteDescription(data.answer);
+            console.log('📋 Answer remote description set for:', senderId);
+            
+            // Fix #3: Drain queued ICE candidates after setting remote description
+            const drain = this.pendingIce.get(senderId);
+            if (drain && drain.length) {
+                console.log(`🧊 Draining ${drain.length} queued ICE candidates for ${senderId}`);
+                for (const candidate of drain) {
+                    try {
+                        await peerConnection.addIceCandidate(candidate);
+                    } catch (error) {
+                        console.warn('Failed to add queued ICE candidate:', error);
+                    }
+                }
+                this.pendingIce.delete(senderId);
             }
         } catch (error) {
-            this.handleWebRTCError('Failed to handle answer', error, senderId);
+            console.error(`❌ Failed to handle answer from ${senderId}:`, error);
+            
+            // If setRemoteDescription fails, it might be a signaling race condition
+            if (error.name === 'InvalidStateError' || error.name === 'OperationError') {
+                console.log(`🔄 Signaling error, cleaning up connection for retry: ${senderId}`);
+                this.cleanupPeerConnection(senderId);
+            } else {
+                this.handleWebRTCError('Failed to handle answer', error, senderId);
+            }
         }
     }
 
@@ -249,25 +279,52 @@ export class PeerConnectionManager {
     async handleIceCandidate(data, senderId) {
         try {
             console.log(`🧊 Received ICE candidate from ${senderId}:`, data.candidate.type);
-            const peerConnection = this.peerConnections.get(senderId);
-            if (!peerConnection) {
-                console.warn(`⚠️ No peer connection found for ICE candidate from ${senderId}`);
-                return;
-            }
-
-            // Fix #3: Queue ICE candidates until remote description is set
-            if (!peerConnection.remoteDescription) {
-                const queue = this.pendingIce.get(senderId) || [];
-                queue.push(data.candidate);
-                this.pendingIce.set(senderId, queue);
-                console.log(`🧊 Queued ICE candidate for ${senderId} (${queue.length} pending)`);
-                return;
-            }
-
-            await peerConnection.addIceCandidate(data.candidate);
-            console.log(`🧊 Added ICE candidate from ${senderId}`);
+            await this.processIceCandidates([data.candidate], senderId);
         } catch (error) {
             this.handleWebRTCError('Failed to handle ICE candidate', error, senderId);
+        }
+    }
+
+    /**
+     * Handles incoming batched ICE candidates for peer connections
+     */
+    async handleIceCandidates(data, senderId) {
+        try {
+            console.log(`🧊 Received ${data.candidates.length} batched ICE candidates from ${senderId}`);
+            await this.processIceCandidates(data.candidates, senderId);
+        } catch (error) {
+            this.handleWebRTCError('Failed to handle batched ICE candidates', error, senderId);
+        }
+    }
+
+    /**
+     * Process ICE candidates (single or batched)
+     */
+    async processIceCandidates(candidates, senderId) {
+        const peerConnection = this.peerConnections.get(senderId);
+        if (!peerConnection) {
+            console.warn(`⚠️ No peer connection found for ICE candidates from ${senderId}`);
+            return;
+        }
+
+        // Fix #3: Queue ICE candidates until remote description is set
+        if (!peerConnection.remoteDescription) {
+            const queue = this.pendingIce.get(senderId) || [];
+            queue.push(...candidates);
+            this.pendingIce.set(senderId, queue);
+            console.log(`🧊 Queued ${candidates.length} ICE candidates for ${senderId} (${queue.length} total pending)`);
+            return;
+        }
+
+        // Add candidates immediately if remote description is set
+        for (const candidate of candidates) {
+            try {
+                await peerConnection.addIceCandidate(candidate);
+                console.log(`🧊 Added ICE candidate from ${senderId}:`, candidate.type);
+            } catch (error) {
+                console.warn(`⚠️ Failed to add ICE candidate from ${senderId}:`, error);
+                // Continue with other candidates
+            }
         }
     }
 
@@ -392,6 +449,16 @@ export class PeerConnectionManager {
         // Clean up any pending ICE candidates
         this.pendingIce.delete(peerId);
         
+        // Clean up ICE candidate batching timers
+        const batch = this.iceCandidateTimers.get(peerId);
+        if (batch && batch.timer) {
+            clearTimeout(batch.timer);
+        }
+        this.iceCandidateTimers.delete(peerId);
+        
+        // Clean up retry timers
+        this.connectionRetryTimers.delete(peerId);
+        
         this.roomWebRTC.mediaManager.clearRemoteVideo(peerId);
     }
 
@@ -434,6 +501,13 @@ export class PeerConnectionManager {
             connection.connectionState === 'connected' || 
             connection.connectionState === 'connecting'
         );
+    }
+
+    /**
+     * Get the peer connections map (for debugging and management)
+     */
+    getPeerConnections() {
+        return this.peerConnections;
     }
 
     /**
@@ -484,6 +558,79 @@ export class PeerConnectionManager {
         } catch (error) {
             console.error(`❌ TURN-only retry failed for ${remotePeerId}:`, error);
         }
+    }
+
+    /**
+     * Batch ICE candidates to reduce message frequency and avoid rate limits
+     */
+    batchIceCandidate(peerId, candidate) {
+        // Initialize candidate batch for this peer if not exists
+        if (!this.iceCandidateTimers.has(peerId)) {
+            this.iceCandidateTimers.set(peerId, {
+                candidates: [],
+                timer: null
+            });
+        }
+
+        const batch = this.iceCandidateTimers.get(peerId);
+        batch.candidates.push(candidate);
+
+        console.log(`🧊 Batching ICE candidate for ${peerId} (${batch.candidates.length} in batch):`, candidate.type);
+
+        // Clear existing timer and set new one
+        if (batch.timer) {
+            clearTimeout(batch.timer);
+        }
+
+        // Send batch after 500ms of no new candidates, or when batch reaches 5 candidates
+        const shouldFlushNow = batch.candidates.length >= 5;
+        const delay = shouldFlushNow ? 0 : 500;
+
+        batch.timer = setTimeout(() => {
+            this.flushIceCandidates(peerId);
+        }, delay);
+    }
+
+    /**
+     * Flush batched ICE candidates for a peer
+     */
+    flushIceCandidates(peerId) {
+        const batch = this.iceCandidateTimers.get(peerId);
+        if (!batch || batch.candidates.length === 0) {
+            return;
+        }
+
+        console.log(`🧊 Flushing ${batch.candidates.length} ICE candidates to ${peerId}`);
+
+        // Send all candidates in a single message
+        this.roomWebRTC.ablyManager.publishToAbly('webrtc-ice-candidates', {
+            candidates: batch.candidates
+        }, peerId);
+
+        // Clear the batch
+        batch.candidates = [];
+        if (batch.timer) {
+            clearTimeout(batch.timer);
+            batch.timer = null;
+        }
+    }
+
+    /**
+     * Manually refresh/reconnect to a specific peer
+     */
+    async refreshConnection(peerId) {
+        console.log(`🔄 Manually refreshing connection to ${peerId}`);
+        
+        // Clean up existing connection
+        this.cleanupPeerConnection(peerId);
+        
+        // Wait a moment for cleanup
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Initiate new connection
+        this.initiateWebRTCConnection(peerId);
+        
+        console.log(`✅ Connection refresh initiated for ${peerId}`);
     }
 
     /**

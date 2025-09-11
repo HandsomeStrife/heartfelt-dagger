@@ -31,6 +31,7 @@ import { SlotManager } from './room/ui/SlotManager.js';
 import { UIStateManager } from './room/ui/UIStateManager.js';
 import { FearCountdownManager } from './room/ui/FearCountdownManager.js';
 import { MarkerManager } from './room/ui/MarkerManager.js';
+import { VideoSlotControls } from './room/ui/VideoSlotControls.js';
 import { ConsentManager } from './room/consent/ConsentManager.js';
 import { ConsentDialog } from './room/consent/ConsentDialog.js';
 
@@ -67,6 +68,7 @@ export default class RoomWebRTC {
         this.uiStateManager = new UIStateManager(this);
         this.fearCountdownManager = new FearCountdownManager(this);
         this.markerManager = new MarkerManager(this);
+        this.videoSlotControls = new VideoSlotControls(this);
         
         // Initialize consent managers
         this.consentManager = new ConsentManager(this);
@@ -696,6 +698,11 @@ export default class RoomWebRTC {
                 }
             },
             
+            // Manually refresh a connection
+            refreshConnection: async (peerId) => {
+                await this.peerConnectionManager.refreshConnection(peerId);
+            },
+            
             // Show current room state
             showState: () => {
                 console.log('🏠 Room state:');
@@ -713,6 +720,10 @@ export default class RoomWebRTC {
             }
         };
         
-        console.log('🐛 Debug commands available: window.roomDebug.diagnoseAll(), window.roomDebug.showState(), etc.');
+        console.log('🐛 Debug commands available:');
+        console.log('  - window.roomDebug.diagnoseAll() - Run diagnostics for all connections');
+        console.log('  - window.roomDebug.refreshConnection(peerId) - Refresh specific connection');
+        console.log('  - window.roomDebug.showState() - Show current room state');
+        console.log('  - window.roomDebug.testIce() - Test ICE configuration');
     }
 }

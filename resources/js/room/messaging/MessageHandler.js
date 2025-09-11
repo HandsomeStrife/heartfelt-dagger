@@ -40,6 +40,9 @@ export class MessageHandler {
             case 'webrtc-ice-candidate':
                 this.handleIceCandidate(data, senderId);
                 break;
+            case 'webrtc-ice-candidates':
+                this.handleIceCandidates(data, senderId);
+                break;
             case 'fear-updated':
                 this.handleFearUpdate(data, senderId);
                 break;
@@ -153,6 +156,13 @@ export class MessageHandler {
      */
     handleIceCandidate(data, senderId) {
         this.roomWebRTC.peerConnectionManager.handleIceCandidate(data, senderId);
+    }
+
+    /**
+     * Handles batched ICE candidates from remote peers
+     */
+    handleIceCandidates(data, senderId) {
+        this.roomWebRTC.peerConnectionManager.handleIceCandidates(data, senderId);
     }
 
     /**
