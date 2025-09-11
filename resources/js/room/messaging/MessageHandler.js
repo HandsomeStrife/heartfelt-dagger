@@ -96,13 +96,10 @@ export class MessageHandler {
                 this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
             }
         } 
-        // Viewer mode: Always initiate receive-only connections to see all participants
+        // Viewer mode: Always initiate receive-only connections to see all participants (ignore peer ID ordering)
         else if (this.roomWebRTC.roomData.viewer_mode && !this.roomWebRTC.isJoined) {
-            const currentPeerId = this.roomWebRTC.ablyManager.getCurrentPeerId();
-            if (currentPeerId && currentPeerId < senderId) {
-                console.log('👁️ Viewer initiating receive-only connection to:', senderId);
-                this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
-            }
+            console.log('👁️ Viewer initiating receive-only connection to:', senderId);
+            this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
         }
     }
 

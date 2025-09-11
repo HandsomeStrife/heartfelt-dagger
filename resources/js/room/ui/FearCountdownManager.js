@@ -225,7 +225,7 @@ export class FearCountdownManager {
     }
 
     /**
-     * Show or hide game state overlays based on GM presence - only on GM's slot
+     * Show or hide game state overlays based on GM presence - only on GM's slot for participants, all slots for viewers
      */
     updateGameStateOverlayVisibility() {
         console.log(`🎭 Updating game state overlay visibility. GM joined: ${this.gmJoined}`);
@@ -236,18 +236,22 @@ export class FearCountdownManager {
             console.log(`🎭 GM found in slot ${gmSlotId}`);
         }
         
+        // Check if we're in viewer mode
+        const isViewerMode = this.roomWebRTC.roomData.viewer_mode;
+        
         // Update visibility for all overlays
         this.gameStateOverlays.forEach((overlay, index) => {
             const slotContainer = overlay.closest('[data-slot-id]');
             const slotId = slotContainer ? parseInt(slotContainer.dataset.slotId) : null;
             
-            // Only show on GM's slot when GM is present
-            if (this.gmJoined && slotId === gmSlotId) {
+            // Viewer mode: Show on all slots when GM is present
+            // Participant mode: Only show on GM's slot when GM is present
+            if (this.gmJoined && (isViewerMode || slotId === gmSlotId)) {
                 overlay.classList.remove('hidden');
-                console.log(`🎭 Showing game state overlay on GM slot ${slotId}`);
+                console.log(`🎭 Showing game state overlay on slot ${slotId} ${isViewerMode ? '(viewer mode)' : '(GM slot)'}`);
             } else {
                 overlay.classList.add('hidden');
-                console.log(`🎭 Hiding game state overlay on slot ${slotId} (not GM slot or GM not present)`);
+                console.log(`🎭 Hiding game state overlay on slot ${slotId} (${isViewerMode ? 'viewer mode but GM not present' : 'not GM slot or GM not present'})`);
             }
         });
         
