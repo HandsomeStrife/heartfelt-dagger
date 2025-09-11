@@ -185,8 +185,11 @@ export default class RoomWebRTC {
                 await this.markerManager.createAutomaticJoinMarker(participantName);
             }
 
-            // Handle consent requirements
-            await this.consentManager.handleConsentRequirements();
+        // Handle consent requirements
+        await this.consentManager.handleConsentRequirements();
+
+        // Set up debug commands for connection troubleshooting
+        this.setupDebugCommands();
 
         } catch (error) {
             console.error('❌ Error joining slot:', error);
@@ -662,5 +665,54 @@ export default class RoomWebRTC {
 
     setVideoHidden(hidden) {
         this.mediaManager.setVideoHidden(hidden);
+    }
+
+    /**
+     * Set up debug commands for troubleshooting WebRTC connections
+     */
+    setupDebugCommands() {
+        // Make debug methods available on window for manual testing
+        window.roomDebug = {
+            // Diagnose all connections
+            diagnoseAll: async () => {
+                console.log('🔍 Running diagnostics for all connections...');
+                for (const [peerId] of this.peerConnectionManager.getPeerConnections()) {
+                    await this.peerConnectionManager.diagnoseConnection(peerId);
+                }
+            },
+            
+            // Diagnose specific connection
+            diagnose: async (peerId) => {
+                await this.peerConnectionManager.diagnoseConnection(peerId);
+            },
+            
+            // Force TURN retry for a connection
+            forceTurnRetry: (peerId) => {
+                const connection = this.peerConnectionManager.getPeerConnections().get(peerId);
+                if (connection) {
+                    this.peerConnectionManager.retryConnectionWithTurnOnly(peerId, connection);
+                } else {
+                    console.warn(`No connection found for ${peerId}`);
+                }
+            },
+            
+            // Show current room state
+            showState: () => {
+                console.log('🏠 Room state:');
+                console.log('  - Slot occupants:', Array.from(this.slotOccupants.entries()));
+                console.log('  - Peer connections:', Array.from(this.peerConnectionManager.getPeerConnections().keys()));
+                console.log('  - Current user joined:', this.isJoined);
+                console.log('  - Current slot:', this.currentSlotId);
+            },
+            
+            // Test ICE configuration
+            testIce: async () => {
+                const config = this.iceManager.getIceConfig();
+                console.log('🧊 Current ICE configuration:', config);
+                console.log('🧊 ICE ready:', this.iceManager.isReady());
+            }
+        };
+        
+        console.log('🐛 Debug commands available: window.roomDebug.diagnoseAll(), window.roomDebug.showState(), etc.');
     }
 }

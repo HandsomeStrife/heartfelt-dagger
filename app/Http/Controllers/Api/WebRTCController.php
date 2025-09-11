@@ -72,6 +72,15 @@ class WebRTCController extends Controller
                             );
                         }
                     }
+                    
+                    // Add enhanced TURN configuration for better connectivity
+                    $forceTurnOnly = Config::get('services.cloudflare.force_turn_only', false);
+                    $config['iceTransportPolicy'] = $forceTurnOnly ? 'relay' : 'all'; // Force TURN if configured
+                    $config['iceCandidatePoolSize'] = 2; // Pre-gather candidates
+                    
+                    // Add connection timeout settings
+                    $config['bundlePolicy'] = 'max-bundle';
+                    $config['rtcpMuxPolicy'] = 'require';
 
                     Log::info('Successfully fetched Cloudflare ICE configuration', [
                         'servers_count' => count($config['iceServers']),
@@ -98,7 +107,7 @@ class WebRTCController extends Controller
     }
 
     /**
-     * Get fallback STUN-only ICE configuration
+     * Get fallback STUN-only ICE configuration with enhanced settings
      */
     private function getFallbackIceConfig(): array
     {
@@ -111,6 +120,8 @@ class WebRTCController extends Controller
                     ],
                 ],
             ],
+            'iceTransportPolicy' => 'all',
+            'iceCandidatePoolSize' => 2,
         ];
     }
 }

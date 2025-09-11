@@ -171,6 +171,9 @@ Route::prefix('reference')->name('reference.')->group(function () {
 // WebRTC ICE configuration route
 Route::get('/api/webrtc/ice-config', [App\Http\Controllers\Api\WebRTCController::class, 'iceConfig'])->name('api.webrtc.ice-config');
 
+// Room participant management
+Route::post('/rooms/{room}/kick-participant', [App\Http\Controllers\RoomController::class, 'kickParticipant'])->name('rooms.kick-participant')->middleware('auth');
+
 // API routes for room transcripts, recordings, and consent
 Route::prefix('api/rooms')->name('api.rooms.')->group(function () {
     Route::post('/{room}/transcripts', [App\Http\Controllers\Api\RoomTranscriptController::class, 'store'])->name('transcripts.store');

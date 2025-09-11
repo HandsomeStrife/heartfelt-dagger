@@ -506,6 +506,33 @@ class RoomController extends Controller
         }
     }
 
+    public function kickParticipant(Request $request, Room $room)
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['error' => 'Authentication required'], 401);
+        }
+
+        $validated = $request->validate([
+            'participant_id' => 'required|integer|exists:room_participants,id',
+        ]);
+
+        try {
+            $kickAction = new \Domain\Room\Actions\KickParticipantAction();
+            $kickAction->execute($room, $user, $validated['participant_id']);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Participant kicked successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
     public function session(Request $request, Room $room)
     {
         $user = Auth::user();

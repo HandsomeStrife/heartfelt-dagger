@@ -145,10 +145,16 @@ export class PeerConnectionManager {
             console.log('🔍 ICE gathering state after offer:', peerConnection.iceGatheringState);
             console.log('🔍 ICE connection state after offer:', peerConnection.iceConnectionState);
             
-            // Add timeout for connection establishment
-            setTimeout(() => {
+            // Add timeout for connection establishment with retry logic
+            setTimeout(async () => {
                 if (peerConnection.connectionState === 'new' || peerConnection.connectionState === 'connecting') {
                     console.warn(`⏰ WebRTC connection timeout for ${remotePeerId}, state: ${peerConnection.connectionState}`);
+                    
+                    // Run diagnostics to understand why connection failed
+                    await this.diagnoseConnection(remotePeerId);
+                    
+                    // Try to retry with TURN-only if available
+                    this.retryConnectionWithTurnOnly(remotePeerId, peerConnection);
                 }
             }, 15000); // 15 second timeout
             
@@ -428,5 +434,153 @@ export class PeerConnectionManager {
             connection.connectionState === 'connected' || 
             connection.connectionState === 'connecting'
         );
+    }
+
+    /**
+     * Retry connection with TURN-only configuration for difficult network conditions
+     */
+    async retryConnectionWithTurnOnly(remotePeerId, failedConnection) {
+        try {
+            console.log(`🔄 Retrying connection to ${remotePeerId} with TURN-only mode`);
+            
+            // Close the failed connection
+            if (failedConnection) {
+                failedConnection.close();
+            }
+            this.peerConnections.delete(remotePeerId);
+            
+            // Create new connection with TURN-only ICE config
+            const turnOnlyConfig = {
+                ...this.roomWebRTC.iceManager.getIceConfig(),
+                iceTransportPolicy: 'relay' // Force TURN-only
+            };
+            
+            const peerConnection = new RTCPeerConnection(turnOnlyConfig);
+            this.peerConnections.set(remotePeerId, peerConnection);
+            
+            // Set up event handlers (reuse the setup logic)
+            this.setupPeerConnectionEventHandlers(peerConnection, remotePeerId);
+            
+            // Add local tracks if not in viewer mode
+            if (!this.roomWebRTC.roomData.viewer_mode) {
+                const localStream = this.roomWebRTC.mediaManager.getLocalStream();
+                if (localStream) {
+                    localStream.getTracks().forEach(track => {
+                        peerConnection.addTrack(track, localStream);
+                    });
+                    console.log('📡 Added local tracks to TURN-only connection for', remotePeerId);
+                }
+            }
+            
+            // Create and send new offer
+            const offerOptions = this.roomWebRTC.roomData.viewer_mode ? 
+                { offerToReceiveAudio: true, offerToReceiveVideo: true } : {};
+            const offer = await peerConnection.createOffer(offerOptions);
+            await peerConnection.setLocalDescription(offer);
+            
+            console.log(`🔄 Sending TURN-only retry offer to ${remotePeerId}`);
+            this.roomWebRTC.ablyManager.publishToAbly('webrtc-offer', { offer, retryWithTurn: true }, remotePeerId);
+            
+        } catch (error) {
+            console.error(`❌ TURN-only retry failed for ${remotePeerId}:`, error);
+        }
+    }
+
+    /**
+     * Enhanced connection diagnostics to help debug issues
+     */
+    async diagnoseConnection(peerId) {
+        const connection = this.peerConnections.get(peerId);
+        if (!connection) {
+            console.warn(`🔍 No connection found for ${peerId}`);
+            return;
+        }
+
+        console.log(`🔍 Connection diagnostics for ${peerId}:`);
+        console.log(`  - Connection state: ${connection.connectionState}`);
+        console.log(`  - ICE connection state: ${connection.iceConnectionState}`);
+        console.log(`  - ICE gathering state: ${connection.iceGatheringState}`);
+        console.log(`  - Signaling state: ${connection.signalingState}`);
+        
+        // Check if we have local/remote descriptions
+        console.log(`  - Local description: ${connection.localDescription ? 'Set' : 'Missing'}`);
+        console.log(`  - Remote description: ${connection.remoteDescription ? 'Set' : 'Missing'}`);
+        
+        // Check ICE candidates
+        try {
+            const stats = await connection.getStats();
+            let localCandidates = 0;
+            let remoteCandidates = 0;
+            let activePairs = 0;
+            
+            stats.forEach((report) => {
+                if (report.type === 'local-candidate') localCandidates++;
+                if (report.type === 'remote-candidate') remoteCandidates++;
+                if (report.type === 'candidate-pair' && report.state === 'succeeded') activePairs++;
+            });
+            
+            console.log(`  - Local candidates: ${localCandidates}`);
+            console.log(`  - Remote candidates: ${remoteCandidates}`);
+            console.log(`  - Active candidate pairs: ${activePairs}`);
+            
+            if (activePairs === 0 && localCandidates > 0 && remoteCandidates > 0) {
+                console.warn(`⚠️ ${peerId}: ICE candidates present but no active pairs - connectivity issue!`);
+            }
+            
+        } catch (error) {
+            console.warn(`⚠️ Could not get stats for ${peerId}:`, error);
+        }
+    }
+
+    /**
+     * Set up event handlers for a peer connection (extracted for reuse)
+     */
+    setupPeerConnectionEventHandlers(peerConnection, peerId) {
+        // Handle remote stream
+        peerConnection.ontrack = (event) => {
+            console.log('📡 Received remote stream from:', peerId);
+            console.log('📡 Stream details:', {
+                streamId: event.streams[0]?.id,
+                trackCount: event.streams[0]?.getTracks().length,
+                audioTracks: event.streams[0]?.getAudioTracks().length,
+                videoTracks: event.streams[0]?.getVideoTracks().length
+            });
+            this.handleRemoteStream(event.streams[0], peerId);
+        };
+
+        // Handle ICE candidates with rate limiting
+        let lastCandidateTime = 0;
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                const now = Date.now();
+                if (now - lastCandidateTime < 100) {
+                    console.log(`🧊 Rate limiting ICE candidate for ${peerId}`);
+                    return;
+                }
+                lastCandidateTime = now;
+                
+                console.log(`🧊 Sending ICE candidate to ${peerId}:`, event.candidate.type);
+                this.roomWebRTC.ablyManager.publishToAbly('webrtc-ice-candidate', {
+                    candidate: event.candidate
+                }, peerId);
+            } else {
+                console.log(`🧊 ICE candidate gathering complete for ${peerId}`);
+            }
+        };
+
+        // Monitor connection states
+        peerConnection.oniceconnectionstatechange = () => {
+            const iceState = peerConnection.iceConnectionState;
+            console.log(`🧊 ICE connection state for ${peerId}: ${iceState}`);
+        };
+
+        peerConnection.onconnectionstatechange = async () => {
+            const state = peerConnection.connectionState;
+            console.log(`🔗 Peer connection state: ${state} (${peerId})`);
+            
+            if (state === 'failed') {
+                console.warn(`💥 Peer connection failed for ${peerId}`);
+            }
+        };
     }
 }

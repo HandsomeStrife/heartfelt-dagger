@@ -73,6 +73,22 @@
                     </div>
                 </div>
             </div>
+
+            <!-- GM Controls (Top Right) - Only visible to room creator when someone else is in the slot -->
+            @if($userIsCreator && $participant && $participant->user_id !== auth()->id())
+            <div class="absolute top-2 right-2 pointer-events-auto">
+                <button 
+                    class="kick-participant-btn bg-red-600 hover:bg-red-500 text-white text-xs px-2 py-1 rounded transition-all duration-200 flex items-center gap-1"
+                    data-participant-id="{{ $participant->id }}"
+                    data-participant-name="{{ $participant->character ? $participant->character->name : ($participant->character_name ?: ($participant->user ? $participant->user->username : 'Unknown')) }}"
+                    title="Kick participant from room">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Kick
+                </button>
+            </div>
+            @endif
         </div>
         
         <!-- ALL POSSIBLE SLOT STATES (shown/hidden dynamically by JavaScript) -->
