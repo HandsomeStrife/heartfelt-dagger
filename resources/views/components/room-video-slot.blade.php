@@ -74,15 +74,14 @@
                 </div>
             </div>
 
-            <!-- Video Controls (Top Right) - Visible on hover when slot is occupied -->
-            @if($participant)
-            <div class="video-controls absolute top-2 right-2 pointer-events-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <!-- Refresh Connection Button - Always visible to everyone when hovering -->
+            <!-- Video Controls (Top Right) - Always present, shown/hidden by JavaScript based on slot occupancy -->
+            <div class="video-controls absolute top-2 right-2 pointer-events-auto gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden">
+                <!-- Refresh Connection Button - Always available when slot is occupied -->
                 <button 
                     class="refresh-connection-btn bg-blue-600/90 hover:bg-blue-500 text-white text-xs px-2 py-1 rounded transition-all duration-200 flex items-center gap-1 shadow-lg backdrop-blur-sm"
                     data-peer-id="{{ $participant->peer_id ?? '' }}"
-                    data-participant-name="{{ $participant->character ? $participant->character->name : ($participant->character_name ?: ($participant->user ? $participant->user->username : 'Unknown')) }}"
-                    title="Refresh video connection for {{ $participant->character ? $participant->character->name : ($participant->character_name ?: ($participant->user ? $participant->user->username : 'Unknown')) }}">
+                    data-participant-name="{{ $participant ? ($participant->character ? $participant->character->name : ($participant->character_name ?: ($participant->user ? $participant->user->username : 'Unknown'))) : '' }}"
+                    title="Refresh video connection">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
@@ -90,12 +89,12 @@
                 </button>
 
                 <!-- GM Kick Button - Only visible to room creator when someone else is in the slot -->
-                @if($userIsCreator && $participant->user_id !== auth()->id())
+                @if($userIsCreator)
                 <button 
-                    class="kick-participant-btn bg-red-600/90 hover:bg-red-500 text-white text-xs px-2 py-1 rounded transition-all duration-200 flex items-center gap-1 shadow-lg backdrop-blur-sm"
-                    data-participant-id="{{ $participant->id }}"
-                    data-participant-name="{{ $participant->character ? $participant->character->name : ($participant->character_name ?: ($participant->user ? $participant->user->username : 'Unknown')) }}"
-                    title="Kick {{ $participant->character ? $participant->character->name : ($participant->character_name ?: ($participant->user ? $participant->user->username : 'Unknown')) }} from room">
+                    class="kick-participant-btn bg-red-600/90 hover:bg-red-500 text-white text-xs px-2 py-1 rounded transition-all duration-200 flex items-center gap-1 shadow-lg backdrop-blur-sm {{ !$participant ? 'hidden' : '' }}"
+                    data-participant-id="{{ $participant->id ?? '' }}"
+                    data-participant-name="{{ $participant ? ($participant->character ? $participant->character->name : ($participant->character_name ?: ($participant->user ? $participant->user->username : 'Unknown'))) : '' }}"
+                    title="Kick participant from room">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -103,7 +102,6 @@
                 </button>
                 @endif
             </div>
-            @endif
         </div>
         
         <!-- ALL POSSIBLE SLOT STATES (shown/hidden dynamically by JavaScript) -->

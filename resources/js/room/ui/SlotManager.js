@@ -8,6 +8,26 @@
 export class SlotManager {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
+        
+        // Initialize video controls for any existing server-side participants
+        this.initializeExistingVideoControls();
+    }
+
+    /**
+     * Initialize video controls for slots that already have server-side participant data
+     */
+    initializeExistingVideoControls() {
+        // Wait for DOM to be ready
+        setTimeout(() => {
+            document.querySelectorAll('.video-slot').forEach(slotContainer => {
+                const characterOverlay = slotContainer.querySelector('.character-overlay');
+                
+                // If character overlay exists and is not hidden, show video controls
+                if (characterOverlay && !characterOverlay.classList.contains('hidden')) {
+                    this.showVideoControls(slotContainer);
+                }
+            });
+        }, 100);
     }
 
     /**
@@ -37,6 +57,9 @@ export class SlotManager {
             }
 
             overlay.classList.remove('hidden');
+            
+            // Show video controls since slot is now occupied
+            this.showVideoControls(slotContainer);
         }
     }
 
@@ -96,6 +119,9 @@ export class SlotManager {
         if (overlay) {
             overlay.classList.add('hidden');
         }
+
+        // Hide video controls since slot is now empty
+        this.hideVideoControls(slotContainer);
 
         // Show join button, hide leave button
         const joinBtn = slotContainer.querySelector('.join-btn');
@@ -176,5 +202,54 @@ export class SlotManager {
             const slotId = parseInt(slotContainer.dataset.slotId);
             this.resetSlotUI(slotContainer);
         });
+    }
+
+    /**
+     * Shows video controls for an occupied slot
+     */
+    showVideoControls(slotContainer) {
+        const videoControls = slotContainer.querySelector('.video-controls');
+        if (videoControls) {
+            videoControls.classList.remove('hidden');
+            videoControls.classList.add('flex');
+            
+            // Update refresh button with current slot data if available
+            const refreshBtn = videoControls.querySelector('.refresh-connection-btn');
+            if (refreshBtn) {
+                // Try to get peer ID from slot occupant data
+                const slotId = parseInt(slotContainer.dataset.slotId);
+                const occupantData = this.roomWebRTC.slotOccupants.get(slotId);
+                
+                if (occupantData) {
+                    refreshBtn.dataset.peerId = occupantData.peerId || '';
+                    refreshBtn.dataset.participantName = this.getParticipantDisplayName(occupantData.participantData);
+                    refreshBtn.title = `Refresh video connection for ${refreshBtn.dataset.participantName}`;
+                }
+            }
+        }
+    }
+
+    /**
+     * Hides video controls for an empty slot
+     */
+    hideVideoControls(slotContainer) {
+        const videoControls = slotContainer.querySelector('.video-controls');
+        if (videoControls) {
+            videoControls.classList.add('hidden');
+            videoControls.classList.remove('flex');
+        }
+    }
+
+    /**
+     * Gets display name for a participant
+     */
+    getParticipantDisplayName(participantData) {
+        if (!participantData) return 'Unknown';
+        
+        if (participantData.is_host) {
+            return 'Game Master';
+        }
+        
+        return participantData.character_name || participantData.username || 'Unknown Player';
     }
 }
