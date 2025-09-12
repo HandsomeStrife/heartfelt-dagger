@@ -8,9 +8,16 @@
 export class ConsentManager {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
+        
+        // Check if local save consent is applicable (recording enabled + remote storage)
+        const recordingEnabled = roomWebRTC.roomData.recording_enabled;
+        const isRemoteStorage = recordingEnabled && 
+            roomWebRTC.roomData.recording_settings?.storage_provider !== 'local_device';
+            
         this.consentData = {
             stt: { status: null, enabled: roomWebRTC.roomData.stt_enabled },
-            recording: { status: null, enabled: roomWebRTC.roomData.recording_enabled }
+            recording: { status: null, enabled: recordingEnabled },
+            localSave: { status: null, enabled: isRemoteStorage }
         };
     }
 
@@ -22,8 +29,9 @@ export class ConsentManager {
         
         const needsSttConsent = this.consentData.stt.enabled;
         const needsRecordingConsent = this.consentData.recording.enabled;
+        const needsLocalSaveConsent = this.consentData.localSave.enabled;
 
-        if (!needsSttConsent && !needsRecordingConsent) {
+        if (!needsSttConsent && !needsRecordingConsent && !needsLocalSaveConsent) {
             console.log('🔒 No consent requirements for this room');
             return;
         }
@@ -42,6 +50,10 @@ export class ConsentManager {
             if (needsRecordingConsent) {
                 consentChecks.push(this.checkConsentStatus('recording'));
             }
+            
+            if (needsLocalSaveConsent) {
+                consentChecks.push(this.checkConsentStatus('localSave'));
+            }
 
             await Promise.all(consentChecks);
 
@@ -59,8 +71,9 @@ export class ConsentManager {
     async handleConsentRequirements() {
         const needsSttConsent = this.consentData.stt.enabled;
         const needsRecordingConsent = this.consentData.recording.enabled;
+        const needsLocalSaveConsent = this.consentData.localSave.enabled;
 
-        if (!needsSttConsent && !needsRecordingConsent) {
+        if (!needsSttConsent && !needsRecordingConsent && !needsLocalSaveConsent) {
             // No consent needed, enable UI immediately
             this.roomWebRTC.uiStateManager.enableJoinUI();
             return;
@@ -80,6 +93,10 @@ export class ConsentManager {
             if (needsRecordingConsent) {
                 consentChecks.push(this.checkConsentStatus('recording'));
             }
+            
+            if (needsLocalSaveConsent) {
+                consentChecks.push(this.checkConsentStatus('localSave'));
+            }
 
             await Promise.all(consentChecks);
 
@@ -96,7 +113,17 @@ export class ConsentManager {
      * Checks consent status for a specific feature type
      */
     async checkConsentStatus(type) {
-        const endpoint = type === 'stt' ? 'stt-consent' : 'recording-consent';
+        let endpoint;
+        if (type === 'stt') {
+            endpoint = 'stt-consent';
+        } else if (type === 'recording') {
+            endpoint = 'recording-consent';
+        } else if (type === 'localSave') {
+            endpoint = 'local-save-consent';
+        } else {
+            console.error(`🔒 Unknown consent type: ${type}`);
+            return;
+        }
         
         try {
             const response = await fetch(`/api/rooms/${this.roomWebRTC.roomData.id}/${endpoint}`, {
@@ -123,6 +150,7 @@ export class ConsentManager {
     async processInitialConsentResults() {
         const sttStatus = this.consentData.stt.status;
         const recordingStatus = this.consentData.recording.status;
+        const localSaveStatus = this.consentData.localSave.status;
 
         // Collect consent dialogs needed
         const dialogsNeeded = [];
@@ -133,6 +161,11 @@ export class ConsentManager {
         
         if (recordingStatus?.requires_consent) {
             dialogsNeeded.push('recording');
+        }
+        
+        // Local save consent comes after recording consent
+        if (localSaveStatus?.requires_consent) {
+            dialogsNeeded.push('localSave');
         }
 
         // Show consent dialogs sequentially if needed
@@ -215,7 +248,17 @@ export class ConsentManager {
      * Handles consent decision for any feature type
      */
     async handleConsentDecision(type, consentGiven, onComplete) {
-        const endpoint = type === 'stt' ? 'stt-consent' : 'recording-consent';
+        let endpoint;
+        if (type === 'stt') {
+            endpoint = 'stt-consent';
+        } else if (type === 'recording') {
+            endpoint = 'recording-consent';
+        } else if (type === 'localSave') {
+            endpoint = 'local-save-consent';
+        } else {
+            console.error(`🔒 Unknown consent type: ${type}`);
+            return;
+        }
         
         try {
             const response = await fetch(`/api/rooms/${this.roomWebRTC.roomData.id}/${endpoint}`, {

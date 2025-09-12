@@ -50,7 +50,13 @@
             <div class="lg:col-span-7">
                 <x-character-viewer.damage-health :computed-stats="$computed_stats" />
 
-                <x-character-viewer.active-weapons :organized-equipment="$organized_equipment" :character="$character" :trait-values="$trait_values" />
+                <x-character-viewer.active-weapons 
+                    :organized-equipment="$organized_equipment" 
+                    :character="$character" 
+                    :trait-values="$trait_values"
+                    :weaponDamageCount="$weapon_damage_count"
+                    :primaryWeapon="$primary_weapon"
+                    :primaryWeaponFeature="$primary_weapon_feature" />
 
                 <x-character-viewer.active-armor :organized-equipment="$organized_equipment" />
             </div>

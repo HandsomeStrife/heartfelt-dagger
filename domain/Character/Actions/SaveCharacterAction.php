@@ -29,6 +29,7 @@ class SaveCharacterAction
                 'ancestry' => $builder_data->selected_ancestry,
                 'community' => $builder_data->selected_community,
                 'level' => 1,
+                'proficiency' => 1, // DaggerHeart SRD: characters start with proficiency 1
                 'profile_image_path' => $builder_data->profile_image_path,
                 'character_data' => [
                     'background' => [

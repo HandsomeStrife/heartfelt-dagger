@@ -203,27 +203,48 @@ class CharacterViewer extends Component
     }
 
     /**
-     * Get formatted trait value with proper + prefix
+     * Get formatted trait value with proper + prefix, including advancement bonuses
      */
     public function getFormattedTraitValue(string $trait): string
     {
-        $traits_array = $this->character->traits->toArray();
-        $value = $traits_array[$trait] ?? 0;
+        // Get the Character model to access effective trait values including advancement bonuses
+        $character_model = Character::where('character_key', $this->character_key)->first();
+        if (! $character_model) {
+            // Fallback to basic traits if no model found
+            $traits_array = $this->character->traits->toArray();
+            $value = $traits_array[$trait] ?? 0;
+            return $value >= 0 ? '+'.$value : (string) $value;
+        }
 
+        $trait_enum = \Domain\Character\Enums\TraitName::from($trait);
+        $value = $character_model->getEffectiveTraitValue($trait_enum);
         return $value >= 0 ? '+'.$value : (string) $value;
     }
 
     /**
-     * Get all trait values formatted for display
+     * Get all trait values formatted for display, including advancement bonuses
      */
     public function getFormattedTraitValues(): array
     {
         $trait_values = [];
         $trait_names = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
-        $traits_array = $this->character->traits->toArray();
 
+        // Get the Character model to access effective trait values including advancement bonuses
+        $character_model = Character::where('character_key', $this->character_key)->first();
+        if (! $character_model) {
+            // Fallback to basic traits if no model found
+            $traits_array = $this->character->traits->toArray();
+            foreach ($trait_names as $trait) {
+                $value = $traits_array[$trait] ?? 0;
+                $trait_values[$trait] = $value >= 0 ? '+'.$value : (string) $value;
+            }
+            return $trait_values;
+        }
+
+        // Use effective trait values that include advancement bonuses
         foreach ($trait_names as $trait) {
-            $value = $traits_array[$trait] ?? 0;
+            $trait_enum = \Domain\Character\Enums\TraitName::from($trait);
+            $value = $character_model->getEffectiveTraitValue($trait_enum);
             $trait_values[$trait] = $value >= 0 ? '+'.$value : (string) $value;
         }
 
@@ -282,7 +303,7 @@ class CharacterViewer extends Component
     }
 
     /**
-     * Get equipment data organized by type
+     * Get equipment data organized by type, using current JSON data
      */
     public function getOrganizedEquipment(): array
     {
@@ -293,13 +314,16 @@ class CharacterViewer extends Component
             'consumables' => [],
         ];
 
-        // Group equipment by type
+        // Group equipment by type, but use fresh JSON data
         foreach ($this->character->equipment as $equipment) {
+            // Get the current data from JSON files based on equipment key and type
+            $fresh_data = $this->getFreshEquipmentData($equipment->equipment_key, $equipment->equipment_type);
+            
             $equipment_data = [
                 'id' => $equipment->id,
                 'type' => $equipment->equipment_type,
                 'key' => $equipment->equipment_key,
-                'data' => $equipment->equipment_data,
+                'data' => $fresh_data ?? $equipment->equipment_data, // Fallback to stored data if not found
                 'is_equipped' => $equipment->is_equipped,
             ];
 
@@ -315,6 +339,87 @@ class CharacterViewer extends Component
         }
 
         return $organized;
+    }
+
+    /**
+     * Get fresh equipment data from JSON files
+     */
+    private function getFreshEquipmentData(string $equipment_key, string $equipment_type): ?array
+    {
+        $json_file = match($equipment_type) {
+            'weapon' => 'weapons',
+            'armor' => 'armor', 
+            'item' => 'items',
+            'consumable' => 'consumables',
+            default => null,
+        };
+
+        if (!$json_file || !isset($this->game_data[$json_file][$equipment_key])) {
+            return null;
+        }
+
+        return $this->game_data[$json_file][$equipment_key];
+    }
+
+    /**
+     * Get character's current proficiency bonus
+     */
+    public function getProficiencyBonus(): int
+    {
+        return $this->character->proficiency;
+    }
+
+    /**
+     * Get number of damage dice for weapons (equals proficiency)
+     */
+    public function getWeaponDamageCount(): int
+    {
+        return $this->character->proficiency;
+    }
+
+    /**
+     * Get the primary weapon from organized equipment
+     */
+    public function getPrimaryWeapon(): ?array
+    {
+        $organized = $this->getOrganizedEquipment();
+        $weapons = $organized['weapons'] ?? [];
+        
+        return collect($weapons)->first(fn($w) => ($w['data']['type'] ?? 'Primary') === 'Primary');
+    }
+
+    /**
+     * Get formatted weapon feature text for primary weapon
+     */
+    public function getPrimaryWeaponFeature(): string
+    {
+        $primary = $this->getPrimaryWeapon();
+        if (!$primary) {
+            return 'No feature present for the selected weapon.';
+        }
+
+        $feature = $primary['data']['feature'] ?? null;
+        
+        if (is_string($feature) && $feature !== '') {
+            return $feature;
+        } elseif (is_array($feature)) {
+            $parts = [];
+            if (function_exists('array_is_list') && array_is_list($feature)) {
+                foreach ($feature as $entry) {
+                    if (is_string($entry)) {
+                        $parts[] = $entry;
+                    } elseif (is_array($entry)) {
+                        $parts[] = $entry['description'] ?? ($entry['name'] ?? '');
+                    }
+                }
+            } else {
+                $parts[] = $feature['description'] ?? ($feature['name'] ?? '');
+            }
+            $parts = array_filter($parts, fn ($p) => $p !== '');
+            return empty($parts) ? 'No feature present for the selected weapon.' : implode('; ', $parts);
+        }
+        
+        return 'No feature present for the selected weapon.';
     }
 
     /**
@@ -508,6 +613,10 @@ class CharacterViewer extends Component
             'trait_values' => $this->getFormattedTraitValues(),
             'advancement_status' => $this->getAdvancementStatus(),
             'can_level_up' => $this->canLevelUp(),
+            'proficiency_bonus' => $this->getProficiencyBonus(),
+            'weapon_damage_count' => $this->getWeaponDamageCount(),
+            'primary_weapon' => $this->getPrimaryWeapon(),
+            'primary_weapon_feature' => $this->getPrimaryWeaponFeature(),
         ]);
     }
 }

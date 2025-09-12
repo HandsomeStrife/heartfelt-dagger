@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Room\Actions;
 
+use Domain\Room\Enums\RecordingErrorType;
 use Domain\Room\Models\RoomRecording;
 use Domain\Room\Services\GoogleDriveService;
 use Domain\Room\Services\WasabiS3Service;
@@ -12,6 +13,9 @@ use Illuminate\Support\Facades\Log;
 
 class FinalizeRecording
 {
+    public function __construct(
+        private readonly LogRecordingError $logRecordingError
+    ) {}
     public function execute(RoomRecording $recording): bool
     {
         if (! $recording->canBeFinalized()) {
@@ -74,6 +78,32 @@ class FinalizeRecording
                 'error' => $e->getMessage(),
                 'multipart_upload_id' => $recording->multipart_upload_id,
             ]);
+
+            // Log error to database for review
+            try {
+                $this->logRecordingError->execute(
+                    room: $recording->room,
+                    errorType: RecordingErrorType::FinalizationFailed,
+                    errorMessage: 'Recording finalization failed: ' . $e->getMessage(),
+                    user: $recording->user,
+                    recording: $recording,
+                    errorContext: [
+                        'provider' => $recording->provider,
+                        'multipart_upload_id' => $recording->multipart_upload_id,
+                        'provider_file_id' => $recording->provider_file_id,
+                        'stack_trace' => $e->getTraceAsString(),
+                    ],
+                    provider: $recording->provider,
+                    multipartUploadId: $recording->multipart_upload_id,
+                    providerFileId: $recording->provider_file_id
+                );
+            } catch (\Exception $logError) {
+                Log::warning('Failed to log recording error to database', [
+                    'recording_id' => $recording->id,
+                    'original_error' => $e->getMessage(),
+                    'log_error' => $logError->getMessage(),
+                ]);
+            }
 
             $recording->markAsFailed();
 

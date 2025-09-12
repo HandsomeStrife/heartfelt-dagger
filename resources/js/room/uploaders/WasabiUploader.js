@@ -211,8 +211,9 @@ export class WasabiUploader extends BaseUploader {
         } catch (error) {
             console.error('🎯 ERROR finalizing Wasabi multipart upload:', error);
             
-            // Try to abort the upload to clean up
-            await this.abort();
+            // DO NOT ABORT - preserve partial uploads for recovery
+            // Reset state without aborting the S3 upload
+            this.reset();
             
             // Emit error event
             this.emitRecordingEvent('recording-upload-error', {
@@ -224,35 +225,6 @@ export class WasabiUploader extends BaseUploader {
         }
     }
 
-    /**
-     * Abort the Wasabi S3 multipart upload
-     */
-    async abort() {
-        if (!this.currentMultipartUploadId) {
-            return;
-        }
-
-        try {
-            await fetch('/api/uploads/s3/multipart/abort', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': this.getCsrfToken()
-                },
-                body: JSON.stringify({
-                    uploadId: this.currentMultipartUploadId,
-                    key: this.currentSessionKey,
-                    room_id: this.roomData.id
-                })
-            });
-            console.log('🎯 ABORTED WASABI MULTIPART UPLOAD');
-        } catch (abortError) {
-            console.error('🎯 ERROR aborting Wasabi multipart upload:', abortError);
-        }
-        
-        // Reset state anyway
-        this.reset();
-    }
 
     /**
      * Reset Wasabi-specific state

@@ -61,12 +61,12 @@ describe('Equipment Selection', function () {
             // Select a primary weapon
             ->click('[pest="suggested-primary-weapon"]')
             ->wait(1)
-            ->assertPresent('.bg-emerald-400\\/20')
+            ->assertPresent('.bg-amber-400\/20')
 
             // Click the same weapon again to unselect it
             ->click('[pest="suggested-primary-weapon"]')
             ->wait(1)
-            ->assertMissing('.bg-emerald-400\\/20');
+            ->assertMissing('.bg-amber-400\/20');
     });
 
     it('shows correct progress indicators when equipment is selected', function () {

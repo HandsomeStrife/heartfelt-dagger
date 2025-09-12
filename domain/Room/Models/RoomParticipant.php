@@ -24,6 +24,10 @@ class RoomParticipant extends Model
         'stt_consent_at' => 'datetime',
         'recording_consent_given' => 'boolean',
         'recording_consent_at' => 'datetime',
+        'local_save_consent_given' => 'boolean',
+        'local_save_consent_given_at' => 'datetime',
+        'local_save_consent_denied' => 'boolean',
+        'local_save_consent_denied_at' => 'datetime',
     ];
 
     public function room(): BelongsTo
@@ -232,6 +236,69 @@ class RoomParticipant extends Model
     }
 
     /**
+     * Check if this participant has given local save consent
+     */
+    public function hasLocalSaveConsent(): bool
+    {
+        return $this->local_save_consent_given === true;
+    }
+
+    /**
+     * Check if this participant has explicitly denied local save consent
+     */
+    public function hasLocalSaveConsentDenied(): bool
+    {
+        return $this->local_save_consent_denied === true;
+    }
+
+    /**
+     * Check if this participant hasn't made a local save consent decision yet
+     */
+    public function hasNoLocalSaveConsentDecision(): bool
+    {
+        return is_null($this->local_save_consent_given) && is_null($this->local_save_consent_denied);
+    }
+
+    /**
+     * Grant local save consent for this participant
+     */
+    public function giveLocalSaveConsent(): void
+    {
+        $this->update([
+            'local_save_consent_given' => true,
+            'local_save_consent_given_at' => now(),
+            'local_save_consent_denied' => null,
+            'local_save_consent_denied_at' => null,
+        ]);
+    }
+
+    /**
+     * Deny local save consent for this participant
+     */
+    public function denyLocalSaveConsent(): void
+    {
+        $this->update([
+            'local_save_consent_given' => null,
+            'local_save_consent_given_at' => null,
+            'local_save_consent_denied' => true,
+            'local_save_consent_denied_at' => now(),
+        ]);
+    }
+
+    /**
+     * Reset local save consent decision (remove consent decision)
+     */
+    public function resetLocalSaveConsent(): void
+    {
+        $this->update([
+            'local_save_consent_given' => null,
+            'local_save_consent_given_at' => null,
+            'local_save_consent_denied' => null,
+            'local_save_consent_denied_at' => null,
+        ]);
+    }
+
+    /**
      * Scope a query to only include active participants
      */
     public function scopeActive(Builder $query): Builder
@@ -301,6 +368,30 @@ class RoomParticipant extends Model
     public function scopePendingRecordingConsent(Builder $query): Builder
     {
         return $query->whereNull('recording_consent_given');
+    }
+
+    /**
+     * Scope a query to only include participants who have given local save consent
+     */
+    public function scopeWithLocalSaveConsent(Builder $query): Builder
+    {
+        return $query->where('local_save_consent_given', true);
+    }
+
+    /**
+     * Scope a query to only include participants who have denied local save consent
+     */
+    public function scopeWithoutLocalSaveConsent(Builder $query): Builder
+    {
+        return $query->where('local_save_consent_denied', true);
+    }
+
+    /**
+     * Scope a query to only include participants with no local save consent decision
+     */
+    public function scopePendingLocalSaveConsent(Builder $query): Builder
+    {
+        return $query->whereNull('local_save_consent_given')->whereNull('local_save_consent_denied');
     }
 
     protected static function newFactory()

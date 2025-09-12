@@ -165,6 +165,7 @@ Route::get('/actual-plays', function () {
 // Reference routes (public access)
 Route::prefix('reference')->name('reference.')->group(function () {
     Route::get('/', [App\Http\Controllers\ReferenceController::class, 'index'])->name('index');
+    Route::get('/search', [App\Http\Controllers\JsonReferenceSearchController::class, 'search'])->name('search');
     Route::get('/{page}', [App\Http\Controllers\ReferenceController::class, 'show'])->name('page');
 });
 
@@ -182,6 +183,8 @@ Route::prefix('api/rooms')->name('api.rooms.')->group(function () {
     Route::get('/{room}/stt-consent', [App\Http\Controllers\Api\RoomConsentController::class, 'getSttConsentStatus'])->name('stt-consent.status');
     Route::post('/{room}/recording-consent', [App\Http\Controllers\Api\RoomConsentController::class, 'updateRecordingConsent'])->name('recording-consent.update');
     Route::get('/{room}/recording-consent', [App\Http\Controllers\Api\RoomConsentController::class, 'getRecordingConsentStatus'])->name('recording-consent.status');
+    Route::post('/{room}/local-save-consent', [App\Http\Controllers\Api\RoomConsentController::class, 'updateLocalSaveConsent'])->name('local-save-consent.update');
+    Route::get('/{room}/local-save-consent', [App\Http\Controllers\Api\RoomConsentController::class, 'getLocalSaveConsentStatus'])->name('local-save-consent.status');
     Route::get('/{room}/recordings', [App\Http\Controllers\Api\RoomRecordingController::class, 'index'])->name('recordings.index');
     Route::get('/{room}/recordings/{recording}/download', [App\Http\Controllers\Api\RoomRecordingController::class, 'download'])->name('recordings.download');
     Route::post('/{room}/recordings/presign-wasabi', [App\Http\Controllers\Api\RoomRecordingController::class, 'presignWasabi'])->name('recordings.presign-wasabi');
@@ -192,6 +195,7 @@ Route::prefix('api/rooms')->name('api.rooms.')->group(function () {
     // New recording session management routes
     Route::post('/{room}/recordings/start-session', [App\Http\Controllers\Api\RoomRecordingController::class, 'startSession'])->name('recordings.start-session');
     Route::post('/{room}/recordings/{recording}/progress', [App\Http\Controllers\Api\RoomRecordingController::class, 'updateProgress'])->name('recordings.update-progress');
+    Route::get('/{room}/recordings/validate-session', [App\Http\Controllers\Api\RoomRecordingController::class, 'validateSession'])->name('recordings.validate-session');
 });
 
 // API routes for session markers
@@ -205,7 +209,7 @@ Route::prefix('api/uploads/s3/multipart')->name('api.uploads.s3.multipart.')->mi
     Route::post('/create', [App\Http\Controllers\Api\S3MultipartController::class, 'create'])->name('create');
     Route::post('/sign', [App\Http\Controllers\Api\S3MultipartController::class, 'signPart'])->name('sign');
     Route::post('/complete', [App\Http\Controllers\Api\S3MultipartController::class, 'complete'])->name('complete');
-    Route::post('/abort', [App\Http\Controllers\Api\S3MultipartController::class, 'abort'])->name('abort');
+    // REMOVED: abort endpoint - uploads should never be aborted, only completed or left partial for recovery
 });
 
 // Google Drive OAuth routes

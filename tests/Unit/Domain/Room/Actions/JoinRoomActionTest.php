@@ -129,7 +129,7 @@ it('prevents duplicate participation', function () {
         ->toThrow(Exception::class, 'You are already an active participant in this room.');
 });
 it('prevents joining full room', function () {
-    $room = Room::factory()->create(['guest_count' => 1]); // Total capacity = 2 (creator + 1 guest)
+    $room = Room::factory()->create(['guest_count' => 2]); // Total capacity = 2 participants
     $user1 = User::factory()->create();
     $user2 = User::factory()->create();
     $user3 = User::factory()->create();

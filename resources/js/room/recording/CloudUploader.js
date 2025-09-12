@@ -11,11 +11,24 @@ export class CloudUploader {
     }
 
     /**
-     * Uploads a video chunk to cloud storage
+     * Uploads a video chunk to storage (cloud or local)
      */
     async uploadChunk(blob, recordingData) {
         try {
-            // Use Uppy for advanced upload handling
+            // Check if this is a local save request
+            if (recordingData.isLocalSave) {
+                // For local saving, use the streaming downloader for better user experience
+                if (this.roomWebRTC.streamingDownloader) {
+                    this.roomWebRTC.streamingDownloader.addChunk(blob, recordingData);
+                    console.log('🎬 Video chunk added to local streaming download');
+                } else {
+                    // Fallback to direct download method
+                    await this.saveVideoChunkLocally(blob, recordingData);
+                }
+                return;
+            }
+            
+            // For cloud uploads, use Uppy for advanced upload handling
             if (window.roomUppy) {
                 await window.roomUppy.uploadVideoBlob(blob, recordingData);
                 console.log('🎬 Video chunk queued for upload via Uppy');

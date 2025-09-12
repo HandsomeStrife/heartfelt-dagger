@@ -103,8 +103,14 @@
                                 </div>
                             </div>
 
-                            <!-- Page Navigation -->
+                            <!-- Search and Navigation -->
                             <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-xl p-4 flex flex-col h-full">
+                                <!-- Search Bar -->
+                                <div class="mb-4">
+                                    <livewire:reference-search :is-sidebar="false" />
+                                </div>
+                                
+                                <!-- Page Navigation -->
                                 <h3 class="font-outfit text-sm font-semibold text-white mb-3">All Pages</h3>
                                 <div class="space-y-3 flex-1 overflow-y-auto">
                                     @include('reference.partials.navigation-menu', ['current_page' => $current_page ?? 'what-is-this', 'pages' => $pages])

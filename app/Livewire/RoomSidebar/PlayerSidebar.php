@@ -132,7 +132,7 @@ class PlayerSidebar extends Component
     }
 
     /**
-     * Get all trait values formatted for display
+     * Get all trait values formatted for display, including advancement bonuses
      */
     public function getFormattedTraitValues(): array
     {
@@ -142,10 +142,23 @@ class PlayerSidebar extends Component
 
         $trait_values = [];
         $trait_names = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
-        $traits_array = $this->character->traits->toArray();
 
+        // Get the Character model to access effective trait values including advancement bonuses
+        $character_model = Character::where('character_key', $this->character->character_key)->first();
+        if (! $character_model) {
+            // Fallback to basic traits if no model found
+            $traits_array = $this->character->traits->toArray();
+            foreach ($trait_names as $trait) {
+                $value = $traits_array[$trait] ?? 0;
+                $trait_values[$trait] = $value >= 0 ? '+'.$value : (string) $value;
+            }
+            return $trait_values;
+        }
+
+        // Use effective trait values that include advancement bonuses
         foreach ($trait_names as $trait) {
-            $value = $traits_array[$trait] ?? 0;
+            $trait_enum = \Domain\Character\Enums\TraitName::from($trait);
+            $value = $character_model->getEffectiveTraitValue($trait_enum);
             $trait_values[$trait] = $value >= 0 ? '+'.$value : (string) $value;
         }
 
@@ -204,7 +217,7 @@ class PlayerSidebar extends Component
     }
 
     /**
-     * Get equipment data organized by type
+     * Get equipment data organized by type, using current JSON data
      */
     public function getOrganizedEquipment(): array
     {
@@ -224,13 +237,16 @@ class PlayerSidebar extends Component
             'consumables' => [],
         ];
 
-        // Group equipment by type
+        // Group equipment by type, but use fresh JSON data
         foreach ($this->character->equipment as $equipment) {
+            // Get the current data from JSON files based on equipment key and type
+            $fresh_data = $this->getFreshEquipmentData($equipment->equipment_key, $equipment->equipment_type);
+            
             $equipment_data = [
                 'id' => $equipment->id,
                 'type' => $equipment->equipment_type,
                 'key' => $equipment->equipment_key,
-                'data' => $equipment->equipment_data,
+                'data' => $fresh_data ?? $equipment->equipment_data, // Fallback to stored data if not found
                 'is_equipped' => $equipment->is_equipped,
             ];
 
@@ -246,6 +262,46 @@ class PlayerSidebar extends Component
         }
 
         return $organized;
+    }
+
+    /**
+     * Get fresh equipment data from JSON files
+     */
+    private function getFreshEquipmentData(string $equipment_key, string $equipment_type): ?array
+    {
+        $json_file = match($equipment_type) {
+            'weapon' => 'weapons',
+            'armor' => 'armor', 
+            'item' => 'items',
+            'consumable' => 'consumables',
+            default => null,
+        };
+
+        if (!$json_file || !isset($this->game_data[$json_file][$equipment_key])) {
+            return null;
+        }
+
+        return $this->game_data[$json_file][$equipment_key];
+    }
+
+    /**
+     * Get character's current proficiency bonus
+     */
+    public function getProficiencyBonus(): int
+    {
+        if (!$this->character) {
+            return 0;
+        }
+        
+        return $this->character->proficiency;
+    }
+
+    /**
+     * Get number of damage dice for weapons (equals proficiency)
+     */
+    public function getWeaponDamageCount(): int
+    {
+        return $this->character ? $this->character->proficiency : 0;
     }
 
     /**
@@ -373,6 +429,8 @@ class PlayerSidebar extends Component
             'domain_card_details' => $this->getDomainCardDetails(),
             'trait_values' => $this->getFormattedTraitValues(),
             'trait_info' => $this->getTraitInfo(),
+            'proficiency_bonus' => $this->getProficiencyBonus(),
+            'weapon_damage_count' => $this->getWeaponDamageCount(),
         ]);
     }
 }

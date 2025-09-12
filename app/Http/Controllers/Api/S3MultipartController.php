@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Domain\Room\Actions\LogRecordingError;
+use Domain\Room\Enums\RecordingErrorType;
 use Domain\Room\Models\Room;
 use Domain\Room\Models\RoomRecording;
 use Domain\Room\Services\WasabiS3Service;
@@ -24,6 +26,9 @@ use Illuminate\Validation\ValidationException;
  */
 class S3MultipartController extends Controller
 {
+    public function __construct(
+        private readonly LogRecordingError $logRecordingError
+    ) {}
     /**
      * Create a new multipart upload
      *
@@ -99,6 +104,29 @@ class S3MultipartController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
+            // Log error to database for review
+            try {
+                $this->logRecordingError->execute(
+                    room: $room,
+                    errorType: RecordingErrorType::MultipartFailed,
+                    errorMessage: 'Failed to create multipart upload: ' . $e->getMessage(),
+                    user: Auth::user(),
+                    errorCode: '502',
+                    errorContext: [
+                        'operation' => 'create_multipart',
+                        'filename' => $request->input('filename'),
+                        'size' => $request->input('size'),
+                        'stack_trace' => $e->getTraceAsString(),
+                    ],
+                    provider: 'wasabi'
+                );
+            } catch (\Exception $logError) {
+                Log::warning('Failed to log recording error to database', [
+                    'original_error' => $e->getMessage(),
+                    'log_error' => $logError->getMessage(),
+                ]);
+            }
+
             return response()->json([
                 'error' => 'Unable to start multipart upload',
             ], 502);
@@ -165,6 +193,30 @@ class S3MultipartController extends Controller
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
             ]);
+
+            // Log error to database for review
+            try {
+                $this->logRecordingError->execute(
+                    room: $room,
+                    errorType: RecordingErrorType::MultipartFailed,
+                    errorMessage: 'Failed to sign upload part: ' . $e->getMessage(),
+                    user: Auth::user(),
+                    errorCode: '502',
+                    errorContext: [
+                        'operation' => 'sign_part',
+                        'upload_id' => $request->input('uploadId'),
+                        'part_number' => $request->input('partNumber'),
+                        'stack_trace' => $e->getTraceAsString(),
+                    ],
+                    provider: 'wasabi',
+                    multipartUploadId: $request->input('uploadId')
+                );
+            } catch (\Exception $logError) {
+                Log::warning('Failed to log recording error to database', [
+                    'original_error' => $e->getMessage(),
+                    'log_error' => $logError->getMessage(),
+                ]);
+            }
 
             return response()->json([
                 'error' => 'Unable to sign part',
@@ -318,6 +370,33 @@ class S3MultipartController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
+            // Log error to database for review
+            try {
+                $this->logRecordingError->execute(
+                    room: $room,
+                    errorType: RecordingErrorType::FinalizationFailed,
+                    errorMessage: 'Failed to complete multipart upload: ' . $e->getMessage(),
+                    user: Auth::user(),
+                    errorCode: '502',
+                    errorContext: [
+                        'operation' => 'complete_multipart',
+                        'upload_id' => $request->input('uploadId'),
+                        'key' => $request->input('key'),
+                        'parts_count' => count($request->input('parts', [])),
+                        'parts' => $request->input('parts', []),
+                        'stack_trace' => $e->getTraceAsString(),
+                    ],
+                    provider: 'wasabi',
+                    multipartUploadId: $request->input('uploadId'),
+                    providerFileId: $request->input('key')
+                );
+            } catch (\Exception $logError) {
+                Log::warning('Failed to log recording error to database', [
+                    'original_error' => $e->getMessage(),
+                    'log_error' => $logError->getMessage(),
+                ]);
+            }
+
             return response()->json([
                 'error' => 'Unable to complete multipart upload',
                 'details' => $e->getMessage(),
@@ -325,68 +404,8 @@ class S3MultipartController extends Controller
         }
     }
 
-    /**
-     * Abort multipart upload
-     *
-     * POST /api/uploads/s3/multipart/abort
-     * Body: { uploadId, key, room_id }
-     */
-    public function abort(Request $request): JsonResponse
-    {
-        try {
-            $validated = $request->validate([
-                'uploadId' => 'required|string',
-                'key' => 'required|string',
-                'room_id' => 'required|integer|exists:rooms,id',
-            ]);
-
-            $room = Room::findOrFail($validated['room_id']);
-            $user = Auth::user();
-
-            // Validate room access and key authorization
-            $this->validateRoomAccess($room, $user);
-            $this->validateKeyAuthorization($validated['key'], $room, $user);
-
-            // Get storage configuration
-            $storageAccount = $this->getStorageAccount($room);
-            $credentials = $storageAccount->encrypted_credentials;
-            $bucket = $credentials['bucket_name'];
-
-            $wasabiService = new WasabiS3Service($storageAccount);
-            $s3Client = $wasabiService->createS3ClientWithCredentials($credentials);
-
-            // Abort multipart upload
-            $s3Client->abortMultipartUpload([
-                'Bucket' => $bucket,
-                'Key' => $validated['key'],
-                'UploadId' => $validated['uploadId'],
-            ]);
-
-            Log::info('S3 Multipart upload aborted', [
-                'room_id' => $room->id,
-                'user_id' => $user->id,
-                'upload_id' => $validated['uploadId'],
-                'key' => $validated['key'],
-            ]);
-
-            return response()->json(['aborted' => true]);
-
-        } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            Log::warning('S3 AbortMultipart failed', [
-                'room_id' => $request->input('room_id'),
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-            ]);
-
-            // Don't hard fail UI; sometimes upload is already gone
-            return response()->json(['aborted' => true]);
-        }
-    }
+    // REMOVED: abort method - multipart uploads should never be aborted
+    // This preserves partial uploads for potential recovery and avoids data loss
 
     /**
      * Build a safe server-side object key

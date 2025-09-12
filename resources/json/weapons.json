@@ -2,7 +2,7 @@
     "aantari bow": {
         "key": "aantari bow",
         "name": "Aantari Bow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -20,7 +20,7 @@
     "advanced arcane gauntlets": {
         "key": "advanced arcane gauntlets",
         "name": "Advanced Arcane Gauntlets",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -34,7 +34,7 @@
     "advanced battleaxe": {
         "key": "advanced battleaxe",
         "name": "Advanced Battleaxe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -48,7 +48,7 @@
     "advanced broadsword": {
         "key": "advanced broadsword",
         "name": "Advanced Broadsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -66,7 +66,7 @@
     "advanced crossbow": {
         "key": "advanced crossbow",
         "name": "Advanced Crossbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -80,7 +80,7 @@
     "advanced cutlass": {
         "key": "advanced cutlass",
         "name": "Advanced Cutlass",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -94,7 +94,7 @@
     "advanced dagger": {
         "key": "advanced dagger",
         "name": "Advanced Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -108,7 +108,7 @@
     "advanced dualstaff": {
         "key": "advanced dualstaff",
         "name": "Advanced Dualstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -122,7 +122,7 @@
     "advanced glowing rings": {
         "key": "advanced glowing rings",
         "name": "Advanced Glowing Rings",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -136,7 +136,7 @@
     "advanced grappler": {
         "key": "advanced grappler",
         "name": "Advanced Grappler",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 6,
@@ -154,7 +154,7 @@
     "advanced greatstaff": {
         "key": "advanced greatstaff",
         "name": "Advanced Greatstaff",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -172,7 +172,7 @@
     "advanced greatsword": {
         "key": "advanced greatsword",
         "name": "Advanced Greatsword",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -190,7 +190,7 @@
     "advanced halberd": {
         "key": "advanced halberd",
         "name": "Advanced Halberd",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -208,7 +208,7 @@
     "advanced hallowed axe": {
         "key": "advanced hallowed axe",
         "name": "Advanced Hallowed Axe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -222,7 +222,7 @@
     "advanced hand crossbow": {
         "key": "advanced hand crossbow",
         "name": "Advanced Hand Crossbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -236,7 +236,7 @@
     "advanced hand runes": {
         "key": "advanced hand runes",
         "name": "Advanced Hand Runes",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -250,7 +250,7 @@
     "advanced longbow": {
         "key": "advanced longbow",
         "name": "Advanced Longbow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Far",
         "damage": {
             "dice": 8,
@@ -268,7 +268,7 @@
     "advanced longsword": {
         "key": "advanced longsword",
         "name": "Advanced Longsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -282,7 +282,7 @@
     "advanced mace": {
         "key": "advanced mace",
         "name": "Advanced Mace",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -296,7 +296,7 @@
     "advanced quarterstaff": {
         "key": "advanced quarterstaff",
         "name": "Advanced Quarterstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -310,7 +310,7 @@
     "advanced rapier": {
         "key": "advanced rapier",
         "name": "Advanced Rapier",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -328,7 +328,7 @@
     "advanced returning blade": {
         "key": "advanced returning blade",
         "name": "Advanced Returning Blade",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -346,7 +346,7 @@
     "advanced round shield": {
         "key": "advanced round shield",
         "name": "Advanced Round Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 4,
@@ -364,7 +364,7 @@
     "advanced scepter": {
         "key": "advanced scepter",
         "name": "Advanced Scepter",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -382,7 +382,7 @@
     "advanced shortbow": {
         "key": "advanced shortbow",
         "name": "Advanced Shortbow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -396,7 +396,7 @@
     "advanced shortstaff": {
         "key": "advanced shortstaff",
         "name": "Advanced Shortstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -410,7 +410,7 @@
     "advanced shortsword": {
         "key": "advanced shortsword",
         "name": "Advanced Shortsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -428,7 +428,7 @@
     "advanced small dagger": {
         "key": "advanced small dagger",
         "name": "Advanced Small Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -446,7 +446,7 @@
     "advanced spear": {
         "key": "advanced spear",
         "name": "Advanced Spear",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Close",
         "damage": {
             "dice": 8,
@@ -460,7 +460,7 @@
     "advanced tower shield": {
         "key": "advanced tower shield",
         "name": "Advanced Tower Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 6,
@@ -478,7 +478,7 @@
     "advanced wand": {
         "key": "advanced wand",
         "name": "Advanced Wand",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -492,7 +492,7 @@
     "advanced warhammer": {
         "key": "advanced warhammer",
         "name": "Advanced Warhammer",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 12,
@@ -510,7 +510,7 @@
     "advanced whip": {
         "key": "advanced whip",
         "name": "Advanced Whip",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Very Close",
         "damage": {
             "dice": 6,
@@ -528,7 +528,7 @@
     "arcane gauntlets": {
         "key": "arcane gauntlets",
         "name": "Arcane Gauntlets",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -542,7 +542,7 @@
     "axe of fortunis": {
         "key": "axe of fortunis",
         "name": "Axe of Fortunis",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -560,7 +560,7 @@
     "battleaxe": {
         "key": "battleaxe",
         "name": "Battleaxe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -574,7 +574,7 @@
     "black powder revolver": {
         "key": "black powder revolver",
         "name": "Black Powder Revolver",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -592,7 +592,7 @@
     "bladed whip": {
         "key": "bladed whip",
         "name": "Bladed Whip",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Close",
         "damage": {
             "dice": 8,
@@ -610,7 +610,7 @@
     "blessed anlace": {
         "key": "blessed anlace",
         "name": "Blessed Anlace",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -628,7 +628,7 @@
     "bloodstaff": {
         "key": "bloodstaff",
         "name": "Bloodstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Far",
         "damage": {
             "dice": 20,
@@ -646,7 +646,7 @@
     "blunderbuss": {
         "key": "blunderbuss",
         "name": "Blunderbuss",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -664,7 +664,7 @@
     "braveshield": {
         "key": "braveshield",
         "name": "Braveshield",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 4,
@@ -682,7 +682,7 @@
     "bravesword": {
         "key": "bravesword",
         "name": "Bravesword",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 12,
@@ -700,7 +700,7 @@
     "broadsword": {
         "key": "broadsword",
         "name": "Broadsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -718,7 +718,7 @@
     "buckler": {
         "key": "buckler",
         "name": "Buckler",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 4,
@@ -736,7 +736,7 @@
     "casting sword": {
         "key": "casting sword",
         "name": "Casting Sword",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -754,7 +754,7 @@
     "crossbow": {
         "key": "crossbow",
         "name": "Crossbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -768,7 +768,7 @@
     "curved dagger": {
         "key": "curved dagger",
         "name": "Curved Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -786,7 +786,7 @@
     "cutlass": {
         "key": "cutlass",
         "name": "Cutlass",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -800,7 +800,7 @@
     "dagger": {
         "key": "dagger",
         "name": "Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -814,7 +814,7 @@
     "devouring dagger": {
         "key": "devouring dagger",
         "name": "Devouring Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -832,7 +832,7 @@
     "double flail": {
         "key": "double flail",
         "name": "Double Flail",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -850,7 +850,7 @@
     "dualended sword": {
         "key": "dualended sword",
         "name": "Dual-ended Sword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -868,7 +868,7 @@
     "dualstaff": {
         "key": "dualstaff",
         "name": "Dualstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -882,7 +882,7 @@
     "ego blade": {
         "key": "ego blade",
         "name": "Ego Blade",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 12,
@@ -900,7 +900,7 @@
     "elder bow": {
         "key": "elder bow",
         "name": "Elder Bow",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -918,7 +918,7 @@
     "extended polearm": {
         "key": "extended polearm",
         "name": "Extended Polearm",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Close",
         "damage": {
             "dice": 8,
@@ -936,7 +936,7 @@
     "finehair bow": {
         "key": "finehair bow",
         "name": "Finehair Bow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -954,7 +954,7 @@
     "firestaff": {
         "key": "firestaff",
         "name": "Firestaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -972,7 +972,7 @@
     "flickerfly blade": {
         "key": "flickerfly blade",
         "name": "Flickerfly Blade",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -990,7 +990,7 @@
     "floating bladeshards": {
         "key": "floating bladeshards",
         "name": "Floating Bladeshards",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -1008,7 +1008,7 @@
     "fusion gloves": {
         "key": "fusion gloves",
         "name": "Fusion Gloves",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -1026,7 +1026,7 @@
     "ghostblade": {
         "key": "ghostblade",
         "name": "Ghostblade",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1044,7 +1044,7 @@
     "gilded bow": {
         "key": "gilded bow",
         "name": "Gilded Bow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1062,7 +1062,7 @@
     "gilded falchion": {
         "key": "gilded falchion",
         "name": "Gilded Falchion",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1080,7 +1080,7 @@
     "glowing rings": {
         "key": "glowing rings",
         "name": "Glowing Rings",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -1094,7 +1094,7 @@
     "grappler": {
         "key": "grappler",
         "name": "Grappler",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 6,
@@ -1112,7 +1112,7 @@
     "greatbow": {
         "key": "greatbow",
         "name": "Greatbow",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1130,7 +1130,7 @@
     "greatstaff": {
         "key": "greatstaff",
         "name": "Greatstaff",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -1148,7 +1148,7 @@
     "greatsword": {
         "key": "greatsword",
         "name": "Greatsword",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1166,7 +1166,7 @@
     "halberd": {
         "key": "halberd",
         "name": "Halberd",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -1184,7 +1184,7 @@
     "hallowed axe": {
         "key": "hallowed axe",
         "name": "Hallowed Axe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1198,7 +1198,7 @@
     "hammer of exota": {
         "key": "hammer of exota",
         "name": "Hammer of Exota",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1216,7 +1216,7 @@
     "hammer of wrath": {
         "key": "hammer of wrath",
         "name": "Hammer of Wrath",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1234,7 +1234,7 @@
     "hand cannon": {
         "key": "hand cannon",
         "name": "Hand Cannon",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -1252,7 +1252,7 @@
     "hand crossbow": {
         "key": "hand crossbow",
         "name": "Hand Crossbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1266,7 +1266,7 @@
     "hand runes": {
         "key": "hand runes",
         "name": "Hand Runes",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -1280,7 +1280,7 @@
     "hand sling": {
         "key": "hand sling",
         "name": "Hand Sling",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Close",
         "damage": {
             "dice": 6,
@@ -1298,7 +1298,7 @@
     "ilmaris rifle": {
         "key": "ilmaris rifle",
         "name": "Ilmari's Rifle",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -1316,7 +1316,7 @@
     "impact gauntlet": {
         "key": "impact gauntlet",
         "name": "Impact Gauntlet",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1334,7 +1334,7 @@
     "improved arcane gauntlets": {
         "key": "improved arcane gauntlets",
         "name": "Improved Arcane Gauntlets",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1348,7 +1348,7 @@
     "improved battleaxe": {
         "key": "improved battleaxe",
         "name": "Improved Battleaxe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1362,7 +1362,7 @@
     "improved broadsword": {
         "key": "improved broadsword",
         "name": "Improved Broadsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1380,7 +1380,7 @@
     "improved crossbow": {
         "key": "improved crossbow",
         "name": "Improved Crossbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1394,7 +1394,7 @@
     "improved cutlass": {
         "key": "improved cutlass",
         "name": "Improved Cutlass",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1408,7 +1408,7 @@
     "improved dagger": {
         "key": "improved dagger",
         "name": "Improved Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1422,7 +1422,7 @@
     "improved dualstaff": {
         "key": "improved dualstaff",
         "name": "Improved Dualstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1436,7 +1436,7 @@
     "improved glowing rings": {
         "key": "improved glowing rings",
         "name": "Improved Glowing Rings",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -1450,7 +1450,7 @@
     "improved grappler": {
         "key": "improved grappler",
         "name": "Improved Grappler",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 6,
@@ -1468,7 +1468,7 @@
     "improved greatstaff": {
         "key": "improved greatstaff",
         "name": "Improved Greatstaff",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -1486,7 +1486,7 @@
     "improved greatsword": {
         "key": "improved greatsword",
         "name": "Improved Greatsword",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1504,7 +1504,7 @@
     "improved halberd": {
         "key": "improved halberd",
         "name": "Improved Halberd",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -1522,7 +1522,7 @@
     "improved hallowed axe": {
         "key": "improved hallowed axe",
         "name": "Improved Hallowed Axe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1536,7 +1536,7 @@
     "improved hand crossbow": {
         "key": "improved hand crossbow",
         "name": "Improved Hand Crossbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1550,7 +1550,7 @@
     "improved hand runes": {
         "key": "improved hand runes",
         "name": "Improved Hand Runes",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -1564,7 +1564,7 @@
     "improved longbow": {
         "key": "improved longbow",
         "name": "Improved Longbow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Far",
         "damage": {
             "dice": 8,
@@ -1582,7 +1582,7 @@
     "improved longsword": {
         "key": "improved longsword",
         "name": "Improved Longsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1596,7 +1596,7 @@
     "improved mace": {
         "key": "improved mace",
         "name": "Improved Mace",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1610,7 +1610,7 @@
     "improved quarterstaff": {
         "key": "improved quarterstaff",
         "name": "Improved Quarterstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1624,7 +1624,7 @@
     "improved rapier": {
         "key": "improved rapier",
         "name": "Improved Rapier",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1642,7 +1642,7 @@
     "improved returning blade": {
         "key": "improved returning blade",
         "name": "Improved Returning Blade",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -1660,7 +1660,7 @@
     "improved round shield": {
         "key": "improved round shield",
         "name": "Improved Round Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 4,
@@ -1678,7 +1678,7 @@
     "improved scepter": {
         "key": "improved scepter",
         "name": "Improved Scepter",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1696,7 +1696,7 @@
     "improved shortbow": {
         "key": "improved shortbow",
         "name": "Improved Shortbow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1710,7 +1710,7 @@
     "improved shortstaff": {
         "key": "improved shortstaff",
         "name": "Improved Shortstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -1724,7 +1724,7 @@
     "improved shortsword": {
         "key": "improved shortsword",
         "name": "Improved Shortsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1742,7 +1742,7 @@
     "improved small dagger": {
         "key": "improved small dagger",
         "name": "Improved Small Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1760,7 +1760,7 @@
     "improved spear": {
         "key": "improved spear",
         "name": "Improved Spear",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Close",
         "damage": {
             "dice": 8,
@@ -1774,7 +1774,7 @@
     "improved tower shield": {
         "key": "improved tower shield",
         "name": "Improved Tower Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 6,
@@ -1792,7 +1792,7 @@
     "improved wand": {
         "key": "improved wand",
         "name": "Improved Wand",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1806,7 +1806,7 @@
     "improved warhammer": {
         "key": "improved warhammer",
         "name": "Improved Warhammer",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 12,
@@ -1824,7 +1824,7 @@
     "improved whip": {
         "key": "improved whip",
         "name": "Improved Whip",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Very Close",
         "damage": {
             "dice": 6,
@@ -1842,7 +1842,7 @@
     "keepers staff": {
         "key": "keepers staff",
         "name": "Keeper's Staff",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1860,7 +1860,7 @@
     "knuckle blades": {
         "key": "knuckle blades",
         "name": "Knuckle Blades",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1878,7 +1878,7 @@
     "knuckle claws": {
         "key": "knuckle claws",
         "name": "Knuckle Claws",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 6,
@@ -1896,7 +1896,7 @@
     "labrys axe": {
         "key": "labrys axe",
         "name": "Labrys Axe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1914,7 +1914,7 @@
     "legendary arcane gauntlets": {
         "key": "legendary arcane gauntlets",
         "name": "Legendary Arcane Gauntlets",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1928,7 +1928,7 @@
     "legendary battleaxe": {
         "key": "legendary battleaxe",
         "name": "Legendary Battleaxe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -1942,7 +1942,7 @@
     "legendary broadsword": {
         "key": "legendary broadsword",
         "name": "Legendary Broadsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1960,7 +1960,7 @@
     "legendary crossbow": {
         "key": "legendary crossbow",
         "name": "Legendary Crossbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -1974,7 +1974,7 @@
     "legendary cutlass": {
         "key": "legendary cutlass",
         "name": "Legendary Cutlass",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -1988,7 +1988,7 @@
     "legendary dagger": {
         "key": "legendary dagger",
         "name": "Legendary Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2002,7 +2002,7 @@
     "legendary dualstaff": {
         "key": "legendary dualstaff",
         "name": "Legendary Dualstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Far",
         "damage": {
             "dice": 8,
@@ -2016,7 +2016,7 @@
     "legendary glowing rings": {
         "key": "legendary glowing rings",
         "name": "Legendary Glowing Rings",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -2030,7 +2030,7 @@
     "legendary grappler": {
         "key": "legendary grappler",
         "name": "Legendary Grappler",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 6,
@@ -2048,7 +2048,7 @@
     "legendary greatstaff": {
         "key": "legendary greatstaff",
         "name": "Legendary Greatstaff",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -2066,7 +2066,7 @@
     "legendary greatsword": {
         "key": "legendary greatsword",
         "name": "Legendary Greatsword",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2084,7 +2084,7 @@
     "legendary halberd": {
         "key": "legendary halberd",
         "name": "Legendary Halberd",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -2102,7 +2102,7 @@
     "legendary hallowed axe": {
         "key": "legendary hallowed axe",
         "name": "Legendary Hallowed Axe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2116,7 +2116,7 @@
     "legendary hand crossbow": {
         "key": "legendary hand crossbow",
         "name": "Legendary Hand Crossbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2130,7 +2130,7 @@
     "legendary hand runes": {
         "key": "legendary hand runes",
         "name": "Legendary Hand Runes",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Very Close",
         "damage": {
             "dice": 10,
@@ -2144,7 +2144,7 @@
     "legendary longbow": {
         "key": "legendary longbow",
         "name": "Legendary Longbow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Far",
         "damage": {
             "dice": 8,
@@ -2162,7 +2162,7 @@
     "legendary longsword": {
         "key": "legendary longsword",
         "name": "Legendary Longsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2176,7 +2176,7 @@
     "legendary mace": {
         "key": "legendary mace",
         "name": "Legendary Mace",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2190,7 +2190,7 @@
     "legendary quarterstaff": {
         "key": "legendary quarterstaff",
         "name": "Legendary Quarterstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2204,7 +2204,7 @@
     "legendary rapier": {
         "key": "legendary rapier",
         "name": "Legendary Rapier",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2222,7 +2222,7 @@
     "legendary returning blade": {
         "key": "legendary returning blade",
         "name": "Legendary Returning Blade",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -2240,7 +2240,7 @@
     "legendary round shield": {
         "key": "legendary round shield",
         "name": "Legendary Round Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 4,
@@ -2258,7 +2258,7 @@
     "legendary scepter": {
         "key": "legendary scepter",
         "name": "Legendary Scepter",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2276,7 +2276,7 @@
     "legendary shortbow": {
         "key": "legendary shortbow",
         "name": "Legendary Shortbow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2290,7 +2290,7 @@
     "legendary shortstaff": {
         "key": "legendary shortstaff",
         "name": "Legendary Shortstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -2304,7 +2304,7 @@
     "legendary shortsword": {
         "key": "legendary shortsword",
         "name": "Legendary Shortsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2322,7 +2322,7 @@
     "legendary small dagger": {
         "key": "legendary small dagger",
         "name": "Legendary Small Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2340,7 +2340,7 @@
     "legendary spear": {
         "key": "legendary spear",
         "name": "Legendary Spear",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Close",
         "damage": {
             "dice": 8,
@@ -2354,7 +2354,7 @@
     "legendary tower shield": {
         "key": "legendary tower shield",
         "name": "Legendary Tower Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 6,
@@ -2372,7 +2372,7 @@
     "legendary wand": {
         "key": "legendary wand",
         "name": "Legendary Wand",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2386,7 +2386,7 @@
     "legendary warhammer": {
         "key": "legendary warhammer",
         "name": "Legendary Warhammer",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 12,
@@ -2404,7 +2404,7 @@
     "legendary whip": {
         "key": "legendary whip",
         "name": "Legendary Whip",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Very Close",
         "damage": {
             "dice": 6,
@@ -2422,7 +2422,7 @@
     "longbow": {
         "key": "longbow",
         "name": "Longbow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Far",
         "damage": {
             "dice": 8,
@@ -2440,7 +2440,7 @@
     "longsword": {
         "key": "longsword",
         "name": "Longsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2454,7 +2454,7 @@
     "mace": {
         "key": "mace",
         "name": "Mace",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2468,7 +2468,7 @@
     "mage orb": {
         "key": "mage orb",
         "name": "Mage Orb",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2486,7 +2486,7 @@
     "magus revolver": {
         "key": "magus revolver",
         "name": "Magus Revolver",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -2504,7 +2504,7 @@
     "meridian cutlass": {
         "key": "meridian cutlass",
         "name": "Meridian Cutlass",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2522,7 +2522,7 @@
     "midas scythe": {
         "key": "midas scythe",
         "name": "Midas Scythe",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2540,7 +2540,7 @@
     "parrying dagger": {
         "key": "parrying dagger",
         "name": "Parrying Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 6,
@@ -2558,7 +2558,7 @@
     "powered gauntlet": {
         "key": "powered gauntlet",
         "name": "Powered Gauntlet",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Close",
         "damage": {
             "dice": 6,
@@ -2576,7 +2576,7 @@
     "primer shard": {
         "key": "primer shard",
         "name": "Primer Shard",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Very Close",
         "damage": {
             "dice": 4,
@@ -2594,7 +2594,7 @@
     "quarterstaff": {
         "key": "quarterstaff",
         "name": "Quarterstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2608,7 +2608,7 @@
     "rapier": {
         "key": "rapier",
         "name": "Rapier",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2626,7 +2626,7 @@
     "retractable saber": {
         "key": "retractable saber",
         "name": "Retractable Saber",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2644,7 +2644,7 @@
     "returning axe": {
         "key": "returning axe",
         "name": "Returning Axe",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Close",
         "damage": {
             "dice": 6,
@@ -2662,7 +2662,7 @@
     "returning blade": {
         "key": "returning blade",
         "name": "Returning Blade",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -2680,7 +2680,7 @@
     "ricochet axes": {
         "key": "ricochet axes",
         "name": "Ricochet Axes",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2698,7 +2698,7 @@
     "round shield": {
         "key": "round shield",
         "name": "Round Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 4,
@@ -2716,7 +2716,7 @@
     "runes of ruination": {
         "key": "runes of ruination",
         "name": "Runes of Ruination",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Very Close",
         "damage": {
             "dice": 20,
@@ -2734,7 +2734,7 @@
     "scepter of elias": {
         "key": "scepter of elias",
         "name": "Scepter of Elias",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2752,7 +2752,7 @@
     "scepter": {
         "key": "scepter",
         "name": "Scepter",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2770,7 +2770,7 @@
     "shortbow": {
         "key": "shortbow",
         "name": "Shortbow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -2784,7 +2784,7 @@
     "shortstaff": {
         "key": "shortstaff",
         "name": "Shortstaff",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -2798,7 +2798,7 @@
     "shortsword": {
         "key": "shortsword",
         "name": "Shortsword",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2816,7 +2816,7 @@
     "siphoning gauntlets": {
         "key": "siphoning gauntlets",
         "name": "Siphoning Gauntlets",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2834,7 +2834,7 @@
     "sledge axe": {
         "key": "sledge axe",
         "name": "Sledge Axe",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 12,
@@ -2852,7 +2852,7 @@
     "small dagger": {
         "key": "small dagger",
         "name": "Small Dagger",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -2870,7 +2870,7 @@
     "spear": {
         "key": "spear",
         "name": "Spear",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Close",
         "damage": {
             "dice": 8,
@@ -2884,7 +2884,7 @@
     "spiked bow": {
         "key": "spiked bow",
         "name": "Spiked Bow",
-        "trait": "Agility",
+        "trait": "agility",
         "range": "Very Far",
         "damage": {
             "dice": 6,
@@ -2902,7 +2902,7 @@
     "spiked shield": {
         "key": "spiked shield",
         "name": "Spiked Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 6,
@@ -2920,7 +2920,7 @@
     "steelforged halberd": {
         "key": "steelforged halberd",
         "name": "Steelforged Halberd",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Very Close",
         "damage": {
             "dice": 8,
@@ -2938,7 +2938,7 @@
     "swinging ropeblade": {
         "key": "swinging ropeblade",
         "name": "Swinging Ropeblade",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Close",
         "damage": {
             "dice": 8,
@@ -2956,7 +2956,7 @@
     "sword of light and flame": {
         "key": "sword of light and flame",
         "name": "Sword of Light And Flame",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 10,
@@ -2974,7 +2974,7 @@
     "talon blades": {
         "key": "talon blades",
         "name": "Talon Blades",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Close",
         "damage": {
             "dice": 10,
@@ -2992,7 +2992,7 @@
     "thistlebow": {
         "key": "thistlebow",
         "name": "Thistlebow",
-        "trait": "Instinct",
+        "trait": "instinct",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -3010,7 +3010,7 @@
     "tower shield": {
         "key": "tower shield",
         "name": "Tower Shield",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 6,
@@ -3028,7 +3028,7 @@
     "urok broadsword": {
         "key": "urok broadsword",
         "name": "Urok Broadsword",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Melee",
         "damage": {
             "dice": 8,
@@ -3046,7 +3046,7 @@
     "wand of enthrallment": {
         "key": "wand of enthrallment",
         "name": "Wand of Enthrallment",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -3064,7 +3064,7 @@
     "wand of essek": {
         "key": "wand of essek",
         "name": "Wand of Essek",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Far",
         "damage": {
             "dice": 8,
@@ -3082,7 +3082,7 @@
     "wand": {
         "key": "wand",
         "name": "Wand",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Far",
         "damage": {
             "dice": 6,
@@ -3096,7 +3096,7 @@
     "war scythe": {
         "key": "war scythe",
         "name": "War Scythe",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Very Close",
         "damage": {
             "dice": 8,
@@ -3114,7 +3114,7 @@
     "warhammer": {
         "key": "warhammer",
         "name": "Warhammer",
-        "trait": "Strength",
+        "trait": "strength",
         "range": "Melee",
         "damage": {
             "dice": 12,
@@ -3132,7 +3132,7 @@
     "whip": {
         "key": "whip",
         "name": "Whip",
-        "trait": "Presence",
+        "trait": "presence",
         "range": "Very Close",
         "damage": {
             "dice": 6,
@@ -3150,7 +3150,7 @@
     "widgast pendant": {
         "key": "widgast pendant",
         "name": "Widgast Pendant",
-        "trait": "Knowledge",
+        "trait": "knowledge",
         "range": "Close",
         "damage": {
             "dice": 10,
@@ -3168,7 +3168,7 @@
     "yutari bloodbow": {
         "key": "yutari bloodbow",
         "name": "Yutari Bloodbow",
-        "trait": "Finesse",
+        "trait": "finesse",
         "range": "Far",
         "damage": {
             "dice": 6,

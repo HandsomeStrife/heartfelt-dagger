@@ -58,7 +58,7 @@ class CharacterData extends Data implements Wireable
             ancestry: $character->ancestry ?: 'Human',
             community: $character->community ?: 'Wanderborne',
             level: $character->level,
-            proficiency: $character->proficiency ?? 0,
+            proficiency: $character->getProficiencyBonus(),
             profile_image_path: $character->profile_image_path,
             stats: CharacterStatsData::fromModel($character),
             traits: CharacterTraitsData::fromModel($character),

@@ -360,23 +360,24 @@ class CharacterLevelUp extends Component
                 ]);
             }
 
-            // Apply proficiency bonus (automatic for all tier achievements)
-            \Domain\Character\Models\CharacterAdvancement::create([
-                'character_id' => $this->character->id,
-                'tier' => $this->current_tier,
-                'advancement_number' => 0, // 0 for tier achievements
-                'advancement_type' => 'proficiency',
-                'advancement_data' => ['bonus' => 1],
-                'description' => 'Tier achievement: +1 Proficiency bonus',
-            ]);
+            // Calculate new base proficiency based on level (per DaggerHeart SRD)
+            $new_proficiency = match (true) {
+                $target_level <= 1 => 1,
+                $target_level <= 4 => 2,
+                $target_level <= 7 => 3,
+                default => 4,
+            };
 
             // Clear marked traits for levels 5 and 8 (tier 3 and 4 entry)
             if (in_array($target_level, [5, 8])) {
                 $this->character->traits()->update(['is_marked' => false]);
             }
 
-            // Update character level
-            $this->character->update(['level' => $target_level]);
+            // Update character level and base proficiency
+            $this->character->update([
+                'level' => $target_level,
+                'proficiency' => $new_proficiency,
+            ]);
         }
 
         // Apply domain card selection (required for ALL levels)

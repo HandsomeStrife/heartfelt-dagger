@@ -625,20 +625,14 @@ class Character extends Model
     }
 
     /**
-     * Get total proficiency bonus (base + advancements)
+     * Get total proficiency (base from database + advancement bonuses)
      */
     public function getProficiencyBonus(): int
     {
-        // Base proficiency increases with character level
-        // Level 1: +0, Level 2-4: +1, Level 5-7: +2, Level 8-10: +3
-        $base_proficiency = match (true) {
-            $this->level <= 1 => 0,
-            $this->level <= 4 => 1,
-            $this->level <= 7 => 2,
-            default => 3,
-        };
+        // Base proficiency from database column (updated by leveling system)
+        $base_proficiency = $this->proficiency ?? 1;
 
-        // Add advancement bonuses
+        // Add advancement bonuses (for additional proficiency gains beyond level-based)
         $advancement_bonus = $this->advancements
             ->where('advancement_type', 'proficiency')
             ->sum(function ($advancement) {

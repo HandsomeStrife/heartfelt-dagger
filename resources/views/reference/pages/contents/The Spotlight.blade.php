@@ -1,3 +1,0 @@
-<h1 class="font-outfit text-2xl font-bold text-white border-b border-slate-700 pb-3 mb-6 mt-0">THE SPOTLIGHT</h1>
-<p class="text-slate-300 leading-relaxed mb-4">The <strong class="text-white font-semibold">spotlight</strong> is a symbol that represents the table’s attention—and therefore the immediate focus of both the narrative and the game mechanics. Any time a character or player becomes the focus of a scene, they “are in the spotlight” or “have the spotlight.”</p>
-<p class="text-slate-300 leading-relaxed mb-4">The spotlight moves around the table organically as scenes unfold unless a mechanical trigger determines where the spotlight goes next. For example, when a player fails an action roll, the mechanics prompt the GM to seize the spotlight and make a GM move.</p>

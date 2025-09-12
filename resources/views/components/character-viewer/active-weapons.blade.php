@@ -10,55 +10,36 @@
     </div>
 
     @if (!empty($organizedEquipment['weapons']))
-        @php $primary = collect($organizedEquipment['weapons'])->first(fn($w) => ($w['data']['type'] ?? 'Primary') === 'Primary'); @endphp
-        @if ($primary)
+        @if ($primaryWeapon)
             <div pest="primary-weapon-details" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                     <div class="text-[10px] uppercase tracking-wider text-slate-400">Primary</div>
-                    <div pest="weapon-name" class="text-base font-semibold">{{ $primary['data']['name'] ?? 'Weapon' }}</div>
-                    <div pest="weapon-range" class="text-xs text-slate-400">Trait: {{ ucfirst($primary['data']['range'] ?? 'Melee') }}</div>
+                    <div pest="weapon-name" class="text-base font-semibold">{{ $primaryWeapon['data']['name'] ?? 'Weapon' }}</div>
+                    <div pest="weapon-range" class="text-xs text-slate-400">Trait: {{ ucfirst($primaryWeapon['data']['range'] ?? 'Melee') }}</div>
                 </div>
                 <div class="flex items-end gap-3">
                     <div pest="weapon-trait-stat" class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60 cursor-pointer hover:bg-slate-700/60 transition-colors duration-200"
-                         onclick="rollWeaponAttack('{{ $primary['key'] ?? 'primary' }}')"
+                         onclick="rollWeaponAttack('{{ $primaryWeapon['key'] ?? 'primary' }}', {{ str_replace('+', '', $traitValues[$primaryWeapon['data']['trait'] ?? 'strength'] ?? '0') }})"
                          title="Click to roll attack">
-                        <div class="text-[10px] uppercase text-slate-400">{{ ucfirst($primary['data']['trait'] ?? 'Strength') }}</div>
-                        <div class="font-bold">
-                            {{ $traitValues[$primary['data']['trait'] ?? 'strength'] ?? '+0' }}
+                        <div class="text-[10px] uppercase text-slate-400">{{ ucfirst($primaryWeapon['data']['trait'] ?? 'Strength') }}</div>
+                        <div class="font-bold text-sm text-white">
+                            {{ $traitValues[$primaryWeapon['data']['trait'] ?? 'strength'] ?? '+0' }}
                         </div>
                         <div class="text-[8px] text-slate-500 mt-1">Click to Attack</div>
                     </div>
                     <div pest="weapon-damage-stat" class="px-3 py-2 rounded-xl ring-1 ring-slate-700/60 bg-slate-800/60 cursor-pointer hover:bg-slate-700/60 transition-colors duration-200"
-                         onclick="rollWeaponDamage('{{ $primary['key'] ?? 'primary' }}')"
+                         onclick="rollWeaponDamage('{{ $primaryWeapon['key'] ?? 'primary' }}', {{ json_encode($primaryWeapon['data']['damage'] ?? ['dice' => 8, 'bonus' => 0, 'type' => 'phy']) }})"
                          title="Click to roll damage">
                         <div class="text-[10px] uppercase text-slate-400">Damage</div>
-                        <div class="font-bold">
-                            {{ $primary['data']['damage']['dice'] ?? 'd6' }}{{ isset($primary['data']['damage']['modifier']) && $primary['data']['damage']['modifier'] > 0 ? ' + ' . $primary['data']['damage']['modifier'] : '' }} ({{ $primary['data']['damage']['type'] ?? 'physical' }})
+                        <div class="font-bold text-sm">
+                            <span class="text-white">{{ $weaponDamageCount }}d{{ $primaryWeapon['data']['damage']['dice'] ?? 6 }}@if(($primaryWeapon['data']['damage']['bonus'] ?? 0) > 0)+{{ $primaryWeapon['data']['damage']['bonus'] }}@elseif(($primaryWeapon['data']['damage']['bonus'] ?? 0) < 0){{ $primaryWeapon['data']['damage']['bonus'] }}@endif</span>
+                            <span class="text-xs text-slate-400 ml-1">({{ $primaryWeapon['data']['damage']['type'] ?? 'phy' }})</span>
                         </div>
                         <div class="text-[8px] text-slate-500 mt-1">Click to Damage</div>
                     </div>
                 </div>
                 <div class="md:text-right text-sm text-slate-300">
-                    @php $feature = $primary['data']['feature'] ?? null; @endphp
-                    @if (is_string($feature) && $feature !== '')
-                        {{ $feature }}
-                    @elseif (is_array($feature))
-                        @php
-                            $parts = [];
-                            if (function_exists('array_is_list') && array_is_list($feature)) {
-                                foreach ($feature as $entry) {
-                                    if (is_string($entry)) { $parts[] = $entry; }
-                                    elseif (is_array($entry)) { $parts[] = $entry['description'] ?? ($entry['name'] ?? ''); }
-                                }
-                            } else {
-                                $parts[] = $feature['description'] ?? ($feature['name'] ?? '');
-                            }
-                            $parts = array_filter($parts, fn ($p) => $p !== '');
-                        @endphp
-                        {{ empty($parts) ? 'No feature present for the selected weapon.' : implode('; ', $parts) }}
-                    @else
-                        No feature present for the selected weapon.
-                    @endif
+                    {{ $primaryWeaponFeature }}
                 </div>
             </div>
         @else

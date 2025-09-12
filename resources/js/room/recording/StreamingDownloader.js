@@ -49,6 +49,21 @@ export class StreamingDownloader {
     }
 
     /**
+     * Adds a chunk for local save (used in dual recording)
+     */
+    addChunk(blob, recordingData) {
+        // Initialize download if not already active (for dual recording scenario)
+        if (!this.isStreamingDownloadActive) {
+            this.initializeDownload(recordingData.mime_type);
+        }
+        
+        // Add the chunk
+        this.updateDownload(blob);
+        
+        console.log(`💾 Local save chunk added: ${recordingData.filename} (part ${recordingData.partNumber})`);
+    }
+
+    /**
      * Finalizes streaming download by creating single combined file
      */
     finalizeDownload() {

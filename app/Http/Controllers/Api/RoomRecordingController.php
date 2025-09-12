@@ -632,6 +632,70 @@ class RoomRecordingController extends Controller
     }
 
     /**
+     * Validate that a recording session exists for the current user
+     * GET /api/rooms/{room}/recordings/validate-session
+     */
+    public function validateSession(Request $request, Room $room): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            if (! $user) {
+                return response()->json(['error' => 'Authentication required'], 401);
+            }
+
+            // Check if recording is enabled for this room
+            $room->load('recordingSettings');
+            if (! $room->recordingSettings || ! $room->recordingSettings->isRecordingEnabled()) {
+                return response()->json([
+                    'recording_enabled' => false,
+                    'recording_entry_exists' => false,
+                    'message' => 'Recording is not enabled for this room'
+                ]);
+            }
+
+            // Check if user has an active recording session
+            $activeRecording = $room->recordings()
+                ->where('user_id', $user->id)
+                ->whereIn('status', ['recording', 'finalizing'])
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $hasActiveRecording = $activeRecording !== null;
+
+            \Log::info('Recording session validation', [
+                'room_id' => $room->id,
+                'user_id' => $user->id,
+                'has_active_recording' => $hasActiveRecording,
+                'active_recording_id' => $activeRecording?->id,
+                'recording_status' => $activeRecording?->status,
+            ]);
+
+            return response()->json([
+                'recording_enabled' => true,
+                'recording_entry_exists' => $hasActiveRecording,
+                'recording_id' => $activeRecording?->id,
+                'recording_status' => $activeRecording?->status,
+                'message' => $hasActiveRecording 
+                    ? 'Active recording session found' 
+                    : 'No active recording session found'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to validate recording session', [
+                'room_id' => $room->id,
+                'user_id' => $request->user()?->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to validate recording session',
+                'recording_enabled' => false,
+                'recording_entry_exists' => false,
+            ], 500);
+        }
+    }
+
+    /**
      * Validate recording permissions for a user in a room
      */
     private function validateRecordingPermissions(Room $room, $user): void

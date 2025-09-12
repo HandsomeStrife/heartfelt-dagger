@@ -246,7 +246,7 @@ window.setupDiceCallbacks = (onRollComplete = null) => {
             } else {
                 // Regular dice roll
                 const dice = results.map(die => die.value);
-                const diceTotal = dice.reduce((sum, die) => sum, 0);
+                const diceTotal = dice.reduce((sum, die) => sum + die, 0);
                 
                 // Get modifier from context if available
                 const modifier = currentRollContext ? currentRollContext.modifier : 0;
@@ -437,13 +437,41 @@ window.rollTraitCheck = (traitName, traitValue) => {
     window.rollDualityDice(traitValue, 'stat', { traitName, traitValue });
 }
 
-window.rollWeaponAttack = (weaponKey) => {
-    console.log(`Rolling weapon attack for ${weaponKey}`);
-    window.rollDualityDice(0, 'attack', { weaponKey });
+window.rollWeaponAttack = (weaponKey, traitModifier = 0) => {
+    console.log(`Rolling weapon attack for ${weaponKey} with modifier ${traitModifier}`);
+    window.rollDualityDice(traitModifier, 'attack', { weaponKey, traitModifier });
 }
 
-window.rollWeaponDamage = (weaponKey, isCritical = false) => {
-    console.log(`Rolling weapon damage for ${weaponKey}`, isCritical ? '(Critical)' : '');
-    // For now, roll 1d8 as example damage
-    window.rollDice('1d8');
+window.rollWeaponDamage = (weaponKey, damageData = {}, isCritical = false) => {
+    console.log(`Rolling weapon damage for ${weaponKey}`, isCritical ? '(Critical)' : '', damageData);
+    
+    if (!diceBox) {
+        console.error('DiceBox not initialized');
+        return;
+    }
+    
+    // Parse damage data from weapon
+    const dice = damageData.dice || 8; // Default to d8
+    const bonus = damageData.bonus || 0;
+    const damageType = damageData.type || 'phy';
+    
+    // Store the roll context for the callback
+    currentRollContext = {
+        modifier: bonus,
+        rollType: 'damage',
+        rollData: { weaponKey, damageData, isCritical, damageType }
+    };
+    
+    try {
+        // Roll the damage die(s)
+        diceBox.roll([{ qty: 1, sides: dice }]);
+    } catch (e) {
+        console.error('Error rolling weapon damage:', e);
+        // Fallback to simple notation
+        try {
+            diceBox.roll(`1d${dice}`);
+        } catch (fallbackError) {
+            console.error('Fallback damage roll also failed:', fallbackError);
+        }
+    }
 }

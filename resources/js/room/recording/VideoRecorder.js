@@ -105,12 +105,18 @@ export class VideoRecorder {
                 console.log('🎥 MediaRecorder stopped event triggered');
                 console.log('🎥 Storage provider on stop:', storageProvider);
                 
-                if (storageProvider === 'local_device') {
-                    console.log('🎥 Local device storage - finalizing streaming download');
+                // Check if local save was used (either primary or dual recording)
+                const didSaveLocally = this.shouldSaveLocally(storageProvider);
+                
+                if (didSaveLocally) {
+                    console.log('🎥 Local save was active - finalizing streaming download');
                     // Finalize and trigger the streaming download
                     this.roomWebRTC.streamingDownloader.finalizeDownload();
-                } else {
-                    console.log('🎥 Cloud storage - no download needed');
+                }
+                
+                if (storageProvider !== 'local_device') {
+                    console.log('🎥 Cloud storage recording completed');
+                    // Cloud storage finalization is handled by the uploader
                 }
             };
 
@@ -138,30 +144,64 @@ export class VideoRecorder {
                     this.cumulativeStats.totalSizeBytes += blob.size;
                     this.cumulativeStats.totalChunks += 1;
                     
-                    // Check storage provider to determine how to handle the recording
-                    if (storageProvider === 'local_device') {
-                        // For local device recording, pass to uploader which handles streaming download
-                        await this.roomWebRTC.cloudUploader.uploadChunk(blob, recordingData);
-                        console.log('🎥 Local device chunk processed successfully');
-                    } else {
-                        // Upload to cloud storage (Wasabi, Google Drive, etc.)
-                        while (this.tooManyQueuedUploads()) {
-                            console.warn('📦 Upload backlog; waiting...');
-                            await new Promise(resolve => setTimeout(resolve, 1500));
+                    // Determine recording destinations based on storage provider and local save consent
+                    const shouldSaveLocally = this.shouldSaveLocally(storageProvider);
+                    const shouldSaveToCloud = this.shouldSaveToCloud(storageProvider);
+                    
+                    console.log('🎥 Recording destinations:', { 
+                        storageProvider, 
+                        shouldSaveLocally, 
+                        shouldSaveToCloud 
+                    });
+                    
+                    // Handle local saving (either primary local storage or dual recording)
+                    if (shouldSaveLocally) {
+                        try {
+                            await this.roomWebRTC.cloudUploader.uploadChunk(blob, {
+                                ...recordingData,
+                                isLocalSave: true
+                            });
+                            console.log('🎥 Local device chunk processed successfully');
+                        } catch (error) {
+                            console.error('🎥 Error saving locally:', error);
+                            // For dual recording, continue with cloud upload even if local fails
+                            if (!shouldSaveToCloud) {
+                                throw error;
+                            }
                         }
-                        
-                        await this.roomWebRTC.cloudUploader.uploadChunk(blob, recordingData);
-                        console.log('🎥 Video chunk uploaded successfully');
-                        
-                        // Track uploaded bytes for cloud storage (only on success)
-                        this.cumulativeStats.totalUploadedBytes += blob.size;
-                        
-                        // Update session with upload ID if this was the first chunk
-                        if (!this.recordingSession.multipartUploadId && window.roomUppy?.getCurrentUploader) {
-                            const uploaderStats = window.roomUppy.getUploadStats();
-                            if (uploaderStats.multipartUploadId || uploaderStats.sessionUri) {
-                                this.recordingSession.multipartUploadId = uploaderStats.multipartUploadId || uploaderStats.sessionUri;
-                                console.log('🎥 Stored upload session ID:', this.recordingSession.multipartUploadId);
+                    }
+                    
+                    // Handle cloud saving (either primary cloud storage or dual recording)
+                    if (shouldSaveToCloud) {
+                        try {
+                            // Wait for upload backlog to clear
+                            while (this.tooManyQueuedUploads()) {
+                                console.warn('📦 Upload backlog; waiting...');
+                                await new Promise(resolve => setTimeout(resolve, 1500));
+                            }
+                            
+                            await this.roomWebRTC.cloudUploader.uploadChunk(blob, {
+                                ...recordingData,
+                                isCloudSave: true
+                            });
+                            console.log('🎥 Video chunk uploaded to cloud successfully');
+                            
+                            // Track uploaded bytes for cloud storage (only on success)
+                            this.cumulativeStats.totalUploadedBytes += blob.size;
+                            
+                            // Update session with upload ID if this was the first chunk
+                            if (!this.recordingSession.multipartUploadId && window.roomUppy?.getCurrentUploader) {
+                                const uploaderStats = window.roomUppy.getUploadStats();
+                                if (uploaderStats.multipartUploadId || uploaderStats.sessionUri) {
+                                    this.recordingSession.multipartUploadId = uploaderStats.multipartUploadId || uploaderStats.sessionUri;
+                                    console.log('🎥 Stored upload session ID:', this.recordingSession.multipartUploadId);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('🎥 Error uploading to cloud:', error);
+                            // For dual recording, continue if local save succeeded
+                            if (!shouldSaveLocally) {
+                                throw error;
                             }
                         }
                     }
@@ -386,6 +426,34 @@ export class VideoRecorder {
             // For cloud storage, use cumulative stats
             return this.cumulativeStats.totalChunks;
         }
+    }
+
+    /**
+     * Determines if recordings should be saved locally
+     * This is true for:
+     * 1. Local device storage (primary local)
+     * 2. Remote storage with local save consent (dual recording)
+     */
+    shouldSaveLocally(storageProvider) {
+        // Primary local storage
+        if (storageProvider === 'local_device') {
+            return true;
+        }
+        
+        // Dual recording: remote storage + local save consent
+        const localSaveConsent = this.roomWebRTC.consentManager?.consentData?.localSave?.status;
+        return localSaveConsent?.consent_given === true;
+    }
+
+    /**
+     * Determines if recordings should be saved to cloud
+     * This is true for:
+     * 1. Remote storage providers (Wasabi, Google Drive, etc.)
+     * 2. Does NOT require local save consent - cloud save is primary for remote providers
+     */
+    shouldSaveToCloud(storageProvider) {
+        // Cloud storage providers
+        return storageProvider !== 'local_device';
     }
 
     /**

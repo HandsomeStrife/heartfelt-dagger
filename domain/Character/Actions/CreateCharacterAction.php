@@ -21,6 +21,7 @@ class CreateCharacterAction
             'ancestry' => null,
             'community' => null,
             'level' => 1,
+            'proficiency' => 1, // DaggerHeart SRD: characters start with proficiency 1
             'profile_image_path' => null,
             'character_data' => [
                 'background' => ['answers' => []],

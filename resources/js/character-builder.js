@@ -25,6 +25,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
         edit_experience_description: '',
         connection_answers: $wire.entangle('character.connection_answers'),
         selected_domain_cards: $wire.entangle('character.selected_domain_cards'),
+        selected_equipment: $wire.entangle('character.selected_equipment'),
         name: $wire.entangle('character.name'),
         pronouns: $wire.entangle('pronouns'),
         profile_image_path: $wire.entangle('character.profile_image_path'),
@@ -64,11 +65,6 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.hasSelectedAncestry = !!this.selected_ancestry;
             this.hasSelectedCommunity = !!this.selected_community;
             
-            // Initialize equipment from Livewire if available
-            if (this.$wire.character?.selected_equipment) {
-                this.selected_equipment = this.$wire.character.selected_equipment;
-            }
-            
             // Initialize image uploader
             if (window.SimpleImageUploader) {
                 console.log('Initializing simple image uploader with storage key:', this.$wire.storage_key);
@@ -95,10 +91,10 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.$wire.$on('character-saved', () => {
                 this.hasUnsavedChanges = false;
                 this.isSaving = false;
-                // Recapture current state as the new baseline after a longer delay to ensure all entangled properties have synced
+                // Recapture current state as the new baseline after a delay to ensure all entangled properties have synced
                 setTimeout(() => {
                     this.captureCurrentState();
-                }, 300);
+                }, 100); // Reduced delay since entangled properties should sync faster
             });
             
             // Listen for image upload events
@@ -831,11 +827,10 @@ export function characterBuilderComponent($wire, gameData = {}) {
                 });
             }
 
-            // Mark as unsaved and refresh sidebar
+            // Mark as unsaved (entangled property will automatically sync to server)
             this.markAsUnsaved();
-            this.refreshStepCompletion();
 
-            // NOTE: Equipment sync removed - now handled via entangled properties
+            // NOTE: Equipment now syncs automatically via entangled properties
         },
 
         selectInventoryItem(itemName) {
@@ -926,11 +921,13 @@ export function characterBuilderComponent($wire, gameData = {}) {
                 });
             }
             
-            // Mark as unsaved and refresh sidebar
-            this.markAsUnsaved();
-            this.refreshStepCompletion();
+            // Force immediate sync and sidebar update when applying multiple items at once
+            this.$nextTick(() => {
+                // Trigger Livewire refresh to ensure sidebar updates immediately
+                this.$wire.$refresh();
+            });
             
-            // NOTE: Equipment sync removed - now handled via entangled properties
+            // NOTE: markAsUnsaved() will be called from the template, entangled properties handle sync
         },
 
         // Performance optimization: Clear cached data when selections change

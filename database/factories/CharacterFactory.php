@@ -39,6 +39,16 @@ class CharacterFactory extends Factory
             'ancestry' => $this->faker->randomElement($ancestries),
             'community' => $this->faker->randomElement($communities),
             'level' => 1,
+            'proficiency' => function (array $attributes) {
+                // Calculate proficiency based on level per DaggerHeart SRD
+                $level = $attributes['level'] ?? 1;
+                return match (true) {
+                    $level <= 1 => 1,
+                    $level <= 4 => 2,
+                    $level <= 7 => 3,
+                    default => 4,
+                };
+            },
             'profile_image_path' => null,
             'character_data' => [
                 'background' => [
@@ -112,8 +122,8 @@ class CharacterFactory extends Factory
             // Create equipment
             $character->equipment()->create([
                 'equipment_type' => 'weapon',
-                'equipment_key' => 'shortsword',
-                'equipment_data' => ['name' => 'Shortsword', 'damage' => '1d6'],
+                'equipment_key' => 'longsword',
+                'equipment_data' => [], // Data will be fetched from JSON
                 'is_equipped' => true,
             ]);
 
