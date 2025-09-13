@@ -125,6 +125,8 @@
                                 </svg>
                             </button>
                             <div x-show="open" x-cloak @click.away="open = false" x-transition class="absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-600 rounded-lg shadow-xl z-[9999]">
+                                <a href="{{ route('reference.index') }}" class="block px-4 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">DaggerHeart Reference</a>
+                                <hr class="my-1 border-slate-600">
                                 <a href="{{ route('range-check') }}" class="block px-4 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Visual Range Checker</a>
                                 <a href="{{ route('actual-plays') }}" class="block px-4 py-2 text-white/80 hover:bg-slate-700 hover:text-white transition-colors font-roboto">Actual Plays</a>
                             </div>

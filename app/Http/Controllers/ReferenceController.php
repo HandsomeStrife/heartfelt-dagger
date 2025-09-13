@@ -274,9 +274,9 @@ class ReferenceController extends Controller
         $html = $content;
 
         // Process headers
-        $html = preg_replace('/^### (.+)$/m', '<h3 class="font-outfit text-lg font-bold text-amber-300 mt-6 mb-3">$1</h3>', $html);
-        $html = preg_replace('/^## (.+)$/m', '<h2 class="font-outfit text-xl font-bold text-amber-400 mt-8 mb-4">$1</h2>', $html);
-        $html = preg_replace('/^# (.+)$/m', '<h1 class="font-outfit text-2xl font-bold text-white border-b border-slate-700 pb-3 mb-6 mt-0">$1</h1>', $html);
+        $html = preg_replace('/^### (.+)$/m', '<h3 class="font-outfit text-lg font-bold text-amber-300 mt-8 mb-4">$1</h3>', $html);
+        $html = preg_replace('/^## (.+)$/m', '<h2 class="font-outfit text-xl font-bold text-amber-400 mt-10 mb-6">$1</h2>', $html);
+        $html = preg_replace('/^# (.+)$/m', '<h1 class="font-outfit text-2xl font-bold text-white border-b border-slate-700 pb-4 mb-8 mt-0">$1</h1>', $html);
 
         // Process paragraphs (simple approach - split by double newlines)
         $paragraphs = explode("\n\n", $html);
@@ -407,6 +407,9 @@ class ReferenceController extends Controller
         
         // Code (backticks)
         $text = preg_replace('/`([^`]+)`/', '<code class="bg-slate-800 text-amber-300 px-1 rounded">$1</code>', $text);
+        
+        // Links [text](url)
+        $text = preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2" class="text-amber-400 hover:text-amber-300 underline transition-colors" target="_blank" rel="noopener noreferrer">$1</a>', $text);
 
         return $text;
     }

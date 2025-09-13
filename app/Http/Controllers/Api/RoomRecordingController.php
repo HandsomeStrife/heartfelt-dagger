@@ -17,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class RoomRecordingController extends Controller
 {
@@ -36,7 +37,7 @@ class RoomRecordingController extends Controller
     {
         try {
             // Log the incoming request data for debugging
-            \Log::info('Wasabi presign request received', [
+            Log::info('Wasabi presign request received', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'request_data' => $request->all(),
@@ -100,7 +101,7 @@ class RoomRecordingController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to generate Wasabi presigned URL', [
+            Log::error('Failed to generate Wasabi presigned URL', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -175,7 +176,7 @@ class RoomRecordingController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to confirm Wasabi upload', [
+            Log::error('Failed to confirm Wasabi upload', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -242,7 +243,7 @@ class RoomRecordingController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to generate Google Drive upload URL', [
+            Log::error('Failed to generate Google Drive upload URL', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -313,7 +314,7 @@ class RoomRecordingController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to confirm Google Drive upload', [
+            Log::error('Failed to confirm Google Drive upload', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -380,7 +381,7 @@ class RoomRecordingController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to get room recordings', [
+            Log::error('Failed to get room recordings', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -446,7 +447,7 @@ class RoomRecordingController extends Controller
             return response()->json(['error' => 'Unsupported storage provider'], 501);
 
         } catch (\Exception $e) {
-            \Log::error('Failed to download recording', [
+            Log::error('Failed to download recording', [
                 'room_id' => $room->id,
                 'recording_id' => $recording->id,
                 'user_id' => $request->user()?->id,
@@ -492,7 +493,7 @@ class RoomRecordingController extends Controller
                 $validated['mime_type']
             );
 
-            \Log::info('Recording session started', [
+            Log::info('Recording session started', [
                 'recording_id' => $recording->id,
                 'room_id' => $room->id,
                 'user_id' => $user->id,
@@ -511,7 +512,7 @@ class RoomRecordingController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to start recording session', [
+            Log::error('Failed to start recording session', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -562,7 +563,7 @@ class RoomRecordingController extends Controller
                     $validated['ended_at_ms']
                 );
 
-                \Log::info('Wasabi recording progress updated', [
+                Log::info('Wasabi recording progress updated', [
                     'recording_id' => $recording->id,
                     'room_id' => $room->id,
                     'user_id' => $user->id,
@@ -591,7 +592,7 @@ class RoomRecordingController extends Controller
                     'ended_at_ms' => $validated['ended_at_ms'],
                 ]);
 
-                \Log::info('Google Drive recording progress updated', [
+                Log::info('Google Drive recording progress updated', [
                     'recording_id' => $recording->id,
                     'room_id' => $room->id,
                     'user_id' => $user->id,
@@ -618,7 +619,7 @@ class RoomRecordingController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to update recording progress', [
+            Log::error('Failed to update recording progress', [
                 'recording_id' => $recording->id,
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
@@ -662,7 +663,7 @@ class RoomRecordingController extends Controller
 
             $hasActiveRecording = $activeRecording !== null;
 
-            \Log::info('Recording session validation', [
+            Log::info('Recording session validation', [
                 'room_id' => $room->id,
                 'user_id' => $user->id,
                 'has_active_recording' => $hasActiveRecording,
@@ -681,7 +682,7 @@ class RoomRecordingController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Failed to validate recording session', [
+            Log::error('Failed to validate recording session', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),

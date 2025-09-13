@@ -93,7 +93,7 @@ class RoomConsentController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to update STT consent', [
+            Log::error('Failed to update STT consent', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -164,7 +164,7 @@ class RoomConsentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Failed to get STT consent status', [
+            Log::error('Failed to get STT consent status', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -239,7 +239,7 @@ class RoomConsentController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to update recording consent', [
+            Log::error('Failed to update recording consent', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -310,7 +310,7 @@ class RoomConsentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Failed to get recording consent status', [
+            Log::error('Failed to get recording consent status', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -392,7 +392,7 @@ class RoomConsentController extends Controller
                 'messages' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Failed to update local save consent', [
+            Log::error('Failed to update local save consent', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),
@@ -460,7 +460,7 @@ class RoomConsentController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Failed to get local save consent status', [
+            Log::error('Failed to get local save consent status', [
                 'room_id' => $room->id,
                 'user_id' => $request->user()?->id,
                 'error' => $e->getMessage(),

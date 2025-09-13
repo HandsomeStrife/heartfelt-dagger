@@ -18,7 +18,7 @@
 
     <div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950">
         <div class="container mx-auto px-4 py-8">
-            <div class="max-w-6xl mx-auto">
+            <div class="w-full mx-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <!-- Sidebar -->
                     <div class="lg:col-span-3">
