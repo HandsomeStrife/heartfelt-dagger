@@ -13,7 +13,7 @@
             </div>
             
             <div class="flex-1 max-w-md mx-4">
-                <livewire:reference-search :is_sidebar="false" />
+                <livewire:reference-search-new :is_sidebar="false" />
             </div>
             
             <div class="w-16"></div> <!-- Spacer for centering -->
@@ -34,7 +34,7 @@
                             @endphp
                             
                             <nav class="space-y-6">
-                                @include('reference.partials.navigation-menu', ['pages' => $pages, 'current_page' => $current_page])
+                                @include('reference.partials.navigation-menu', ['current_page' => $current_page])
                             </nav>
                         </div>
                     </div>
@@ -56,7 +56,7 @@
                             </div>
 
                             <!-- Page Content -->
-                            <div class="prose prose-invert max-w-none">
+                            <div class="prose prose-invert max-w-none" data-search-body>
                                 <p class="text-slate-300 leading-relaxed mb-8">
                                     The DaggerHeart core set includes 9 Domain Decks, each comprising a collection of cards granting features or special abilities expressing a particular theme.
                                 </p>

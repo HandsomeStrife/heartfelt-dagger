@@ -165,7 +165,6 @@ Route::get('/actual-plays', function () {
 // Reference routes (public access)
 Route::prefix('reference')->name('reference.')->group(function () {
     Route::get('/', [App\Http\Controllers\ReferenceController::class, 'index'])->name('index');
-    Route::get('/search', [App\Http\Controllers\JsonReferenceSearchController::class, 'search'])->name('search');
     Route::get('/{page}', [App\Http\Controllers\ReferenceController::class, 'show'])->name('page');
 });
 

@@ -16,7 +16,7 @@
             </div>
             
             <div class="flex-1 max-w-md mx-4">
-                <livewire:reference-search :is_sidebar="false" />
+                <livewire:reference-search-new :is_sidebar="false" />
             </div>
             
             <div class="w-16"></div> <!-- Spacer for centering -->
@@ -37,7 +37,7 @@
                             @endphp
                             
                             <nav class="space-y-6">
-                                @include('reference.partials.navigation-menu', ['pages' => $pages, 'current_page' => $current_page])
+                                @include('reference.partials.navigation-menu', ['current_page' => $current_page])
                             </nav>
                         </div>
                     </div>
@@ -65,44 +65,47 @@
                                 </div>
                             </div>
 
-                            @if($domain_info && isset($domain_info['description']))
-                                <div class="bg-slate-800/30 border border-slate-600/30 rounded-xl p-4 mb-8">
-                                    <p class="text-slate-300 leading-relaxed">{{ $domain_info['description'] }}</p>
-                                </div>
-                            @endif
+                            <!-- Page Content -->
+                            <div data-search-body>
+                                @if($domain_info && isset($domain_info['description']))
+                                    <div class="bg-slate-800/30 border border-slate-600/30 rounded-xl p-4 mb-8">
+                                        <p class="text-slate-300 leading-relaxed">{{ $domain_info['description'] }}</p>
+                                    </div>
+                                @endif
 
-                            <!-- Abilities by Level -->
-                            @if(count($abilities_by_level) > 0)
-                                @foreach($abilities_by_level as $level => $levelAbilities)
-                                    <div class="mb-12">
-                                        <h2 class="font-outfit text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                                            <span class="px-3 py-1 rounded-lg text-sm font-bold" style="background-color: {{ $domainColor }}; color: white;">
-                                                Level {{ $level }}
-                                            </span>
-                                            <span class="text-slate-400 text-base font-normal">
-                                                ({{ count($levelAbilities) }} {{ count($levelAbilities) === 1 ? 'ability' : 'abilities' }})
-                                            </span>
-                                        </h2>
-                                        
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            @foreach($levelAbilities as $abilityKey => $card)
-                                                <div class="bg-slate-900 border border-slate-600/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200">
-                                                    <!-- Use the existing domain card component -->
-                                                    <x-character-level-up.domain-card :card="$card" />
-                                                </div>
-                                            @endforeach
+                                <!-- Abilities by Level -->
+                                @if(count($abilities_by_level) > 0)
+                                    @foreach($abilities_by_level as $level => $levelAbilities)
+                                        <div class="mb-12">
+                                            <h2 class="font-outfit text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                                                <span class="px-3 py-1 rounded-lg text-sm font-bold" style="background-color: {{ $domainColor }}; color: white;">
+                                                    Level {{ $level }}
+                                                </span>
+                                                <span class="text-slate-400 text-base font-normal">
+                                                    ({{ count($levelAbilities) }} {{ count($levelAbilities) === 1 ? 'ability' : 'abilities' }})
+                                                </span>
+                                            </h2>
+                                            
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                @foreach($levelAbilities as $abilityKey => $card)
+                                                    <div class="bg-slate-900 border border-slate-600/50 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200">
+                                                        <!-- Use the existing domain card component -->
+                                                        <x-character-level-up.domain-card :card="$card" />
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
+                                    @endforeach
+                                @else
+                                    <div class="text-center py-8">
+                                        <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                            <x-dynamic-component component="icons.{{ $domain_key }}" class="fill-slate-400 w-8 h-8" />
+                                        </div>
+                                        <h3 class="font-outfit text-lg font-bold text-slate-400 mb-2">No Abilities Found</h3>
+                                        <p class="text-slate-500">No abilities were found for the {{ ucfirst($domain_key) }} domain.</p>
                                     </div>
-                                @endforeach
-                            @else
-                                <div class="text-center py-8">
-                                    <div class="w-16 h-16 bg-slate-800 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                        <x-dynamic-component component="icons.{{ $domain_key }}" class="fill-slate-400 w-8 h-8" />
-                                    </div>
-                                    <h3 class="font-outfit text-lg font-bold text-slate-400 mb-2">No Abilities Found</h3>
-                                    <p class="text-slate-500">No abilities were found for the {{ ucfirst($domain_key) }} domain.</p>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
