@@ -16,7 +16,7 @@ const queue = [START_URL];
 const docs = [];
 let id = 1;
 
-// Define all the reference pages we want to index (only existing ones for now)
+// Define all the reference pages we want to index
 const REFERENCE_PAGES = [
     // Introduction
     'what-is-this',
@@ -40,7 +40,41 @@ const REFERENCE_PAGES = [
     'midnight-abilities',
     'sage-abilities',
     'splendor-abilities',
-    'valor-abilities'
+    'valor-abilities',
+    
+    // Core Mechanics
+    'flow-of-the-game',
+    'core-gameplay-loop',
+    'the-spotlight',
+    'turn-order-and-action-economy',
+    'making-moves-and-taking-action',
+    'combat',
+    'stress',
+    'attacking',
+    'maps-range-and-movement',
+    'conditions',
+    'downtime',
+    'death',
+    'additional-rules',
+    'leveling-up',
+    'multiclassing',
+    
+    // Equipment section
+    'equipment',
+    'weapons',
+    'combat-wheelchair',
+    'armor',
+    'loot',
+    'consumables',
+    'gold',
+    
+    // Running an Adventure (GM Guidance)
+    'gm-guidance',
+    'core-gm-mechanics',
+    'adversaries',
+    'environments',
+    'additional-gm-guidance',
+    'campaign-frames'
 ];
 
 function inScope(u) {
