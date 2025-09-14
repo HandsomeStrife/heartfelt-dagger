@@ -27,3 +27,4 @@ Thumbs.db
 .env*
 docs-dev
 docs-dev/*
+public/docs-*
