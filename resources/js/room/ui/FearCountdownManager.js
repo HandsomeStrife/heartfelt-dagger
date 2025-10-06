@@ -558,7 +558,7 @@ export class FearCountdownManager {
      */
     createCountdownTrackerElement(tracker) {
         const element = document.createElement('div');
-        element.className = 'countdown-tracker relative w-12 h-12 flex items-center justify-center';
+        element.className = 'countdown-tracker relative w-12 h-12 flex items-center justify-center drop-shadow-lg';
         element.dataset.trackerId = tracker.id;
         element.dataset.currentRotation = '0'; // Track current rotation
         
@@ -567,7 +567,7 @@ export class FearCountdownManager {
                 clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
                 transform: rotate(0deg);
             "></div>
-            <div class="countdown-value relative text-white font-bold text-lg z-10">${tracker.value}</div>
+            <div class="countdown-value relative text-white font-bold text-lg z-20 drop-shadow-md">${tracker.value}</div>
         `;
         
         return element;

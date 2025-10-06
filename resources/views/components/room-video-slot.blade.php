@@ -16,22 +16,22 @@
         </div>
         
         <!-- Fear and Countdown Trackers (visible to all when GM is actively joined) -->
-        <div class="game-state-overlay hidden absolute inset-0 pointer-events-none" data-game-state-overlay>
+        <div class="game-state-overlay hidden absolute inset-0 pointer-events-none z-30" data-game-state-overlay>
             <!-- Fear Tracker (Bottom Right) -->
-            <div class="absolute bottom-2 right-2 w-12 h-16 flex items-center justify-center">
+            <div class="absolute bottom-2 right-2 w-12 h-16 flex items-center justify-center z-10">
                 <div class="relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-12 h-16 text-slate-800 fill-current">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-12 h-16 text-slate-800 fill-current drop-shadow-lg">
                         <path fill-rule="evenodd" d="m411.677 395.157 36.615-276.404L359.842 0H148.431L59.979 118.753l36.615 276.404H56.929V512h398.142V395.157h-43.394zM91.081 126.836l72.292-97.064h181.526l72.292 97.064-35.539 268.321H126.627L91.081 126.836zm-4.38 298.084h338.598v57.317H86.701V424.92z"/>
                         <path fill="#37474F" d="m91.081 126.836 72.292-97.064h181.526l72.292 97.064-35.539 268.321H126.627L91.081 126.836zM86.701 424.92h338.598v57.317H86.701z"/>
                     </svg>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="text-white font-bold text-xl -mt-1" data-fear-display="indicator">0</div>
+                    <div class="absolute inset-0 flex items-center justify-center z-10">
+                        <div class="text-white font-bold text-xl -mt-1 drop-shadow-md" data-fear-display="indicator">0</div>
                     </div>
                 </div>
             </div>
 
             <!-- Countdown Trackers (Top Right) -->
-            <div class="absolute top-2 right-2 max-w-[200px]">
+            <div class="absolute top-2 right-2 max-w-[200px] z-10">
                 <div class="flex flex-col space-y-2" data-countdown-display="container">
                     <!-- Countdown trackers will be dynamically inserted here by JavaScript -->
                 </div>

@@ -49,6 +49,33 @@
             ]
         };
         
+        // Pass initial game state data
+        @php
+            $gameStateAction = new \Domain\Room\Actions\GetGameStateAction();
+            $gameState = $gameStateAction->execute($room);
+        @endphp
+        window.roomData.game_state = {
+            fear_tracker: {
+                fear_level: {{ $gameState->fear_tracker->fear_level }},
+                can_increase: {{ $gameState->fear_tracker->can_increase ? 'true' : 'false' }},
+                can_decrease: {{ $gameState->fear_tracker->can_decrease ? 'true' : 'false' }}
+            },
+            countdown_trackers: [
+                @foreach($gameState->countdown_trackers as $tracker)
+                {
+                    id: "{{ $tracker->id }}",
+                    name: "{{ $tracker->name }}",
+                    value: {{ $tracker->value }},
+                    updated_at: "{{ $tracker->updated_at->toISOString() }}",
+                    can_increase: {{ $tracker->can_increase ? 'true' : 'false' }},
+                    can_decrease: {{ $tracker->can_decrease ? 'true' : 'false' }}
+                }{{ !$loop->last ? ',' : '' }}
+                @endforeach
+            ],
+            source_type: "{{ $gameState->source_type }}",
+            source_id: {{ $gameState->source_id }}
+        };
+        
         // No current user ID for viewers (they're not participants)
         window.currentUserId = null;
         
