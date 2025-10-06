@@ -18,13 +18,32 @@ export class PageProtection {
         // Warn user if they try to leave/refresh while recording
         window.addEventListener('beforeunload', (event) => {
             console.log('🚨 Page unload detected');
-            console.log(`  - Is recording: ${this.roomWebRTC.videoRecorder.isCurrentlyRecording()}`);
+            const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
+            console.log(`  - Is recording: ${isRecording}`);
             const recordedChunks = this.roomWebRTC.videoRecorder.getRecordedChunks();
-            console.log(`  - Recorded chunks: ${recordedChunks ? recordedChunks.length : 0}`);
+            const streamingChunks = this.roomWebRTC.streamingDownloader?.recordedChunks || [];
+            console.log(`  - VideoRecorder chunks: ${recordedChunks ? recordedChunks.length : 0}`);
+            console.log(`  - StreamingDownloader chunks: ${streamingChunks.length}`);
             
-            if (this.roomWebRTC.videoRecorder.isCurrentlyRecording() && recordedChunks && recordedChunks.length > 0) {
+            const hasLocalChunks = streamingChunks.length > 0;
+            const hasRecordingChunks = recordedChunks && recordedChunks.length > 0;
+            
+            // CRITICAL FIX: For cloud uploads (Wasabi, Google Drive), chunks aren't stored locally
+            // So we must check if recording is active, not just if chunks exist in memory
+            if (isRecording) {
                 const message = 'Recording in progress! If you leave now, your recording will be lost. Stop recording first to save your video.';
                 console.log('🚨 Showing page unload warning');
+                
+                // Attempt to finalize local download if chunks exist
+                if (hasLocalChunks) {
+                    console.log('💾 Attempting to finalize local download before page unload...');
+                    try {
+                        this.roomWebRTC.streamingDownloader.finalizeDownload();
+                    } catch (error) {
+                        console.error('💾 Error finalizing local download:', error);
+                    }
+                }
+                
                 event.preventDefault();
                 event.returnValue = message;
                 return message;
@@ -35,10 +54,50 @@ export class PageProtection {
 
         // Attempt to save recording if page is being unloaded
         window.addEventListener('unload', () => {
+            const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
             const recordedChunks = this.roomWebRTC.videoRecorder.getRecordedChunks();
-            if (this.roomWebRTC.videoRecorder.isCurrentlyRecording() && recordedChunks.length > 0) {
+            const streamingChunks = this.roomWebRTC.streamingDownloader?.recordedChunks || [];
+            
+            // CRITICAL FIX: Check if recording is active, regardless of in-memory chunks (for cloud uploads)
+            if (isRecording && (recordedChunks.length > 0 || streamingChunks.length > 0)) {
+                // Try to finalize local download if chunks exist
+                if (streamingChunks.length > 0) {
+                    console.log('💾 Emergency finalize of local download...');
+                    try {
+                        this.roomWebRTC.streamingDownloader.finalizeDownload();
+                    } catch (error) {
+                        console.error('💾 Error in emergency finalize:', error);
+                    }
+                }
+                
                 // Try to quickly save the recording before leaving
-                this.emergencySaveRecording();
+                if (recordedChunks.length > 0) {
+                    this.emergencySaveRecording();
+                }
+            }
+        });
+
+        // Add pagehide event as additional fallback (more reliable than unload, especially on mobile)
+        window.addEventListener('pagehide', (event) => {
+            console.log('🚨 Page hide detected');
+            const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
+            const streamingChunks = this.roomWebRTC.streamingDownloader?.recordedChunks || [];
+            
+            if (event.persisted) {
+                // Page is entering back/forward cache (bfcache) - will be restored
+                console.log('🚨 Page entering bfcache, recording preserved');
+            } else {
+                // Page is being permanently destroyed
+                console.log('🚨 Page being destroyed permanently');
+                
+                if (isRecording && streamingChunks.length > 0) {
+                    console.log('💾 pagehide: Attempting final save of local recording...');
+                    try {
+                        this.roomWebRTC.streamingDownloader.finalizeDownload();
+                    } catch (error) {
+                        console.error('💾 pagehide: Error in final save:', error);
+                    }
+                }
             }
         });
 

@@ -5,9 +5,12 @@
  * between different storage providers (local device, cloud storage).
  */
 
+import { Logger } from '../utils/Logger.js';
+
 export class VideoRecorder {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
+        this.logger = Logger.create('VideoRecorder');
         this.mediaRecorder = null;
         this.recordedChunks = [];
         this.recordingStartTime = null;
@@ -138,6 +141,11 @@ export class VideoRecorder {
                     partNumber: ++this.recordingSession.partNumber, // Increment part number for multipart
                     multipartUploadId: this.recordingSession.multipartUploadId
                 };
+                
+                this.logger.debug(`🎥 ===== CHUNK GENERATED =====`);
+                this.logger.debug(`🎥 Chunk size: ${(blob.size / 1024 / 1024).toFixed(2)} MB`);
+                this.logger.debug(`🎥 Part number: ${recordingData.partNumber}`);
+                this.logger.debug(`🎥 Storage provider: ${storageProvider}`);
 
                 try {
                     // Update cumulative statistics
@@ -157,10 +165,8 @@ export class VideoRecorder {
                     // Handle local saving (either primary local storage or dual recording)
                     if (shouldSaveLocally) {
                         try {
-                            await this.roomWebRTC.cloudUploader.uploadChunk(blob, {
-                                ...recordingData,
-                                isLocalSave: true
-                            });
+                            // Use StreamingDownloader for local save, not CloudUploader
+                            this.roomWebRTC.streamingDownloader.addChunk(blob, recordingData);
                             console.log('🎥 Local device chunk processed successfully');
                         } catch (error) {
                             console.error('🎥 Error saving locally:', error);
@@ -251,8 +257,9 @@ export class VideoRecorder {
 
     /**
      * Stops video recording
+     * Now async to properly wait for upload finalization
      */
-    stopRecording() {
+    async stopRecording() {
         if (this.mediaRecorder && this.isRecording) {
             this.isRecording = false;
             try {
@@ -272,7 +279,13 @@ export class VideoRecorder {
             const stopStorageProvider = this.roomWebRTC.roomData.recording_settings?.storage_provider || 'local_device';
             if (stopStorageProvider !== 'local_device' && window.roomUppy) {
                 console.log('🎥 Finalizing cloud multipart upload...');
-                window.roomUppy.finalizeMultipartUpload();
+                try {
+                    await window.roomUppy.finalizeMultipartUpload();
+                    console.log('🎥 ✅ Cloud upload finalized successfully');
+                } catch (error) {
+                    console.error('🎥 ❌ Error finalizing cloud upload:', error);
+                    // Don't throw - we want to continue with cleanup
+                }
             }
             
             this.updateRecordingUI(false);
@@ -281,7 +294,7 @@ export class VideoRecorder {
             
             // Unjoin from video sharing after stopping recording (but stay in room)
             console.log('🎥 Unjoining from video sharing after stopping recording...');
-            this.roomWebRTC.leaveSlot();
+            await this.roomWebRTC.leaveSlot();
         }
     }
 
@@ -437,12 +450,32 @@ export class VideoRecorder {
     shouldSaveLocally(storageProvider) {
         // Primary local storage
         if (storageProvider === 'local_device') {
+            this.logger.debug('💾 shouldSaveLocally: TRUE (primary local storage)');
             return true;
         }
         
         // Dual recording: remote storage + local save consent
         const localSaveConsent = this.roomWebRTC.consentManager?.consentData?.localSave?.status;
-        return localSaveConsent?.consent_given === true;
+        const consentGiven = localSaveConsent?.consent_given === true;
+        
+        this.logger.debug('💾 shouldSaveLocally check:', {
+            storageProvider,
+            hasConsentManager: !!this.roomWebRTC.consentManager,
+            hasConsentData: !!this.roomWebRTC.consentManager?.consentData,
+            hasLocalSave: !!this.roomWebRTC.consentManager?.consentData?.localSave,
+            localSaveStatus: localSaveConsent,
+            consentGiven
+        });
+        
+        this.logger.debug('💾 DETAILED CONSENT CHECK:', {
+            'consentData exists': !!this.roomWebRTC.consentManager?.consentData,
+            'localSave exists': !!this.roomWebRTC.consentManager?.consentData?.localSave,
+            'status exists': !!this.roomWebRTC.consentManager?.consentData?.localSave?.status,
+            'consent_given value': this.roomWebRTC.consentManager?.consentData?.localSave?.status?.consent_given,
+            'consent_given === true': this.roomWebRTC.consentManager?.consentData?.localSave?.status?.consent_given === true
+        });
+        
+        return consentGiven;
     }
 
     /**

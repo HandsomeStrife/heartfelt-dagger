@@ -43,13 +43,12 @@
             <!-- Character Name Panel (Bottom Left) -->
             <div class="absolute bottom-2 left-0 w-auto pointer-events-auto overflow-visible">
                 <div class="relative h-[54px] min-w-[45%]">
-                    <!-- Banner Background -->
-                    <div class="absolute right-0 h-full z-1" style="transform: translateX(68px); top: -0.5px;">
-                        <x-banner.right style="width: 72px; height: 55px;" />
-                    </div>
-                    
                     <!-- Main Content Container -->
                     <div class="relative z-10 bg-daggerheart-blue border border-daggerheart-gold border-l-0 border-r-0 h-full flex items-center">
+                        <!-- Banner Arrow Background (Right Edge) -->
+                        <div class="absolute -right-[68px] top-[-0.5px] h-full z-20 pointer-events-none">
+                            <x-banner.right style="width: 72px; height: 55px;" />
+                        </div>
                         <!-- Character Banner Container (always present for dynamic banner injection) -->
                         <div class="character-banner-container absolute scale-80 -top-2 -left-2 w-8 h-16 rounded overflow-visible">
                             <!-- Banner will be dynamically injected here by JavaScript -->

@@ -50,18 +50,24 @@ export class VideoSlotControls {
             }
         });
         
-        // Add hover logging to debug visibility issues
+        // Add hover logging to debug visibility issues (gated behind DEBUG flag)
         document.addEventListener('mouseenter', (event) => {
-            if (event.target.closest('.video-slot')) {
-                const slot = event.target.closest('.video-slot');
-                const controls = slot.querySelector('.video-controls');
-                const slotId = slot.dataset.slotId;
-                
-                console.log(`🐭 Mouse entered slot ${slotId}:`, {
-                    hasControls: !!controls,
-                    controlsVisible: controls ? !controls.classList.contains('hidden') : false,
-                    controlsClasses: controls ? Array.from(controls.classList) : 'no-controls'
-                });
+            // Type guard: Ensure target is an Element before calling .closest()
+            // event.target might be a text node or other non-Element type
+            const target = event.target instanceof Element ? event.target : event.target.parentElement;
+            
+            if (target && target.closest) {
+                const slot = target.closest('.video-slot');
+                if (slot && window.DEBUG_VIDEO_CONTROLS) {
+                    const controls = slot.querySelector('.video-controls');
+                    const slotId = slot.dataset.slotId;
+                    
+                    console.log(`🐭 Mouse entered slot ${slotId}:`, {
+                        hasControls: !!controls,
+                        controlsVisible: controls ? !controls.classList.contains('hidden') : false,
+                        controlsClasses: controls ? Array.from(controls.classList) : 'no-controls'
+                    });
+                }
             }
         }, true);
     }

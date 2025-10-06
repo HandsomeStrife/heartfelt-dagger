@@ -9,6 +9,7 @@ use Domain\CampaignPage\Repositories\CampaignPageRepository;
 use Domain\CampaignHandout\Repositories\CampaignHandoutRepository;
 use Domain\Character\Models\Character;
 use Domain\Character\Repositories\CharacterRepository;
+use Domain\Room\Actions\ArchiveRoomAction;
 use Domain\Room\Actions\CreateRoomAction;
 use Domain\Room\Actions\DeleteRoomAction;
 use Domain\Room\Actions\JoinRoomAction;
@@ -34,6 +35,7 @@ class RoomController extends Controller
         private JoinRoomAction $join_room_action,
         private KickUserAction $kick_user_action,
         private LeaveRoomAction $leave_room_action,
+        private ArchiveRoomAction $archive_room_action,
     ) {}
 
     public function index()
@@ -790,5 +792,213 @@ class RoomController extends Controller
         }
 
         return back()->withErrors(['password' => 'Invalid viewer password.']);
+    }
+
+    /**
+     * Archive a room (only creator can archive)
+     */
+    public function archive(Room $room)
+    {
+        $user = Auth::user();
+
+        try {
+            $this->archive_room_action->execute($room, $user);
+
+            return redirect()
+                ->back()
+                ->with('success', 'Room archived successfully. It can no longer be joined but recordings and transcripts remain accessible.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Show recordings for a room (for campaign members)
+     */
+    public function recordings(Room $room)
+    {
+        $user = Auth::user();
+
+        // Check if user can access this room's content
+        if (! $room->canUserAccess($user)) {
+            abort(403, 'You do not have access to this room.');
+        }
+
+        $recordings = $this->room_repository->getRoomRecordings($room);
+        $campaign = $room->campaign;
+
+        return view('rooms.recordings', compact('room', 'recordings', 'campaign'));
+    }
+
+    /**
+     * Show transcripts for a room (for campaign members)
+     */
+    public function transcripts(Request $request, Room $room)
+    {
+        $user = Auth::user();
+
+        // Check if user can access this room's content
+        if (! $room->canUserAccess($user)) {
+            abort(403, 'You do not have access to this room.');
+        }
+
+        // Get search parameters
+        $searchText = $request->get('search');
+        $selectedSpeaker = $request->get('speaker');
+
+        // Get all transcripts for timeline and speaker list
+        $allTranscripts = $this->room_repository->getRoomTranscripts($room);
+        
+        // Filter transcripts based on search criteria
+        $filteredTranscripts = $allTranscripts;
+        
+        if ($searchText) {
+            $filteredTranscripts = $filteredTranscripts->filter(function ($transcript) use ($searchText) {
+                return stripos($transcript->text, $searchText) !== false;
+            })->values();
+        }
+        
+        if ($selectedSpeaker) {
+            $filteredTranscripts = $filteredTranscripts->filter(function ($transcript) use ($selectedSpeaker) {
+                $speaker = $transcript->character_name ?: ($transcript->user?->username ?? 'Unknown');
+                return $speaker === $selectedSpeaker;
+            })->values();
+        }
+
+        // Get unique speakers for filter dropdown
+        $speakers = $allTranscripts->map(function ($transcript) {
+            return $transcript->character_name ?: ($transcript->user?->username ?? 'Unknown');
+        })->unique()->sort()->values();
+
+        // Generate speaker colors based on character domains
+        $speakerColors = $this->generateSpeakerColors($allTranscripts);
+
+        // Generate timeline data (activity by time periods)
+        $timelineData = $this->generateTimelineData($allTranscripts, $speakerColors);
+
+        $campaign = $room->campaign;
+
+        return view('rooms.transcripts', [
+            'room' => $room,
+            'transcripts' => $filteredTranscripts, 
+            'allTranscripts' => $allTranscripts,
+            'campaign' => $campaign, 
+            'speakers' => $speakers, 
+            'searchText' => $searchText, 
+            'selectedSpeaker' => $selectedSpeaker,
+            'timelineData' => $timelineData,
+            'speakerColors' => $speakerColors
+        ]);
+    }
+
+    /**
+     * Generate timeline data for transcript visualization
+     */
+    private function generateTimelineData($transcripts, $speakerColors)
+    {
+        if ($transcripts->isEmpty()) {
+            return [];
+        }
+
+        $startTime = $transcripts->first()->started_at_ms;
+        $endTime = $transcripts->last()->ended_at_ms;
+        $totalDuration = $endTime - $startTime;
+
+        // Create 100 time segments for the timeline
+        $segments = 100;
+        $segmentDuration = $totalDuration / $segments;
+        
+        $timelineData = [];
+        
+        for ($i = 0; $i < $segments; $i++) {
+            $segmentStart = $startTime + ($i * $segmentDuration);
+            $segmentEnd = $segmentStart + $segmentDuration;
+            
+            // Get transcripts in this segment
+            $segmentTranscripts = $transcripts->filter(function ($transcript) use ($segmentStart, $segmentEnd) {
+                return $transcript->started_at_ms >= $segmentStart && $transcript->started_at_ms < $segmentEnd;
+            });
+            
+            $count = $segmentTranscripts->count();
+            
+            // Get unique speakers in this segment with their colors
+            $speakers = [];
+            foreach ($segmentTranscripts as $transcript) {
+                $speakerName = $transcript->character_name ?: ($transcript->user?->username ?? 'Unknown');
+                if (!isset($speakers[$speakerName])) {
+                    $speakers[$speakerName] = $speakerColors[$speakerName] ?? ['primary' => '#6366f1', 'secondary' => '#8b5cf6'];
+                }
+            }
+            
+            $timelineData[] = [
+                'segment' => $i,
+                'start_ms' => $segmentStart,
+                'end_ms' => $segmentEnd,
+                'count' => $count,
+                'timestamp' => \Carbon\Carbon::createFromTimestampMs($segmentStart)->format('H:i:s'),
+                'speakers' => $speakers,
+            ];
+        }
+
+        return $timelineData;
+    }
+
+    /**
+     * Generate speaker colors based on character domains
+     */
+    private function generateSpeakerColors($transcripts)
+    {
+        $speakerColors = [];
+        $fallbackColors = [
+            '#6366f1', // indigo
+            '#8b5cf6', // violet  
+            '#ec4899', // pink
+            '#f59e0b', // amber
+            '#10b981', // emerald
+            '#3b82f6', // blue
+            '#f97316', // orange
+            '#84cc16', // lime
+        ];
+        $fallbackIndex = 0;
+
+        foreach ($transcripts as $transcript) {
+            $speaker = $transcript->character_name ?: ($transcript->user?->username ?? 'Unknown');
+            
+            // Skip if we already have a color for this speaker
+            if (isset($speakerColors[$speaker])) {
+                continue;
+            }
+
+            // Try to get domain color from character class
+            if ($transcript->character_class) {
+                try {
+                    $classEnum = \Domain\Character\Enums\ClassEnum::from(strtolower($transcript->character_class));
+                    $domains = $classEnum->getDomains();
+                    
+                    // Use the first domain's color as the primary color
+                    if (!empty($domains)) {
+                        $primaryDomain = $domains[0];
+                        $speakerColors[$speaker] = [
+                            'primary' => $primaryDomain->getColor(),
+                            'secondary' => count($domains) > 1 ? $domains[1]->getColor() : $primaryDomain->getColor(),
+                            'domains' => array_map(fn($domain) => $domain->getName(), $domains)
+                        ];
+                        continue;
+                    }
+                } catch (\ValueError $e) {
+                    // Invalid class enum, fall through to fallback
+                }
+            }
+
+            // Fallback to predefined colors
+            $speakerColors[$speaker] = [
+                'primary' => $fallbackColors[$fallbackIndex % count($fallbackColors)],
+                'secondary' => $fallbackColors[($fallbackIndex + 1) % count($fallbackColors)],
+                'domains' => []
+            ];
+            $fallbackIndex++;
+        }
+
+        return $speakerColors;
     }
 }

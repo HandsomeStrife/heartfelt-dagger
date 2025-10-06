@@ -62,6 +62,8 @@ export class ConsentManager {
 
         } catch (error) {
             console.error('❌ Error checking initial consent requirements:', error);
+            // Enable UI on error to prevent deadlock
+            this.roomWebRTC.uiStateManager.enableJoinUI();
         }
     }
 
@@ -113,13 +115,36 @@ export class ConsentManager {
      * Checks consent status for a specific feature type
      */
     async checkConsentStatus(type) {
+        // LOCAL SAVE CONSENT: ALWAYS prompt on page refresh (never fetch from backend)
+        if (type === 'localSave') {
+            console.log('🔒 Local save consent will be prompted on EVERY page load');
+            
+            // CRITICAL FIX: Don't reset consent if user has already made a decision in this session
+            const currentConsent = this.consentData.localSave.status;
+            const hasExistingDecision = currentConsent && (currentConsent.consent_given === true || currentConsent.consent_denied === true);
+            
+            if (hasExistingDecision) {
+                console.log('🔒 Local save consent already decided in this session:', {
+                    consent_given: currentConsent.consent_given,
+                    consent_denied: currentConsent.consent_denied
+                });
+                return; // Don't reset if user has already made a decision
+            }
+            
+            this.consentData.localSave.status = {
+                local_save_enabled: true,
+                requires_consent: true, // ALWAYS require fresh consent
+                consent_given: false,
+                consent_denied: false
+            };
+            return;
+        }
+        
         let endpoint;
         if (type === 'stt') {
             endpoint = 'stt-consent';
         } else if (type === 'recording') {
             endpoint = 'recording-consent';
-        } else if (type === 'localSave') {
-            endpoint = 'local-save-consent';
         } else {
             console.error(`🔒 Unknown consent type: ${type}`);
             return;
@@ -248,13 +273,35 @@ export class ConsentManager {
      * Handles consent decision for any feature type
      */
     async handleConsentDecision(type, consentGiven, onComplete) {
+        // LOCAL SAVE CONSENT: Store in memory only (don't persist to backend)
+        if (type === 'localSave') {
+            console.log(`🔒 LOCAL SAVE consent ${consentGiven ? 'granted' : 'denied'} (session only, not persisted)`);
+            
+            // Update in-memory consent status
+            this.consentData.localSave.status = {
+                local_save_enabled: true,
+                requires_consent: false, // No longer requires consent after decision
+                consent_given: consentGiven,
+                consent_denied: !consentGiven
+            };
+            
+            if (consentGiven) {
+                console.log('🔒 Local save enabled for this session - video will be saved to device');
+            } else {
+                console.log('🔒 Local save declined - only remote recording will occur');
+            }
+            
+            // Complete flow immediately
+            onComplete();
+            this.checkAllConsentsResolved();
+            return;
+        }
+        
         let endpoint;
         if (type === 'stt') {
             endpoint = 'stt-consent';
         } else if (type === 'recording') {
             endpoint = 'recording-consent';
-        } else if (type === 'localSave') {
-            endpoint = 'local-save-consent';
         } else {
             console.error(`🔒 Unknown consent type: ${type}`);
             return;
@@ -296,10 +343,16 @@ export class ConsentManager {
             } else {
                 console.error(`🔒 Failed to save ${type} consent decision:`, response.status);
                 alert('Failed to save consent decision. Please try again.');
+                // Complete flow even on error to prevent deadlock
+                onComplete();
+                this.roomWebRTC.uiStateManager.enableJoinUI();
             }
         } catch (error) {
             console.error(`🔒 Error saving ${type} consent decision:`, error);
             alert('Failed to save consent decision. Please try again.');
+            // Complete flow even on error to prevent deadlock
+            onComplete();
+            this.roomWebRTC.uiStateManager.enableJoinUI();
         }
     }
 

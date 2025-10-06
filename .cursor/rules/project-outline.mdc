@@ -32,6 +32,18 @@ If you create a new test, you should run it immediately.
 
 6. Action classes should be executed in the following pattern `(new Action())->execute(...)`
 
+7. This project does NOT use Laravel Dusk for browser testing. It uses Pest Browser testing. Never create Dusk tests or reference Dusk classes. Always examine existing browser tests in tests/Browser/ to see the correct Pest Browser testing pattern before creating any browser tests.
+
+Run tests with `sail pest`
+
+8. ALWAYS check that components exist before making assumptions
+
+9. Exceptions for broken state, and null for optional data - we should always throw exceptions and catch them, as opposed to returning null unless it's explictly optional.
+
+10. All created markdown documents should be made in the "supporting-docs" folder
+
+11. Use DTOs over arrays - we should always work towards knowing what data we are working with, and helping enable static analysis
+
 ---
 
 ## **PSR-12 Coding Guidelines** 

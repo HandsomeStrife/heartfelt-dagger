@@ -142,7 +142,6 @@ class RoomTranscript extends Model
 
     protected static function newFactory()
     {
-        // We'll create this factory later
-        return null; // \Database\Factories\RoomTranscriptFactory::new();
+        return \Database\Factories\RoomTranscriptFactory::new();
     }
 }

@@ -15,6 +15,7 @@ export class WasabiUploader extends BaseUploader {
         this.currentPartNumber = 0;
         this.uploadedParts = [];
         this.partSizes = [];
+        this.isFinalized = false; // Prevent late chunks after finalization
     }
 
     /**
@@ -81,6 +82,12 @@ export class WasabiUploader extends BaseUploader {
      * @param {Blob} blob - Video chunk to upload
      */
     async uploadChunk(blob) {
+        // Prevent late chunks from uploading after finalization
+        if (this.isFinalized) {
+            console.warn(`🎯 ⚠️ Ignoring late chunk upload - upload already finalized (${(blob.size / 1024 / 1024).toFixed(2)} MB)`);
+            return;
+        }
+        
         if (!this.currentMultipartUploadId) {
             throw new Error('Wasabi multipart upload not initialized');
         }
@@ -157,6 +164,9 @@ export class WasabiUploader extends BaseUploader {
             console.log('🎯 NO WASABI MULTIPART UPLOAD TO FINALIZE');
             return;
         }
+        
+        // Mark as finalized to prevent late chunks from uploading
+        this.isFinalized = true;
         
         console.log('🎯 FINALIZING WASABI MULTIPART UPLOAD:', this.currentMultipartUploadId);
         console.log('🎯 PARTS TO COMPLETE:', this.uploadedParts.length);
@@ -236,6 +246,7 @@ export class WasabiUploader extends BaseUploader {
         this.currentPartNumber = 0;
         this.uploadedParts = [];
         this.partSizes = [];
+        this.isFinalized = false; // Reset finalization flag for reuse
     }
 
     /**

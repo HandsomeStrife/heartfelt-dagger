@@ -76,6 +76,31 @@ export class FearCountdownManager {
      * Set up UI elements for fear and countdown display
      */
     setupUIElements() {
+        // Initial scan for UI elements
+        this.refreshUIElementsCache();
+        
+        // Set up MutationObserver to detect new overlays being added to DOM
+        this.setupOverlayObserver();
+        
+        // Set up slot monitoring to track GM presence
+        this.setupSlotMonitoring();
+        
+        // Schedule a delayed refresh to catch any late-loading elements
+        setTimeout(() => {
+            console.log('🎭 Performing delayed UI elements refresh...');
+            this.refreshUIElementsCache();
+            this.updateGameStateOverlayVisibility();
+        }, 500);
+    }
+
+    /**
+     * Refresh the cache of UI elements
+     */
+    refreshUIElementsCache() {
+        // Clear existing caches
+        this.fearDisplayElements.clear();
+        this.countdownDisplayElements.clear();
+        
         // Find all fear display elements
         const fearElements = document.querySelectorAll('[data-fear-display]');
         fearElements.forEach(element => {
@@ -97,12 +122,60 @@ export class FearCountdownManager {
         });
 
         // Find all game state overlay elements
-        this.gameStateOverlays = Array.from(document.querySelectorAll('[data-game-state-overlay]'));
-
-        // console.log(`🎭 Found ${fearElements.length} fear display elements, ${countdownElements.length} countdown display elements, and ${this.gameStateOverlays.length} game state overlays`);
+        const newOverlays = Array.from(document.querySelectorAll('[data-game-state-overlay]'));
         
-        // Set up slot monitoring to track GM presence
-        this.setupSlotMonitoring();
+        // Only update if count changed
+        if (newOverlays.length !== this.gameStateOverlays.length) {
+            console.log(`🎭 Overlay cache updated: ${this.gameStateOverlays.length} → ${newOverlays.length} overlays`);
+            this.gameStateOverlays = newOverlays;
+        }
+
+        console.log(`🎭 UI cache refreshed: ${fearElements.length} fear, ${countdownElements.length} countdown, ${this.gameStateOverlays.length} overlays`);
+    }
+
+    /**
+     * Set up MutationObserver to detect when new overlays are added to DOM
+     */
+    setupOverlayObserver() {
+        // Create observer to watch for DOM changes
+        this.overlayObserver = new MutationObserver((mutations) => {
+            let shouldRefresh = false;
+            
+            // Check if any mutations added nodes with game-state-overlay attribute
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            // Check if the node itself is an overlay
+                            if (node.hasAttribute && node.hasAttribute('data-game-state-overlay')) {
+                                shouldRefresh = true;
+                            }
+                            // Check if any children are overlays
+                            if (node.querySelectorAll) {
+                                const overlaysInNode = node.querySelectorAll('[data-game-state-overlay]');
+                                if (overlaysInNode.length > 0) {
+                                    shouldRefresh = true;
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            if (shouldRefresh) {
+                console.log('🎭 DOM mutation detected - refreshing overlay cache');
+                this.refreshUIElementsCache();
+                this.updateGameStateOverlayVisibility();
+            }
+        });
+        
+        // Start observing the document body for changes
+        this.overlayObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        console.log('🎭 MutationObserver set up to detect new game state overlays');
     }
 
     /**
@@ -161,19 +234,20 @@ export class FearCountdownManager {
         // Monitor slot changes via RoomWebRTC events
         // We'll tap into the existing slot management system
         if (this.roomWebRTC.slotOccupants) {
-            // Listen for slot join/leave events by observing the slotOccupants map
-            const originalSetMethod = this.roomWebRTC.slotOccupants.set;
-            const originalDeleteMethod = this.roomWebRTC.slotOccupants.delete;
+            // Store original methods for cleanup (prevent memory leak)
+            this.originalSlotOccupantsSet = this.roomWebRTC.slotOccupants.set.bind(this.roomWebRTC.slotOccupants);
+            this.originalSlotOccupantsDelete = this.roomWebRTC.slotOccupants.delete.bind(this.roomWebRTC.slotOccupants);
             
+            // Override methods to monitor slot changes
             this.roomWebRTC.slotOccupants.set = (...args) => {
-                const result = originalSetMethod.apply(this.roomWebRTC.slotOccupants, args);
+                const result = this.originalSlotOccupantsSet(...args);
                 // Use setTimeout to ensure the change is processed before checking GM presence
                 setTimeout(() => this.checkGmPresence(), 100);
                 return result;
             };
             
             this.roomWebRTC.slotOccupants.delete = (...args) => {
-                const result = originalDeleteMethod.apply(this.roomWebRTC.slotOccupants, args);
+                const result = this.originalSlotOccupantsDelete(...args);
                 // Use setTimeout to ensure the change is processed before checking GM presence
                 setTimeout(() => this.checkGmPresence(), 100);
                 return result;
@@ -247,19 +321,12 @@ export class FearCountdownManager {
             // Show only on GM's slot when GM is present (same for participants and viewers)
             if (this.gmJoined && slotId === gmSlotId) {
                 overlay.classList.remove('hidden');
-                // console.log(`🎭 Showing game state overlay on GM slot ${slotId} ${isViewerMode ? '(viewer mode)' : '(participant mode)'}`);
+                console.log(`🎭 Showing game state overlay on GM slot ${slotId} ${isViewerMode ? '(viewer mode)' : '(participant mode)'}`);
             } else {
                 overlay.classList.add('hidden');
                 //console.log(`🎭 Hiding game state overlay on slot ${slotId} (${isViewerMode ? 'viewer mode - ' : ''}not GM slot or GM not present)`);
             }
         });
-        
-        // Also re-scan for overlays in case DOM changed
-        const currentOverlays = Array.from(document.querySelectorAll('[data-game-state-overlay]'));
-        if (currentOverlays.length !== this.gameStateOverlays.length) {
-            // console.log(`🎭 Overlay count changed: ${this.gameStateOverlays.length} → ${currentOverlays.length}. Updating cache.`);
-            this.gameStateOverlays = currentOverlays;
-        }
     }
 
     /**
@@ -733,5 +800,30 @@ export class FearCountdownManager {
         console.log('🎭 Force hiding overlays...');
         this.gmJoined = false;
         this.updateGameStateOverlayVisibility();
+    }
+
+    /**
+     * Cleanup method - disconnect observers and restore original methods
+     */
+    cleanup() {
+        console.log('🎭 Cleaning up FearCountdownManager...');
+        
+        // Disconnect MutationObserver
+        if (this.overlayObserver) {
+            this.overlayObserver.disconnect();
+            this.overlayObserver = null;
+        }
+        
+        // Restore original Map methods to prevent memory leaks
+        if (this.roomWebRTC.slotOccupants && this.originalSlotOccupantsSet && this.originalSlotOccupantsDelete) {
+            this.roomWebRTC.slotOccupants.set = this.originalSlotOccupantsSet;
+            this.roomWebRTC.slotOccupants.delete = this.originalSlotOccupantsDelete;
+            console.log('🎭 Restored original Map methods');
+        }
+        
+        // Clear caches
+        this.fearDisplayElements.clear();
+        this.countdownDisplayElements.clear();
+        this.gameStateOverlays = [];
     }
 }

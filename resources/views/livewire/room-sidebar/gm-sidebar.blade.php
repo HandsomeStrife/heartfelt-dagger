@@ -363,7 +363,7 @@
             <h3 class="font-outfit text-lg text-white mb-4">Reference Search</h3>
             
             <!-- Search Component -->
-            <livewire:reference-search :is-sidebar="true" />
+            <livewire:reference-search-new :is-sidebar="true" />
         </div>
 
         <!-- Notes Tab -->

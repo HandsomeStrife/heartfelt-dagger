@@ -50,7 +50,7 @@ Route::get('/privacy-policy', function () {
 // Protected routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
-        $user = auth()->user();
+        $user = Auth::user();
         
         $characterRepository = new \Domain\Character\Repositories\CharacterRepository();
         $campaignRepository = new \Domain\Campaign\Repositories\CampaignRepository();
@@ -126,6 +126,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{room:invite_code}/leave', [App\Http\Controllers\RoomController::class, 'leave'])->name('leave');
         Route::delete('/{room:invite_code}/kick/{participant}', [App\Http\Controllers\RoomController::class, 'kickParticipant'])->name('kick');
         Route::delete('/{room:invite_code}', [App\Http\Controllers\RoomController::class, 'destroy'])->name('destroy');
+        Route::patch('/{room:invite_code}/archive', [App\Http\Controllers\RoomController::class, 'archive'])->name('archive');
+        Route::get('/{room}/recordings', [App\Http\Controllers\RoomController::class, 'recordings'])->name('recordings');
+        Route::get('/{room}/transcripts', [App\Http\Controllers\RoomController::class, 'transcripts'])->name('transcripts');
     });
 });
 

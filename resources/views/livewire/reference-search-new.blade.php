@@ -124,11 +124,16 @@
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
                     
-                    const indexData = await response.json();
+                    // Get as text since MiniSearch.loadJSON expects a JSON string, not an object
+                    const indexDataString = await response.text();
                     
                     // Import MiniSearch dynamically
                     const { default: MiniSearch } = await import('https://cdn.jsdelivr.net/npm/minisearch@6/dist/es/index.js');
-                    this.miniSearch = MiniSearch.loadJSON(indexData);
+                    // Pass the same options used when serializing the index
+                    this.miniSearch = MiniSearch.loadJSON(indexDataString, {
+                        fields: ['title', 'content'],
+                        storeFields: ['title', 'url', 'page']
+                    });
                     
                     console.log('Search index loaded successfully');
                 } catch (error) {

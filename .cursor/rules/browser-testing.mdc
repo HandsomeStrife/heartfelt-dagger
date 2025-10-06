@@ -1,20 +1,42 @@
 ---
-description: browser testing
+description: testing
 alwaysApply: false
 ---
-# Browser testing (Pest v4)
+# Pest v4 Browser + Laravel + Livewire — Project Guide
 
-**Install & setup**
+> This project uses **Pest v4 Browser** for UI flows, **Pest Laravel** for HTTP helpers, and **Pest Livewire** for component tests.
+> Domain logic lives in `domain/*`. **Never** create or reference `app/Domain` or `app/domain`.
+> Follow **PSR-12** and project conventions: snake_case variables, camelCase methods.
+> **Never** use Dusk.
 
-* `composer require pestphp/pest-plugin-browser --dev`
-* Playwright browsers are automatically installed on container startup
-* Add `tests/Browser/Screenshots` to `.gitignore`. ([pestphp.com][1])
+## Core Rules (read first)
 
-**Run**
+* **Do not import `visit()`** — it’s provided globally by the Browser plugin. Use directly:
 
-* Standard: `./vendor/bin/pest`
-* Faster: `./vendor/bin/pest --parallel`
-* Debug/headed: `./vendor/bin/pest --debug` (opens headed and pauses at failure end). ([pestphp.com][1])
+  ```php
+  $page = visit('/');
+  ```
+* **Never chain `->actingAs()` on a page object.** `actingAs()` is a Laravel test helper; call it **before** `visit()`:
+
+  ```php
+  actingAs($user);
+  $page = visit('/dashboard');
+  ```
+* Use **page assertions & actions** on `$page` (`assertSee`, `assertUrlIs`, `click`, `fill`, `press`, `assertNoJavaScriptErrors`, `assertScreenshotMatches`).
+  Do **not** mix HTTP response assertions like `$page->assertStatus(200)`.
+* **Fail fast**: if a class/view/route/selector isn’t known, don’t guess — confirm first.
+* Current user retrieval **in app code** must go through `(new UserRepository())->getLoggedInUser()` — **never** `Auth::user()`.
+
+---
+
+## When to use which test type
+
+| Test Type                   | Use For                                                           | Typical Helpers                                                                  |
+| --------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **Browser (UI E2E)**        | Real UI flows, JS/console errors, accessibility/screenshot checks | `visit()`, `.click()`, `.fill()`, `.press()`, `.assertSee()`, `.assertNoSmoke()` |
+| **Laravel (HTTP)**          | Endpoint behavior, auth gates, JSON APIs                          | `actingAs()`, `get()`, `post()`, `assertOk()`                                    |
+| **Livewire (unit/feature)** | Component state, validation, authorization, emitted events        | `livewire()`, `.set()`, `.call()`, `.assertHasErrors()`                          |
+
 
 **Core API**
 
@@ -44,114 +66,76 @@ alwaysApply: false
 
 * You can still use `RefreshDatabase`, model factories, `Event::fake()`, `Notification::assertSent()`, `assertAuthenticated()`, etc., in the *same* browser tests. This is a core selling point of Pest v4's browser runner. ([pestphp.com][2])
 
+
+* **Auth first, then UI**: `actingAs($user);` happens before `visit()`. We **never** write `visit()->actingAs()`.
+* **Domain consistency**: Models live in `domain/*/Models`; actions follow `(new Action())->execute(...)`.
+* **Page interactions**: Only use browser-page methods for UI (`click`, `fill`, `press`, assertions like `assertSee`, `assertNoJavaScriptErrors`).
+* **Selectors**: Prefer `data-test` hooks (e.g., `@type-text`) to avoid brittle text/CSS selectors.
+* **Persistence**: Use `$this->assertDatabaseHas()` to verify results — UI asserts alone aren’t enough.
+* **Reset behavior**: Reopening the modal checks for **clean state**, catching common UI bugs.
+
 ---
 
-# **CRITICAL: Browser vs HTTP Testing Patterns**
+## Copy-paste templates (adjust selectors/routes only)
 
-**⚠️ DO NOT MIX THESE PATTERNS:**
+**Authenticated start + UI:**
 
-**Browser Testing (for UI interactions):**
 ```php
 use function Pest\Laravel\actingAs;
 
-actingAs($user);                    // Set auth context
-$page = visit('/campaigns');        // Get browser page object
-$page->click('Button')->assertSee('Text');  // Interact with page
-```
+test('NAME', function () {
+    $user = \Domain\User\Models\User::factory()->create();
+    actingAs($user);
 
-**HTTP Testing (for API/response testing):**
-```php
-use function Pest\Laravel\actingAs;
-
-$response = actingAs($user)->get('/api/campaigns');  // Get HTTP response
-$response->assertStatus(200)->assertJson([...]);     // Assert response
-```
-
-**❌ WRONG - Don't mix them:**
-```php
-// This returns HTTP Response, NOT a browser page object
-$page = actingAs($user)->get('/campaigns');
-$page->click('Button'); // ❌ FAILS - Response has no click() method
-```
-
----
-
-# **Browser Testing Best Practices**
-
-**Authentication:**
-- Always use `actingAs($user);` followed by `visit()` for browser tests
-- Never chain `actingAs()->visit()` - they serve different purposes
-
-**Selectors:**
-- Prefer text content: `$page->click('Save')`, `$page->click('Create Page')`
-- Use CSS selectors: `$page->type('#title', 'value')`, `$page->click('.btn-primary')`
-
-**Form Submission:**
-- Try `$page->press('Enter')` to submit forms
-- Use `$page->click('Submit Button Text')` for button clicks
-- For Livewire forms with complex selectors: `$page->script('document.getElementById("form-id").dispatchEvent(new Event("submit", {bubbles: true}))')`
-- For simple forms: `$page->submit()` or button selectors
-
-**URL Assertions:**
-- Use `assertPathIs('/relative/path')` for relative URLs
-- Use `assertUrlIs('http://full.url')` only for absolute URLs
-
-**Timing:**
-- Use `$page->waitForText('Expected Text')` for waiting for content to appear
-- Use `$page->wait(2)` for fixed time delays (sparingly)
-- **Note:** There is NO `waitFor()` method - only `wait()` and `waitForText()`
-
----
-
-# What to import for Laravel auth & Livewire
-
-**Laravel plugin (install once):**
-`composer require pestphp/pest-plugin-laravel --dev`
-
-**Use namespaced helper functions** instead of `$this->…` in tests:
-
-```php
-use function Pest\Laravel\{actingAs, get, post, delete /* …others as needed */};
-```
-
-Example (auth):
-
-```php
-use App\Models\User;
-use function Pest\Laravel\{actingAs, get};
-
-test('dashboard loads for authenticated user', function () {
-    $user = User::factory()->create();
-    actingAs($user)->get('/dashboard')->assertStatus(200);
+    $page = visit('/path');
+    $page->assertSee('Some text')->assertNoJavaScriptErrors();
 });
 ```
 
-These are first-class Pest functions that map to Laravel’s testing helpers.
-
-**Livewire plugin (install once):**
-`composer require pestphp/pest-plugin-livewire --dev`
-
-**Import the Livewire helper:**
+**UI flow with form + asserts:**
 
 ```php
-use function Pest\Livewire\livewire;
-```
+it('NAME', function () {
+    $page = visit('/start')->on()->mobile()->inDarkMode();
 
-Example:
-
-```php
-use App\Livewire\Counter;
-use function Pest\Livewire\livewire;
-
-it('increments', function () {
-    livewire(Counter::class)->call('increment')->assertSee(1);
+    $page->click('Open Form')
+         ->fill('email', 'user@example.com')
+         ->fill('password', 'secret')
+         ->press('Submit')
+         ->assertUrlIs('/done')
+         ->assertSee('Success')
+         ->assertNoSmoke();
 });
 ```
 
-This mirrors the docs: same `visit()` flow, device/browser overrides, Laravel fakes/assertions integrated.
+**Livewire (logic/state) — no browser:**
+
+```php
+use function Pest\Livewire\livewire;
+
+it('validates title', function () {
+    livewire(\App\Livewire\CreatePost::class)
+        ->set('title', '')
+        ->call('save')
+        ->assertHasErrors('title');
+});
+```
 
 ---
 
-[1]: https://pestphp.com/docs/browser-testing "Browser Testing | Pest - The elegant PHP Testing Framework"
-[2]: https://pestphp.com/docs/pest-v4-is-here-now-with-browser-testing "Pest v4 Is Here — Now with Browser Testing"
-[3]: https://pestphp.com/docs/plugins "Plugins | Pest - The elegant PHP Testing Framework"
+## LLM “Do / Don’t” (for this repo)
+
+**Do**
+
+* Use `actingAs($user)` **before** any `visit()` calls.
+* Keep domain work inside `domain/*` (Models, Actions, Repos).
+* Prefer `data-test` selectors for stability.
+* Verify DB side-effects with `$this->assertDatabaseHas()`.
+* Reference https://pestphp.com/docs/browser-testing directly for what functions exist
+
+**Don’t**
+
+* ❌ Import or wrap `visit()` — use globally.
+* ❌ Call `visit()->actingAs(...)`.
+* ❌ Reference Dusk, Dusk classes, or Dusk APIs.
+* ❌ Invent unknown routes/components/selectors — confirm first.

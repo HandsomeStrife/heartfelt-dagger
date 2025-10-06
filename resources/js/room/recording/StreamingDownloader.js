@@ -11,6 +11,14 @@ export class StreamingDownloader {
         this.recordingFilename = null;
         this.recordedChunks = [];
         this.isStreamingDownloadActive = false;
+        
+        // Memory management
+        this.totalRecordedSize = 0; // Track size incrementally for O(1) performance
+        this.hasShownMemoryWarning = false;
+        
+        // Memory limits (in bytes)
+        this.MEMORY_WARNING_THRESHOLD = 500 * 1024 * 1024; // 500 MB
+        this.MEMORY_HARD_LIMIT = 1024 * 1024 * 1024; // 1 GB
     }
 
     /**
@@ -24,8 +32,13 @@ export class StreamingDownloader {
         this.recordedChunks = []; // Collect chunks for single download
         this.isStreamingDownloadActive = true;
         
+        // Reset memory tracking
+        this.totalRecordedSize = 0;
+        this.hasShownMemoryWarning = false;
+        
         console.log(`🎥 Streaming download initialized: ${this.recordingFilename}`);
         console.log(`🎥 Recording will be saved as single continuous file`);
+        console.log(`🎥 Memory limits: ${(this.MEMORY_WARNING_THRESHOLD / 1024 / 1024).toFixed(0)}MB warning, ${(this.MEMORY_HARD_LIMIT / 1024 / 1024).toFixed(0)}MB hard limit`);
     }
 
     /**
@@ -37,12 +50,65 @@ export class StreamingDownloader {
         // Store chunk for continuous recording
         this.recordedChunks.push(newChunk);
         
+        // Track size incrementally (O(1) instead of O(n))
+        this.totalRecordedSize += newChunk.size;
+        const totalMB = this.totalRecordedSize / 1024 / 1024;
+        
+        console.log(`📊 Recording chunk collected: ${(newChunk.size / 1024 / 1024).toFixed(2)} MB`);
+        console.log(`🎥 Total recording size: ${totalMB.toFixed(2)} MB (${this.recordedChunks.length} chunks)`);
+        
+        // Memory management: Warn at 500MB threshold
+        if (this.totalRecordedSize > this.MEMORY_WARNING_THRESHOLD && !this.hasShownMemoryWarning) {
+            this.hasShownMemoryWarning = true;
+            const warningMB = (this.MEMORY_WARNING_THRESHOLD / 1024 / 1024).toFixed(0);
+            console.warn(`⚠️ Local recording has accumulated ${warningMB}+ MB in browser memory`);
+            console.warn(`⚠️ Consider stopping and saving recording periodically to prevent memory issues`);
+            console.warn(`⚠️ Hard limit: ${(this.MEMORY_HARD_LIMIT / 1024 / 1024).toFixed(0)}MB`);
+            
+            // Show user notification
+            if (window.Livewire && this.roomWebRTC.roomData?.id) {
+                window.Livewire.dispatch('toast', [{
+                    type: 'warning',
+                    message: `Recording is large (${warningMB}+ MB). Consider stopping to save periodically.`,
+                    duration: 15000
+                }]);
+            }
+        }
+        
+        // Memory management: Hard limit at 1GB - force save
+        if (this.totalRecordedSize > this.MEMORY_HARD_LIMIT) {
+            const limitGB = (this.MEMORY_HARD_LIMIT / 1024 / 1024 / 1024).toFixed(2);
+            const actualGB = (this.totalRecordedSize / 1024 / 1024 / 1024).toFixed(2);
+            console.error(`🚨 Recording exceeded ${limitGB}GB memory limit! (${actualGB}GB accumulated)`);
+            console.error(`🚨 Auto-saving to prevent browser crash...`);
+            
+            // Show critical notification
+            if (window.Livewire) {
+                window.Livewire.dispatch('toast', [{
+                    type: 'error',
+                    message: `Recording exceeded ${limitGB}GB memory limit. Auto-saving to prevent crash.`,
+                    duration: 20000
+                }]);
+            }
+            
+            // Force save the recording
+            try {
+                this.finalizeDownload();
+                
+                // Stop recording after save
+                if (this.roomWebRTC.videoRecorder?.isCurrentlyRecording()) {
+                    this.roomWebRTC.videoRecorder.stopRecording();
+                }
+                
+                throw new Error(`Recording memory limit exceeded (${limitGB}GB) - file auto-saved and recording stopped`);
+            } catch (finalizeError) {
+                console.error('🚨 Failed to auto-save recording:', finalizeError);
+                throw finalizeError;
+            }
+        }
+        
         // Also add to video recorder for compatibility
         this.roomWebRTC.videoRecorder.addRecordedChunk(newChunk);
-        
-        const totalSize = this.recordedChunks.reduce((sum, chunk) => sum + chunk.size, 0);
-        console.log(`📊 Recording chunk collected: ${(newChunk.size / 1024 / 1024).toFixed(2)} MB`);
-        console.log(`🎥 Total recording size: ${(totalSize / 1024 / 1024).toFixed(2)} MB (${this.recordedChunks.length} chunks)`);
         
         // Update status bar if it exists
         this.roomWebRTC.statusBarManager.updateRecordingStatus();
@@ -95,6 +161,8 @@ export class StreamingDownloader {
         this.recordedChunks = [];
         this.recordingFilename = null;
         this.isStreamingDownloadActive = false;
+        this.totalRecordedSize = 0;
+        this.hasShownMemoryWarning = false;
         
         // Update status bar
         this.roomWebRTC.statusBarManager.updateRecordingStatus();
@@ -137,6 +205,8 @@ export class StreamingDownloader {
             // Clean up
             URL.revokeObjectURL(url);
             this.recordedChunks = []; // Clear chunks after download
+            this.totalRecordedSize = 0;
+            this.hasShownMemoryWarning = false;
             
             console.log(`💾 Complete recording downloaded: ${filename} (${(completeBlob.size / 1024 / 1024).toFixed(2)} MB)`);
         } catch (error) {
@@ -172,5 +242,7 @@ export class StreamingDownloader {
         this.recordedChunks = [];
         this.recordingFilename = null;
         this.isStreamingDownloadActive = false;
+        this.totalRecordedSize = 0;
+        this.hasShownMemoryWarning = false;
     }
 }

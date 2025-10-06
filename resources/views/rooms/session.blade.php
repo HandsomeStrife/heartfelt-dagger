@@ -399,6 +399,43 @@
         @endforeach
     </div>
 
+    <!-- Leaving Room Modal (non-dismissible) -->
+    <div id="leavingRoomModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-[60]" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="bg-slate-900/95 backdrop-blur-xl border border-amber-500/50 rounded-xl shadow-2xl w-96 max-w-full mx-4 p-8">
+                <div class="text-center">
+                    <!-- Animated spinner -->
+                    <div class="mb-6">
+                        <div class="relative inline-flex">
+                            <div class="w-16 h-16 border-4 border-slate-700 border-t-amber-500 rounded-full animate-spin"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Title -->
+                    <h3 class="text-xl font-outfit font-bold text-white mb-3">Leaving Room</h3>
+                    
+                    <!-- Status messages -->
+                    <div class="space-y-2 text-sm text-slate-300">
+                        <p id="leaving-status-main" class="font-medium">Finalizing recording...</p>
+                        <p id="leaving-status-sub" class="text-xs text-slate-400">Please wait, this will only take a moment</p>
+                    </div>
+                    
+                    <!-- Progress indicators (optional) -->
+                    <div class="mt-6 flex justify-center space-x-2">
+                        <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                        <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                        <div class="w-2 h-2 bg-amber-500 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if($room->isCreator(auth()->user()))
         <!-- Participants Management Modal -->
         <div id="participantsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
@@ -471,6 +508,7 @@
         window.roomData = {
             id: {{ $room->id }},
             name: @json($room->name),
+            invite_code: @json($room->invite_code),
             creator_id: {{ $room->creator_id }},
             campaign_id: {{ $room->campaign_id ?? 'null' }},
             guest_count: {{ $room->guest_count }},
@@ -540,6 +578,42 @@
                 modal.style.display = 'none';
             }
         }
+        
+        // Leaving room modal helpers
+        window.showLeavingModal = function(statusText = 'Finalizing recording...') {
+            const modal = document.getElementById('leavingRoomModal');
+            const statusMain = document.getElementById('leaving-status-main');
+            
+            if (statusMain) {
+                statusMain.textContent = statusText;
+            }
+            
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'block';
+            }
+        };
+        
+        window.updateLeavingModalStatus = function(mainText, subText = null) {
+            const statusMain = document.getElementById('leaving-status-main');
+            const statusSub = document.getElementById('leaving-status-sub');
+            
+            if (statusMain && mainText) {
+                statusMain.textContent = mainText;
+            }
+            
+            if (statusSub && subText) {
+                statusSub.textContent = subText;
+            }
+        };
+        
+        window.hideLeavingModal = function() {
+            const modal = document.getElementById('leavingRoomModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+        };
         
         // Make UIStateManager methods available globally for WebRTC integration
         window.showNameplateForSlot = function(slotId, participantData) {

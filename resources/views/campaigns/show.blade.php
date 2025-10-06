@@ -354,7 +354,12 @@
                                     <div class="bg-slate-800/50 border border-slate-600/50 rounded-xl p-4 hover:bg-slate-800/70 transition-colors">
                                         <div class="flex items-center justify-between">
                                             <div class="flex-1">
-                                                <h3 class="font-outfit font-semibold text-white text-sm">{{ $room->name }}</h3>
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <h3 class="font-outfit font-semibold text-white text-sm">{{ $room->name }}</h3>
+                                                    @if($room->status === 'archived')
+                                                        <span class="px-2 py-1 bg-slate-500/20 text-slate-400 rounded text-xs font-medium">Archived</span>
+                                                    @endif
+                                                </div>
                                                 <p class="text-slate-400 text-xs mt-1">{{ $room->description ?: 'No description' }}</p>
                                                 <div class="flex items-center gap-4 mt-2 text-xs text-slate-400">
                                                     <div class="flex items-center gap-1">
@@ -380,23 +385,87 @@
                                                     <span class="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs">Campaign</span>
                                                 </div>
                                             </div>
-                                            @if($user_is_creator)
-                                                <a href="{{ route('rooms.show', $room->invite_code) }}" 
-                                                   class="inline-flex items-center px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg transition-colors">
-                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                    </svg>
-                                                    Manage
-                                                </a>
-                                            @else
-                                                <a href="{{ route('rooms.invite', $room->invite_code) }}" 
-                                                   class="inline-flex items-center px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg transition-colors">
-                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                    </svg>
-                                                    Join
-                                                </a>
-                                            @endif
+                                            <div class="flex items-center gap-2 ml-4">
+                                                <!-- Recordings/Transcripts Links -->
+                                                @php
+                                                    $roomModel = \Domain\Room\Models\Room::find($room->id);
+                                                    $hasRecordings = $roomModel ? $roomModel->recordings()->ready()->count() > 0 : false;
+                                                    $hasTranscripts = $roomModel ? $roomModel->transcripts()->count() > 0 : false;
+                                                @endphp
+                                                
+                                                @if($hasRecordings)
+                                                    <a href="{{ route('rooms.recordings', $roomModel) }}" 
+                                                       class="inline-flex items-center px-2 py-1 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 text-xs font-medium rounded-lg transition-colors"
+                                                       title="View recordings">
+                                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                        </svg>
+                                                        Videos
+                                                    </a>
+                                                @endif
+                                                
+                                                @if($hasTranscripts)
+                                                    <a href="{{ route('rooms.transcripts', $roomModel) }}" 
+                                                       class="inline-flex items-center px-2 py-1 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 text-xs font-medium rounded-lg transition-colors"
+                                                       title="View transcripts">
+                                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-2.319-.317l-4.681 1.17a1 1 0 01-1.235-1.235l1.17-4.681A8.013 8.013 0 015 12c0-4.418 3.582-8 8-8s8 3.582 8 8z" />
+                                                        </svg>
+                                                        Chat
+                                                    </a>
+                                                @endif
+                                                
+                                                <!-- Room Actions -->
+                                                @if($user_is_creator)
+                                                    @if($room->status !== 'archived')
+                                                        <div class="flex items-center gap-1">
+                                                            <a href="{{ route('rooms.show', $room->invite_code) }}" 
+                                                               class="inline-flex items-center px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg transition-colors">
+                                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                                </svg>
+                                                                Manage
+                                                            </a>
+                                                            <form action="{{ route('rooms.archive', $room->invite_code) }}" method="POST" class="inline"
+                                                                  onsubmit="return confirm('Are you sure you want to archive this room? It can no longer be joined but recordings and transcripts will remain accessible.')">
+                                                                @csrf
+                                                                @method('PATCH')
+                                                                <button type="submit" 
+                                                                        class="inline-flex items-center px-3 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 text-xs font-medium rounded-lg transition-colors">
+                                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l4 4 4-4m0 0V4a2 2 0 012-2h4a2 2 0 012 2v4m-6 0a2 2 0 11-4 0 2 2 0 014 0zM8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                    Archive
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    @else
+                                                        <span class="inline-flex items-center px-3 py-2 bg-slate-600/50 text-slate-400 text-xs font-medium rounded-lg">
+                                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8l4 4 4-4m0 0V4a2 2 0 012-2h4a2 2 0 012 2v4m-6 0a2 2 0 11-4 0 2 2 0 014 0zM8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                            Archived
+                                                        </span>
+                                                    @endif
+                                                @else
+                                                    @if($room->status !== 'archived')
+                                                        <a href="{{ route('rooms.invite', $room->invite_code) }}" 
+                                                           class="inline-flex items-center px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-lg transition-colors">
+                                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                            </svg>
+                                                            Join
+                                                        </a>
+                                                    @else
+                                                        <span class="inline-flex items-center px-3 py-2 bg-slate-600/50 text-slate-400 text-xs font-medium rounded-lg">
+                                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 21l-3-3m-2.828-2.828l-1.414-1.414m2.828-2.828l2.828 2.828" />
+                                                            </svg>
+                                                            Archived
+                                                        </span>
+                                                    @endif
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
                                 @endforeach

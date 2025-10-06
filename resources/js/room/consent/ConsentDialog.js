@@ -12,8 +12,11 @@ export class ConsentDialog {
 
     /**
      * Shows a unified consent dialog for any feature type
+     * @param {string} type - The consent type ('stt', 'recording', 'localSave')
+     * @param {Function} onComplete - Callback to execute after consent decision
+     * @param {number} timeoutMs - Timeout in milliseconds (default: 2 minutes)
      */
-    showDialog(type, onComplete) {
+    showDialog(type, onComplete, timeoutMs = 120000) {
         const config = this.getConsentConfig(type);
         
         // Create modal backdrop
@@ -50,15 +53,53 @@ export class ConsentDialog {
 
         document.body.appendChild(backdrop);
 
+        // Set up timeout handler
+        const timeoutSeconds = Math.floor(timeoutMs / 1000);
+        let timeoutId = null;
+        
+        if (timeoutMs > 0) {
+            console.warn(`⏰ Consent dialog will timeout in ${timeoutSeconds} seconds`);
+            console.warn(`⏰ Default action: Decline and redirect to dashboard`);
+            
+            timeoutId = setTimeout(() => {
+                console.error(`⏰ Consent dialog timed out for ${type} after ${timeoutSeconds} seconds`);
+                console.error(`⏰ User did not respond - defaulting to DECLINE`);
+                
+                // Show timeout message
+                if (window.Livewire) {
+                    window.Livewire.dispatch('toast', [{
+                        type: 'error',
+                        message: 'Consent request timed out. Redirecting...',
+                        duration: 5000
+                    }]);
+                }
+                
+                // Remove dialog
+                if (backdrop && backdrop.parentNode) {
+                    backdrop.remove();
+                }
+                
+                // Default to decline and redirect
+                this.roomWebRTC.consentManager.handleConsentDecision(type, false, () => {
+                    // Redirect to dashboard after timeout
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 2000);
+                });
+            }, timeoutMs);
+        }
+
         // Add event listeners
         const acceptButton = document.getElementById(`${type}-consent-accept`);
         const declineButton = document.getElementById(`${type}-consent-deny`);
         
         acceptButton.addEventListener('click', () => {
+            if (timeoutId) clearTimeout(timeoutId);
             this.handleConsentDecision(type, true, backdrop, onComplete);
         });
 
         declineButton.addEventListener('click', () => {
+            if (timeoutId) clearTimeout(timeoutId);
             this.handleConsentDecision(type, false, backdrop, onComplete);
         });
 

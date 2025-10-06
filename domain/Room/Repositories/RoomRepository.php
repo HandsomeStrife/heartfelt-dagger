@@ -248,4 +248,63 @@ class RoomRepository
             ->take($limit)
             ->values();
     }
+
+    /**
+     * Get ready recordings for a room
+     */
+    public function getRoomRecordings(Room $room): Collection
+    {
+        return $room->recordings()
+            ->ready()
+            ->with(['user'])
+            ->byStartTime('desc')
+            ->get();
+    }
+
+    /**
+     * Get transcripts for a room ordered chronologically
+     */
+    public function getRoomTranscripts(Room $room): Collection
+    {
+        return $room->transcripts()
+            ->with(['user'])
+            ->byStartTime('asc')
+            ->get();
+    }
+
+    /**
+     * Get rooms with recordings or transcripts for a campaign
+     */
+    public function getCampaignRoomsWithContent($campaign): Collection
+    {
+        $rooms = Room::with(['creator'])
+            ->withCount(['recordings' => function ($query) {
+                $query->ready();
+            }, 'transcripts'])
+            ->where('campaign_id', $campaign->id)
+            ->having(function ($query) {
+                $query->havingRaw('recordings_count > 0 OR transcripts_count > 0');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $rooms->map(fn ($room) => RoomData::from([
+            'id' => $room->id,
+            'name' => $room->name,
+            'description' => $room->description,
+            'password' => $room->password,
+            'guest_count' => $room->guest_count,
+            'creator_id' => $room->creator_id,
+            'campaign_id' => $room->campaign_id,
+            'invite_code' => $room->invite_code,
+            'viewer_code' => $room->viewer_code,
+            'status' => $room->status,
+            'created_at' => $room->created_at?->toDateTimeString(),
+            'updated_at' => $room->updated_at?->toDateTimeString(),
+            'creator' => $room->creator,
+            'active_participant_count' => $room->active_participants_count,
+            'recordings_count' => $room->recordings_count,
+            'transcripts_count' => $room->transcripts_count,
+        ]));
+    }
 }

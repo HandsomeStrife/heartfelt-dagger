@@ -203,6 +203,7 @@ export default class RoomWebRTC {
 
     /**
      * Leaves the current slot, stopping media and cleaning up connections
+     * Now properly async to handle marker creation and recording cleanup
      */
     async leaveSlot() {
         if (!this.isJoined || !this.currentSlotId) {
@@ -216,7 +217,12 @@ export default class RoomWebRTC {
         const occupant = this.slotOccupants.get(this.currentSlotId);
         if (occupant && occupant.participantData) {
             const participantName = occupant.participantData.character_name || occupant.participantData.username || 'Unknown Player';
-            await this.markerManager.createAutomaticLeaveMarker(participantName);
+            try {
+                await this.markerManager.createAutomaticLeaveMarker(participantName);
+            } catch (error) {
+                console.warn('🏷️ Could not create leave marker:', error);
+                // Continue with leave process even if marker fails
+            }
         }
 
         // Announce we're leaving
@@ -247,31 +253,85 @@ export default class RoomWebRTC {
         // Stop speech recognition
         this.stopSpeechRecognition();
         
-        // Stop video recording
-        this.videoRecorder.stopRecording();
+        // Stop video recording (only if not already stopped)
+        if (this.videoRecorder.isCurrentlyRecording()) {
+            console.log('🎥 Stopping video recording from leaveSlot...');
+            await this.videoRecorder.stopRecording();
+        }
 
         console.log('✅ Successfully left slot');
     }
 
     /**
      * Leaves the room entirely (redirects to room details page)
+     * Now async to properly wait for cleanup operations with timeout
      */
-    leaveRoom() {
+    async leaveRoom() {
         console.log('🚪 Leaving room entirely...');
         
-        // Stop any ongoing recording first
-        if (this.videoRecorder.isCurrentlyRecording()) {
-            console.log('🎥 Stopping recording before leaving room...');
-            this.videoRecorder.stopRecording();
-            // Continue with leaving room (stopRecording now only leaves slot, not room)
+        // Show loading modal immediately
+        if (window.showLeavingModal) {
+            const hasRecording = this.videoRecorder.isCurrentlyRecording();
+            const initialMessage = hasRecording ? 'Finalizing recording...' : 'Cleaning up session...';
+            window.showLeavingModal(initialMessage);
         }
         
-        // Stop speech recognition
-        this.stopSpeechRecognition();
+        // Create a timeout promise (max 5 seconds for cleanup)
+        const timeout = new Promise((resolve) => {
+            setTimeout(() => {
+                console.warn('🚪 ⏰ Cleanup timeout - proceeding with redirect');
+                if (window.updateLeavingModalStatus) {
+                    window.updateLeavingModalStatus('Finishing up...', 'Almost done');
+                }
+                resolve();
+            }, 5000);
+        });
         
-        // Leave current slot if joined
-        if (this.isJoined) {
-            this.leaveSlot();
+        // Create cleanup promise
+        const cleanup = async () => {
+            try {
+                // Stop any ongoing recording first
+                if (this.videoRecorder.isCurrentlyRecording()) {
+                    console.log('🎥 Stopping recording before leaving room...');
+                    if (window.updateLeavingModalStatus) {
+                        window.updateLeavingModalStatus('Finalizing recording...', 'Uploading final segments');
+                    }
+                    await this.videoRecorder.stopRecording();
+                }
+                
+                // Stop speech recognition
+                this.stopSpeechRecognition();
+                
+                // Leave current slot if joined
+                if (this.isJoined) {
+                    if (window.updateLeavingModalStatus) {
+                        window.updateLeavingModalStatus('Creating leave marker...', 'Updating session timeline');
+                    }
+                    await this.leaveSlot();
+                }
+                
+                // Give a brief moment for any final operations to complete
+                console.log('🚪 Waiting for final cleanup operations...');
+                if (window.updateLeavingModalStatus) {
+                    window.updateLeavingModalStatus('Completing cleanup...', 'Just a moment');
+                }
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+            } catch (error) {
+                console.error('🚪 Error during room leave cleanup:', error);
+                if (window.updateLeavingModalStatus) {
+                    window.updateLeavingModalStatus('Finishing up...', 'Encountered issue, completing anyway');
+                }
+                // Continue with redirect even if cleanup fails
+            }
+        };
+        
+        // Race between cleanup and timeout
+        await Promise.race([cleanup(), timeout]);
+        
+        console.log('🚪 Cleanup complete, redirecting...');
+        if (window.updateLeavingModalStatus) {
+            window.updateLeavingModalStatus('Complete!', 'Redirecting...');
         }
         
         // Redirect to room details page using invite_code
