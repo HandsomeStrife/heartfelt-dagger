@@ -149,7 +149,7 @@
         </div>
         
         <div class="container mx-auto px-4 relative z-10">
-            <div class="max-w-5xl mx-auto text-center">
+            <div class="mx-auto text-center">
                 <h2 class="text-3xl sm:text-4xl font-bold text-white mb-6 font-outfit">
                     Join the Adventure
                 </h2>

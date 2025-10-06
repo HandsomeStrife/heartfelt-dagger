@@ -41,7 +41,7 @@
         </x-sub-navigation>
 
         <div class="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
-            <div class="max-w-5xl mx-auto space-y-6">
+            <div class="container mx-auto space-y-6">
                 <!-- Development Notice -->
                 <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3">
                     <div class="flex items-center">
