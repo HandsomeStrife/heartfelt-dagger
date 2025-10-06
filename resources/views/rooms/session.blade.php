@@ -972,6 +972,59 @@
         });
     </script>
 
+    <!-- Recording Error Event Listeners -->
+    <script>
+        // Listen for recording upload errors
+        document.addEventListener('recording-upload-error', (event) => {
+            console.error('🎥 Recording upload error event received:', event.detail);
+            const { filename, error, provider } = event.detail;
+            
+            // Show error in status bar if roomWebRTC is available
+            if (window.roomWebRTC && window.roomWebRTC.statusBarManager) {
+                window.roomWebRTC.statusBarManager.showUploadError(error, provider);
+            } else {
+                console.error('🎥 StatusBarManager not available to display error');
+            }
+        });
+
+        // Listen for recording upload retries
+        document.addEventListener('recording-upload-retrying', (event) => {
+            console.log('🎥 Recording upload retry event received:', event.detail);
+            const { retryCount, maxRetries, provider } = event.detail;
+            
+            // Show retry status in status bar
+            if (window.roomWebRTC && window.roomWebRTC.statusBarManager) {
+                window.roomWebRTC.statusBarManager.showUploadRetry(retryCount, maxRetries, provider);
+            } else {
+                console.warn('🎥 StatusBarManager not available to display retry status');
+            }
+        });
+
+        // Listen for recording upload success (individual chunks)
+        document.addEventListener('recording-upload-chunk-success', (event) => {
+            console.log('🎥 Recording chunk upload success:', event.detail);
+            const { provider } = event.detail;
+            
+            // Clear error state in status bar
+            if (window.roomWebRTC && window.roomWebRTC.statusBarManager) {
+                window.roomWebRTC.statusBarManager.showUploadSuccess(provider);
+            }
+        });
+
+        // Listen for complete recording upload success
+        document.addEventListener('recording-upload-success', (event) => {
+            console.log('🎥 Recording upload completed successfully:', event.detail);
+            const { recording_id, provider } = event.detail;
+            
+            // Clear error state and show success
+            if (window.roomWebRTC && window.roomWebRTC.statusBarManager) {
+                window.roomWebRTC.statusBarManager.showUploadSuccess(provider);
+            }
+        });
+        
+        console.log('🎥 Recording error event listeners registered');
+    </script>
+
     <!-- DICE CONTAINER -->
     <div id="dice-container" class="fixed inset-0" style="pointer-events: none; width: 100vw; height: 100vh; z-index: 9999;">
         <!-- Canvas will be inserted here by dice-box -->

@@ -339,6 +339,12 @@ export class GoogleDriveUploader extends BaseUploader {
                 console.log(`🎯 GOOGLE DRIVE CHUNK ACK: ${acceptedOfThisBlob} bytes | uploadedBytes now: ${this.uploadedBytes}`);
                 this.totalChunks++;
                 this.retryCount = 0; // Reset retry count on success
+                
+                // Emit success event to clear any error states
+                this.emitRecordingEvent('recording-upload-chunk-success', {
+                    chunkSize: acceptedOfThisBlob,
+                    totalUploaded: this.uploadedBytes
+                });
 
                 // Update progress in database
                 await this.updateRecordingProgress({
@@ -389,9 +395,24 @@ export class GoogleDriveUploader extends BaseUploader {
                 const delay = Math.pow(2, this.retryCount) * 1000; // 2s, 4s, 8s
                 console.log(`🎯 RETRYING GOOGLE DRIVE UPLOAD (${this.retryCount}/${this.maxRetries}) after ${delay}ms`);
                 
+                // Emit retry event for UI feedback
+                this.emitRecordingEvent('recording-upload-retrying', {
+                    retryCount: this.retryCount,
+                    maxRetries: this.maxRetries,
+                    error: error.message,
+                    delay: delay
+                });
+                
                 await new Promise(resolve => setTimeout(resolve, delay));
                 return this.uploadChunk(blob, { isFinal }); // Preserve finality on retry
             }
+            
+            // Max retries exceeded - emit final error event
+            console.error(`🎯 MAX RETRIES EXCEEDED (${this.maxRetries}) for Google Drive upload`);
+            this.emitRecordingEvent('recording-upload-error', {
+                filename: this.currentRecordingFilename,
+                error: `Max retries exceeded (${this.maxRetries}): ${error.message}`
+            });
             
             throw error;
         }

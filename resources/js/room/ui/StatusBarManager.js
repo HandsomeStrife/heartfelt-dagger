@@ -208,4 +208,148 @@ export class StatusBarManager {
         alert('Transcript feature coming soon!\n\nFor now, check the browser console for STT output.');
         console.log('🎤 Current speech buffer:', this.roomWebRTC.currentSpeechModule?.getSpeechBuffer?.() || []);
     }
+
+    /**
+     * Shows upload error in status bar
+     * @param {string} errorMessage - Error message to display
+     * @param {string} provider - Storage provider name
+     */
+    showUploadError(errorMessage, provider) {
+        console.error(`🎥 UPLOAD ERROR (${provider}):`, errorMessage);
+        
+        // Update status elements for both layouts
+        this.updateErrorDisplay(errorMessage, provider, 'error');
+        
+        // Show toast notification for critical errors
+        this.showErrorToast(provider, errorMessage);
+    }
+
+    /**
+     * Shows retry status in status bar
+     * @param {number} retryCount - Current retry attempt
+     * @param {number} maxRetries - Maximum retry attempts
+     * @param {string} provider - Storage provider name
+     */
+    showUploadRetry(retryCount, maxRetries, provider) {
+        console.log(`🎥 UPLOAD RETRY (${provider}): ${retryCount}/${maxRetries}`);
+        
+        const retryMessage = `Retrying upload (${retryCount}/${maxRetries})...`;
+        this.updateErrorDisplay(retryMessage, provider, 'retry');
+    }
+
+    /**
+     * Shows upload success (clears error state)
+     * @param {string} provider - Storage provider name
+     */
+    showUploadSuccess(provider) {
+        console.log(`🎥 UPLOAD SUCCESS (${provider})`);
+        
+        // Clear error state
+        this.clearErrorDisplay();
+        
+        // Restore normal status display
+        this.updateRecordingStatus();
+    }
+
+    /**
+     * Updates error display in status bar
+     * @param {string} message - Message to display
+     * @param {string} provider - Storage provider name
+     * @param {string} type - Error type: 'error' or 'retry'
+     */
+    updateErrorDisplay(message, provider, type) {
+        const chunksEl = document.getElementById('recording-chunks') || 
+                        document.getElementById('recording-chunks-normal');
+        
+        if (!chunksEl) return;
+        
+        // Format message based on type
+        let displayMessage = '';
+        let classes = [];
+        
+        if (type === 'error') {
+            displayMessage = `⚠️ ${this.truncateError(message)}`;
+            classes = ['text-red-400', 'font-semibold'];
+        } else if (type === 'retry') {
+            displayMessage = `🔄 ${message}`;
+            classes = ['text-yellow-400', 'font-semibold'];
+        }
+        
+        // Remove old state classes
+        chunksEl.classList.remove('text-red-400', 'text-yellow-400', 'text-slate-400', 'font-semibold');
+        
+        // Add new state classes
+        classes.forEach(cls => chunksEl.classList.add(cls));
+        
+        // Update content
+        chunksEl.textContent = displayMessage;
+    }
+
+    /**
+     * Clears error display from status bar
+     */
+    clearErrorDisplay() {
+        const chunksEl = document.getElementById('recording-chunks') || 
+                        document.getElementById('recording-chunks-normal');
+        
+        if (!chunksEl) return;
+        
+        // Remove error state classes
+        chunksEl.classList.remove('text-red-400', 'text-yellow-400', 'font-semibold');
+        chunksEl.classList.add('text-slate-400');
+    }
+
+    /**
+     * Shows error toast notification
+     * @param {string} provider - Storage provider name
+     * @param {string} errorMessage - Error message
+     */
+    showErrorToast(provider, errorMessage) {
+        const providerName = this.getProviderDisplayName(provider);
+        const truncatedMessage = this.truncateError(errorMessage, 100);
+        
+        // Use Livewire toast if available
+        if (window.Livewire) {
+            try {
+                window.Livewire.dispatch('show-toast', {
+                    type: 'error',
+                    message: `Recording upload to ${providerName} failed: ${truncatedMessage}`,
+                    duration: 10000
+                });
+            } catch (e) {
+                console.warn('Failed to show Livewire toast:', e);
+                // Fallback to console
+                console.error(`Recording upload to ${providerName} failed: ${truncatedMessage}`);
+            }
+        } else {
+            console.error(`Recording upload to ${providerName} failed: ${truncatedMessage}`);
+        }
+    }
+
+    /**
+     * Gets human-readable provider name
+     * @param {string} provider - Provider identifier
+     * @returns {string}
+     */
+    getProviderDisplayName(provider) {
+        const names = {
+            'google_drive': 'Google Drive',
+            'wasabi': 'Wasabi',
+            'local_device': 'Local Device',
+            'local': 'Local Device'
+        };
+        return names[provider] || provider;
+    }
+
+    /**
+     * Truncates error message for display
+     * @param {string} message - Error message
+     * @param {number} maxLength - Maximum length
+     * @returns {string}
+     */
+    truncateError(message, maxLength = 50) {
+        if (!message) return 'Unknown error';
+        if (message.length <= maxLength) return message;
+        return message.substring(0, maxLength) + '...';
+    }
 }

@@ -16,6 +16,10 @@ export class WasabiUploader extends BaseUploader {
         this.uploadedParts = [];
         this.partSizes = [];
         this.isFinalized = false; // Prevent late chunks after finalization
+        
+        // Retry state
+        this.maxRetries = 3;
+        this.chunkRetryCount = new Map(); // Track retries per part number
     }
 
     /**
@@ -95,65 +99,127 @@ export class WasabiUploader extends BaseUploader {
         this.currentPartNumber++;
         const partNumber = this.currentPartNumber;
         
-        console.log(`🎯 UPLOADING WASABI PART ${partNumber}:`, blob.size, 'bytes');
-        
-        // Get signed URL for this part
-        const signResponse = await fetch('/api/uploads/s3/multipart/sign', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': this.getCsrfToken()
-            },
-            body: JSON.stringify({ 
-                uploadId: this.currentMultipartUploadId, 
-                key: this.currentSessionKey, 
-                partNumber, 
-                room_id: this.roomData.id 
-            })
-        });
-
-        if (!signResponse.ok) {
-            throw new Error(`Failed to sign Wasabi part ${partNumber}: ${signResponse.status}`);
+        // Initialize retry count for this part
+        if (!this.chunkRetryCount.has(partNumber)) {
+            this.chunkRetryCount.set(partNumber, 0);
         }
-
-        const { url, headers } = await signResponse.json();
-        console.log(`🎯 SIGNED URL FOR WASABI PART ${partNumber}:`, url);
         
-        // Upload the part directly to Wasabi S3
-        const uploadResponse = await fetch(url, {
-            method: 'PUT',
-            body: blob,
-            headers: headers || {}
-        });
-
-        if (!uploadResponse.ok) {
-            throw new Error(`Failed to upload Wasabi part ${partNumber}: ${uploadResponse.status}`);
-        }
-
-        // Extract ETag from response
-        const etag = uploadResponse.headers.get('ETag') || uploadResponse.headers.get('etag');
-        console.log(`🎯 WASABI PART ${partNumber} UPLOADED, ETAG:`, etag);
+        return this.uploadChunkWithRetry(blob, partNumber);
+    }
+    
+    /**
+     * Upload chunk with retry logic
+     * @param {Blob} blob - Video chunk to upload
+     * @param {number} partNumber - Part number for this chunk
+     */
+    async uploadChunkWithRetry(blob, partNumber) {
+        const retryCount = this.chunkRetryCount.get(partNumber);
         
-        // Store the part info for later completion
-        this.uploadedParts.push({
-            PartNumber: partNumber,
-            ETag: etag
-        });
-        this.partSizes.push(blob.size);
-        this.uploadedBytes += blob.size;
-        this.totalChunks++;
-        
-        // Update recording progress in database
-        if (etag && this.currentRecordingId) {
-            await this.updateRecordingProgress({
-                part_number: partNumber,
-                etag: etag,
-                part_size_bytes: blob.size,
-                ended_at_ms: Date.now()
+        try {
+            console.log(`🎯 UPLOADING WASABI PART ${partNumber}:`, blob.size, 'bytes', retryCount > 0 ? `(retry ${retryCount}/${this.maxRetries})` : '');
+            
+            // Get signed URL for this part
+            const signResponse = await fetch('/api/uploads/s3/multipart/sign', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': this.getCsrfToken()
+                },
+                body: JSON.stringify({ 
+                    uploadId: this.currentMultipartUploadId, 
+                    key: this.currentSessionKey, 
+                    partNumber, 
+                    room_id: this.roomData.id 
+                })
             });
+
+            if (!signResponse.ok) {
+                throw new Error(`Failed to sign Wasabi part ${partNumber}: ${signResponse.status}`);
+            }
+
+            const { url, headers } = await signResponse.json();
+            console.log(`🎯 SIGNED URL FOR WASABI PART ${partNumber}:`, url);
+            
+            // Upload the part directly to Wasabi S3
+            const uploadResponse = await fetch(url, {
+                method: 'PUT',
+                body: blob,
+                headers: headers || {}
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error(`Failed to upload Wasabi part ${partNumber}: ${uploadResponse.status}`);
+            }
+
+            // Extract ETag from response
+            const etag = uploadResponse.headers.get('ETag') || uploadResponse.headers.get('etag');
+            console.log(`🎯 WASABI PART ${partNumber} UPLOADED, ETAG:`, etag);
+            
+            // Store the part info for later completion
+            this.uploadedParts.push({
+                PartNumber: partNumber,
+                ETag: etag
+            });
+            this.partSizes.push(blob.size);
+            this.uploadedBytes += blob.size;
+            this.totalChunks++;
+            
+            // Reset retry count on success
+            this.chunkRetryCount.set(partNumber, 0);
+            
+            // Emit success event to clear any error states
+            this.emitRecordingEvent('recording-upload-chunk-success', {
+                partNumber: partNumber,
+                chunkSize: blob.size,
+                totalUploaded: this.uploadedBytes
+            });
+            
+            // Update recording progress in database
+            if (etag && this.currentRecordingId) {
+                await this.updateRecordingProgress({
+                    part_number: partNumber,
+                    etag: etag,
+                    part_size_bytes: blob.size,
+                    ended_at_ms: Date.now()
+                });
+            }
+            
+            console.log(`🎯 TOTAL WASABI PARTS UPLOADED: ${this.uploadedParts.length}`);
+            
+        } catch (error) {
+            console.error(`🎯 WASABI UPLOAD ERROR for part ${partNumber}:`, error);
+            
+            const currentRetryCount = this.chunkRetryCount.get(partNumber);
+            
+            // Retry logic with exponential backoff
+            if (currentRetryCount < this.maxRetries) {
+                this.chunkRetryCount.set(partNumber, currentRetryCount + 1);
+                const delay = Math.pow(2, currentRetryCount + 1) * 1000; // 2s, 4s, 8s
+                console.log(`🎯 RETRYING WASABI UPLOAD part ${partNumber} (${currentRetryCount + 1}/${this.maxRetries}) after ${delay}ms`);
+                
+                // Emit retry event for UI feedback
+                this.emitRecordingEvent('recording-upload-retrying', {
+                    retryCount: currentRetryCount + 1,
+                    maxRetries: this.maxRetries,
+                    partNumber: partNumber,
+                    error: error.message,
+                    delay: delay
+                });
+                
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return this.uploadChunkWithRetry(blob, partNumber);
+            }
+            
+            // Max retries exceeded - emit final error event
+            console.error(`🎯 MAX RETRIES EXCEEDED (${this.maxRetries}) for Wasabi part ${partNumber}`);
+            this.emitRecordingEvent('recording-upload-error', {
+                filename: this.currentRecordingFilename,
+                partNumber: partNumber,
+                error: `Max retries exceeded (${this.maxRetries}): ${error.message}`
+            });
+            
+            throw error;
         }
-        
-        console.log(`🎯 TOTAL WASABI PARTS UPLOADED: ${this.uploadedParts.length}`);
     }
 
     /**
@@ -247,6 +313,7 @@ export class WasabiUploader extends BaseUploader {
         this.uploadedParts = [];
         this.partSizes = [];
         this.isFinalized = false; // Reset finalization flag for reuse
+        this.chunkRetryCount.clear(); // Clear retry tracking
     }
 
     /**
