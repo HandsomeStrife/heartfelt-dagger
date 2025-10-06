@@ -90,7 +90,6 @@
                         </div>
                         <div class="text-slate-400 text-xs">
                             <span id="recording-duration">00:00</span> • 
-                            <span id="recording-size">0 MB</span> • 
                             <span id="recording-chunks">0 segments</span>
                         </div>
                     </div>
@@ -260,7 +259,6 @@
                         </div>
                         <div class="text-slate-400 text-xs">
                             <span id="recording-duration-normal">00:00</span> • 
-                            <span id="recording-size-normal">0 MB</span> • 
                             <span id="recording-chunks-normal">0 segments</span>
                         </div>
                     </div>

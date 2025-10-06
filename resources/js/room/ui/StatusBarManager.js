@@ -155,13 +155,7 @@ export class StatusBarManager {
         const storageProvider = this.roomWebRTC.roomData.recording_settings?.storage_provider || 'local_device';
         
         // Get cumulative statistics
-        const totalSize = this.roomWebRTC.videoRecorder.getTotalRecordedSize();
-        const totalChunks = this.roomWebRTC.videoRecorder.getTotalChunks();
         const cumulativeStats = this.roomWebRTC.videoRecorder.getCumulativeStats();
-        
-        // Estimate current recording size based on duration and bitrate
-        const estimatedCurrentSize = this.estimateCurrentRecordingSize(duration, totalSize);
-        const sizeText = `${(estimatedCurrentSize / 1024 / 1024).toFixed(1)} MB`;
         
         // For cloud storage, show upload progress; for local storage, show nothing extra
         let displayText = '';
@@ -172,32 +166,10 @@ export class StatusBarManager {
 
         // Update DOM elements (try both campaign and normal layout IDs)
         const durationEl = document.getElementById('recording-duration') || document.getElementById('recording-duration-normal');
-        const sizeEl = document.getElementById('recording-size') || document.getElementById('recording-size-normal');
         const chunksEl = document.getElementById('recording-chunks') || document.getElementById('recording-chunks-normal');
 
         if (durationEl) durationEl.textContent = durationText;
-        if (sizeEl) sizeEl.textContent = sizeText;
         if (chunksEl) chunksEl.textContent = displayText;
-    }
-
-    /**
-     * Estimates current recording size based on duration and existing data
-     */
-    estimateCurrentRecordingSize(currentDurationSeconds, recordedSize) {
-        if (currentDurationSeconds === 0) return 0;
-        
-        // If we have recorded data, calculate average bitrate
-        if (recordedSize > 0) {
-            const recordedDuration = this.roomWebRTC.videoRecorder.getCumulativeStats().totalChunks * 15; // 15 seconds per chunk
-            if (recordedDuration > 0) {
-                const avgBytesPerSecond = recordedSize / recordedDuration;
-                return recordedSize + (avgBytesPerSecond * (currentDurationSeconds - recordedDuration));
-            }
-        }
-        
-        // Fallback: estimate based on typical WebM bitrate (1-2 Mbps for video + audio)
-        const estimatedBytesPerSecond = 200000; // ~1.6 Mbps average
-        return currentDurationSeconds * estimatedBytesPerSecond;
     }
 
     /**
