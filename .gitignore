@@ -30,4 +30,5 @@ docs-dev/*
 public/docs-*
 supporting-docs
 supporting-docs/*
+public/docs-index*
 public/docs-index.json
