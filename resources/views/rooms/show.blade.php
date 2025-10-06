@@ -14,9 +14,19 @@
                         </svg>
                     </a>
                     <div>
-                        <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
-                            {{ $room->name }}
-                        </h1>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-outfit text-lg font-bold text-white tracking-wide">
+                                {{ $room->name }}
+                            </h1>
+                            @if($room->status === \Domain\Room\Enums\RoomStatus::Archived)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                    </svg>
+                                    Archived
+                                </span>
+                            @endif
+                        </div>
                         <p class="text-slate-400 text-xs">
                             {{ \Str::limit($room->description, 50) }}
                         </p>
@@ -24,34 +34,38 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    @if($user_is_creator)
-                        <a href="{{ route('rooms.session', $room) }}" 
-                           class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium rounded-md transition-all duration-200">
-                            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197 2.132A1 1 0 0110 13.82V10.18a1 1 0 011.555-.832l3.197 2.132a1 1 0 010 1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Join Room
-                        </a>
-                        {{-- Only show Share button for non-campaign rooms --}}
-                        @if(!$room->campaign_id)
-                            <button onclick="showModal('roomInviteModal')" 
-                                    class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-sm font-medium rounded-md transition-all duration-200">
+                    @if($room->status === \Domain\Room\Enums\RoomStatus::Archived)
+                        <span class="text-slate-400 text-sm italic">This room has been archived</span>
+                    @else
+                        @if($user_is_creator)
+                            <a href="{{ route('rooms.session', $room) }}" 
+                               class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-sm font-medium rounded-md transition-all duration-200">
                                 <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197 2.132A1 1 0 0110 13.82V10.18a1 1 0 011.555-.832l3.197 2.132a1 1 0 010 1.664z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Share
-                            </button>
+                                Join Room
+                            </a>
+                            {{-- Only show Share button for non-campaign rooms --}}
+                            @if(!$room->campaign_id)
+                                <button onclick="showModal('roomInviteModal')" 
+                                        class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-sm font-medium rounded-md transition-all duration-200">
+                                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                                    </svg>
+                                    Share
+                                </button>
+                            @endif
+                        @elseif($user_is_participant)
+                            <a href="{{ route('rooms.session', $room) }}" 
+                               class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-sm font-medium rounded-md transition-all duration-200">
+                                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197 2.132A1 1 0 0110 13.82V10.18a1 1 0 011.555-.832l3.197 2.132a1 1 0 010 1.664z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Join Session
+                            </a>
                         @endif
-                    @elseif($user_is_participant)
-                        <a href="{{ route('rooms.session', $room) }}" 
-                           class="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-sm font-medium rounded-md transition-all duration-200">
-                            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197 2.132A1 1 0 0110 13.82V10.18a1 1 0 011.555-.832l3.197 2.132a1 1 0 010 1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Join Session
-                        </a>
                     @endif
                 </div>
             </div>
@@ -89,17 +103,49 @@
                     @endif
 
                     @if($user_is_creator)
-                        <div class="mt-4 pt-4 border-t border-slate-700 flex gap-2">
-                            <form action="{{ route('rooms.destroy', $room) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this room? This action cannot be undone.')" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button data-testid="delete-room-button" type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 text-sm font-medium rounded-md transition-all duration-200">
-                                    <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    Delete Room
-                                </button>
-                            </form>
+                        <div class="mt-4 pt-4 border-t border-slate-700">
+                            @if($room->status === \Domain\Room\Enums\RoomStatus::Archived)
+                                <!-- Archived Room Info -->
+                                <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-4">
+                                    <div class="flex items-start">
+                                        <svg class="w-5 h-5 text-amber-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div>
+                                            <h4 class="text-amber-300 font-medium text-sm mb-1">This room is archived</h4>
+                                            <p class="text-slate-300 text-sm">Archived rooms cannot be joined, but all recordings, transcripts, and session data remain accessible. You can still delete the room permanently if needed.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            <div class="flex gap-2">
+                                @if($room->status !== \Domain\Room\Enums\RoomStatus::Archived)
+                                    <!-- Archive Room Button -->
+                                    <form action="{{ route('rooms.archive', $room) }}" method="POST" onsubmit="return confirm('Archive this room? Archived rooms cannot be joined but all recordings and transcripts will be preserved.')" class="inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button data-testid="archive-room-button" type="submit" class="inline-flex items-center px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 text-sm font-medium rounded-md transition-all duration-200">
+                                            <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                            </svg>
+                                            Archive Room
+                                        </button>
+                                    </form>
+                                @endif
+                                
+                                <!-- Delete Room Button (always available to creator) -->
+                                <form action="{{ route('rooms.destroy', $room) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this room? This action cannot be undone.')" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button data-testid="delete-room-button" type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 text-sm font-medium rounded-md transition-all duration-200">
+                                        <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        Delete Room
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     @elseif($user_is_participant)
                         <div class="mt-4 pt-4 border-t border-slate-700">
