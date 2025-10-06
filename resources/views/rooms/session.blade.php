@@ -810,83 +810,6 @@
                 }
             }
         }
-        
-        // Recording validation functionality
-        async function validateRecordingSession() {
-            if (!window.roomData.recording_enabled) {
-                console.log('🎥 Recording not enabled, skipping validation');
-                return true;
-            }
-            
-            try {
-                const response = await fetch(`/api/rooms/${window.roomData.id}/recordings/validate-session`, {
-                    method: 'GET',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    console.error('🎥 Recording validation failed:', response.status);
-                    return false;
-                }
-                
-                const data = await response.json();
-                console.log('🎥 Recording validation result:', data);
-                
-                // If recording is enabled but no entry exists, show error
-                if (data.recording_enabled && !data.recording_entry_exists) {
-                    showRecordingErrorModal();
-                    return false;
-                }
-                
-                return true;
-            } catch (error) {
-                console.error('🎥 Recording validation error:', error);
-                showRecordingErrorModal();
-                return false;
-            }
-        }
-        
-        function showRecordingErrorModal() {
-            const modal = document.createElement('div');
-            modal.id = 'recording-error-modal';
-            modal.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center';
-            modal.innerHTML = `
-                <div class="bg-slate-900/95 backdrop-blur-xl border border-red-500/50 rounded-xl shadow-xl max-w-md mx-4 p-6">
-                    <div class="flex items-center justify-center mb-4">
-                        <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
-                            <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-outfit font-bold text-white text-center mb-3">Recording Issue Detected</h3>
-                    <p class="text-slate-300 text-center mb-6">
-                        Video recording is enabled for this room, but there's an issue with your recording session. 
-                        Please refresh the page to try again.
-                    </p>
-                    <div class="flex space-x-3">
-                        <button onclick="window.location.reload()" class="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-medium transition-colors">
-                            Refresh Page
-                        </button>
-                        <button onclick="closeRecordingErrorModal()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg font-medium transition-colors">
-                            Continue Anyway
-                        </button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-        
-        function closeRecordingErrorModal() {
-            const modal = document.getElementById('recording-error-modal');
-            if (modal) {
-                modal.remove();
-            }
-        }
 
         // Initialize RoomWebRTC when DOM and modules are ready
         let webrtcInitAttempts = 0;
@@ -896,11 +819,8 @@
             if (window.roomData && window.RoomWebRTC) {
                 console.log('🚀 Starting Room WebRTC system');
                 
-                // Validate recording session before initializing WebRTC
-                const recordingValid = await validateRecordingSession();
-                if (!recordingValid) {
-                    console.warn('🎥 Recording validation failed, but continuing with WebRTC initialization');
-                }
+                // Don't validate on initial room entry - only validate when actually starting a recording
+                // The absence of a recording session is normal when first entering a room
                 
                 window.roomWebRTC = new window.RoomWebRTC(window.roomData);
                 
