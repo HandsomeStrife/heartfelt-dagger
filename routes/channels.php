@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Room\Models\Room;
 use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
@@ -15,6 +16,13 @@ Broadcast::channel('video-room.main', function () {
 // Room-specific presence channels for WebRTC signaling
 // Format: room.{roomId}
 Broadcast::channel('room.{roomId}', function ($user, $roomId) {
+    // Verify user has access to this room
+    $room = Room::find($roomId);
+    
+    if (!$room || !$room->canUserAccess($user)) {
+        return false;
+    }
+    
     // Return user info for presence (visible to all in the channel)
     return [
         'id' => $user->id,
