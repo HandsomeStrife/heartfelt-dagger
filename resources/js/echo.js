@@ -3,6 +3,24 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
+// Function to get CSRF token (with fallback)
+function getCsrfToken() {
+    // Try meta tag first
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag) {
+        return metaTag.getAttribute('content');
+    }
+    
+    // Fallback: try to find it in any hidden input (Laravel forms)
+    const csrfInput = document.querySelector('input[name="_token"]');
+    if (csrfInput) {
+        return csrfInput.value;
+    }
+    
+    console.warn('⚠️ CSRF token not found - broadcasting auth may fail');
+    return null;
+}
+
 try {
     // Initialize Laravel Echo with Reverb (uses Pusher protocol)
     window.Echo = new Echo({
@@ -13,10 +31,13 @@ try {
         wssPort: import.meta.env.VITE_REVERB_PORT || 8080,
         forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
         enabledTransports: ['ws', 'wss'],
-        // Generate a unique client ID for this connection
+        // Auth configuration for presence/private channels
+        authEndpoint: '/broadcasting/auth',
         auth: {
             headers: {
-                'X-Socket-ID': 'video-user-' + Math.random().toString(36).substr(2, 9)
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
             }
         }
     });
