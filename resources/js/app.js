@@ -11,17 +11,12 @@ import RoomWebRTC from './room-webrtc';
 import VideoThumbnailGenerator from './video-thumbnail-generator';
 
 // Make room classes globally available for room sessions
-console.log('🎬 Loading RoomUppy and RoomWebRTC...');
 window.RoomUppy = RoomUppy;
 window.RoomWebRTC = RoomWebRTC;
 window.VideoThumbnailGenerator = VideoThumbnailGenerator;
 
 // Create global video thumbnail generator instance
 window.videoThumbnailGenerator = new VideoThumbnailGenerator();
-
-console.log('✅ RoomWebRTC available:', typeof window.RoomWebRTC);
-console.log('✅ VideoThumbnailGenerator available:', typeof window.VideoThumbnailGenerator);
-console.log('✅ videoThumbnailGenerator instance available:', typeof window.videoThumbnailGenerator);
 
 // Character Viewer state module (Alpine)
 import { characterViewerState } from './character';
@@ -56,10 +51,7 @@ import ToastComponent from '../../vendor/usernotnull/tall-toasts/resources/js/ta
 window.Alpine = Alpine;
 
 // Register tall-toasts plugin with Alpine before Livewire starts
-console.log('🔧 Registering ToastComponent plugin...');
 Alpine.plugin(ToastComponent);
-
-console.log('🚀 Starting Livewire...');
 
 // Add error handling for Livewire start to catch plugin conflicts
 try {
