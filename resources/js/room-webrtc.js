@@ -110,7 +110,7 @@ export default class RoomWebRTC {
         this.statusBarManager.setupStatusBarControls();
 
         // Connect to room-specific Ably channel
-        this.ablyManager.connectToAblyChannel();
+        this.ablyManager.connectToChannel();
         
         // Mark initialization as complete
         this.isInitialized = true;
