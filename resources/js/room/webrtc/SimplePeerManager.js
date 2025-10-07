@@ -33,10 +33,10 @@ export class SimplePeerManager {
 
         // Create PeerJS instance
         this.peer = new Peer(this.peerId, {
-            host: window.location.hostname,
-            port: import.meta.env.VITE_PEERJS_PORT || 9000,
+            host: import.meta.env.VITE_PEERJS_HOST || window.location.hostname,
+            port: import.meta.env.VITE_PEERJS_PORT ? parseInt(import.meta.env.VITE_PEERJS_PORT) : 443,
             path: '/peerjs',
-            secure: window.location.protocol === 'https:',
+            secure: (import.meta.env.VITE_PEERJS_SECURE || 'true') === 'true',
             debug: import.meta.env.DEV ? 2 : 0, // Debug level (0-3)
             config: {
                 // Use Cloudflare TURN servers if configured

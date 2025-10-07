@@ -17,7 +17,7 @@
 import { DiagnosticsRunner } from './room/utils/DiagnosticsRunner.js';
 import { PageProtection } from './room/utils/PageProtection.js';
 import { ICEConfigManager } from './room/webrtc/ICEConfigManager.js';
-import { PeerConnectionManager } from './room/webrtc/PeerConnectionManager.js';
+import { SimplePeerManager } from './room/webrtc/SimplePeerManager.js';
 import { MediaManager } from './room/webrtc/MediaManager.js';
 import { SignalingManager as AblyManager } from './room/messaging/SignalingManager.js';
 import { MessageHandler } from './room/messaging/MessageHandler.js';
@@ -57,7 +57,7 @@ export default class RoomWebRTC {
         
         // Initialize core managers
         this.iceManager = new ICEConfigManager();
-        this.peerConnectionManager = new PeerConnectionManager(this);
+        this.simplePeerManager = new SimplePeerManager(this);
         this.mediaManager = new MediaManager(this);
         this.ablyManager = new AblyManager(this);
         this.messageHandler = new MessageHandler(this);
@@ -83,9 +83,6 @@ export default class RoomWebRTC {
         this.diagnosticsRunner = new DiagnosticsRunner(this);
         this.pageProtection = new PageProtection(this);
         
-        // Set up cross-manager references
-        this.iceManager.setPeerConnections(this.peerConnectionManager.getPeerConnections());
-        
         this.init();
     }
 
@@ -94,6 +91,12 @@ export default class RoomWebRTC {
         
         // Mark as initialized for reconnection logic
         this.isInitialized = false;
+        
+        // Initialize SimplePeerManager (PeerJS)
+        await this.simplePeerManager.initialize();
+        
+        // Sync peer ID with SignalingManager
+        this.ablyManager.setCurrentPeerId(this.simplePeerManager.getPeerId());
         
         // Load ICE configuration early (don't await to avoid blocking UI)
         this.iceManager.loadIceServers().catch(error => {
@@ -164,6 +167,9 @@ export default class RoomWebRTC {
             const localStream = this.mediaManager.getLocalStream();
             this.mediaManager.setupLocalVideo(slotContainer, localStream, participantData);
 
+            // Set local stream on SimplePeerManager for PeerJS
+            this.simplePeerManager.setLocalStream(localStream);
+
             // Mark this slot as occupied by us
             this.slotOccupants.set(slotId, {
                 peerId: this.ablyManager.getCurrentPeerId(),
@@ -189,7 +195,7 @@ export default class RoomWebRTC {
                 if (existingSlotId !== slotId && !occupant.isLocal && occupant.peerId) {
                     // Always initiate if we're joining (regardless of peer ID ordering)
                     console.log(`🤝 New joiner initiating connection to existing peer: ${currentPeerId} -> ${occupant.peerId}`);
-                    this.peerConnectionManager.initiateWebRTCConnection(occupant.peerId);
+                    this.simplePeerManager.callPeer(occupant.peerId);
                 }
             }
 
@@ -249,8 +255,9 @@ export default class RoomWebRTC {
         // Stop local stream
         this.mediaManager.stopLocalStream();
 
-        // Close all peer connections
-        this.peerConnectionManager.closeAllConnections();
+        // Close all peer connections (PeerJS)
+        // Note: We don't fully destroy SimplePeerManager, just close active calls
+        this.simplePeerManager.destroy();
 
         // Clear slot occupancy
         this.slotOccupants.delete(this.currentSlotId);
@@ -276,6 +283,68 @@ export default class RoomWebRTC {
         }
 
         console.log('✅ Successfully left slot');
+    }
+
+    /**
+     * Callback for SimplePeerManager when remote stream is received
+     * @param {MediaStream} remoteStream - The remote peer's media stream
+     * @param {string} peerId - The peer ID of the remote participant
+     */
+    handleRemoteStream(remoteStream, peerId) {
+        console.log(`📡 Handling remote stream from peer: ${peerId}`);
+        
+        // Find the slot occupied by this peer
+        let targetSlotId = null;
+        for (const [slotId, occupant] of this.slotOccupants) {
+            if (occupant.peerId === peerId && !occupant.isLocal) {
+                targetSlotId = slotId;
+                break;
+            }
+        }
+
+        if (!targetSlotId) {
+            console.warn(`⚠️ No slot found for peer ${peerId}`);
+            return;
+        }
+
+        // Update the occupant with the stream
+        const occupant = this.slotOccupants.get(targetSlotId);
+        if (occupant) {
+            occupant.stream = remoteStream;
+            this.slotOccupants.set(targetSlotId, occupant);
+        }
+
+        // Display the remote video in the slot
+        const slotContainer = document.querySelector(`[data-slot-id="${targetSlotId}"]`);
+        if (slotContainer) {
+            this.mediaManager.setupRemoteVideo(slotContainer, remoteStream, occupant.participantData);
+        }
+    }
+
+    /**
+     * Callback for SimplePeerManager when peer disconnects
+     * @param {string} peerId - The peer ID that disconnected
+     */
+    handlePeerDisconnected(peerId) {
+        console.log(`📴 Handling peer disconnection: ${peerId}`);
+        
+        // Find and clean up the slot
+        for (const [slotId, occupant] of this.slotOccupants) {
+            if (occupant.peerId === peerId && !occupant.isLocal) {
+                console.log(`🧹 Cleaning up slot ${slotId} for disconnected peer ${peerId}`);
+                
+                // Remove from occupants map
+                this.slotOccupants.delete(slotId);
+                
+                // Reset the slot UI
+                const slotContainer = document.querySelector(`[data-slot-id="${slotId}"]`);
+                if (slotContainer) {
+                    this.slotManager.resetSlotUI(slotContainer);
+                }
+                
+                break;
+            }
+        }
     }
 
     /**
@@ -746,59 +815,29 @@ export default class RoomWebRTC {
     }
 
     /**
-     * Set up debug commands for troubleshooting WebRTC connections
+     * Set up debug commands for troubleshooting WebRTC connections (PeerJS version)
      */
     setupDebugCommands() {
         // Make debug methods available on window for manual testing
         window.roomDebug = {
-            // Diagnose all connections
-            diagnoseAll: async () => {
-                console.log('🔍 Running diagnostics for all connections...');
-                for (const [peerId] of this.peerConnectionManager.getPeerConnections()) {
-                    await this.peerConnectionManager.diagnoseConnection(peerId);
-                }
-            },
-            
-            // Diagnose specific connection
-            diagnose: async (peerId) => {
-                await this.peerConnectionManager.diagnoseConnection(peerId);
-            },
-            
-            // Force TURN retry for a connection
-            forceTurnRetry: (peerId) => {
-                const connection = this.peerConnectionManager.getPeerConnections().get(peerId);
-                if (connection) {
-                    this.peerConnectionManager.retryConnectionWithTurnOnly(peerId, connection);
-                } else {
-                    console.warn(`No connection found for ${peerId}`);
-                }
-            },
-            
-            // Manually refresh a connection
-            refreshConnection: async (peerId) => {
-                await this.peerConnectionManager.refreshConnection(peerId);
-            },
-            
-            // Restart ICE for a connection
-            restartIce: async (peerId) => {
-                const success = await this.peerConnectionManager.restartIce(peerId);
-                console.log(success ? '✅ ICE restart initiated' : '❌ ICE restart not possible (not offerer or no connection)');
-            },
-            
             // Show current room state
             showState: () => {
                 console.log('🏠 Room state:');
                 console.log('  - Slot occupants:', Array.from(this.slotOccupants.entries()));
-                console.log('  - Peer connections:', Array.from(this.peerConnectionManager.getPeerConnections().keys()));
+                console.log('  - PeerJS stats:', this.simplePeerManager.getStats());
                 console.log('  - Current user joined:', this.isJoined);
                 console.log('  - Current slot:', this.currentSlotId);
             },
             
-            // Test ICE configuration
-            testIce: async () => {
-                const config = this.iceManager.getIceConfig();
-                console.log('🧊 Current ICE configuration:', config);
-                console.log('🧊 ICE ready:', this.iceManager.isReady());
+            // Reconnect to a peer (close and reestablish)
+            reconnectPeer: (peerId) => {
+                console.log(`🔄 Reconnecting to peer: ${peerId}`);
+                this.simplePeerManager.closeCall(peerId);
+                
+                // Wait a moment then reconnect
+                setTimeout(() => {
+                    this.simplePeerManager.callPeer(peerId);
+                }, 1000);
             },
             
             // Debug video controls visibility
@@ -824,17 +863,23 @@ export default class RoomWebRTC {
                         } : 'no-button'
                     });
                 });
+            },
+            
+            // Show PeerJS connection stats
+            showPeerStats: () => {
+                const stats = this.simplePeerManager.getStats();
+                console.log('📊 PeerJS Connection Stats:', stats);
+                console.log('  - Peer ID:', stats.peerId);
+                console.log('  - Active calls:', stats.activeCalls);
+                console.log('  - Connected peers:', stats.connectedPeers);
+                console.log('  - Has local stream:', stats.hasLocalStream);
             }
         };
         
         console.log('🐛 Debug commands available:');
-        console.log('  - window.roomDebug.diagnoseAll() - Run diagnostics for all connections');
-        console.log('  - window.roomDebug.diagnose(peerId) - Diagnose specific connection');
-        console.log('  - window.roomDebug.refreshConnection(peerId) - Refresh specific connection (full restart)');
-        console.log('  - window.roomDebug.restartIce(peerId) - Restart ICE for connection (lightweight)');
-        console.log('  - window.roomDebug.forceTurnRetry(peerId) - Force TURN-only retry');
         console.log('  - window.roomDebug.showState() - Show current room state');
-        console.log('  - window.roomDebug.testIce() - Test ICE configuration');
+        console.log('  - window.roomDebug.showPeerStats() - Show PeerJS connection stats');
+        console.log('  - window.roomDebug.reconnectPeer(peerId) - Reconnect to specific peer');
         console.log('  - window.roomDebug.checkVideoControls() - Debug video controls visibility');
     }
 
@@ -929,18 +974,17 @@ export default class RoomWebRTC {
             if (slotId === this.currentSlotId) continue;
             
             const peerId = occupant.peerId;
-            const hasConnection = this.peerConnectionManager.hasActiveConnection(peerId);
-            const connectionState = this.peerConnectionManager.getPeerConnectionState(peerId);
+            const hasConnection = this.simplePeerManager.isConnectedTo(peerId);
             
-            console.log(`  - Slot ${slotId} (${occupant.participantData?.character_name}): ${hasConnection ? `Connected (${connectionState})` : 'MISSING'}`);
+            console.log(`  - Slot ${slotId} (${occupant.participantData?.character_name}): ${hasConnection ? 'Connected' : 'MISSING'}`);
             
-            // If connection is missing or failed, attempt to re-establish
-            if (!hasConnection || connectionState === 'failed' || connectionState === 'disconnected') {
+            // If connection is missing, attempt to re-establish
+            if (!hasConnection) {
                 console.warn(`🔄 Re-establishing connection to slot ${slotId} (${peerId})`);
                 
                 // Small delay to avoid simultaneous reconnection attempts
                 setTimeout(() => {
-                    this.peerConnectionManager.initiateWebRTCConnection(peerId);
+                    this.simplePeerManager.callPeer(peerId);
                 }, Math.random() * 1000); // Random delay 0-1s to prevent race conditions
             }
         }
@@ -961,62 +1005,35 @@ export default class RoomWebRTC {
     }
 
     /**
-     * Checks the health of all connections
+     * Checks the health of all connections (PeerJS version)
+     * PeerJS handles most connection health automatically, so this is simplified
      */
     checkConnectionHealth() {
-        // Check Ably connection
-        const ablyState = window.AblyClient?.connection?.state;
-        if (ablyState !== 'connected') {
-            console.warn('🏥 Health check: Ably not connected:', ablyState);
+        // Check Reverb/Echo connection
+        const reverbState = window.Echo?.connector?.pusher?.connection?.state;
+        if (reverbState !== 'connected') {
+            console.warn('🏥 Health check: Reverb not connected:', reverbState);
             return; // Don't check peer connections if signaling is down
         }
         
-        // Check peer connections
-        let totalConnections = 0;
-        let healthyConnections = 0;
+        // Get PeerJS stats
+        const stats = this.simplePeerManager.getStats();
+        const activePeers = stats.connectedPeers.length;
+        const expectedPeers = Array.from(this.slotOccupants.values()).filter(o => !o.isLocal).length;
         
-        for (const [peerId, connection] of this.peerConnectionManager.getPeerConnections()) {
-            totalConnections++;
-            const state = connection.connectionState;
+        if (activePeers < expectedPeers) {
+            console.warn(`🏥 Health check: Connected to ${activePeers}/${expectedPeers} expected peers`);
             
-            if (state === 'connected') {
-                healthyConnections++;
-                // Reset refresh attempts on successful connection
-                this.refreshAttempts.delete(peerId);
-            } else if (state === 'failed' || state === 'disconnected') {
-                // Implement exponential backoff for refresh attempts
-                const attempts = this.refreshAttempts.get(peerId) || {count: 0, lastAttempt: 0};
-                const now = Date.now();
-                
-                // Calculate backoff time: 1s, 2s, 4s, 8s, 16s
-                const backoffTime = this.refreshBackoffBase * Math.pow(2, attempts.count);
-                
-                if (now - attempts.lastAttempt > backoffTime && attempts.count < this.maxRefreshAttempts) {
-                    console.warn(`🏥 Health check: Unhealthy connection to ${peerId} (${state}) - attempting recovery (${attempts.count + 1}/${this.maxRefreshAttempts})`);
-                    
-                    // After 3 failed attempts, try TURN-only mode as last resort
-                    if (attempts.count >= 3) {
-                        console.warn(`💥 Multiple connection attempts failed for ${peerId} - trying TURN-only mode (last resort)`);
-                        this.peerConnectionManager.retryConnectionWithTurnOnly(peerId, connection);
-                    } else {
-                        // Normal refresh for first 3 attempts
-                        this.peerConnectionManager.refreshConnection(peerId);
-                    }
-                    
-                    // Update attempt tracking
-                    this.refreshAttempts.set(peerId, {
-                        count: attempts.count + 1,
-                        lastAttempt: now
-                    });
-                } else if (attempts.count >= this.maxRefreshAttempts) {
-                    console.error(`🏥 Max refresh attempts reached for ${peerId} - manual intervention needed`);
-                } else {
-                    console.log(`🏥 Connection ${peerId} in backoff: ${Math.round((backoffTime - (now - attempts.lastAttempt)) / 1000)}s remaining`);
+            // Try to reconnect to missing peers
+            for (const [slotId, occupant] of this.slotOccupants) {
+                if (!occupant.isLocal && occupant.peerId && !this.simplePeerManager.isConnectedTo(occupant.peerId)) {
+                    console.log(`🔄 Attempting to reconnect to peer: ${occupant.peerId}`);
+                    this.simplePeerManager.callPeer(occupant.peerId);
                 }
             }
+        } else {
+            console.log(`🏥 Health check: All ${activePeers} peer connections healthy`);
         }
-        
-        console.log(`🏥 Health check: ${healthyConnections}/${totalConnections} connections healthy`);
     }
 
     /**
