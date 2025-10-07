@@ -10,7 +10,6 @@ export class PeerConnectionManager {
         this.roomWebRTC = roomWebRTC;
         this.peerConnections = new Map(); // Map of peerId -> RTCPeerConnection
         this.pendingIce = new Map(); // Map<peerId, RTCIceCandidateInit[]>
-        this.iceCandidateTimers = new Map(); // Rate limiting for ICE candidates
         this.connectionRetryTimers = new Map(); // Track retry attempts
     }
 
@@ -23,7 +22,8 @@ export class PeerConnectionManager {
         const peerConnection = new RTCPeerConnection({
             ...iceConfig,
             // IMPORTANT: Do NOT set iceTransportPolicy:'relay' to allow natural candidate preference
-            // iceCandidatePoolSize: 1, // Optional: pre-gather candidates
+            iceCandidatePoolSize: 0, // Don't pre-gather candidates (VDO.Ninja pattern)
+            bundlePolicy: 'max-bundle', // Optimize media bundling (WebRTC best practice)
         });
         
         this.peerConnections.set(peerId, peerConnection);
@@ -60,16 +60,8 @@ export class PeerConnectionManager {
             this.handleRemoteStream(event.streams[0], peerId);
         };
 
-        // Handle ICE candidates with batching and rate limiting
-        peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                this.batchIceCandidate(peerId, event.candidate);
-            } else {
-                console.log(`🧊 ICE candidate gathering complete for ${peerId}`);
-                // Send any remaining batched candidates
-                this.flushIceCandidates(peerId);
-            }
-        };
+        // Handle ICE candidates - send immediately (VDO.Ninja pattern: no batching)
+        this.setupIceCandidateHandler(peerConnection, peerId);
 
         // Monitor ICE connection state
         peerConnection.oniceconnectionstatechange = () => {
@@ -87,23 +79,28 @@ export class PeerConnectionManager {
                 this.logCandidatePairStats(peerConnection, peerId);
             }
             
-            // Fix #6: Be less aggressive on transient "disconnected"
+            // Handle transient "disconnected" with grace period (consistent with ICE state handling)
             if (state === 'disconnected') {
                 // Clear any existing timeout
-                clearTimeout(peerConnection._disconnectTimeout);
-                // Delay cleanup to allow for reconnection
+                if (peerConnection._disconnectTimeout) {
+                    clearTimeout(peerConnection._disconnectTimeout);
+                }
+                // Delay refresh attempt to allow for reconnection
                 peerConnection._disconnectTimeout = setTimeout(() => {
                     if (peerConnection.connectionState === 'disconnected') {
-                        console.log(`🔗 Cleaning up peer connection after timeout: ${peerId}`);
-                        this.cleanupPeerConnection(peerId);
+                        console.warn(`🔗 Connection still disconnected after grace period for ${peerId} - attempting refresh`);
+                        this.refreshConnection(peerId);
                     }
-                }, 4000); // 4 second delay
+                }, 4000); // 4 second grace period
             } else if (['failed', 'closed'].includes(state)) {
-                console.log(`🔗 Cleaning up peer connection: ${peerId}`);
+                console.warn(`🔗 Connection ${state} for ${peerId} - cleaning up`);
                 this.cleanupPeerConnection(peerId);
             } else if (state === 'connected') {
                 // Clear disconnect timeout if we reconnect
-                clearTimeout(peerConnection._disconnectTimeout);
+                if (peerConnection._disconnectTimeout) {
+                    clearTimeout(peerConnection._disconnectTimeout);
+                    peerConnection._disconnectTimeout = null;
+                }
             }
         };
 
@@ -137,7 +134,7 @@ export class PeerConnectionManager {
             console.log('🔍 ICE gathering state after offer:', peerConnection.iceGatheringState);
             console.log('🔍 ICE connection state after offer:', peerConnection.iceConnectionState);
             
-            // Add timeout for connection establishment with retry logic
+            // Add timeout for connection establishment
             setTimeout(async () => {
                 if (peerConnection.connectionState === 'new' || peerConnection.connectionState === 'connecting') {
                     console.warn(`⏰ WebRTC connection timeout for ${remotePeerId}, state: ${peerConnection.connectionState}`);
@@ -145,8 +142,9 @@ export class PeerConnectionManager {
                     // Run diagnostics to understand why connection failed
                     await this.diagnoseConnection(remotePeerId);
                     
-                    // Try to retry with TURN-only if available
-                    this.retryConnectionWithTurnOnly(remotePeerId, peerConnection);
+                    // Don't automatically force TURN - let health check system handle retries
+                    // TURN-only will be tried only after multiple failed attempts (see health check)
+                    console.log(`🔄 Initial connection attempt timed out - will retry via health check`);
                 }
             }, 15000); // 15 second timeout
             
@@ -170,8 +168,24 @@ export class PeerConnectionManager {
             if (peerConnection) {
                 console.log(`🔄 Existing connection found for ${senderId}, state: ${peerConnection.signalingState}`);
                 
+                // GLARE STATE DETECTION: Check if we're also trying to send an offer
+                if (peerConnection.signalingState === 'have-local-offer') {
+                    console.warn(`🔄 Glare state detected with ${senderId} - both peers sent offers simultaneously`);
+                    
+                    // Use peer ID as tie-breaker: lower peer ID wins
+                    const currentPeerId = this.roomWebRTC.ablyManager.getCurrentPeerId();
+                    if (currentPeerId < senderId) {
+                        console.log(`✅ We win glare tie-breaker (${currentPeerId} < ${senderId}) - ignoring their offer`);
+                        return; // Ignore their offer, keep ours
+                    } else {
+                        console.log(`❌ They win glare tie-breaker (${senderId} < ${currentPeerId}) - accepting their offer`);
+                        // Rollback our offer and accept theirs
+                        this.cleanupPeerConnection(senderId);
+                        peerConnection = this.createPeerConnection(senderId);
+                    }
+                }
                 // If connection is closed or failed, create a new one
-                if (peerConnection.signalingState === 'closed' || peerConnection.connectionState === 'failed') {
+                else if (peerConnection.signalingState === 'closed' || peerConnection.connectionState === 'failed') {
                     console.log(`🔄 Cleaning up failed connection for ${senderId}`);
                     this.cleanupPeerConnection(senderId);
                     peerConnection = this.createPeerConnection(senderId);
@@ -274,57 +288,34 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Handles incoming ICE candidates for peer connections
+     * Handles incoming ICE candidate for peer connection
      */
     async handleIceCandidate(data, senderId) {
         try {
-            console.log(`🧊 Received ICE candidate from ${senderId}:`, data.candidate.type);
-            await this.processIceCandidates([data.candidate], senderId);
-        } catch (error) {
-            this.handleWebRTCError('Failed to handle ICE candidate', error, senderId);
-        }
-    }
-
-    /**
-     * Handles incoming batched ICE candidates for peer connections
-     */
-    async handleIceCandidates(data, senderId) {
-        try {
-            console.log(`🧊 Received ${data.candidates.length} batched ICE candidates from ${senderId}`);
-            await this.processIceCandidates(data.candidates, senderId);
-        } catch (error) {
-            this.handleWebRTCError('Failed to handle batched ICE candidates', error, senderId);
-        }
-    }
-
-    /**
-     * Process ICE candidates (single or batched)
-     */
-    async processIceCandidates(candidates, senderId) {
-        const peerConnection = this.peerConnections.get(senderId);
-        if (!peerConnection) {
-            console.warn(`⚠️ No peer connection found for ICE candidates from ${senderId}`);
-            return;
-        }
-
-        // Fix #3: Queue ICE candidates until remote description is set
-        if (!peerConnection.remoteDescription) {
-            const queue = this.pendingIce.get(senderId) || [];
-            queue.push(...candidates);
-            this.pendingIce.set(senderId, queue);
-            console.log(`🧊 Queued ${candidates.length} ICE candidates for ${senderId} (${queue.length} total pending)`);
-            return;
-        }
-
-        // Add candidates immediately if remote description is set
-        for (const candidate of candidates) {
-            try {
-                await peerConnection.addIceCandidate(candidate);
-                console.log(`🧊 Added ICE candidate from ${senderId}:`, candidate.type);
-            } catch (error) {
-                console.warn(`⚠️ Failed to add ICE candidate from ${senderId}:`, error);
-                // Continue with other candidates
+            const candidate = data.candidate;
+            console.log(`🧊 Received ICE candidate from ${senderId}:`, candidate.type);
+            
+            const peerConnection = this.peerConnections.get(senderId);
+            if (!peerConnection) {
+                console.warn(`⚠️ No peer connection found for ICE candidate from ${senderId}`);
+                return;
             }
+
+            // Queue ICE candidates until remote description is set
+            if (!peerConnection.remoteDescription) {
+                const queue = this.pendingIce.get(senderId) || [];
+                queue.push(candidate);
+                this.pendingIce.set(senderId, queue);
+                console.log(`🧊 Queued ICE candidate for ${senderId} (${queue.length} total pending)`);
+                return;
+            }
+
+            // Add candidate immediately if remote description is set
+            await peerConnection.addIceCandidate(candidate);
+            console.log(`🧊 Added ICE candidate from ${senderId}:`, candidate.type);
+        } catch (error) {
+            console.warn(`⚠️ Failed to add ICE candidate from ${senderId}:`, error);
+            // Non-fatal error - connection establishment may still succeed with other candidates
         }
     }
 
@@ -404,11 +395,97 @@ export class PeerConnectionManager {
                         remoteType: connectionType.remote,
                         protocol: connectionType.localProtocol
                     });
+                    
+                    // Start periodic quality monitoring for this connection
+                    this.startConnectionQualityMonitoring(peerConnection, peerId);
                 }
             });
         } catch (error) {
             console.warn(`🔗 Failed to get candidate pair stats for ${peerId}:`, error);
         }
+    }
+    
+    /**
+     * Monitors connection quality metrics (RTT, packet loss, bandwidth)
+     */
+    async startConnectionQualityMonitoring(peerConnection, peerId) {
+        // Clear any existing quality monitoring interval
+        if (peerConnection._qualityMonitorInterval) {
+            clearInterval(peerConnection._qualityMonitorInterval);
+        }
+        
+        // Monitor quality every 10 seconds
+        peerConnection._qualityMonitorInterval = setInterval(async () => {
+            try {
+                const stats = await peerConnection.getStats();
+                const qualityMetrics = this.extractQualityMetrics(stats);
+                
+                if (qualityMetrics) {
+                    console.log(`📊 Connection quality for ${peerId}:`, qualityMetrics);
+                    
+                    // Warn about poor connection quality
+                    if (qualityMetrics.rtt > 300) {
+                        console.warn(`⚠️ High latency detected for ${peerId}: ${qualityMetrics.rtt}ms RTT`);
+                    }
+                    if (qualityMetrics.packetLoss > 5) {
+                        console.warn(`⚠️ High packet loss detected for ${peerId}: ${qualityMetrics.packetLoss}%`);
+                    }
+                }
+            } catch (error) {
+                console.debug(`📊 Failed to get quality metrics for ${peerId}:`, error);
+            }
+        }, 10000); // Check every 10 seconds
+    }
+    
+    /**
+     * Extracts quality metrics from WebRTC stats
+     */
+    extractQualityMetrics(stats) {
+        let rtt = null;
+        let packetLoss = null;
+        let bandwidth = { audio: 0, video: 0 };
+        let jitter = null;
+        
+        stats.forEach(report => {
+            // RTT from candidate pair
+            if (report.type === 'candidate-pair' && report.selected && report.currentRoundTripTime) {
+                rtt = Math.round(report.currentRoundTripTime * 1000); // Convert to ms
+            }
+            
+            // Inbound RTP stats (receiving)
+            if (report.type === 'inbound-rtp') {
+                if (report.packetsLost && report.packetsReceived) {
+                    const totalPackets = report.packetsLost + report.packetsReceived;
+                    packetLoss = ((report.packetsLost / totalPackets) * 100).toFixed(2);
+                }
+                
+                if (report.jitter) {
+                    jitter = Math.round(report.jitter * 1000); // Convert to ms
+                }
+                
+                // Calculate bandwidth (bytes per second)
+                if (report.bytesReceived && report.timestamp) {
+                    const kind = report.kind || report.mediaType;
+                    if (kind === 'audio') {
+                        bandwidth.audio = Math.round(report.bytesReceived / 1024); // KB
+                    } else if (kind === 'video') {
+                        bandwidth.video = Math.round(report.bytesReceived / 1024); // KB
+                    }
+                }
+            }
+        });
+        
+        // Only return if we have at least some data
+        if (rtt !== null || packetLoss !== null) {
+            return {
+                rtt: rtt || 'N/A',
+                packetLoss: packetLoss || 'N/A',
+                jitter: jitter || 'N/A',
+                bandwidth: bandwidth
+            };
+        }
+        
+        return null;
     }
 
     /**
@@ -440,21 +517,26 @@ export class PeerConnectionManager {
     cleanupPeerConnection(peerId) {
         const connection = this.peerConnections.get(peerId);
         if (connection) {
-            // Clear any disconnect timeout
-            clearTimeout(connection._disconnectTimeout);
+            // Clear all timeout references stored on the peer connection object
+            if (connection._disconnectTimeout) {
+                clearTimeout(connection._disconnectTimeout);
+                connection._disconnectTimeout = null;
+            }
+            if (connection._iceDisconnectTimeout) {
+                clearTimeout(connection._iceDisconnectTimeout);
+                connection._iceDisconnectTimeout = null;
+            }
+            // Clear quality monitoring interval
+            if (connection._qualityMonitorInterval) {
+                clearInterval(connection._qualityMonitorInterval);
+                connection._qualityMonitorInterval = null;
+            }
             connection.close();
             this.peerConnections.delete(peerId);
         }
         
         // Clean up any pending ICE candidates
         this.pendingIce.delete(peerId);
-        
-        // Clean up ICE candidate batching timers
-        const batch = this.iceCandidateTimers.get(peerId);
-        if (batch && batch.timer) {
-            clearTimeout(batch.timer);
-        }
-        this.iceCandidateTimers.delete(peerId);
         
         // Clean up retry timers
         this.connectionRetryTimers.delete(peerId);
@@ -504,6 +586,14 @@ export class PeerConnectionManager {
     }
 
     /**
+     * Gets the connection state for a peer
+     */
+    getPeerConnectionState(peerId) {
+        const connection = this.peerConnections.get(peerId);
+        return connection ? connection.connectionState : null;
+    }
+
+    /**
      * Get the peer connections map (for debugging and management)
      */
     getPeerConnections() {
@@ -526,7 +616,9 @@ export class PeerConnectionManager {
             // Create new connection with TURN-only ICE config
             const turnOnlyConfig = {
                 ...this.roomWebRTC.iceManager.getIceConfig(),
-                iceTransportPolicy: 'relay' // Force TURN-only
+                iceTransportPolicy: 'relay', // Force TURN-only
+                iceCandidatePoolSize: 0,
+                bundlePolicy: 'max-bundle'
             };
             
             const peerConnection = new RTCPeerConnection(turnOnlyConfig);
@@ -561,58 +653,22 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Batch ICE candidates to reduce message frequency and avoid rate limits
+     * Sets up ICE candidate handler - sends candidates immediately (VDO.Ninja pattern)
+     * This method is called for all peer connections to ensure consistent behavior
      */
-    batchIceCandidate(peerId, candidate) {
-        // Initialize candidate batch for this peer if not exists
-        if (!this.iceCandidateTimers.has(peerId)) {
-            this.iceCandidateTimers.set(peerId, {
-                candidates: [],
-                timer: null
-            });
-        }
-
-        const batch = this.iceCandidateTimers.get(peerId);
-        batch.candidates.push(candidate);
-
-        console.log(`🧊 Batching ICE candidate for ${peerId} (${batch.candidates.length} in batch):`, candidate.type);
-
-        // Clear existing timer and set new one
-        if (batch.timer) {
-            clearTimeout(batch.timer);
-        }
-
-        // Send batch after 500ms of no new candidates, or when batch reaches 5 candidates
-        const shouldFlushNow = batch.candidates.length >= 5;
-        const delay = shouldFlushNow ? 0 : 500;
-
-        batch.timer = setTimeout(() => {
-            this.flushIceCandidates(peerId);
-        }, delay);
-    }
-
-    /**
-     * Flush batched ICE candidates for a peer
-     */
-    flushIceCandidates(peerId) {
-        const batch = this.iceCandidateTimers.get(peerId);
-        if (!batch || batch.candidates.length === 0) {
-            return;
-        }
-
-        console.log(`🧊 Flushing ${batch.candidates.length} ICE candidates to ${peerId}`);
-
-        // Send all candidates in a single message
-        this.roomWebRTC.ablyManager.publishToAbly('webrtc-ice-candidates', {
-            candidates: batch.candidates
-        }, peerId);
-
-        // Clear the batch
-        batch.candidates = [];
-        if (batch.timer) {
-            clearTimeout(batch.timer);
-            batch.timer = null;
-        }
+    setupIceCandidateHandler(peerConnection, peerId) {
+        peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                console.log(`🧊 Sending ICE candidate immediately to ${peerId}:`, event.candidate.type);
+                
+                // Send immediately - no batching delay (VDO.Ninja pattern)
+                this.roomWebRTC.ablyManager.publishToAbly('webrtc-ice-candidate', {
+                    candidate: event.candidate
+                }, peerId);
+            } else {
+                console.log(`🧊 ICE candidate gathering complete for ${peerId}`);
+            }
+        };
     }
 
     /**
@@ -631,6 +687,52 @@ export class PeerConnectionManager {
         this.initiateWebRTCConnection(peerId);
         
         console.log(`✅ Connection refresh initiated for ${peerId}`);
+    }
+    
+    /**
+     * Performs ICE restart to recover stale connections without full reconnection
+     * This is lighter weight than refreshConnection() and preserves the peer connection
+     */
+    async restartIce(peerId) {
+        console.log(`🔄 Attempting ICE restart for ${peerId}`);
+        
+        const peerConnection = this.peerConnections.get(peerId);
+        if (!peerConnection) {
+            console.warn(`⚠️ No peer connection found for ICE restart: ${peerId}`);
+            return false;
+        }
+        
+        try {
+            // Check if we're the offerer (have local description with type 'offer')
+            if (peerConnection.localDescription?.type === 'offer') {
+                console.log(`🔄 We are offerer - creating new offer with ICE restart`);
+                
+                // Create new offer with ICE restart flag
+                const offerOptions = {
+                    iceRestart: true,
+                    ...(this.roomWebRTC.roomData.viewer_mode ? 
+                        { offerToReceiveAudio: true, offerToReceiveVideo: true } : {})
+                };
+                
+                const offer = await peerConnection.createOffer(offerOptions);
+                await peerConnection.setLocalDescription(offer);
+                
+                // Send the new offer to the peer
+                this.roomWebRTC.ablyManager.publishToAbly('webrtc-offer', { 
+                    offer,
+                    iceRestart: true 
+                }, peerId);
+                
+                console.log(`✅ ICE restart offer sent to ${peerId}`);
+                return true;
+            } else {
+                console.log(`ℹ️ We are answerer - cannot initiate ICE restart, need full refresh`);
+                return false;
+            }
+        } catch (error) {
+            console.error(`❌ ICE restart failed for ${peerId}:`, error);
+            return false;
+        }
     }
 
     /**
@@ -680,7 +782,8 @@ export class PeerConnectionManager {
     }
 
     /**
-     * Set up event handlers for a peer connection (extracted for reuse)
+     * Set up event handlers for a peer connection (extracted for reuse in TURN retry)
+     * Note: ICE candidate handler is set up separately via setupIceCandidateHandler()
      */
     setupPeerConnectionEventHandlers(peerConnection, peerId) {
         // Handle remote stream
@@ -695,38 +798,72 @@ export class PeerConnectionManager {
             this.handleRemoteStream(event.streams[0], peerId);
         };
 
-        // Handle ICE candidates with rate limiting
-        let lastCandidateTime = 0;
-        peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                const now = Date.now();
-                if (now - lastCandidateTime < 100) {
-                    console.log(`🧊 Rate limiting ICE candidate for ${peerId}`);
-                    return;
-                }
-                lastCandidateTime = now;
-                
-                console.log(`🧊 Sending ICE candidate to ${peerId}:`, event.candidate.type);
-                this.roomWebRTC.ablyManager.publishToAbly('webrtc-ice-candidate', {
-                    candidate: event.candidate
-                }, peerId);
-            } else {
-                console.log(`🧊 ICE candidate gathering complete for ${peerId}`);
-            }
-        };
+        // Set up ICE candidate handler (consistent with createPeerConnection)
+        this.setupIceCandidateHandler(peerConnection, peerId);
 
-        // Monitor connection states
+        // Monitor ICE connection states with grace period for transient disconnections
         peerConnection.oniceconnectionstatechange = () => {
             const iceState = peerConnection.iceConnectionState;
             console.log(`🧊 ICE connection state for ${peerId}: ${iceState}`);
+            
+            // Handle transient disconnections gracefully
+            if (iceState === 'disconnected') {
+                // Clear any existing timeout
+                if (peerConnection._iceDisconnectTimeout) {
+                    clearTimeout(peerConnection._iceDisconnectTimeout);
+                }
+                
+                // Wait 3 seconds before taking action
+                peerConnection._iceDisconnectTimeout = setTimeout(() => {
+                    // Check if still disconnected
+                    if (peerConnection.iceConnectionState === 'disconnected') {
+                        console.warn(`🧊 ICE still disconnected for ${peerId} - attempting refresh`);
+                        this.refreshConnection(peerId);
+                    }
+                }, 3000);
+            } else if (iceState === 'failed') {
+                // Immediate action for failed ICE
+                console.error(`🧊 ICE connection failed for ${peerId} - attempting refresh`);
+                this.refreshConnection(peerId);
+            } else if (iceState === 'connected' || iceState === 'completed') {
+                // Clear any disconnect timeouts if we reconnect
+                if (peerConnection._iceDisconnectTimeout) {
+                    clearTimeout(peerConnection._iceDisconnectTimeout);
+                    peerConnection._iceDisconnectTimeout = null;
+                }
+                console.log(`✅ ICE connection ${iceState} for ${peerId}`);
+            }
         };
 
+        // Monitor general connection state (consistent with createPeerConnection)
         peerConnection.onconnectionstatechange = async () => {
             const state = peerConnection.connectionState;
             console.log(`🔗 Peer connection state: ${state} (${peerId})`);
             
-            if (state === 'failed') {
-                console.warn(`💥 Peer connection failed for ${peerId}`);
+            // Log candidate pair information when connected for telemetry
+            if (state === 'connected' || state === 'completed') {
+                this.logCandidatePairStats(peerConnection, peerId);
+            }
+            
+            // Handle transient "disconnected" with grace period
+            if (state === 'disconnected') {
+                if (peerConnection._disconnectTimeout) {
+                    clearTimeout(peerConnection._disconnectTimeout);
+                }
+                peerConnection._disconnectTimeout = setTimeout(() => {
+                    if (peerConnection.connectionState === 'disconnected') {
+                        console.warn(`🔗 Connection still disconnected after grace period for ${peerId} - attempting refresh`);
+                        this.refreshConnection(peerId);
+                    }
+                }, 4000);
+            } else if (['failed', 'closed'].includes(state)) {
+                console.warn(`🔗 Connection ${state} for ${peerId} - cleaning up`);
+                this.cleanupPeerConnection(peerId);
+            } else if (state === 'connected') {
+                if (peerConnection._disconnectTimeout) {
+                    clearTimeout(peerConnection._disconnectTimeout);
+                    peerConnection._disconnectTimeout = null;
+                }
             }
         };
     }

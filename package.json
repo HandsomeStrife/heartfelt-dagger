@@ -5,6 +5,7 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
+        "peerserver": "node peerserver.js",
         "pw:install": "playwright install --with-deps",
         "test:browser": "node ./vendor/bin/pest --browser",
         "test:unit": "node ./vendor/bin/pest --testsuite=Unit",
@@ -21,6 +22,7 @@
         "concurrently": "^9.0.1",
         "laravel-echo": "^2.2.0",
         "laravel-vite-plugin": "^2.0.0",
+        "peer": "^1.0.2",
         "pusher-js": "^8.4.0",
         "tailwindcss": "^4.1.12",
         "vite": "^7.0.4"
@@ -44,12 +46,12 @@
         "@uppy/dashboard": "^5.0.1",
         "@uppy/golden-retriever": "^5.0.0",
         "@uppy/xhr-upload": "^5.0.0",
-        "ably": "^2.11.0",
         "assemblyai": "^4.16.0",
         "cheerio": "^1.1.2",
         "flexsearch": "^0.8.212",
         "minisearch": "^7.1.2",
         "node-record-lpcm16": "^1.0.1",
+        "peerjs": "^1.5.5",
         "playwright": "^1.55.0"
     }
 }

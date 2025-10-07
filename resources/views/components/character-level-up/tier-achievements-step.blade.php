@@ -107,8 +107,10 @@
                 <p class="text-slate-400">No tier achievements at this level.</p>
                 <p class="text-slate-500 text-sm mt-1">Tier achievements occur at levels 2, 5, and 8.</p>
             </div>
+        @endif
 
-            {{-- Domain Card Selection for non-tier levels --}}
+        {{-- Domain Card Selection (REQUIRED for ALL levels per SRD) --}}
+        @if (!in_array(($character->level ?? 1) + 1, [2, 5, 8]))
             @php
                 $availableCards = $this->getAvailableDomainCards(($character->level ?? 1) + 1);
             @endphp
@@ -124,12 +126,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                     <span>All damage thresholds increase by +1</span>
-                </li>
-                <li class="flex items-center space-x-2">
-                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>Acquire a new domain card at your level or lower</span>
                 </li>
             </ul>
         </div>

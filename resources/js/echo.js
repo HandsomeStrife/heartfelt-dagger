@@ -1,36 +1,74 @@
-import * as Ably from 'ably';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+window.Pusher = Pusher;
 
 try {
-    // Initialize Ably client directly with rate limiting protection
-    window.AblyClient = new Ably.Realtime({
-        key: import.meta.env.VITE_ABLY_PUBLIC_KEY,
-        clientId: 'video-slots-user-' + Math.random().toString(36).substr(2, 9),
-        // Add rate limiting protection
-        maxMessageSize: 65536, // 64KB max message size
-        requestTimeout: 15000, // 15 second timeout
-        realtimeRequestTimeout: 15000
-    });
-    
-    window.AblyClient.connection.on('connected', () => {
-        console.log('✅ Connected to Ably successfully');
-    });
-    
-    window.AblyClient.connection.on('failed', (error) => {
-        console.error('❌ Failed to connect to Ably:', error);
-        if (error.message && error.message.includes('rate limit')) {
-            console.warn('⚠️ Ably connection rate limited - video features may be affected');
+    // Initialize Laravel Echo with Reverb (uses Pusher protocol)
+    window.Echo = new Echo({
+        broadcaster: 'reverb',
+        key: import.meta.env.VITE_REVERB_APP_KEY,
+        wsHost: import.meta.env.VITE_REVERB_HOST || window.location.hostname,
+        wsPort: import.meta.env.VITE_REVERB_PORT || 8080,
+        wssPort: import.meta.env.VITE_REVERB_PORT || 8080,
+        forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+        enabledTransports: ['ws', 'wss'],
+        // Generate a unique client ID for this connection
+        auth: {
+            headers: {
+                'X-Socket-ID': 'video-user-' + Math.random().toString(36).substr(2, 9)
+            }
         }
     });
 
-    window.AblyClient.connection.on('suspended', (error) => {
-        console.warn('⚠️ Ably connection suspended:', error);
+    // Track if this is initial connection or reconnection
+    let hasConnectedBefore = false;
+
+    // Monitor connection states
+    window.Echo.connector.pusher.connection.bind('connected', () => {
+        console.log('✅ Connected to Reverb successfully');
+        
+        // If this is a reconnection, trigger state recovery in RoomWebRTC
+        if (hasConnectedBefore && window.roomWebRTC && window.roomWebRTC.isInitialized) {
+            console.log('🔄 Reverb reconnected - triggering state recovery');
+            window.roomWebRTC.handleAblyReconnected(); // Keep same method name for compatibility
+        }
+        
+        hasConnectedBefore = true;
     });
 
-    window.AblyClient.connection.on('disconnected', (error) => {
-        console.warn('⚠️ Ably connection disconnected:', error);
+    window.Echo.connector.pusher.connection.bind('disconnected', () => {
+        console.warn('⚠️ Reverb connection disconnected');
+        
+        // Notify RoomWebRTC of disconnection
+        if (window.roomWebRTC && window.roomWebRTC.isInitialized) {
+            window.roomWebRTC.handleAblyConnectionLost({ message: 'Reverb disconnected' });
+        }
+    });
+
+    window.Echo.connector.pusher.connection.bind('failed', () => {
+        console.error('❌ Failed to connect to Reverb');
+        
+        // Notify RoomWebRTC of failure
+        if (window.roomWebRTC && window.roomWebRTC.isInitialized) {
+            window.roomWebRTC.handleAblyConnectionFailed({ message: 'Reverb connection failed' });
+        }
+    });
+
+    window.Echo.connector.pusher.connection.bind('unavailable', () => {
+        console.warn('⚠️ Reverb connection unavailable (suspended)');
+        
+        // Notify RoomWebRTC that signaling is suspended
+        if (window.roomWebRTC && window.roomWebRTC.isInitialized) {
+            window.roomWebRTC.handleAblyConnectionSuspended({ message: 'Reverb unavailable' });
+        }
+    });
+
+    window.Echo.connector.pusher.connection.bind('state_change', (states) => {
+        console.log(`🔌 Reverb connection state: ${states.previous} -> ${states.current}`);
     });
     
-    console.log('✅ Ably client initialized successfully');
+    console.log('✅ Reverb/Echo client initialized successfully');
 } catch (error) {
-    console.error('❌ Failed to initialize Ably client:', error);
+    console.error('❌ Failed to initialize Reverb client:', error);
 }

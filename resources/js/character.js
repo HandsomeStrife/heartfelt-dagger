@@ -6,6 +6,7 @@ export function characterViewerState(options = {}) {
     const isAuthenticated = Boolean(options.isAuthenticated);
     const characterKey = String(options.characterKey || '');
     const initialStatus = options.initialStatus;
+    const showLoadingScreenInitial = Boolean(options.showLoadingScreen ?? true);
 
     const hitPointsLen = Number(options.final_hit_points ?? 6);
     const stressLen = Number(options.stress_len ?? 6);
@@ -41,6 +42,7 @@ export function characterViewerState(options = {}) {
     return {
         canEdit: canEditInitial,
         characterKey: characterKey,
+        showLoadingScreen: showLoadingScreenInitial,
         hitPoints: hitPoints,
         stress: stress,
         hope: hope,
@@ -50,6 +52,11 @@ export function characterViewerState(options = {}) {
         goldChest: goldChest,
 
         init() {
+            // Register callback to hide loading screen
+            window.hideLoadingScreenCallback = () => {
+                this.showLoadingScreen = false;
+            };
+            
             if (!isAuthenticated) {
                 try {
                     const storedKeys = JSON.parse(localStorage.getItem('daggerheart_characters') || '[]');

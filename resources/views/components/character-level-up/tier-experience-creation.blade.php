@@ -119,6 +119,7 @@
             
             <div class="flex justify-end mt-4">
                 <button type="button" 
+                        data-test="create-tier-experience"
                         @click="createExperience()"
                         :disabled="!experienceName || experienceName.trim() === ''"
                         :class="(!experienceName || experienceName.trim() === '') ? 'opacity-50 cursor-not-allowed' : ''"

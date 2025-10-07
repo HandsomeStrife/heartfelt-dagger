@@ -24,7 +24,7 @@
                             <div class="flex flex-wrap gap-2 mb-4">
                                 <!-- Level Badge -->
                                 <div class="bg-amber-500/20 border border-amber-500/30 rounded-lg px-3 py-1">
-                                    <span class="text-amber-300 font-semibold">Level 1</span>
+                                    <span class="text-amber-300 font-semibold">Level {{ $character->level ?? 1 }}</span>
                                 </div>
                                 
                                 <!-- Class Badge -->

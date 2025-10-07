@@ -19,7 +19,7 @@ import { PageProtection } from './room/utils/PageProtection.js';
 import { ICEConfigManager } from './room/webrtc/ICEConfigManager.js';
 import { PeerConnectionManager } from './room/webrtc/PeerConnectionManager.js';
 import { MediaManager } from './room/webrtc/MediaManager.js';
-import { AblyManager } from './room/messaging/AblyManager.js';
+import { SignalingManager as AblyManager } from './room/messaging/SignalingManager.js';
 import { MessageHandler } from './room/messaging/MessageHandler.js';
 import { VideoRecorder } from './room/recording/VideoRecorder.js';
 import { StreamingDownloader } from './room/recording/StreamingDownloader.js';
@@ -49,6 +49,11 @@ export default class RoomWebRTC {
         this.currentSpeechModule = null;
         this.isSpeechEnabled = false;
         this.sttPausedForMute = false; // Track if STT was paused due to microphone mute
+        
+        // Connection health state (for refresh rate limiting)
+        this.refreshAttempts = new Map(); // peerId -> {count, lastAttempt}
+        this.maxRefreshAttempts = 5;
+        this.refreshBackoffBase = 1000; // 1 second base
         
         // Initialize core managers
         this.iceManager = new ICEConfigManager();
@@ -87,6 +92,9 @@ export default class RoomWebRTC {
     async init() {
         console.log('🎬 Initializing Room WebRTC for room:', this.roomData.name);
         
+        // Mark as initialized for reconnection logic
+        this.isInitialized = false;
+        
         // Load ICE configuration early (don't await to avoid blocking UI)
         this.iceManager.loadIceServers().catch(error => {
             console.warn('🧊 Non-blocking ICE config load failed:', error);
@@ -103,6 +111,14 @@ export default class RoomWebRTC {
 
         // Connect to room-specific Ably channel
         this.ablyManager.connectToAblyChannel();
+        
+        // Mark initialization as complete
+        this.isInitialized = true;
+        
+        // Start connection health monitoring
+        this.startConnectionHealthMonitoring();
+        
+        console.log('✅ Room WebRTC initialization complete');
     }
 
     /**
@@ -763,6 +779,12 @@ export default class RoomWebRTC {
                 await this.peerConnectionManager.refreshConnection(peerId);
             },
             
+            // Restart ICE for a connection
+            restartIce: async (peerId) => {
+                const success = await this.peerConnectionManager.restartIce(peerId);
+                console.log(success ? '✅ ICE restart initiated' : '❌ ICE restart not possible (not offerer or no connection)');
+            },
+            
             // Show current room state
             showState: () => {
                 console.log('🏠 Room state:');
@@ -807,9 +829,212 @@ export default class RoomWebRTC {
         
         console.log('🐛 Debug commands available:');
         console.log('  - window.roomDebug.diagnoseAll() - Run diagnostics for all connections');
-        console.log('  - window.roomDebug.refreshConnection(peerId) - Refresh specific connection');
+        console.log('  - window.roomDebug.diagnose(peerId) - Diagnose specific connection');
+        console.log('  - window.roomDebug.refreshConnection(peerId) - Refresh specific connection (full restart)');
+        console.log('  - window.roomDebug.restartIce(peerId) - Restart ICE for connection (lightweight)');
+        console.log('  - window.roomDebug.forceTurnRetry(peerId) - Force TURN-only retry');
         console.log('  - window.roomDebug.showState() - Show current room state');
         console.log('  - window.roomDebug.testIce() - Test ICE configuration');
         console.log('  - window.roomDebug.checkVideoControls() - Debug video controls visibility');
+    }
+
+    // ===========================================
+    // ABLY CONNECTION LIFECYCLE MANAGEMENT
+    // ===========================================
+
+    /**
+     * Handles Ably connection suspension
+     */
+    handleAblyConnectionSuspended(error) {
+        console.warn('🔌 Signaling connection suspended - waiting for automatic reconnection');
+        
+        // Show warning to user via status bar
+        if (this.statusBarManager) {
+            this.statusBarManager.showConnectionWarning('Connection interrupted - reconnecting...');
+        }
+    }
+
+    /**
+     * Handles Ably connection loss
+     */
+    handleAblyConnectionLost(error) {
+        console.error('🔌 Signaling connection lost - automatic reconnection will be attempted');
+        
+        // Show error to user
+        if (this.statusBarManager) {
+            this.statusBarManager.showConnectionError('Disconnected from server - reconnecting...');
+        }
+    }
+
+    /**
+     * Handles Ably connection failure
+     */
+    handleAblyConnectionFailed(error) {
+        console.error('🔌 Signaling connection failed:', error);
+        
+        // Show critical error to user
+        if (this.statusBarManager) {
+            this.statusBarManager.showConnectionError('Connection failed - please refresh the page');
+        }
+    }
+
+    /**
+     * Handles Ably reconnection after suspension/disconnection
+     */
+    handleAblyReconnected() {
+        console.log('🔌 Signaling connection restored - recovering room state');
+        
+        // Clear any connection warnings
+        if (this.statusBarManager) {
+            this.statusBarManager.clearConnectionWarnings();
+        }
+        
+        // Step 1: Request current room state from other users
+        console.log('🔄 Step 1: Requesting current room state');
+        this.ablyManager.publishToAbly('request-state', {
+            requesterId: this.ablyManager.getCurrentPeerId()
+        });
+        
+        // Step 2: Re-announce our presence if we're in a slot
+        if (this.isJoined && this.currentSlotId) {
+            console.log('🔄 Step 2: Re-announcing our presence');
+            const participantData = this.roomData.participants.find(p => p.user_id === this.currentUserId);
+            
+            setTimeout(() => {
+                this.ablyManager.publishToAbly('user-joined', {
+                    slotId: this.currentSlotId,
+                    participantData: participantData
+                });
+            }, 500); // Small delay to let state requests process first
+        }
+        
+        // Step 3: Check for missing peer connections and attempt to re-establish
+        setTimeout(() => {
+            console.log('🔄 Step 3: Checking for missing peer connections');
+            this.verifyPeerConnections();
+        }, 2000); // Delay to allow state sync
+        
+        console.log('✅ Ably reconnection recovery complete');
+    }
+
+    /**
+     * Verifies that all expected peer connections exist and are healthy
+     */
+    verifyPeerConnections() {
+        console.log('🔍 Verifying peer connections...');
+        
+        // Check each slot occupant
+        for (const [slotId, occupant] of this.slotOccupants.entries()) {
+            // Skip our own slot
+            if (slotId === this.currentSlotId) continue;
+            
+            const peerId = occupant.peerId;
+            const hasConnection = this.peerConnectionManager.hasActiveConnection(peerId);
+            const connectionState = this.peerConnectionManager.getPeerConnectionState(peerId);
+            
+            console.log(`  - Slot ${slotId} (${occupant.participantData?.character_name}): ${hasConnection ? `Connected (${connectionState})` : 'MISSING'}`);
+            
+            // If connection is missing or failed, attempt to re-establish
+            if (!hasConnection || connectionState === 'failed' || connectionState === 'disconnected') {
+                console.warn(`🔄 Re-establishing connection to slot ${slotId} (${peerId})`);
+                
+                // Small delay to avoid simultaneous reconnection attempts
+                setTimeout(() => {
+                    this.peerConnectionManager.initiateWebRTCConnection(peerId);
+                }, Math.random() * 1000); // Random delay 0-1s to prevent race conditions
+            }
+        }
+        
+        console.log('✅ Peer connection verification complete');
+    }
+
+    /**
+     * Starts connection health monitoring
+     */
+    startConnectionHealthMonitoring() {
+        // Check connection health every 30 seconds
+        this.connectionHealthInterval = setInterval(() => {
+            this.checkConnectionHealth();
+        }, 30000);
+        
+        console.log('🏥 Connection health monitoring started');
+    }
+
+    /**
+     * Checks the health of all connections
+     */
+    checkConnectionHealth() {
+        // Check Ably connection
+        const ablyState = window.AblyClient?.connection?.state;
+        if (ablyState !== 'connected') {
+            console.warn('🏥 Health check: Ably not connected:', ablyState);
+            return; // Don't check peer connections if signaling is down
+        }
+        
+        // Check peer connections
+        let totalConnections = 0;
+        let healthyConnections = 0;
+        
+        for (const [peerId, connection] of this.peerConnectionManager.getPeerConnections()) {
+            totalConnections++;
+            const state = connection.connectionState;
+            
+            if (state === 'connected') {
+                healthyConnections++;
+                // Reset refresh attempts on successful connection
+                this.refreshAttempts.delete(peerId);
+            } else if (state === 'failed' || state === 'disconnected') {
+                // Implement exponential backoff for refresh attempts
+                const attempts = this.refreshAttempts.get(peerId) || {count: 0, lastAttempt: 0};
+                const now = Date.now();
+                
+                // Calculate backoff time: 1s, 2s, 4s, 8s, 16s
+                const backoffTime = this.refreshBackoffBase * Math.pow(2, attempts.count);
+                
+                if (now - attempts.lastAttempt > backoffTime && attempts.count < this.maxRefreshAttempts) {
+                    console.warn(`🏥 Health check: Unhealthy connection to ${peerId} (${state}) - attempting recovery (${attempts.count + 1}/${this.maxRefreshAttempts})`);
+                    
+                    // After 3 failed attempts, try TURN-only mode as last resort
+                    if (attempts.count >= 3) {
+                        console.warn(`💥 Multiple connection attempts failed for ${peerId} - trying TURN-only mode (last resort)`);
+                        this.peerConnectionManager.retryConnectionWithTurnOnly(peerId, connection);
+                    } else {
+                        // Normal refresh for first 3 attempts
+                        this.peerConnectionManager.refreshConnection(peerId);
+                    }
+                    
+                    // Update attempt tracking
+                    this.refreshAttempts.set(peerId, {
+                        count: attempts.count + 1,
+                        lastAttempt: now
+                    });
+                } else if (attempts.count >= this.maxRefreshAttempts) {
+                    console.error(`🏥 Max refresh attempts reached for ${peerId} - manual intervention needed`);
+                } else {
+                    console.log(`🏥 Connection ${peerId} in backoff: ${Math.round((backoffTime - (now - attempts.lastAttempt)) / 1000)}s remaining`);
+                }
+            }
+        }
+        
+        console.log(`🏥 Health check: ${healthyConnections}/${totalConnections} connections healthy`);
+    }
+
+    /**
+     * Stops connection health monitoring
+     */
+    stopConnectionHealthMonitoring() {
+        if (this.connectionHealthInterval) {
+            clearInterval(this.connectionHealthInterval);
+            this.connectionHealthInterval = null;
+            console.log('🏥 Connection health monitoring stopped');
+        }
+    }
+
+    /**
+     * Cleanup method to stop monitoring when leaving room
+     */
+    cleanup() {
+        this.stopConnectionHealthMonitoring();
+        // ... other cleanup
     }
 }

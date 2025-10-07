@@ -40,9 +40,6 @@ export class MessageHandler {
             case 'webrtc-ice-candidate':
                 this.handleIceCandidate(data, senderId);
                 break;
-            case 'webrtc-ice-candidates':
-                this.handleIceCandidates(data, senderId);
-                break;
             case 'fear-updated':
                 this.handleFearUpdate(data, senderId);
                 break;
@@ -99,16 +96,25 @@ export class MessageHandler {
             if (shouldInitiate) {
                 console.log(`🤝 Initiating connection: ${currentPeerId} -> ${senderId} (peer ID precedence)`);
                 this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
+                
+                // FALLBACK: Even for initiator, check if connection established after 10 seconds
+                setTimeout(() => {
+                    const connectionState = this.roomWebRTC.peerConnectionManager.getPeerConnectionState(senderId);
+                    if (connectionState !== 'connected') {
+                        console.warn(`🔄 Initial connection didn't establish properly (state: ${connectionState}) - attempting refresh`);
+                        this.roomWebRTC.peerConnectionManager.refreshConnection(senderId);
+                    }
+                }, 10000); // 10 second timeout for initial connection
             } else {
                 console.log(`⏳ Waiting for connection: ${senderId} -> ${currentPeerId} (peer ID precedence)`);
                 
-                // FALLBACK: If no connection after 5 seconds, ignore peer ID ordering and initiate anyway
+                // FALLBACK: If no connection after 2 seconds, ignore peer ID ordering and initiate anyway (VDO.Ninja pattern)
                 setTimeout(() => {
                     if (!this.roomWebRTC.peerConnectionManager.hasActiveConnection(senderId)) {
                         console.log(`🔄 Fallback: ${currentPeerId} -> ${senderId} (timeout override)`);
                         this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
                     }
-                }, 5000);
+                }, 2000); // Reduced from 5000ms to 2000ms to match VDO.Ninja
             }
         } 
         // Viewer mode: Always initiate receive-only connections to see all participants (ignore peer ID ordering)

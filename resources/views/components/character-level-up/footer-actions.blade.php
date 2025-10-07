@@ -23,6 +23,7 @@
         </button>
         
         <button type="button" @click="nextStep()"
+                data-test="level-up-continue"
                 x-show="currentStep !== 'confirmation'"
                 :disabled="!canGoNext()"
                 :class="!canGoNext() ? 'opacity-50 cursor-not-allowed' : ''"

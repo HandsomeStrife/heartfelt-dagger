@@ -132,30 +132,28 @@ class CharacterLevelUp extends Component
         }
 
         $target_level = $this->character->level + 1;
+        $is_tier_achievement_level = in_array($target_level, [2, 5, 8]);
 
-        // Only levels 2, 5, 8 have tier achievement requirements
-        if (! in_array($target_level, [2, 5, 8])) {
-            return true; // No requirements for other levels
-        }
-
-        $hasExperience = isset($this->advancement_choices['tier_experience']) &&
-                        ! empty($this->advancement_choices['tier_experience']);
-
+        // Check for domain card selection (REQUIRED FOR ALL LEVELS per SRD Step Four)
         $hasDomainCard = isset($this->advancement_choices['tier_domain_card']) &&
                         ! empty($this->advancement_choices['tier_domain_card']);
 
-        // Check if experience is created for tier achievement levels
-        if (! $hasExperience) {
-            session()->flash('error', 'Please create your tier achievement experience before proceeding.');
+        if (! $hasDomainCard) {
+            session()->flash('error', 'Please select your domain card before proceeding.');
 
             return false;
         }
 
-        // Check if tier domain card is selected for tier achievement levels
-        if (! $hasDomainCard) {
-            session()->flash('error', 'Please select your tier achievement domain card before proceeding.');
+        // Check for experience creation (ONLY for tier achievement levels 2, 5, 8)
+        if ($is_tier_achievement_level) {
+            $hasExperience = isset($this->advancement_choices['tier_experience']) &&
+                            ! empty($this->advancement_choices['tier_experience']);
 
-            return false;
+            if (! $hasExperience) {
+                session()->flash('error', 'Please create your tier achievement experience before proceeding.');
+
+                return false;
+            }
         }
 
         return true;
@@ -378,9 +376,15 @@ class CharacterLevelUp extends Component
                 'level' => $target_level,
                 'proficiency' => $new_proficiency,
             ]);
+        } else {
+            // For non-tier-achievement levels, just increment level
+            $this->character->update([
+                'level' => $target_level,
+            ]);
         }
 
-        // Apply domain card selection (required for ALL levels)
+        // Apply domain card selection (required for ALL levels per SRD Step Four)
+        // "Acquire a new domain card at your level or lower from one of your class's domains"
         if (isset($this->advancement_choices['tier_domain_card'])) {
             $this->createDomainCard($this->advancement_choices['tier_domain_card']);
         }

@@ -324,4 +324,61 @@ export class StatusBarManager {
         if (message.length <= maxLength) return message;
         return message.substring(0, maxLength) + '...';
     }
+
+    /**
+     * Shows connection warning in status bar
+     * @param {string} message - Warning message
+     */
+    showConnectionWarning(message) {
+        const statusElement = document.getElementById('recording-status') || document.getElementById('recording-status-normal');
+        if (!statusElement) return;
+        
+        // Find or create warning element
+        let warningElement = statusElement.querySelector('.connection-warning');
+        if (!warningElement) {
+            warningElement = document.createElement('span');
+            warningElement.className = 'connection-warning text-yellow-400 text-sm ml-2';
+            statusElement.appendChild(warningElement);
+        }
+        
+        warningElement.textContent = message;
+        console.warn('🔌 Connection warning:', message);
+    }
+
+    /**
+     * Shows connection error in status bar
+     * @param {string} message - Error message
+     */
+    showConnectionError(message) {
+        const statusElement = document.getElementById('recording-status') || document.getElementById('recording-status-normal');
+        if (!statusElement) return;
+        
+        // Find or create error element
+        let errorElement = statusElement.querySelector('.connection-error');
+        if (!errorElement) {
+            errorElement = document.createElement('span');
+            errorElement.className = 'connection-error text-red-400 text-sm ml-2';
+            statusElement.appendChild(errorElement);
+        }
+        
+        errorElement.textContent = message;
+        console.error('🔌 Connection error:', message);
+    }
+
+    /**
+     * Clears connection warnings/errors from status bar
+     */
+    clearConnectionWarnings() {
+        const statusElement = document.getElementById('recording-status') || document.getElementById('recording-status-normal');
+        if (!statusElement) return;
+        
+        // Remove warning and error elements
+        const warningElement = statusElement.querySelector('.connection-warning');
+        const errorElement = statusElement.querySelector('.connection-error');
+        
+        if (warningElement) warningElement.remove();
+        if (errorElement) errorElement.remove();
+        
+        console.log('✅ Connection warnings cleared');
+    }
 }

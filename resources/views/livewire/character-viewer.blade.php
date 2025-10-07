@@ -6,12 +6,18 @@
     stress_len: @js($computed_stats['stress'] ?? 6),
     armor_score: @js($computed_stats['armor_score'] ?? 0),
     hope: @js($computed_stats['hope'] ?? 2),
-    initialStatus: @js($character_status ? $character_status->toAlpineState() : null)
+    initialStatus: @js($character_status ? $character_status->toAlpineState() : null),
+    showLoadingScreen: true
 })" class="bg-slate-950 text-slate-100/95 antialiased min-h-screen relative"
     style="font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';">
 
     <!-- LOADING SCREEN -->
-    <div id="character-loading-screen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center">
+    <div x-show="showLoadingScreen" 
+         x-transition:leave="transition ease-out duration-500"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         id="character-loading-screen" 
+         class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center">
         <div class="text-center">
             <div class="mb-6">
                 <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-2 border-amber-500"></div>
@@ -129,17 +135,17 @@
             console.warn('Dice library not loaded yet; setupDiceCallbacks stub invoked.');
         };
         
-
-        // Function to hide loading screen with smooth animation
+        // Create a callback that Alpine can register
+        window.hideLoadingScreenCallback = null;
+        
+        // Function to hide loading screen via callback
         function hideLoadingScreen() {
-            const loadingScreen = document.getElementById('character-loading-screen');
-            if (loadingScreen) {
-                loadingScreen.style.transition = 'opacity 0.5s ease-out';
-                loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                }, 500);
-                console.log('Loading screen hidden');
+            console.log('Attempting to hide loading screen...');
+            if (window.hideLoadingScreenCallback) {
+                window.hideLoadingScreenCallback();
+                console.log('Loading screen hidden via callback');
+            } else {
+                console.warn('Loading screen callback not yet registered');
             }
         }
 
