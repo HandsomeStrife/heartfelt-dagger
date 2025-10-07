@@ -39,6 +39,35 @@ try {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
             }
+        },
+        // Ensure cookies (session) are sent with auth requests
+        authorizer: (channel, options) => {
+            return {
+                authorize: (socketId, callback) => {
+                    fetch(options.authEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': getCsrfToken(),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include', // This ensures cookies are sent
+                        body: JSON.stringify({
+                            socket_id: socketId,
+                            channel_name: channel.name
+                        })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Auth failed with status ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => callback(null, data))
+                    .catch(error => callback(error, null));
+                }
+            };
         }
     });
 
