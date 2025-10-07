@@ -94,17 +94,20 @@ export class StreamingDownloader {
             // Force save the recording
             try {
                 this.finalizeDownload();
-                
-                // Stop recording after save
-                if (this.roomWebRTC.videoRecorder?.isCurrentlyRecording()) {
-                    this.roomWebRTC.videoRecorder.stopRecording();
-                }
-                
-                throw new Error(`Recording memory limit exceeded (${limitGB}GB) - file auto-saved and recording stopped`);
             } catch (finalizeError) {
                 console.error('🚨 Failed to auto-save recording:', finalizeError);
-                throw finalizeError;
             }
+            
+            // CRITICAL FIX: Stop recording BEFORE throwing
+            // Fire-and-forget since we're in synchronous context (can't await here)
+            if (this.roomWebRTC.videoRecorder?.isCurrentlyRecording()) {
+                console.error('🚨 Emergency stop: Stopping recording due to memory limit');
+                this.roomWebRTC.videoRecorder.stopRecording().catch(err => {
+                    console.error('🚨 Error during emergency recording stop:', err);
+                });
+            }
+            
+            throw new Error(`Recording memory limit exceeded (${limitGB}GB) - file auto-saved and recording stopped`);
         }
         
         // Also add to video recorder for compatibility

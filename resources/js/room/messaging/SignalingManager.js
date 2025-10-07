@@ -87,10 +87,16 @@ export class SignalingManager {
         // Request current state from other users in this room
         setTimeout(() => {
             console.log('📡 Requesting current room state...');
+            
+            // CRITICAL: Peer ID must be set BEFORE connecting to channel
+            // Don't generate it here - it should already be set by room-webrtc.js
             if (!this.currentPeerId) {
-                this.currentPeerId = this.generatePeerId();
-                console.log(`🆔 Generated peer ID: ${this.currentPeerId}`);
+                console.error('❌ CRITICAL: Peer ID not set before connecting to channel!');
+                console.error('❌ This indicates an initialization order bug in room-webrtc.js');
+                throw new Error('Peer ID must be set before connecting to Reverb channel');
             }
+            
+            console.log(`🆔 Using peer ID: ${this.currentPeerId}`);
             
             this.publishMessage('request-state', {
                 requesterId: this.currentPeerId,
@@ -102,10 +108,15 @@ export class SignalingManager {
     /**
      * Publishes a WebRTC signaling message to the Reverb channel
      * 
-     * Uses client events (whisper) for fast peer-to-peer communication
-     * without server-side processing overhead.
+     * CRITICAL: Uses server-side broadcast for reliable delivery
+     * Laravel Reverb docs explicitly state whisper is for "ephemeral, unreliable" messages.
+     * One dropped signaling message = broken WebRTC connection.
+     * 
+     * @param {string} type - Message type (e.g., 'user-joined', 'webrtc-offer')
+     * @param {object} data - Message payload
+     * @param {string|null} targetPeerId - Optional specific peer to target
      */
-    publishMessage(type, data, targetPeerId = null) {
+    async publishMessage(type, data, targetPeerId = null) {
         if (!this.channel) {
             console.warn('❌ Reverb channel not ready');
             return;
@@ -115,17 +126,46 @@ export class SignalingManager {
             type: type,
             data: data,
             senderId: this.currentPeerId || 'anonymous',
-            userId: this.roomWebRTC.currentUserId,
-            roomId: this.roomWebRTC.roomData.id,
-            targetPeerId: targetPeerId,
-            timestamp: Date.now()
+            targetPeerId: targetPeerId
         };
 
-        // Use whisper for client-to-client events (faster, no server processing)
-        // This is perfect for WebRTC signaling where server doesn't need to process
-        this.channel.whisper('webrtc-signal', message);
-        
-        console.log(`📤 Published ${type} to room channel`, targetPeerId ? `(to ${targetPeerId})` : '(broadcast)');
+        try {
+            // Use server-side endpoint for reliable delivery
+            const response = await fetch(`/api/rooms/${this.roomWebRTC.roomData.id}/webrtc-signal`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(message)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server signaling failed: ${response.status} ${response.statusText}`);
+            }
+
+            console.log(`✅ Signaling message sent via server: ${type}`, targetPeerId ? `(to ${targetPeerId})` : '(broadcast)');
+        } catch (error) {
+            console.error('❌ Server-side signaling failed:', error);
+            
+            // FALLBACK: Use whisper as last resort
+            // This is not ideal, but better than complete failure
+            console.warn('⚠️ Falling back to unreliable whisper method');
+            try {
+                this.channel.whisper('webrtc-signal', {
+                    ...message,
+                    userId: this.roomWebRTC.currentUserId,
+                    roomId: this.roomWebRTC.roomData.id,
+                    timestamp: Date.now(),
+                    fallback: true
+                });
+                console.log(`⚠️ Signaling message sent via whisper fallback: ${type}`);
+            } catch (whisperError) {
+                console.error('❌ Whisper fallback also failed:', whisperError);
+                console.error('❌ CRITICAL: Unable to send signaling message. Connection may fail.');
+            }
+        }
     }
 
     /**
@@ -136,10 +176,25 @@ export class SignalingManager {
     }
 
     /**
-     * Generates a unique peer ID for this session
+     * Generates a collision-resistant peer ID
+     * Combines user ID, timestamp, and random component for uniqueness
      */
     generatePeerId() {
-        return Math.random().toString(36).substr(2, 9);
+        const userId = this.roomWebRTC.currentUserId || 'anon';
+        const timestamp = Date.now();
+        
+        // Use crypto.randomUUID if available, otherwise fallback to polyfill
+        let randomComponent;
+        if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+            randomComponent = crypto.randomUUID().split('-')[0]; // Take first segment
+        } else {
+            // Fallback polyfill for UUID v4
+            randomComponent = 'xxxxxxxx'.replace(/[x]/g, () => {
+                return (Math.random() * 16 | 0).toString(16);
+            });
+        }
+        
+        return `${userId}-${timestamp}-${randomComponent}`;
     }
 
     /**

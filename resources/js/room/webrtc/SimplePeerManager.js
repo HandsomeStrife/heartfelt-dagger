@@ -17,6 +17,19 @@ export class SimplePeerManager {
         this.calls = new Map(); // Map of peerId -> MediaConnection
         this.localStream = null;
         this.isInitialized = false;
+        
+        // Retry logic state
+        this.retryAttempts = new Map(); // Map of peerId -> attempt count
+        this.maxRetries = 3;
+        this.retryBaseDelay = 1000; // 1 second base delay
+        
+        // CRITICAL FIX: Store event handler references for proper cleanup
+        this.eventHandlers = {
+            open: null,
+            call: null,
+            disconnected: null,
+            error: null
+        };
     }
 
     /**
@@ -80,28 +93,47 @@ export class SimplePeerManager {
 
     /**
      * Setup PeerJS event handlers
+     * CRITICAL FIX: Store handler references for proper cleanup
      */
     setupEventHandlers() {
         // Connection to PeerServer opened
-        this.peer.on('open', (id) => {
+        this.eventHandlers.open = (id) => {
             console.log(`✅ Connected to PeerServer with ID: ${id}`);
             this.peerId = id;
-        });
+        };
+        this.peer.on('open', this.eventHandlers.open);
 
         // Incoming call from another peer
-        this.peer.on('call', (call) => {
+        this.eventHandlers.call = (call) => {
             console.log(`📞 Incoming call from: ${call.peer}`);
             this.handleIncomingCall(call);
-        });
+        };
+        this.peer.on('call', this.eventHandlers.call);
 
         // Connection to PeerServer closed
-        this.peer.on('disconnected', () => {
+        this.eventHandlers.disconnected = () => {
             console.warn('⚠️ Disconnected from PeerServer - attempting reconnect...');
-            // PeerJS will automatically attempt to reconnect
-        });
+            
+            // CRITICAL FIX: PeerJS doesn't always auto-reconnect
+            // We must manually call reconnect() after a brief delay
+            setTimeout(() => {
+                // Check if still disconnected
+                if (this.peer && this.peer.disconnected) {
+                    console.log('🔄 Manually reconnecting to PeerServer...');
+                    try {
+                        this.peer.reconnect();
+                    } catch (error) {
+                        console.error('❌ Manual reconnection failed:', error);
+                    }
+                } else {
+                    console.log('✅ Already reconnected automatically');
+                }
+            }, 1000); // Wait 1 second before attempting manual reconnect
+        };
+        this.peer.on('disconnected', this.eventHandlers.disconnected);
 
         // Error handling
-        this.peer.on('error', (error) => {
+        this.eventHandlers.error = (error) => {
             console.error('❌ PeerJS error:', error);
             
             // Handle specific error types
@@ -118,7 +150,8 @@ export class SimplePeerManager {
                 default:
                     console.error('Unknown PeerJS error:', error);
             }
-        });
+        };
+        this.peer.on('error', this.eventHandlers.error);
     }
 
     /**
@@ -181,14 +214,56 @@ export class SimplePeerManager {
             this.handleCallClose(remotePeerId);
         });
 
-        // Handle call errors
+        // Handle call errors with retry logic
         call.on('error', (error) => {
             console.error(`❌ Call error with ${remotePeerId}:`, error);
-            this.handleCallClose(remotePeerId);
+            this.handleCallError(remotePeerId, error);
         });
 
         // Store the call
         this.calls.set(remotePeerId, call);
+    }
+    
+    /**
+     * Handles call errors with exponential backoff retry
+     * @param {string} peerId - The peer that had an error
+     * @param {Error} error - The error that occurred
+     */
+    handleCallError(peerId, error) {
+        // Clean up the failed call
+        this.handleCallClose(peerId);
+        
+        // Get current retry count
+        const retryCount = this.retryAttempts.get(peerId) || 0;
+        
+        // Check if we should retry
+        if (retryCount < this.maxRetries) {
+            // Calculate exponential backoff delay
+            const delay = this.retryBaseDelay * Math.pow(2, retryCount);
+            
+            console.log(`🔄 Retrying connection to ${peerId} in ${delay}ms (attempt ${retryCount + 1}/${this.maxRetries})`);
+            
+            // Increment retry count
+            this.retryAttempts.set(peerId, retryCount + 1);
+            
+            // Schedule retry
+            setTimeout(() => {
+                console.log(`🔄 Attempting retry ${retryCount + 1} for peer ${peerId}`);
+                this.callPeer(peerId);
+            }, delay);
+        } else {
+            console.error(`❌ Max retries (${this.maxRetries}) reached for peer ${peerId}, giving up`);
+            
+            // Reset retry count
+            this.retryAttempts.delete(peerId);
+            
+            // Notify user of permanent failure
+            if (this.roomWebRTC && this.roomWebRTC.uiStateManager) {
+                this.roomWebRTC.uiStateManager.showError(
+                    `Failed to connect to peer after ${this.maxRetries} attempts. They may have connection issues.`
+                );
+            }
+        }
     }
 
     /**
@@ -235,6 +310,7 @@ export class SimplePeerManager {
 
     /**
      * Close all calls and disconnect
+     * CRITICAL FIX: Properly remove event listeners to prevent memory leaks
      */
     destroy() {
         console.log('🔌 Destroying SimplePeerManager...');
@@ -246,11 +322,35 @@ export class SimplePeerManager {
         });
         this.calls.clear();
 
-        // Destroy peer connection
+        // CRITICAL FIX: Remove event listeners before destroying peer
         if (this.peer) {
+            if (this.eventHandlers.open) {
+                this.peer.off('open', this.eventHandlers.open);
+            }
+            if (this.eventHandlers.call) {
+                this.peer.off('call', this.eventHandlers.call);
+            }
+            if (this.eventHandlers.disconnected) {
+                this.peer.off('disconnected', this.eventHandlers.disconnected);
+            }
+            if (this.eventHandlers.error) {
+                this.peer.off('error', this.eventHandlers.error);
+            }
+            
+            console.log('🧹 Event listeners removed');
+            
+            // Destroy peer connection
             this.peer.destroy();
             this.peer = null;
         }
+
+        // Clear event handler references
+        this.eventHandlers = {
+            open: null,
+            call: null,
+            disconnected: null,
+            error: null
+        };
 
         this.isInitialized = false;
         console.log('✅ SimplePeerManager destroyed');

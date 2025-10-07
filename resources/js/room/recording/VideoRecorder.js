@@ -84,6 +84,9 @@ export class VideoRecorder {
             const storageProvider = this.roomWebRTC.roomData.recording_settings?.storage_provider || 'local_device';
             
             this.mediaRecorder = new MediaRecorder(localStream, { mimeType: this.recMime });
+            
+            // CRITICAL FIX: Set timestamps BEFORE generating filename
+            // generateRecordingFilename() relies on originalRecordingStartTime
             this.recordingStartTime = Date.now();
             this.originalRecordingStartTime = Date.now(); // Never reset, used for total duration
             this.isRecording = true;
@@ -97,6 +100,7 @@ export class VideoRecorder {
             };
             
             // Generate single filename for entire recording session
+            // NOW filename generation happens AFTER originalRecordingStartTime is set
             this.recordingSession = {
                 filename: this.generateRecordingFilename(),
                 multipartUploadId: null,
@@ -106,10 +110,14 @@ export class VideoRecorder {
             // Handle recording stop event
             this.mediaRecorder.onstop = () => {
                 console.log('🎥 MediaRecorder stopped event triggered');
-                console.log('🎥 Storage provider on stop:', storageProvider);
+                
+                // CRITICAL FIX: Read fresh storage provider state instead of using closure variable
+                // This prevents using stale settings if they changed during recording
+                const currentStorageProvider = this.roomWebRTC.roomData.recording_settings?.storage_provider || 'local_device';
+                console.log('🎥 Storage provider on stop (fresh):', currentStorageProvider);
                 
                 // Check if local save was used (either primary or dual recording)
-                const didSaveLocally = this.shouldSaveLocally(storageProvider);
+                const didSaveLocally = this.shouldSaveLocally(currentStorageProvider);
                 
                 if (didSaveLocally) {
                     console.log('🎥 Local save was active - finalizing streaming download');
@@ -117,7 +125,7 @@ export class VideoRecorder {
                     this.roomWebRTC.streamingDownloader.finalizeDownload();
                 }
                 
-                if (storageProvider !== 'local_device') {
+                if (currentStorageProvider !== 'local_device') {
                     console.log('🎥 Cloud storage recording completed');
                     // Cloud storage finalization is handled by the uploader
                 }

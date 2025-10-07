@@ -201,6 +201,28 @@ Route::prefix('api/rooms')->name('api.rooms.')->group(function () {
     Route::post('/{room}/recordings/start-session', [App\Http\Controllers\Api\RoomRecordingController::class, 'startSession'])->name('recordings.start-session');
     Route::post('/{room}/recordings/{recording}/progress', [App\Http\Controllers\Api\RoomRecordingController::class, 'updateProgress'])->name('recordings.update-progress');
     Route::get('/{room}/recordings/validate-session', [App\Http\Controllers\Api\RoomRecordingController::class, 'validateSession'])->name('recordings.validate-session');
+    
+    // WebRTC Signaling route - server-side broadcast for reliable delivery
+    Route::post('/{room}/webrtc-signal', function (Illuminate\Http\Request $request, Domain\Room\Models\Room $room) {
+        $validated = $request->validate([
+            'type' => 'required|string|in:request-state,user-joined,user-left,webrtc-offer,webrtc-answer,webrtc-ice-candidate,fear-updated,countdown-updated,countdown-deleted,gm-presence-changed,session-marker-created',
+            'data' => 'required|array',
+            'senderId' => 'required|string',
+            'targetPeerId' => 'nullable|string'
+        ]);
+        
+        // Broadcast the WebRTC signal
+        broadcast(new App\Events\WebRTCSignal(
+            roomId: $room->id,
+            type: $validated['type'],
+            data: $validated['data'],
+            senderId: $validated['senderId'],
+            userId: $request->user()?->id ?? 0, // Allow anonymous users (viewers)
+            targetPeerId: $validated['targetPeerId'] ?? null
+        ));
+        
+        return response()->json(['success' => true]);
+    })->name('webrtc-signal');
 });
 
 // API routes for session markers

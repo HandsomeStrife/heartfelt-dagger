@@ -153,16 +153,44 @@ export class ConsentDialog {
      */
     async handleConsentDecision(type, consentGiven, backdrop, onComplete) {
         try {
-            // Remove consent dialog
-            backdrop.remove();
-
-            // Delegate to consent manager
+            // CRITICAL FIX: Process consent BEFORE removing dialog
+            // This ensures user sees error if processing fails
             await this.roomWebRTC.consentManager.handleConsentDecision(type, consentGiven, onComplete);
+            
+            // Only remove backdrop after successful processing
+            backdrop.remove();
             
         } catch (error) {
             console.error(`🔒 Error handling consent decision for ${type}:`, error);
-            this.roomWebRTC.uiStateManager.showError('Failed to save consent decision. Please try again.');
+            
+            // Show error in the dialog itself, don't remove it yet
+            this.showConsentError(backdrop, 'Failed to save consent decision. Please try again.');
         }
+    }
+
+    /**
+     * Shows an error message in the consent dialog
+     */
+    showConsentError(backdrop, errorMessage) {
+        const dialog = backdrop.querySelector('.consent-dialog');
+        if (!dialog) return;
+
+        // Find or create error message container
+        let errorContainer = dialog.querySelector('.consent-error');
+        if (!errorContainer) {
+            errorContainer = document.createElement('div');
+            errorContainer.className = 'consent-error mt-4 p-3 bg-red-500/20 border border-red-500 rounded text-red-200 text-sm';
+            
+            const buttonsContainer = dialog.querySelector('.flex.space-x-3');
+            if (buttonsContainer) {
+                buttonsContainer.parentNode.insertBefore(errorContainer, buttonsContainer);
+            } else {
+                dialog.appendChild(errorContainer);
+            }
+        }
+
+        errorContainer.textContent = errorMessage;
+        errorContainer.classList.remove('hidden');
     }
 
     /**

@@ -49,6 +49,7 @@ export default class RoomWebRTC {
         this.currentSpeechModule = null;
         this.isSpeechEnabled = false;
         this.sttPausedForMute = false; // Track if STT was paused due to microphone mute
+        this.sttTransitioning = false; // Prevent concurrent STT state transitions
         
         // Connection health state (for refresh rate limiting)
         this.refreshAttempts = new Map(); // peerId -> {count, lastAttempt}
@@ -92,33 +93,37 @@ export default class RoomWebRTC {
         // Mark as initialized for reconnection logic
         this.isInitialized = false;
         
-        // Initialize SimplePeerManager (PeerJS)
+        // STEP 1: Initialize SimplePeerManager (generates unique peer ID)
         await this.simplePeerManager.initialize();
         
-        // Sync peer ID with SignalingManager
-        this.ablyManager.setCurrentPeerId(this.simplePeerManager.getPeerId());
+        // STEP 2: CRITICAL - Immediately sync peer ID to SignalingManager
+        // This MUST happen BEFORE connecting to channel
+        const peerId = this.simplePeerManager.getPeerId();
+        this.ablyManager.setCurrentPeerId(peerId);
+        console.log(`🆔 Peer ID synchronized: ${peerId}`);
         
-        // Load ICE configuration early (don't await to avoid blocking UI)
+        // STEP 3: Load ICE configuration (non-blocking)
         this.iceManager.loadIceServers().catch(error => {
             console.warn('🧊 Non-blocking ICE config load failed:', error);
         });
         
-        // Initialize speech recognition
+        // STEP 4: Initialize speech recognition
         await this.initializeSpeechRecognition();
         
-        // Set up slot event listeners
+        // STEP 5: Set up slot event listeners
         this.slotManager.setupSlotEventListeners();
 
-        // Set up status bar controls (including always-visible leave button)
+        // STEP 6: Set up status bar controls (including always-visible leave button)
         this.statusBarManager.setupStatusBarControls();
 
-        // Connect to room-specific Ably channel
+        // STEP 7: Connect to room-specific Reverb channel
+        // By this point, peer ID is already set in SignalingManager
         this.ablyManager.connectToChannel();
         
-        // Mark initialization as complete
+        // STEP 8: Mark initialization as complete
         this.isInitialized = true;
         
-        // Start connection health monitoring
+        // STEP 9: Start connection health monitoring
         this.startConnectionHealthMonitoring();
         
         console.log('✅ Room WebRTC initialization complete');
@@ -165,6 +170,21 @@ export default class RoomWebRTC {
 
             // Set up local video
             const localStream = this.mediaManager.getLocalStream();
+            
+            // CRITICAL FIX: Validate localStream before proceeding
+            if (!localStream) {
+                throw new Error('Failed to obtain media stream - getUserMedia returned null');
+            }
+            
+            const audioTracks = localStream.getAudioTracks();
+            const videoTracks = localStream.getVideoTracks();
+            
+            if (audioTracks.length === 0 && videoTracks.length === 0) {
+                throw new Error('Media stream has no audio or video tracks');
+            }
+            
+            console.log(`✅ Media stream validated: ${audioTracks.length} audio, ${videoTracks.length} video tracks`);
+            
             this.mediaManager.setupLocalVideo(slotContainer, localStream, participantData);
 
             // Set local stream on SimplePeerManager for PeerJS
@@ -189,13 +209,19 @@ export default class RoomWebRTC {
                 participantData: participantData
             });
 
-            // CRITICAL FIX: Initiate connections to ALL existing participants
+            // CRITICAL FIX: Use lexicographic ordering to prevent connection storms
+            // When multiple users join simultaneously, only the one with "greater" peer ID initiates
             const currentPeerId = this.ablyManager.getCurrentPeerId();
             for (const [existingSlotId, occupant] of this.slotOccupants) {
                 if (existingSlotId !== slotId && !occupant.isLocal && occupant.peerId) {
-                    // Always initiate if we're joining (regardless of peer ID ordering)
-                    console.log(`🤝 New joiner initiating connection to existing peer: ${currentPeerId} -> ${occupant.peerId}`);
-                    this.simplePeerManager.callPeer(occupant.peerId);
+                    // Only initiate connection if our peer ID is lexicographically greater
+                    // This prevents both peers from initiating simultaneously
+                    if (currentPeerId > occupant.peerId) {
+                        console.log(`🤝 Initiating connection (ID ordering): ${currentPeerId} -> ${occupant.peerId}`);
+                        this.simplePeerManager.callPeer(occupant.peerId);
+                    } else {
+                        console.log(`🤝 Waiting for peer to initiate: ${occupant.peerId} should call ${currentPeerId}`);
+                    }
                 }
             }
 
@@ -206,14 +232,16 @@ export default class RoomWebRTC {
             // Create automatic join marker
             if (participantData) {
                 const participantName = participantData.character_name || participantData.username || 'Unknown Player';
-                await this.markerManager.createAutomaticJoinMarker(participantName);
+                try {
+                    await this.markerManager.createAutomaticJoinMarker(participantName);
+                } catch (markerError) {
+                    console.warn('🏷️ Failed to create join marker (non-critical):', markerError);
+                    // Continue - marker creation failure shouldn't prevent joining
+                }
             }
 
-        // Handle consent requirements
-        await this.consentManager.handleConsentRequirements();
-
-        // Set up debug commands for connection troubleshooting
-        this.setupDebugCommands();
+            // Set up debug commands for connection troubleshooting
+            this.setupDebugCommands();
 
         } catch (error) {
             console.error('❌ Error joining slot:', error);
@@ -333,14 +361,17 @@ export default class RoomWebRTC {
             if (occupant.peerId === peerId && !occupant.isLocal) {
                 console.log(`🧹 Cleaning up slot ${slotId} for disconnected peer ${peerId}`);
                 
-                // Remove from occupants map
-                this.slotOccupants.delete(slotId);
-                
-                // Reset the slot UI
+                // Get slot container before deleting from map
                 const slotContainer = document.querySelector(`[data-slot-id="${slotId}"]`);
+                
+                // CRITICAL FIX: Clean up remote video streams properly
                 if (slotContainer) {
+                    this.mediaManager.cleanupRemoteVideo(slotContainer);
                     this.slotManager.resetSlotUI(slotContainer);
                 }
+                
+                // Remove from occupants map
+                this.slotOccupants.delete(slotId);
                 
                 break;
             }
@@ -729,69 +760,93 @@ export default class RoomWebRTC {
 
     /**
      * Pauses STT when microphone is muted
+     * CRITICAL FIX: Made async to prevent race conditions
      */
-    pauseSTTForMute() {
+    async pauseSTTForMute() {
+        // Prevent concurrent state transitions
+        if (this.sttTransitioning) {
+            console.log('🎤 STT transition already in progress, skipping pause');
+            return;
+        }
+        
+        this.sttTransitioning = true;
         console.log('🎤 === Pausing STT for Microphone Mute ===');
         
-        // Store that STT was paused due to mute (not user action)
-        this.sttPausedForMute = true;
-        
-        // Stop STT but don't clear the speech recognition instance
-        if (this.currentSpeechModule && this.currentSpeechModule.isRunning()) {
-            console.log('🎤 Pausing STT for mute');
-            this.currentSpeechModule.stop().catch(error => {
-                console.warn('🎤 Error stopping STT for mute:', error);
-            });
-        }
+        try {
+            // Store that STT was paused due to mute (not user action)
+            this.sttPausedForMute = true;
+            
+            // Stop STT but don't clear the speech recognition instance
+            if (this.currentSpeechModule && this.currentSpeechModule.isRunning()) {
+                console.log('🎤 Pausing STT for mute');
+                await this.currentSpeechModule.stop();
+            }
 
-        this.isSpeechEnabled = false;
-        console.log('🎤 ✅ STT paused for microphone mute');
+            this.isSpeechEnabled = false;
+            console.log('🎤 ✅ STT paused for microphone mute');
+        } catch (error) {
+            console.warn('🎤 Error stopping STT for mute:', error);
+        } finally {
+            this.sttTransitioning = false;
+        }
     }
 
     /**
      * Resumes STT when microphone is unmuted
+     * CRITICAL FIX: Made async to prevent race conditions
      */
-    resumeSTTFromMute() {
+    async resumeSTTFromMute() {
+        // Prevent concurrent state transitions
+        if (this.sttTransitioning) {
+            console.log('🎤 STT transition already in progress, skipping resume');
+            return;
+        }
+        
+        this.sttTransitioning = true;
         console.log('🎤 === Resuming STT from Microphone Unmute ===');
         
-        // Only resume if STT was paused due to mute (not user action)
-        if (!this.sttPausedForMute) {
-            console.log('🎤 STT was not paused for mute - not resuming automatically');
-            return;
-        }
+        try {
+            // Only resume if STT was paused due to mute (not user action)
+            if (!this.sttPausedForMute) {
+                console.log('🎤 STT was not paused for mute - not resuming automatically');
+                return;
+            }
 
-        // Check if we have consent for STT
-        const sttStatus = this.consentManager.getConsentStatus('stt');
-        if (!sttStatus?.consent_given) {
-            console.log('🎤 No STT consent - cannot resume');
+            // Check if we have consent for STT
+            const sttStatus = this.consentManager.getConsentStatus('stt');
+            if (!sttStatus?.consent_given) {
+                console.log('🎤 No STT consent - cannot resume');
+                this.sttPausedForMute = false;
+                return;
+            }
+
+            // Check if we have audio tracks
+            const localStream = this.mediaManager.getLocalStream();
+            if (!localStream || localStream.getAudioTracks().length === 0) {
+                console.log('🎤 No audio tracks available - cannot resume STT');
+                this.sttPausedForMute = false;
+                return;
+            }
+
+            console.log('🎤 Conditions met - resuming STT from mute');
+            
+            // Clear the mute flag
             this.sttPausedForMute = false;
-            return;
-        }
+            
+            // Resume STT
+            if (this.currentSpeechModule) {
+                console.log('🎤 Resuming STT from mute');
+                this.isSpeechEnabled = true;
+                await this.currentSpeechModule.start(localStream);
+            }
 
-        // Check if we have audio tracks
-        const localStream = this.mediaManager.getLocalStream();
-        if (!localStream || localStream.getAudioTracks().length === 0) {
-            console.log('🎤 No audio tracks available - cannot resume STT');
-            this.sttPausedForMute = false;
-            return;
+            console.log('🎤 ✅ STT resumed from microphone unmute');
+        } catch (error) {
+            console.error('🎤 Error resuming STT from mute:', error);
+            this.isSpeechEnabled = false;
+        } finally {
+            this.sttTransitioning = false;
         }
-
-        console.log('🎤 Conditions met - resuming STT from mute');
-        
-        // Clear the mute flag
-        this.sttPausedForMute = false;
-        
-        // Resume STT
-        if (this.currentSpeechModule) {
-            console.log('🎤 Resuming STT from mute');
-            this.isSpeechEnabled = true;
-            this.currentSpeechModule.start(localStream).catch(error => {
-                console.error('🎤 Error resuming STT from mute:', error);
-                this.isSpeechEnabled = false;
-            });
-        }
-
-        console.log('🎤 ✅ STT resumed from microphone unmute');
     }
 
     // ===========================================

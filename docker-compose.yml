@@ -24,6 +24,8 @@ services:
         depends_on:
             - mysql
             - minio-setup
+            - reverb
+            - peerjs
     mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
@@ -51,7 +53,7 @@ services:
             timeout: 5s
     minio:
         image: minio/minio:latest
-        command: server /data --console-address ":9001"
+        command: server /data --console-address ":9002"
         environment:
             MINIO_ROOT_USER: "minioadmin"
             MINIO_ROOT_PASSWORD: "minioadmin"
@@ -61,7 +63,7 @@ services:
             - ./docker/minio/cors.json:/config/cors.json:ro
         ports:
             - "9000:9000"   # S3 API
-            - "9001:9001"   # MinIO console
+            - "9002:9002"   # MinIO console (changed from 9001)
         networks:
             - sail
 
@@ -90,6 +92,54 @@ services:
             - ./docker/minio/cors.json:/config/cors.json:ro
         networks:
             - sail
+    
+    reverb:
+        build:
+            context: './vendor/laravel/sail/runtimes/8.4'
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP}'
+        image: 'sail-8.4/app'
+        ports:
+            - '${REVERB_SERVER_PORT:-8080}:8080'
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+        working_dir: /var/www/html
+        command: php artisan reverb:start --host=0.0.0.0 --port=8080 --debug
+        networks:
+            - sail
+        depends_on:
+            - mysql
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8080"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+    
+    peerjs:
+        image: node:20-alpine
+        ports:
+            - '${PEERJS_PORT:-9001}:9001'
+        environment:
+            NODE_ENV: development
+            PEERJS_PORT: 9001
+        volumes:
+            - '.:/app'
+        working_dir: /app
+        command: sh -c "npm install && node peerserver.js"
+        networks:
+            - sail
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "wget", "--spider", "-q", "http://localhost:9001/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+
 networks:
     sail:
         driver: bridge

@@ -17,13 +17,38 @@ export class PageProtection {
     setupProtection() {
         // Warn user if they try to leave/refresh while recording
         window.addEventListener('beforeunload', (event) => {
-            console.log('🚨 Page unload detected');
+            console.log('🚨 Page unload detected - performing cleanup');
             const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
+            const isJoined = this.roomWebRTC.isJoined;
+            
             console.log(`  - Is recording: ${isRecording}`);
+            console.log(`  - Is joined: ${isJoined}`);
+            
             const recordedChunks = this.roomWebRTC.videoRecorder.getRecordedChunks();
             const streamingChunks = this.roomWebRTC.streamingDownloader?.recordedChunks || [];
             console.log(`  - VideoRecorder chunks: ${recordedChunks ? recordedChunks.length : 0}`);
             console.log(`  - StreamingDownloader chunks: ${streamingChunks.length}`);
+            
+            // CRITICAL: Perform cleanup even if not recording
+            // This ensures other peers know we've left
+            if (isJoined) {
+                console.log('🚨 Broadcasting user-left message to other peers...');
+                try {
+                    // Broadcast that we're leaving (synchronous)
+                    this.roomWebRTC.ablyManager.publishToAbly('user-left', {
+                        slotId: this.roomWebRTC.currentSlotId
+                    });
+                } catch (error) {
+                    console.error('🚨 Error broadcasting user-left:', error);
+                }
+                
+                // Stop speech recognition
+                try {
+                    this.roomWebRTC.stopSpeechRecognition();
+                } catch (error) {
+                    console.error('🚨 Error stopping speech recognition:', error);
+                }
+            }
             
             const hasLocalChunks = streamingChunks.length > 0;
             const hasRecordingChunks = recordedChunks && recordedChunks.length > 0;
@@ -48,7 +73,7 @@ export class PageProtection {
                 event.returnValue = message;
                 return message;
             } else {
-                console.log('🚨 No warning needed - not recording or no data');
+                console.log('🚨 Cleanup complete - allowing page unload');
             }
         });
 

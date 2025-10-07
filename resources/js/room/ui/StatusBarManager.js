@@ -86,11 +86,32 @@ export class StatusBarManager {
         const stopBtn = document.getElementById('stop-recording-btn');
         const stopBtnNormal = document.getElementById('stop-recording-btn-normal');
         
+        // CRITICAL FIX: Properly await async stopRecording
         if (stopBtn) {
-            stopBtn.onclick = () => this.roomWebRTC.videoRecorder.stopRecording();
+            stopBtn.onclick = async () => {
+                stopBtn.disabled = true;
+                stopBtn.textContent = 'Stopping...';
+                try {
+                    await this.roomWebRTC.videoRecorder.stopRecording();
+                } catch (error) {
+                    console.error('Error stopping recording:', error);
+                } finally {
+                    stopBtn.disabled = false;
+                }
+            };
         }
         if (stopBtnNormal) {
-            stopBtnNormal.onclick = () => this.roomWebRTC.videoRecorder.stopRecording();
+            stopBtnNormal.onclick = async () => {
+                stopBtnNormal.disabled = true;
+                stopBtnNormal.textContent = 'Stopping...';
+                try {
+                    await this.roomWebRTC.videoRecorder.stopRecording();
+                } catch (error) {
+                    console.error('Error stopping recording:', error);
+                } finally {
+                    stopBtnNormal.disabled = false;
+                }
+            };
         }
 
         // View transcript buttons (both layouts)

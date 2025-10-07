@@ -850,13 +850,36 @@
             }
         }
         
-        // Fallback timer to ensure page shows even if initialization fails
+        // CRITICAL FIX: Show error instead of forcing page display on timeout
         setTimeout(() => {
             if (!diceInitialized || !webrtcInitialized) {
-                console.warn('⚠️ Forcing page display after timeout');
-                diceInitialized = true;
-                webrtcInitialized = true;
-                hideLoadingScreen();
+                console.error('❌ System initialization timeout');
+                
+                const loadingScreen = document.getElementById('room-loading-screen');
+                if (loadingScreen) {
+                    loadingScreen.innerHTML = `
+                        <div class="text-center max-w-md mx-auto p-6">
+                            <div class="mb-6">
+                                <svg class="w-16 h-16 mx-auto text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h2 class="text-2xl font-outfit font-bold text-red-400 mb-3">Initialization Failed</h2>
+                            <p class="text-slate-300 mb-4">Failed to initialize room systems.</p>
+                            <div class="text-left bg-slate-900/80 backdrop-blur-xl border border-slate-700 rounded-lg p-4 mb-6 text-sm">
+                                <p class="text-slate-400 mb-2">This could be due to:</p>
+                                <ul class="list-disc list-inside text-slate-400 space-y-1">
+                                    <li>Network connectivity issues</li>
+                                    <li>Browser compatibility problems</li>
+                                    <li>Script loading failures</li>
+                                </ul>
+                            </div>
+                            <button onclick="window.location.reload()" class="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
+                                Reload Page
+                            </button>
+                        </div>
+                    `;
+                }
             }
         }, 5000); // 5 second maximum loading time
         

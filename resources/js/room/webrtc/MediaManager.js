@@ -135,6 +135,17 @@ export class MediaManager {
             videoElement.dataset.peerId = peerId;
         }
 
+        // CRITICAL FIX: Clean up existing stream before setting new one
+        if (videoElement.srcObject) {
+            console.log('📺 Cleaning up existing stream before setting new one');
+            const oldStream = videoElement.srcObject;
+            oldStream.getTracks().forEach(track => {
+                track.stop();
+                console.log('📺 Stopped old track:', track.kind);
+            });
+            videoElement.srcObject = null;
+        }
+
         console.log('📺 Setting video srcObject, stream has tracks:', stream.getTracks().length);
         videoElement.srcObject = stream;
         
@@ -499,6 +510,33 @@ export class MediaManager {
     setVideoHidden(hidden) {
         if (this.isVideoHidden === hidden) return;
         this.toggleVideo();
+    }
+
+    /**
+     * Cleans up remote video element and stops all tracks
+     * @param {HTMLElement} slotContainer - The slot container with video element
+     */
+    cleanupRemoteVideo(slotContainer) {
+        if (!slotContainer) return;
+
+        const videoElement = slotContainer.querySelector('.remote-video');
+        if (!videoElement) return;
+
+        console.log('📺 Cleaning up remote video for slot:', slotContainer.dataset.slotId);
+
+        // Stop all tracks in the stream
+        if (videoElement.srcObject) {
+            const stream = videoElement.srcObject;
+            stream.getTracks().forEach(track => {
+                track.stop();
+                console.log('📺 Stopped track:', track.kind, 'for slot:', slotContainer.dataset.slotId);
+            });
+            videoElement.srcObject = null;
+        }
+
+        // Remove the video element from DOM
+        videoElement.remove();
+        console.log('📺 ✅ Remote video cleaned up successfully');
     }
 
     /**

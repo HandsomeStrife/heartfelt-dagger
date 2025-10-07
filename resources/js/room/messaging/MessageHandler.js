@@ -31,15 +31,8 @@ export class MessageHandler {
             case 'user-left':
                 this.handleUserLeft(data, senderId);
                 break;
-            case 'webrtc-offer':
-                this.handleOffer(data, senderId);
-                break;
-            case 'webrtc-answer':
-                this.handleAnswer(data, senderId);
-                break;
-            case 'webrtc-ice-candidate':
-                this.handleIceCandidate(data, senderId);
-                break;
+            // NOTE: WebRTC signaling (offer/answer/ICE) handled internally by PeerJS
+            // No need for explicit handlers - PeerJS manages this automatically
             case 'fear-updated':
                 this.handleFearUpdate(data, senderId);
                 break;
@@ -89,41 +82,29 @@ export class MessageHandler {
         });
 
         const currentPeerId = this.roomWebRTC.ablyManager.getCurrentPeerId();
-        const shouldInitiate = currentPeerId && currentPeerId < senderId;
 
-        // If we're also in a slot, initiate WebRTC connection
+        // If we're also in a slot, initiate WebRTC connection using SimplePeerManager
         if (this.roomWebRTC.isJoined && this.roomWebRTC.currentSlotId && this.roomWebRTC.currentSlotId !== data.slotId) {
-            if (shouldInitiate) {
-                console.log(`🤝 Initiating connection: ${currentPeerId} -> ${senderId} (peer ID precedence)`);
-                this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
-                
-                // FALLBACK: Even for initiator, check if connection established after 10 seconds
-                setTimeout(() => {
-                    const connectionState = this.roomWebRTC.peerConnectionManager.getPeerConnectionState(senderId);
-                    if (connectionState !== 'connected') {
-                        console.warn(`🔄 Initial connection didn't establish properly (state: ${connectionState}) - attempting refresh`);
-                        this.roomWebRTC.peerConnectionManager.refreshConnection(senderId);
-                    }
-                }, 10000); // 10 second timeout for initial connection
+            // Use lexicographic ordering to prevent simultaneous connection attempts
+            // Only initiate if our peer ID is greater (matches room-webrtc.js pattern)
+            if (currentPeerId && currentPeerId > senderId) {
+                console.log(`🤝 Initiating PeerJS connection: ${currentPeerId} -> ${senderId} (lexicographic ordering)`);
+                this.roomWebRTC.simplePeerManager.callPeer(senderId);
             } else {
-                console.log(`⏳ Waiting for connection: ${senderId} -> ${currentPeerId} (peer ID precedence)`);
+                console.log(`⏳ Waiting for incoming PeerJS call from: ${senderId} (lexicographic ordering)`);
                 
-                // FALLBACK: If no connection after 2 seconds, ignore peer ID ordering and initiate anyway (VDO.Ninja pattern)
+                // FALLBACK: If no connection after 2 seconds, initiate anyway (VDO.Ninja pattern)
                 setTimeout(() => {
-                    if (!this.roomWebRTC.peerConnectionManager.hasActiveConnection(senderId)) {
+                    const isConnected = this.roomWebRTC.simplePeerManager.isConnectedTo(senderId);
+                    if (!isConnected) {
                         console.log(`🔄 Fallback: ${currentPeerId} -> ${senderId} (timeout override)`);
-                        this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
+                        this.roomWebRTC.simplePeerManager.callPeer(senderId);
                     }
-                }, 2000); // Reduced from 5000ms to 2000ms to match VDO.Ninja
+                }, 2000);
             }
-        } 
-        // Viewer mode: Always initiate receive-only connections to see all participants (ignore peer ID ordering)
-        else if (this.roomWebRTC.roomData.viewer_mode && !this.roomWebRTC.isJoined) {
-            console.log('👁️ Viewer initiating receive-only connection to:', senderId);
-            this.roomWebRTC.peerConnectionManager.initiateWebRTCConnection(senderId);
         }
         
-        // CRITICAL FIX: Show character overlay immediately when someone joins
+        // Show character overlay immediately when someone joins
         this.roomWebRTC.slotManager.showCharacterOverlay(
             document.querySelector(`[data-slot-id="${data.slotId}"]`), 
             data.participantData
@@ -139,37 +120,12 @@ export class MessageHandler {
         // Remove from slot occupancy
         this.roomWebRTC.slotOccupants.delete(data.slotId);
         
-        // Close peer connection if exists
-        this.roomWebRTC.peerConnectionManager.cleanupPeerConnection(senderId);
+        // Close peer connection if exists (SimplePeerManager will handle cleanup)
+        this.roomWebRTC.simplePeerManager.closeCall(senderId);
     }
 
-    /**
-     * Handles WebRTC offer messages
-     */
-    handleOffer(data, senderId) {
-        this.roomWebRTC.peerConnectionManager.handleOffer(data, senderId);
-    }
-
-    /**
-     * Handles WebRTC answer messages
-     */
-    handleAnswer(data, senderId) {
-        this.roomWebRTC.peerConnectionManager.handleAnswer(data, senderId);
-    }
-
-    /**
-     * Handles ICE candidate messages
-     */
-    handleIceCandidate(data, senderId) {
-        this.roomWebRTC.peerConnectionManager.handleIceCandidate(data, senderId);
-    }
-
-    /**
-     * Handles batched ICE candidates from remote peers
-     */
-    handleIceCandidates(data, senderId) {
-        this.roomWebRTC.peerConnectionManager.handleIceCandidates(data, senderId);
-    }
+    // WebRTC signaling (offer/answer/ICE) is handled internally by PeerJS
+    // These methods are no longer needed with SimplePeerManager
 
     /**
      * Handles fear level update messages

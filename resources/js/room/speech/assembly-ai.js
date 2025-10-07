@@ -33,7 +33,7 @@ export default class AssemblyAISpeechRecognition {
      * Initialize AssemblyAI speech recognition
      */
     async initialize() {
-        console.log('🎤 === AssemblyAI Speech Recognition Initialization ===');
+        // console.log('🎤 === AssemblyAI Speech Recognition Initialization ===');
         
         try {
             // Get STT configuration from the server
@@ -45,7 +45,7 @@ export default class AssemblyAISpeechRecognition {
 
             // Get temporary token from our backend for security
             const token = await this.getAssemblyAIToken(config.config.api_key);
-            console.log('🎤 ✅ AssemblyAI token received, length:', token ? token.length : 'null');
+            // console.log('🎤 ✅ AssemblyAI token received, length:', token ? token.length : 'null');
             
             // For browser environments, create StreamingTranscriber directly with token
             // Import the StreamingTranscriber class specifically
@@ -59,7 +59,7 @@ export default class AssemblyAISpeechRecognition {
             // Set up event handlers
             this.setupEventHandlers();
 
-            console.log('🎤 ✅ AssemblyAI speech recognition initialized');
+            // console.log('🎤 ✅ AssemblyAI speech recognition initialized');
             return true;
 
         } catch (error) {
@@ -101,19 +101,19 @@ export default class AssemblyAISpeechRecognition {
         });
 
         this.transcriber.on('close', (code, reason) => {
-            console.log(`🎤 AssemblyAI session closed: ${code} - ${reason}`);
+            // console.log(`🎤 AssemblyAI session closed: ${code} - ${reason}`);
             if (this.onStatusChange) {
                 this.onStatusChange('closed', { code, reason });
             }
         });
 
         this.transcriber.on("transcript", (transcript) => {
-            console.log('🎤 AssemblyAI transcript received:', transcript);
+            // console.log('🎤 AssemblyAI transcript received:', transcript);
             
             // For now, we'll primarily rely on the "turn" events for final transcripts
             // The "transcript" events might be for partial/interim results
             if (transcript.text && transcript.text.trim()) {
-                console.log('🎤 📝 Interim transcript:', transcript.text);
+                // console.log('🎤 📝 Interim transcript:', transcript.text);
                 // We could use this for live display but not for saving to buffer
                 // Only trigger callback for live display, don't save to buffer yet
                 // if (this.onTranscript) {
@@ -127,21 +127,21 @@ export default class AssemblyAISpeechRecognition {
                 return;
             }
             
-            console.log("🎤 AssemblyAI turn:", turn.transcript);
-            console.log("🎤 Turn details - end_of_turn:", turn.end_of_turn, "turn_is_formatted:", turn.turn_is_formatted);
+            // console.log("🎤 AssemblyAI turn:", turn.transcript);
+            // console.log("🎤 Turn details - end_of_turn:", turn.end_of_turn, "turn_is_formatted:", turn.turn_is_formatted);
             
             // Process turns when end_of_turn is true
             if (turn.end_of_turn) {
-                console.log("🎤 ✅ End of turn received, processing:", turn.transcript);
+                //console.log("🎤 ✅ End of turn received, processing:", turn.transcript);
                 
                 if (turn.turn_is_formatted) {
                     // This is a formatted version - replace any existing unformatted version
-                    console.log("🎤 📝 Formatted turn - replacing previous if exists");
+                    //console.log("🎤 📝 Formatted turn - replacing previous if exists");
                     
                     // Find and replace the last unformatted entry if it exists
                     const lastIndex = this.speechBuffer.length - 1;
                     if (lastIndex >= 0 && !this.speechBuffer[lastIndex].formatted) {
-                        console.log("🎤 🔄 Replacing unformatted transcript with formatted version");
+                        // console.log("🎤 🔄 Replacing unformatted transcript with formatted version");
                         this.speechBuffer[lastIndex] = {
                             text: turn.transcript,
                             confidence: turn.confidence || 1.0,
@@ -159,7 +159,7 @@ export default class AssemblyAISpeechRecognition {
                     }
                 } else {
                     // This is an unformatted version - add it but mark as such
-                    console.log("🎤 📝 Unformatted turn - adding temporarily");
+                    // console.log("🎤 📝 Unformatted turn - adding temporarily");
                     this.speechBuffer.push({
                         text: turn.transcript,
                         confidence: turn.confidence || 1.0,
@@ -173,7 +173,7 @@ export default class AssemblyAISpeechRecognition {
                     this.onTranscript(turn.transcript, turn.confidence || 1.0);
                 }
             } else {
-                console.log("🎤 ⏳ Partial turn, waiting for completion...");
+                // console.log("🎤 ⏳ Partial turn, waiting for completion...");
             }
         });
     }
@@ -187,7 +187,7 @@ export default class AssemblyAISpeechRecognition {
         }
 
         if (this.isActive) {
-            console.warn('🎤 ⚠️ AssemblyAI already active, skipping start');
+            // console.warn('🎤 ⚠️ AssemblyAI already active, skipping start');
             return;
         }
 
@@ -195,7 +195,7 @@ export default class AssemblyAISpeechRecognition {
             throw new Error('Media stream is required for AssemblyAI speech recognition');
         }
 
-        console.log('🎤 === Starting AssemblyAI Speech Recognition ===');
+        // console.log('🎤 === Starting AssemblyAI Speech Recognition ===');
 
         try {
             this.isActive = true;
@@ -203,12 +203,12 @@ export default class AssemblyAISpeechRecognition {
             this.speechChunkStartedAt = Date.now();
 
             // Connect to AssemblyAI streaming service
-            console.log("🎤 Connecting to streaming transcript service");
+            // console.log("🎤 Connecting to streaming transcript service");
             await this.transcriber.connect();
-            console.log('🎤 ✅ Connected to AssemblyAI');
+            // console.log('🎤 ✅ Connected to AssemblyAI');
 
             // Set up audio processing to stream to AssemblyAI
-            console.log("🎤 Starting audio recording and streaming");
+            // console.log("🎤 Starting audio recording and streaming");
             await this.setupAudioStreaming(mediaStream);
 
             // Set up periodic transcript upload (every 10 seconds)
@@ -216,7 +216,7 @@ export default class AssemblyAISpeechRecognition {
                 this.uploadTranscriptChunk();
             }, 10000);
 
-            console.log('🎤 ✅ AssemblyAI speech recognition started successfully');
+            // console.log('🎤 ✅ AssemblyAI speech recognition started successfully');
 
         } catch (error) {
             console.error('🎤 ❌ Failed to start AssemblyAI speech recognition:', error);
@@ -270,7 +270,7 @@ export default class AssemblyAISpeechRecognition {
         this.audioSource.connect(this.audioProcessor);
         this.audioProcessor.connect(this.audioContext.destination);
 
-        console.log('🎤 ✅ Audio streaming pipeline established');
+        // console.log('🎤 ✅ Audio streaming pipeline established');
     }
 
 
@@ -282,7 +282,7 @@ export default class AssemblyAISpeechRecognition {
             return;
         }
 
-        console.log('🎤 === Stopping AssemblyAI Speech Recognition ===');
+        // console.log('🎤 === Stopping AssemblyAI Speech Recognition ===');
 
         this.isActive = false;
 
@@ -311,9 +311,9 @@ export default class AssemblyAISpeechRecognition {
         // Close AssemblyAI connection
         if (this.transcriber) {
             try {
-                console.log("🎤 Closing streaming transcript connection");
+                // console.log("🎤 Closing streaming transcript connection");
                 await this.transcriber.close();
-                console.log('🎤 ✅ AssemblyAI connection closed');
+                // console.log('🎤 ✅ AssemblyAI connection closed');
             } catch (error) {
                 console.warn('🎤 Error closing AssemblyAI connection:', error);
             }
@@ -322,14 +322,14 @@ export default class AssemblyAISpeechRecognition {
         // Upload any remaining buffer
         await this.uploadTranscriptChunk();
 
-        console.log('🎤 ✅ AssemblyAI speech recognition stopped');
+        // console.log('🎤 ✅ AssemblyAI speech recognition stopped');
     }
 
     /**
      * Restart speech recognition
      */
     async restart() {
-        console.log('🎤 === Restarting AssemblyAI Speech Recognition ===');
+        // console.log('🎤 === Restarting AssemblyAI Speech Recognition ===');
         
         try {
             // Stop current session
@@ -373,7 +373,7 @@ export default class AssemblyAISpeechRecognition {
      */
     async getAssemblyAIToken(apiKey) {
         try {
-            console.log('🎤 Requesting AssemblyAI token from backend...');
+            // console.log('🎤 Requesting AssemblyAI token from backend...');
             const response = await fetch('/api/assemblyai/token', {
                 method: 'POST',
                 headers: {
@@ -383,7 +383,7 @@ export default class AssemblyAISpeechRecognition {
                 body: JSON.stringify({ api_key: apiKey })
             });
 
-            console.log('🎤 Token request response status:', response.status);
+            // console.log('🎤 Token request response status:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -392,7 +392,7 @@ export default class AssemblyAISpeechRecognition {
             }
 
             const data = await response.json();
-            console.log('🎤 Token received successfully');
+            //  console.log('🎤 Token received successfully');
             return data.token;
         } catch (error) {
             console.error('🎤 ❌ Failed to get AssemblyAI token:', error);
