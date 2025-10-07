@@ -17,9 +17,22 @@ Broadcast::channel('video-room.main', function () {
 // Format: room.{roomId}
 Broadcast::channel('room.{roomId}', function ($user, $roomId) {
     // Verify user has access to this room
-    $room = Room::find($roomId);
+    $room = Room::with('campaign')->find($roomId);
     
-    if (!$room || !$room->canUserAccess($user)) {
+    if (!$room) {
+        \Log::warning('Broadcasting auth failed: Room not found', ['roomId' => $roomId]);
+        return false;
+    }
+    
+    $hasAccess = $room->canUserAccess($user);
+    
+    if (!$hasAccess) {
+        \Log::warning('Broadcasting auth failed: User lacks access', [
+            'userId' => $user->id,
+            'roomId' => $roomId,
+            'campaignId' => $room->campaign_id,
+            'creatorId' => $room->creator_id
+        ]);
         return false;
     }
     
