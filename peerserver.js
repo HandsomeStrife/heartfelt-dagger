@@ -19,7 +19,7 @@ const server = app.listen(port, () => {
 // Create PeerServer
 const peerServer = ExpressPeerServer(server, {
     debug: process.env.NODE_ENV !== 'production',
-    path: '/peerjs',
+    path: '/', // Path is relative to mount point
     // Allow CORS for local development
     allow_discovery: true,
     // Cleanup inactive peers after 5 minutes
@@ -35,7 +35,7 @@ const peerServer = ExpressPeerServer(server, {
     }
 });
 
-// Mount PeerServer on Express
+// Mount PeerServer on Express at /peerjs
 app.use('/peerjs', peerServer);
 
 // Health check endpoint

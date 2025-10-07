@@ -11,3 +11,13 @@ Broadcast::channel('video-room.main', function () {
     // Public channel - anyone can listen
     return true;
 });
+
+// Room-specific presence channels for WebRTC signaling
+// Format: room.{roomId}
+Broadcast::channel('room.{roomId}', function ($user, $roomId) {
+    // Return user info for presence (visible to all in the channel)
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+    ];
+});

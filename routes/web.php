@@ -6,7 +6,11 @@ use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ResetPasswordController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+
+// Enable broadcasting authentication routes for Laravel Echo/Reverb
+Broadcast::routes(['middleware' => ['web', 'auth']]);
 
 Route::get('/', function () {
     if (Auth::check()) {
