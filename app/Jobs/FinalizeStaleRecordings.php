@@ -37,7 +37,7 @@ class FinalizeStaleRecordings implements ShouldQueue
             return;
         }
 
-        $finalizeAction = new FinalizeRecording;
+        $finalizeAction = app(FinalizeRecording::class);
         $successCount = 0;
         $failureCount = 0;
 

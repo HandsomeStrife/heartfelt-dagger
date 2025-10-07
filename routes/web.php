@@ -6,12 +6,10 @@ use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ResetPasswordController;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
-// Enable broadcasting authentication routes for Laravel Echo/Reverb
-// Laravel automatically applies correct middleware (web + auth) for presence channels
-Broadcast::routes();
+// Note: Broadcasting routes are now registered in bootstrap/app.php via withBroadcasting()
+// This is the Laravel 12 way of handling broadcast authorization
 
 Route::get('/', function () {
     if (Auth::check()) {
