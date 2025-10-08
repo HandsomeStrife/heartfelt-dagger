@@ -283,12 +283,6 @@ export class VideoRecorder {
                     const shouldSaveLocally = this.shouldSaveLocally(storageProvider);
                     const shouldSaveToCloud = this.shouldSaveToCloud(storageProvider);
                     
-                    console.log('🎥 Recording destinations:', { 
-                        storageProvider, 
-                        shouldSaveLocally, 
-                        shouldSaveToCloud 
-                    });
-                    
                     // Handle local saving (either primary local storage or dual recording)
                     if (shouldSaveLocally) {
                         try {

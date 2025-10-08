@@ -34,6 +34,7 @@ import { MarkerManager } from './room/ui/MarkerManager.js';
 import { VideoSlotControls } from './room/ui/VideoSlotControls.js';
 import { ConsentManager } from './room/consent/ConsentManager.js';
 import { ConsentDialog } from './room/consent/ConsentDialog.js';
+import { DiagnosticExporter } from './room/diagnostics/DiagnosticExporter.js';
 
 export default class RoomWebRTC {
     constructor(roomData) {
@@ -92,6 +93,7 @@ export default class RoomWebRTC {
         
         // Initialize utility managers
         this.diagnosticsRunner = new DiagnosticsRunner(this);
+        this.diagnosticExporter = new DiagnosticExporter(this);
         this.pageProtection = new PageProtection(this);
         
         this.init();

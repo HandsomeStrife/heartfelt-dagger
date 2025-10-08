@@ -5,9 +5,12 @@
  * Inspired by VDO.ninja's comprehensive logging approach.
  * 
  * TYPESCRIPT MIGRATION: Fully typed with strict mode compliance
+ * 
+ * Now respects centralized LOG_LEVEL configuration via VITE_LOG_LEVEL
  */
 
 import type { LogEntry } from '../../types/room';
+import baseLogger from '../../utils/logger';
 
 /**
  * Logger context interface
@@ -79,7 +82,7 @@ export class Logger {
         };
         
         this.addToHistory(logEntry);
-        console.log(`[${this.moduleName}] ${message}`, { data, context: logEntry.context });
+        baseLogger.info(`[${this.moduleName}] ${message}`, { data, context: logEntry.context });
     }
     
     /**
@@ -96,7 +99,7 @@ export class Logger {
         };
         
         this.addToHistory(logEntry);
-        console.warn(`⚠️ [${this.moduleName}] ${message}`, { data, context: logEntry.context });
+        baseLogger.warn(`⚠️ [${this.moduleName}] ${message}`, { data, context: logEntry.context });
     }
     
     /**
@@ -113,11 +116,7 @@ export class Logger {
         };
         
         this.addToHistory(logEntry);
-        
-        // Only log debug messages in development
-        if (process.env.NODE_ENV !== 'production') {
-            console.debug(`🐛 [${this.moduleName}] ${message}`, { data, context: logEntry.context });
-        }
+        baseLogger.debug(`🐛 [${this.moduleName}] ${message}`, { data, context: logEntry.context });
     }
     
     /**
@@ -139,7 +138,7 @@ export class Logger {
         };
         
         this.addToHistory(logEntry);
-        console.error(`❌ [${this.moduleName}] ${message}`, { 
+        baseLogger.error(`❌ [${this.moduleName}] ${message}`, { 
             error, 
             data, 
             context: logEntry.context 
@@ -161,7 +160,7 @@ export class Logger {
         };
         
         this.addToHistory(logEntry);
-        console.log(`🔄 [${this.moduleName}] ${from} → ${to}`, { 
+        baseLogger.info(`🔄 [${this.moduleName}] ${from} → ${to}`, { 
             reason, 
             data, 
             context: logEntry.context 
@@ -201,7 +200,7 @@ export class Logger {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        console.log(`📥 Exported ${this.logHistory.length} log entries for ${this.moduleName}`);
+        baseLogger.info(`📥 Exported ${this.logHistory.length} log entries for ${this.moduleName}`);
     }
 }
 
@@ -251,7 +250,7 @@ export class LoggerRegistry {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        console.log('📥 Exported all module logs');
+        baseLogger.info('📥 Exported all module logs');
     }
 }
 

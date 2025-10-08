@@ -24,45 +24,103 @@ export class ConsentManager {
             localSave: { status: null, enabled: isRemoteStorage }
         };
         
-        // MEDIUM FIX: Consent status cache with 5-minute TTL
+        // MEDIUM FIX: Consent status cache with 5-minute TTL + sessionStorage persistence
         this.consentCache = {
             stt: { status: null, timestamp: null, ttl: 300000 }, // 5 minutes
             recording: { status: null, timestamp: null, ttl: 300000 }
             // localSave doesn't need caching as it's session-only
         };
+        
+        // Make debugging utilities globally accessible
+        this.makeGloballyAccessible();
     }
     
     /**
-     * MEDIUM FIX: Checks if cached consent is still valid
+     * MEDIUM FIX: Checks if cached consent is still valid (memory + sessionStorage)
      */
     isCacheValid(type) {
+        // First check memory cache
         const cache = this.consentCache[type];
-        if (!cache || !cache.timestamp) return false;
+        if (cache && cache.timestamp) {
+            const now = Date.now();
+            const age = now - cache.timestamp;
+            if (age < cache.ttl) {
+                return true;
+            }
+        }
         
-        const now = Date.now();
-        const age = now - cache.timestamp;
-        return age < cache.ttl;
+        // Then check sessionStorage
+        try {
+            const storageKey = `consent_${type}_${this.roomWebRTC.roomData.id}`;
+            const stored = sessionStorage.getItem(storageKey);
+            if (stored) {
+                const data = JSON.parse(stored);
+                const now = Date.now();
+                const age = now - data.timestamp;
+                if (age < cache.ttl) {
+                    // Restore to memory cache
+                    this.consentCache[type].status = data.status;
+                    this.consentCache[type].timestamp = data.timestamp;
+                    return true;
+                }
+            }
+        } catch (error) {
+            console.warn(`⚠️ Error checking sessionStorage for ${type} consent:`, error);
+        }
+        
+        return false;
     }
     
     /**
-     * MEDIUM FIX: Gets cached consent status if valid
+     * MEDIUM FIX: Gets cached consent status if valid (from memory or sessionStorage)
      */
     getCachedConsent(type) {
         if (this.isCacheValid(type)) {
-            console.log(`🔒 Using cached ${type} consent (${Math.floor((Date.now() - this.consentCache[type].timestamp) / 1000)}s old)`);
+            const source = this.consentCache[type].status ? 'memory' : 'sessionStorage';
+            const age = Math.floor((Date.now() - this.consentCache[type].timestamp) / 1000);
+            console.log(`🔒 Using cached ${type} consent from ${source} (${age}s old)`);
             return this.consentCache[type].status;
         }
         return null;
     }
     
     /**
-     * MEDIUM FIX: Caches consent status
+     * MEDIUM FIX: Caches consent status (to memory + sessionStorage)
      */
     cacheConsentStatus(type, status) {
         if (this.consentCache[type]) {
+            const timestamp = Date.now();
             this.consentCache[type].status = status;
-            this.consentCache[type].timestamp = Date.now();
-            console.log(`🔒 Cached ${type} consent status`);
+            this.consentCache[type].timestamp = timestamp;
+            console.log(`🔒 Cached ${type} consent status in memory`);
+            
+            // Also persist to sessionStorage
+            try {
+                const storageKey = `consent_${type}_${this.roomWebRTC.roomData.id}`;
+                const data = { status, timestamp };
+                sessionStorage.setItem(storageKey, JSON.stringify(data));
+                console.log(`🔒 Persisted ${type} consent to sessionStorage`);
+            } catch (error) {
+                console.warn(`⚠️ Failed to persist ${type} consent to sessionStorage:`, error);
+            }
+        }
+    }
+    
+    /**
+     * Clears consent from cache and sessionStorage
+     */
+    clearConsentCache(type) {
+        if (this.consentCache[type]) {
+            this.consentCache[type].status = null;
+            this.consentCache[type].timestamp = null;
+        }
+        
+        try {
+            const storageKey = `consent_${type}_${this.roomWebRTC.roomData.id}`;
+            sessionStorage.removeItem(storageKey);
+            console.log(`🔒 Cleared ${type} consent from cache and sessionStorage`);
+        } catch (error) {
+            console.warn(`⚠️ Failed to clear ${type} consent from sessionStorage:`, error);
         }
     }
 
@@ -500,6 +558,33 @@ export class ConsentManager {
      */
     isFeatureEnabled(type) {
         return this.consentData[type]?.enabled || false;
+    }
+    
+    /**
+     * Clears all consent caches for this room (debugging utility)
+     */
+    clearAllConsentCaches() {
+        console.log('🔒 Clearing all consent caches for debugging...');
+        this.clearConsentCache('stt');
+        this.clearConsentCache('recording');
+        console.log('✅ All consent caches cleared - consent will be re-checked on next page load');
+    }
+    
+    /**
+     * Makes consent utilities globally accessible for debugging
+     */
+    makeGloballyAccessible() {
+        window.clearConsentCaches = () => {
+            this.clearAllConsentCaches();
+        };
+        
+        window.showConsentStatus = () => {
+            console.group('🔒 Current Consent Status');
+            console.log('STT:', this.getConsentStatus('stt'));
+            console.log('Recording:', this.getConsentStatus('recording'));
+            console.log('Local Save:', this.getConsentStatus('localSave'));
+            console.groupEnd();
+        };
     }
 
     /**

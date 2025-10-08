@@ -84,47 +84,35 @@ export class PageProtection {
                 }
             }
             
-            // CRITICAL FIX: Check if recording is active, regardless of in-memory chunks (for cloud uploads)
+            // Emergency save for cloud recordings (local streaming is already handled above)
             const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
             const recordedChunks = this.roomWebRTC.videoRecorder.getRecordedChunks();
-            if (isRecording && recordedChunks.length > 0) {
-                // Try to quickly save the recording before leaving
-                if (recordedChunks.length > 0) {
-                    this.emergencySaveRecording();
-                }
+            if (isRecording && recordedChunks && recordedChunks.length > 0) {
+                console.log('💾 Attempting emergency save for cloud recording...');
+                this.emergencySaveRecording();
             }
         });
 
         // Add pagehide event as additional fallback (more reliable than unload, especially on mobile)
         window.addEventListener('pagehide', (event) => {
             console.log('🚨 Page hide detected');
-            const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
-            const streamingChunks = this.roomWebRTC.streamingDownloader?.recordedChunks || [];
+            const isStreamingDownloadActive = this.roomWebRTC.streamingDownloader?.isDownloadActive() || false;
             
             if (event.persisted) {
                 // Page is entering back/forward cache (bfcache) - will be restored
                 console.log('🚨 Page entering bfcache, recording preserved');
             } else {
-                // Page is being permanently destroyed
+                // Page is being permanently destroyed - finalize streaming download
                 console.log('🚨 Page being destroyed permanently');
                 
-                if (isRecording && streamingChunks.length > 0) {
-                    console.log('💾 pagehide: Attempting final save of local recording...');
+                if (isStreamingDownloadActive && this.roomWebRTC.streamingDownloader.streamWriter) {
+                    console.log('💾 pagehide: Closing StreamSaver writer...');
                     try {
-                        this.roomWebRTC.streamingDownloader.finalizeDownload();
+                        this.roomWebRTC.streamingDownloader.streamWriter.close();
                     } catch (error) {
-                        console.error('💾 pagehide: Error in final save:', error);
+                        console.error('💾 pagehide: Error closing writer:', error);
                     }
                 }
-            }
-        });
-
-        // Handle visibility change (tab switching, minimizing)
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                console.log('🚨 Page hidden - recording may be affected');
-            } else {
-                console.log('🚨 Page visible again');
             }
         });
     }
@@ -165,83 +153,4 @@ export class PageProtection {
         }
     }
 
-    /**
-     * Shows a warning dialog before leaving
-     */
-    showLeaveWarning(message = 'Are you sure you want to leave? Any unsaved data will be lost.') {
-        return confirm(message);
-    }
-
-    /**
-     * Temporarily disables page protection
-     */
-    disableProtection() {
-        this.protectionDisabled = true;
-        console.log('🚨 Page protection temporarily disabled');
-    }
-
-    /**
-     * Re-enables page protection
-     */
-    enableProtection() {
-        this.protectionDisabled = false;
-        console.log('🚨 Page protection re-enabled');
-    }
-
-    /**
-     * Checks if protection should be active
-     */
-    shouldProtect() {
-        if (this.protectionDisabled) return false;
-        
-        const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
-        const hasRecordedData = this.roomWebRTC.videoRecorder.getRecordedChunks().length > 0;
-        
-        return isRecording && hasRecordedData;
-    }
-
-    /**
-     * Safe navigation helper
-     */
-    safeNavigate(url, forceNavigate = false) {
-        if (!forceNavigate && this.shouldProtect()) {
-            const shouldLeave = this.showLeaveWarning(
-                'Recording in progress! If you leave now, your recording will be lost. Stop recording first to save your video.\n\nAre you sure you want to leave?'
-            );
-            
-            if (!shouldLeave) {
-                return false;
-            }
-        }
-        
-        window.location.href = url;
-        return true;
-    }
-
-    /**
-     * Safe reload helper
-     */
-    safeReload(forceReload = false) {
-        if (!forceReload && this.shouldProtect()) {
-            const shouldReload = this.showLeaveWarning(
-                'Recording in progress! If you reload now, your recording will be lost. Stop recording first to save your video.\n\nAre you sure you want to reload?'
-            );
-            
-            if (!shouldReload) {
-                return false;
-            }
-        }
-        
-        window.location.reload();
-        return true;
-    }
-
-    /**
-     * Cleanup method to remove event listeners
-     */
-    cleanup() {
-        // Note: beforeunload and unload listeners are automatically cleaned up
-        // when the page unloads, but we could track them if needed for manual cleanup
-        console.log('🚨 Page protection cleanup complete');
-    }
 }

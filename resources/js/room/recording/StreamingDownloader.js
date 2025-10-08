@@ -24,17 +24,11 @@ export class StreamingDownloader {
         this.streamWriter = null;
         this.totalBytesWritten = 0;
         this.chunkCount = 0;
-        
-        // Fallback buffer (only if StreamSaver fails)
-        this.fallbackChunks = [];
-        this.useFallback = false;
+        this.firstChunkWritten = false; // Track if first chunk succeeded (user accepted save dialog)
         
         // Configure StreamSaver (VDO.Ninja setup)
         // mitm.html is for HTTPS - allows Service Worker to work in secure contexts
         streamSaver.mitm = '/mitm.html';
-        
-        console.log('📥 ✅ StreamSaver.js imported (VDO.Ninja method)');
-        console.log('📥 ✅ Service Worker will intercept downloads for streaming');
     }
 
     /**
@@ -64,16 +58,16 @@ export class StreamingDownloader {
         // Reset streaming state
         this.totalBytesWritten = 0;
         this.chunkCount = 0;
-        this.fallbackChunks = [];
+        this.firstChunkWritten = false;
         
-        console.log(`📥 Streaming download initialized: ${this.recordingFilename}`);
-        console.log(`📥 Using StreamSaver.js (VDO.Ninja method)`);
+        // Show user-friendly notification about upcoming save dialog
+        if (window.Toast) {
+            window.Toast.info('Recording started - you\'ll be prompted to choose a save location shortly');
+        }
         
         try {
             // Create StreamSaver writable stream
             // This will trigger the browser save dialog and start streaming
-            console.log(`📥 ⏳ Creating StreamSaver writable stream...`);
-            
             this.writableStream = streamSaver.createWriteStream(this.recordingFilename, {
                 size: null, // Unknown size - streaming
                 writableStrategy: undefined,
@@ -83,10 +77,6 @@ export class StreamingDownloader {
             // Get writer for the stream
             this.streamWriter = this.writableStream.getWriter();
             
-            console.log(`📥 ✅ StreamSaver stream created: ${this.recordingFilename}`);
-            console.log(`📥 ✅ Browser should show save dialog and download progress`);
-            console.log(`📥 ✅ Ready to stream unlimited file size (7GB+)`);
-            
         } catch (error) {
             console.error('📥 ❌ StreamSaver.js failed:', error);
             console.error('📥 🔍 Error details:', {
@@ -95,14 +85,21 @@ export class StreamingDownloader {
                 stack: error.stack
             });
             
-            console.warn('📥 📦 Falling back to memory buffer (limit: ~1GB)');
-            console.warn('📥 ⚠️ Large recordings may fail in this mode');
+            console.error('📥 🛑 Cannot initialize streaming - stopping recording');
             
-            this.useFallback = true;
+            // Show error toast with instructions
+            if (window.Toast) {
+                window.Toast.danger('Recording failed to start. Please leave the room and try again.');
+            }
             
-            // FALLBACK MODE: Prepare for memory accumulation
-            console.log('📥 🎬 Fallback mode: Recording will accumulate in memory');
-            console.log('📥 ℹ️ Download will be triggered when you stop recording');
+            // Stop the recording - we can't continue without streaming
+            if (this.roomWebRTC.videoRecorder.isCurrentlyRecording()) {
+                this.roomWebRTC.videoRecorder.stopRecording().catch(err => {
+                    console.error('Error stopping recording after StreamSaver failure:', err);
+                });
+            }
+            
+            throw error; // Propagate error to caller
         }
     }
     
@@ -115,44 +112,123 @@ export class StreamingDownloader {
         this.chunkCount++;
         this.totalBytesWritten += newChunk.size;
         
-        const chunkMB = (newChunk.size / 1024 / 1024).toFixed(2);
-        const totalGB = (this.totalBytesWritten / 1024 / 1024 / 1024).toFixed(2);
-        
-        console.log(`📥 Chunk ${this.chunkCount}: ${chunkMB}MB (Total: ${totalGB}GB)`);
-        
         try {
-            if (this.useFallback) {
-                // Fallback: accumulate in memory (old behavior with 1GB limit)
-                this.fallbackChunks.push(newChunk);
-                
-                // Warn at 1GB for fallback mode
-                if (this.totalBytesWritten > 1024 * 1024 * 1024) {
-                    console.warn('⚠️ Fallback mode: Recording exceeds 1GB in memory');
-                    console.warn('⚠️ Browser may crash. Consider stopping and downloading.');
-                }
-            } else if (this.streamWriter) {
+            if (this.streamWriter) {
                 // StreamSaver streaming: convert Blob to Uint8Array
                 // StreamSaver requires Uint8Array (not Blob)
                 const arrayBuffer = await newChunk.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
                 await this.streamWriter.write(uint8Array);
-                console.log(`📥 ✅ Streamed to disk (${totalGB}GB total, no memory accumulation)`);
+                
+                // Track first successful write (but no toast - we can't detect when user clicks "Save")
+                if (!this.firstChunkWritten) {
+                    this.firstChunkWritten = true;
+                }
+            } else {
+                console.error('📥 ❌ No stream writer available - cannot save chunk');
             }
         } catch (error) {
             console.error('📥 ❌ Stream write error:', error);
-            console.error('📥 🔍 Error details:', {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-            });
             
-            // Switch to fallback mode on error
-            if (!this.useFallback) {
-                console.warn('📥 Switching to fallback buffer mode due to stream error');
-                this.useFallback = true;
-                this.fallbackChunks.push(newChunk);
+            // Handle error object that might be undefined or incomplete
+            if (error) {
+                console.error('📥 🔍 Error details:', {
+                    name: error.name || 'Unknown',
+                    message: error.message || 'No error message',
+                    stack: error.stack || 'No stack trace'
+                });
+            } else {
+                console.error('📥 🔍 Error object is undefined - likely user canceled save dialog');
             }
+            
+            // If this was the first chunk, user likely canceled the save dialog
+            if (!this.firstChunkWritten) {
+                console.error('📥 ❌ First chunk write failed - user may have canceled save dialog');
+                console.error('📥 🛑 Stopping recording due to save dialog rejection');
+                
+                if (window.Toast) {
+                    window.Toast.danger('Save dialog was canceled. Please refresh the page and try again.');
+                }
+                
+                // Stop the recording gracefully
+                if (this.roomWebRTC.videoRecorder.isCurrentlyRecording()) {
+                    // Don't await - just trigger stop in the background
+                    this.roomWebRTC.videoRecorder.stopRecording().catch(err => {
+                        console.error('Error stopping recording after save dialog cancel:', err);
+                    });
+                }
+                
+                return; // Exit early
+            }
+            
+            // If streaming fails after initial success, try to restart with a new file
+            if (this.firstChunkWritten) {
+                console.warn('📥 Stream failed, attempting recovery with new file...');
+                
+                // Close the failed stream
+                if (this.streamWriter) {
+                    try {
+                        await this.streamWriter.abort();
+                    } catch (abortError) {
+                        console.error('📥 Error aborting failed stream:', abortError);
+                    }
+                    this.streamWriter = null;
+                    this.writableStream = null;
+                }
+                
+                // Try to restart streaming with a new file
+                try {
+                    const mimeType = this.roomWebRTC.videoRecorder.getRecordingMimeType();
+                    const roomName = this.roomWebRTC.roomData.name.replace(/[^a-z0-9]/gi, '-');
+                    const currentUserId = this.roomWebRTC.currentUserId;
+                    const participantData = this.roomWebRTC.roomData.participants.find(p => p.user_id === currentUserId);
+                    const participantName = (participantData?.character_name || participantData?.username || 'Unknown-Participant').replace(/[^a-z0-9]/gi, '-');
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('Z', '');
+                    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+                    
+                    // New filename with "-recovery" suffix
+                    this.recordingFilename = `${roomName}-${participantName}-${timestamp}-recovery.${ext}`;
+                    this.firstChunkWritten = false; // Reset flag
+                    
+                    this.writableStream = streamSaver.createWriteStream(this.recordingFilename, {
+                        size: null,
+                        writableStrategy: undefined,
+                        readableStrategy: undefined
+                    });
+                    
+                    this.streamWriter = this.writableStream.getWriter();
+                    
+                    if (window.Toast) {
+                        window.Toast.warning('Stream interrupted. A new save dialog will appear - previous chunks saved separately.');
+                    }
+                    
+                    // Try to write the current chunk to the new stream
+                    const arrayBuffer = await newChunk.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+                    await this.streamWriter.write(uint8Array);
+                    this.firstChunkWritten = true;
+                    
+                } catch (restartError) {
+                    console.error('📥 ❌ Failed to restart streaming:', restartError);
+                    
+                    if (window.Toast) {
+                        window.Toast.danger('Recording stream failed. Please refresh the page and try again.');
+                    }
+                    
+                    // Stop the recording - we can't recover
+                    if (this.roomWebRTC.videoRecorder.isCurrentlyRecording()) {
+                        this.roomWebRTC.videoRecorder.stopRecording().catch(err => {
+                            console.error('Error stopping recording after restart failure:', err);
+                        });
+                    }
+                }
+                
+                return; // Exit early - either recovered or stopped
+            }
+            
+            // If we reach here, something unexpected happened
+            console.error('📥 ❌ Unexpected error state in updateDownload');
         }
         
         // Update status bar
@@ -170,92 +246,31 @@ export class StreamingDownloader {
         
         // Stream the chunk
         await this.updateDownload(blob);
-        
-        console.log(`💾 Local save chunk streamed: ${recordingData.filename} (part ${recordingData.partNumber})`);
     }
 
     /**
      * Finalizes StreamSaver download
-     * @param {boolean} synchronous - If true, use synchronous close (for page unload)
+     * VDO.Ninja approach: Simply call writer.close() (async is fine, Service Worker handles it)
      */
-    async finalizeDownload(synchronous = false) {
+    async finalizeDownload() {
         if (!this.recordingFilename) {
-            console.warn('📥 No recording to finalize');
             return;
         }
         
-        const totalGB = (this.totalBytesWritten / 1024 / 1024 / 1024).toFixed(2);
-        
-        console.log(`📥 ⏳ Finalizing recording: ${this.recordingFilename} (synchronous: ${synchronous})`);
-        
         try {
-            if (this.streamWriter && !this.useFallback) {
-                // Close StreamSaver writer (completes download)
-                console.log(`📥 ⏳ Closing StreamSaver writer...`);
-                
-                if (synchronous) {
-                    // CRITICAL FIX: For page unload, we can't wait for async close
-                    // Instead, release the writer lock which allows the stream to finish
-                    console.log(`📥 🚨 Synchronous close: Releasing writer lock`);
-                    try {
-                        this.streamWriter.releaseLock();
-                        console.log(`📥 ✅ Writer lock released - download will complete`);
-                    } catch (releaseLockError) {
-                        console.warn(`📥 Error releasing lock, attempting abort:`, releaseLockError);
-                        // Last resort: abort the stream (this at least closes it)
-                        try {
-                            await this.streamWriter.abort();
-                        } catch (abortError) {
-                            console.error(`📥 ❌ Abort failed:`, abortError);
-                        }
-                    }
-                } else {
-                    // Normal async close
-                    await this.streamWriter.close();
-                    console.log(`📥 ✅ StreamSaver writer closed`);
-                }
-                
-                console.log(`📥 ✅ Recording saved: ${this.recordingFilename} (${totalGB}GB)`);
-                console.log(`📥 ✅ ${this.chunkCount} chunks streamed directly to disk`);
-            } else if (this.useFallback && this.fallbackChunks.length > 0) {
-                // FALLBACK: Create blob from accumulated chunks and trigger download
-                console.log(`📥 ⏳ Creating fallback download...`);
-                const mimeType = this.roomWebRTC.videoRecorder.getRecordingMimeType();
-                const combinedBlob = new Blob(this.fallbackChunks, { type: mimeType });
-                
-                // Create download link
-                const url = URL.createObjectURL(combinedBlob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = this.recordingFilename;
-                link.style.display = 'none';
-                
-                document.body.appendChild(link);
-                link.click();
-                
-                // Clean up after a short delay
-                setTimeout(() => {
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                }, 1000);
-                
-                console.log(`📥 ✅ Fallback download triggered: ${this.recordingFilename} (${totalGB}GB)`);
-                console.log(`📥 ✅ ${this.chunkCount} chunks combined from memory`);
+            if (this.streamWriter) {
+                // VDO.Ninja method: Just call close() - Service Worker completes download
+                await this.streamWriter.close();
+            } else {
+                console.warn('📥 No stream writer to finalize - recording may have failed');
             }
         } catch (error) {
             console.error('📥 ❌ Finalize error:', error);
-            console.error('📥 🔍 Error details:', {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-            });
             throw error;
         } finally {
             // Clean up
-            console.log(`📥 🧹 Cleaning up resources...`);
             this.streamWriter = null;
             this.writableStream = null;
-            this.fallbackChunks = [];
             this.recordingFilename = null;
             this.isStreamingDownloadActive = false;
             this.totalBytesWritten = 0;
@@ -267,80 +282,16 @@ export class StreamingDownloader {
     }
 
     /**
-     * Downloads the complete recording as a single file (fallback method)
-     */
-    downloadCompleteRecording() {
-        try {
-            console.log('💾 Attempting to download complete recording...');
-            console.log('💾 Storage provider:', this.roomWebRTC.roomData.recording_settings?.storage_provider);
-            console.log('💾 Recorded chunks:', this.recordedChunks.length);
-            
-            if (this.recordedChunks.length === 0) {
-                console.warn('💾 No recorded chunks to download');
-                return;
-            }
-
-            // Combine all chunks into a single blob
-            const mimeType = this.roomWebRTC.videoRecorder.getRecordingMimeType();
-            const completeBlob = new Blob(this.recordedChunks, { type: mimeType });
-            
-            // Generate filename with timestamp
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const ext = mimeType.includes('webm') ? 'webm' : 'mp4';
-            const filename = `room-recording-${timestamp}.${ext}`;
-            
-            // Create download link
-            const url = URL.createObjectURL(completeBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            
-            // Trigger download
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Clean up
-            URL.revokeObjectURL(url);
-            this.recordedChunks = []; // Clear chunks after download
-            this.totalRecordedSize = 0;
-            this.hasShownMemoryWarning = false;
-            
-            console.log(`💾 Complete recording downloaded: ${filename} (${(completeBlob.size / 1024 / 1024).toFixed(2)} MB)`);
-        } catch (error) {
-            console.error('💾 Error downloading complete recording:', error);
-        }
-    }
-
-    /**
-     * Gets current download state
+     * Gets current download state (used by PageProtection)
      */
     isDownloadActive() {
         return this.isStreamingDownloadActive;
     }
 
     /**
-     * Gets recorded chunks
-     */
-    getRecordedChunks() {
-        return this.recordedChunks;
-    }
-
-    /**
-     * Gets recording filename
+     * Gets recording filename (used by UI)
      */
     getRecordingFilename() {
         return this.recordingFilename;
-    }
-
-    /**
-     * Resets download state
-     */
-    reset() {
-        this.recordedChunks = [];
-        this.recordingFilename = null;
-        this.isStreamingDownloadActive = false;
-        this.totalRecordedSize = 0;
-        this.hasShownMemoryWarning = false;
     }
 }

@@ -6,6 +6,7 @@ import './editor';
 // Import room functionality for video conferencing
 import RoomUppy from './room-uppy';
 import RoomWebRTC from './room-webrtc';
+import { RoomSessionInitializer } from './room/RoomSessionInitializer';
 
 // Import video thumbnail generator
 import VideoThumbnailGenerator from './video-thumbnail-generator';
@@ -13,6 +14,7 @@ import VideoThumbnailGenerator from './video-thumbnail-generator';
 // Make room classes globally available for room sessions
 window.RoomUppy = RoomUppy;
 window.RoomWebRTC = RoomWebRTC;
+window.RoomSessionInitializer = RoomSessionInitializer;
 window.VideoThumbnailGenerator = VideoThumbnailGenerator;
 
 // Create global video thumbnail generator instance

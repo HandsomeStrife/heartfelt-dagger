@@ -128,6 +128,12 @@ export class SlotManager {
             
             // Show video controls since slot is now occupied
             this.showVideoControls(slotContainer);
+            
+            // CACHE INVALIDATION: Clear cache after DOM modification
+            const slotId = slotContainer.dataset.slotId;
+            if (slotId) {
+                this.clearSlotCache(slotId);
+            }
         }
     }
 
@@ -146,6 +152,12 @@ export class SlotManager {
         if (joinBtn) {
             joinBtn.style.display = 'none';
         }
+        
+        // CACHE INVALIDATION: Clear cache after DOM modification
+        const slotId = slotContainer.dataset.slotId;
+        if (slotId) {
+            this.clearSlotCache(slotId);
+        }
     }
 
     /**
@@ -157,6 +169,12 @@ export class SlotManager {
         if (loadingSpinner) {
             loadingSpinner.classList.add('hidden');
             loadingSpinner.style.display = 'none';
+        }
+        
+        // CACHE INVALIDATION: Clear cache after DOM modification
+        const slotId = slotContainer.dataset.slotId;
+        if (slotId) {
+            this.clearSlotCache(slotId);
         }
     }
 
@@ -177,6 +195,12 @@ export class SlotManager {
      */
     resetSlotUI(slotContainer) {
         if (!slotContainer) return;
+
+        // CACHE INVALIDATION: Clear cache before major DOM modifications
+        const slotId = slotContainer.dataset.slotId;
+        if (slotId) {
+            this.clearSlotCache(slotId);
+        }
 
         // Hide video
         const videoElement = slotContainer.querySelector('.local-video');
@@ -221,6 +245,9 @@ export class SlotManager {
     updateSlotOccupancy(slotId, occupantData) {
         const slotContainer = document.querySelector(`[data-slot-id="${slotId}"]`);
         if (!slotContainer) return;
+
+        // CACHE INVALIDATION: Clear cache before updating occupancy
+        this.clearSlotCache(slotId);
 
         if (occupantData) {
             // Show occupant

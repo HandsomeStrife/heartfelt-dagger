@@ -29,6 +29,10 @@
                 {{ $slot }}
             </main>
         </div>
+        
+        <!-- Toast notifications component -->
+        <livewire:toasts />
+        
         @livewireScriptConfig
     </body>
 </html>
