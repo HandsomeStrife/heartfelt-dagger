@@ -24,10 +24,10 @@ export class PageProtection {
             console.log(`  - Is recording: ${isRecording}`);
             console.log(`  - Is joined: ${isJoined}`);
             
-            const recordedChunks = this.roomWebRTC.videoRecorder.getRecordedChunks();
-            const streamingChunks = this.roomWebRTC.streamingDownloader?.recordedChunks || [];
-            console.log(`  - VideoRecorder chunks: ${recordedChunks ? recordedChunks.length : 0}`);
-            console.log(`  - StreamingDownloader chunks: ${streamingChunks.length}`);
+            // CRITICAL FIX: Check if StreamSaver download is active (not chunk count)
+            // StreamSaver streams directly to disk, so chunks aren't accumulated in memory
+            const isStreamingDownloadActive = this.roomWebRTC.streamingDownloader?.isDownloadActive() || false;
+            console.log(`  - Streaming download active: ${isStreamingDownloadActive}`);
             
             // CRITICAL: Perform cleanup even if not recording
             // This ensures other peers know we've left
@@ -50,24 +50,12 @@ export class PageProtection {
                 }
             }
             
-            const hasLocalChunks = streamingChunks.length > 0;
-            const hasRecordingChunks = recordedChunks && recordedChunks.length > 0;
-            
-            // CRITICAL FIX: For cloud uploads (Wasabi, Google Drive), chunks aren't stored locally
-            // So we must check if recording is active, not just if chunks exist in memory
-            if (isRecording) {
-                const message = 'Recording in progress! If you leave now, your recording will be lost. Stop recording first to save your video.';
+            // CRITICAL: Show warning if recording/download is active
+            // The actual finalization happens in the 'unload' event (VDO.Ninja approach)
+            if (isRecording || isStreamingDownloadActive) {
+                const message = 'Recording in progress! If you leave now, your recording may be incomplete. Stop recording first to ensure your video is saved.';
                 console.log('🚨 Showing page unload warning');
-                
-                // Attempt to finalize local download if chunks exist
-                if (hasLocalChunks) {
-                    console.log('💾 Attempting to finalize local download before page unload...');
-                    try {
-                        this.roomWebRTC.streamingDownloader.finalizeDownload();
-                    } catch (error) {
-                        console.error('💾 Error finalizing local download:', error);
-                    }
-                }
+                console.log('📝 Note: Download will finalize in unload event if user proceeds');
                 
                 event.preventDefault();
                 event.returnValue = message;
@@ -78,23 +66,28 @@ export class PageProtection {
         });
 
         // Attempt to save recording if page is being unloaded
+        // CRITICAL: This event fires AFTER user confirms leaving (or no confirmation needed)
+        // We have milliseconds to execute synchronous code before page dies
         window.addEventListener('unload', () => {
-            const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
-            const recordedChunks = this.roomWebRTC.videoRecorder.getRecordedChunks();
-            const streamingChunks = this.roomWebRTC.streamingDownloader?.recordedChunks || [];
+            const isStreamingDownloadActive = this.roomWebRTC.streamingDownloader?.isDownloadActive() || false;
+            
+            // CRITICAL FIX: VDO.Ninja approach - call writer.close() without await
+            // This initiates the close, and the Service Worker continues even after page closes
+            if (isStreamingDownloadActive && this.roomWebRTC.streamingDownloader.streamWriter) {
+                console.log('💾 🚨 UNLOAD: Closing StreamSaver writer (VDO.Ninja method)...');
+                try {
+                    // VDO.Ninja: Just call close() without await - Service Worker handles it
+                    this.roomWebRTC.streamingDownloader.streamWriter.close();
+                    console.log('💾 ✅ Writer close initiated - Service Worker will complete download');
+                } catch (error) {
+                    console.error('💾 Error closing writer on unload:', error);
+                }
+            }
             
             // CRITICAL FIX: Check if recording is active, regardless of in-memory chunks (for cloud uploads)
-            if (isRecording && (recordedChunks.length > 0 || streamingChunks.length > 0)) {
-                // Try to finalize local download if chunks exist
-                if (streamingChunks.length > 0) {
-                    console.log('💾 Emergency finalize of local download...');
-                    try {
-                        this.roomWebRTC.streamingDownloader.finalizeDownload();
-                    } catch (error) {
-                        console.error('💾 Error in emergency finalize:', error);
-                    }
-                }
-                
+            const isRecording = this.roomWebRTC.videoRecorder.isCurrentlyRecording();
+            const recordedChunks = this.roomWebRTC.videoRecorder.getRecordedChunks();
+            if (isRecording && recordedChunks.length > 0) {
                 // Try to quickly save the recording before leaving
                 if (recordedChunks.length > 0) {
                     this.emergencySaveRecording();

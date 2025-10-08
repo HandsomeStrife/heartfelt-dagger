@@ -16,6 +16,9 @@ export class MessageHandler {
         // MEDIUM FIX: Debounced handlers for rapid updates (250ms delay)
         this.debouncedHandleCountdownUpdate = debounce(this._handleCountdownUpdate.bind(this), 250);
         this.debouncedHandleMarkerCreated = debounce(this._handleSessionMarkerCreated.bind(this), 250);
+        
+        // CRITICAL FIX: Track connection fallback timeouts to prevent orphaned timers
+        this.connectionFallbackTimeouts = new Map(); // Map<peerId, timeoutId>
     }
 
     /**
@@ -103,14 +106,34 @@ export class MessageHandler {
             } else {
                 console.log(`⏳ Waiting for incoming PeerJS call from: ${senderId} (lexicographic ordering)`);
                 
+                // CRITICAL FIX: Track fallback timeout so it can be cleaned up
+                // Clear any existing timeout for this peer
+                if (this.connectionFallbackTimeouts.has(senderId)) {
+                    clearTimeout(this.connectionFallbackTimeouts.get(senderId));
+                }
+                
                 // FALLBACK: If no connection after 2 seconds, initiate anyway (VDO.Ninja pattern)
-                setTimeout(() => {
+                const timeoutId = setTimeout(() => {
+                    // Validate that we're still in the room and the conditions still apply
+                    if (!this.roomWebRTC.isJoined || !this.roomWebRTC.currentSlotId) {
+                        console.log(`⏳ Fallback cancelled: user no longer in room`);
+                        this.connectionFallbackTimeouts.delete(senderId);
+                        return;
+                    }
+                    
                     const isConnected = this.roomWebRTC.simplePeerManager.isConnectedTo(senderId);
                     if (!isConnected) {
                         console.log(`🔄 Fallback: ${currentPeerId} -> ${senderId} (timeout override)`);
                         this.roomWebRTC.simplePeerManager.callPeer(senderId);
+                    } else {
+                        console.log(`✅ Connection already established with ${senderId}, fallback not needed`);
                     }
+                    
+                    // Clean up the timeout reference
+                    this.connectionFallbackTimeouts.delete(senderId);
                 }, 2000);
+                
+                this.connectionFallbackTimeouts.set(senderId, timeoutId);
             }
         }
         
@@ -127,11 +150,37 @@ export class MessageHandler {
     handleUserLeft(data, senderId) {
         console.log('👋 User left slot:', data.slotId);
         
+        // CRITICAL FIX: Clear any pending fallback timeouts for this peer
+        this.clearConnectionFallbackTimeout(senderId);
+        
         // Remove from slot occupancy
         this.roomWebRTC.slotOccupants.delete(data.slotId);
         
         // Close peer connection if exists (SimplePeerManager will handle cleanup)
         this.roomWebRTC.simplePeerManager.closeCall(senderId);
+    }
+    
+    /**
+     * CRITICAL FIX: Clears connection fallback timeout for a specific peer
+     */
+    clearConnectionFallbackTimeout(peerId) {
+        if (this.connectionFallbackTimeouts.has(peerId)) {
+            clearTimeout(this.connectionFallbackTimeouts.get(peerId));
+            this.connectionFallbackTimeouts.delete(peerId);
+            console.log(`🧹 Cleared fallback timeout for peer: ${peerId}`);
+        }
+    }
+    
+    /**
+     * CRITICAL FIX: Clears all connection fallback timeouts
+     * Call this when leaving the room or during cleanup
+     */
+    clearAllConnectionFallbackTimeouts() {
+        console.log(`🧹 Clearing ${this.connectionFallbackTimeouts.size} fallback timeouts`);
+        this.connectionFallbackTimeouts.forEach((timeoutId, peerId) => {
+            clearTimeout(timeoutId);
+        });
+        this.connectionFallbackTimeouts.clear();
     }
 
     // WebRTC signaling (offer/answer/ICE) is handled internally by PeerJS

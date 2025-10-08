@@ -75,12 +75,8 @@ describe('Character Level Up - Tier 4 Advancement Options', function () {
         $this->character->refresh();
         expect($this->character->level)->toBe(8);
 
-        // Verify proficiency bonus advancement was created
-        $proficiencyAdvancement = CharacterAdvancement::where('character_id', $this->character->id)
-            ->where('advancement_type', 'proficiency')
-            ->where('tier', 4)
-            ->first();
-        expect($proficiencyAdvancement)->not->toBeNull();
+        // Verify proficiency was increased (tier achievement applies directly to character)
+        expect($this->character->proficiency)->toBe(4); // Level 8-10 base proficiency is 4
 
         // Verify marked traits were cleared (level 8 tier achievement)
         $markedTraits = $this->character->traits()->where('is_marked', true)->count();

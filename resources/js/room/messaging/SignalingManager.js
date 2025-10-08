@@ -24,6 +24,21 @@ export class SignalingManager {
             refillRate: 5, // Refill 5 tokens per second
             lastRefill: Date.now()
         };
+        
+        // Message queuing system for failed deliveries
+        this.messageQueue = {
+            critical: [],   // ICE candidates, offers, answers - must succeed
+            normal: [],     // User joined/left, state requests
+            low: []         // Status updates, non-critical events
+        };
+        this.isProcessingQueue = false;
+        this.messageRetryAttempts = new Map(); // Track retry counts per message ID
+        this.maxRetries = 3;
+        this.retryBaseDelay = 1000; // 1 second base delay
+        
+        // Message sequencing for drop detection
+        this.messageSequence = 0;
+        this.lastAckedSequence = 0;
     }
     
     /**
@@ -49,6 +64,94 @@ export class SignalingManager {
         }
         
         return false;
+    }
+    
+    /**
+     * Determines message priority based on type
+     * Critical messages bypass rate limiting and get priority in retry queue
+     */
+    getMessagePriority(type) {
+        // Critical: WebRTC signaling that must arrive for connections to work
+        const criticalTypes = [
+            'webrtc-offer',
+            'webrtc-answer', 
+            'webrtc-ice-candidate',
+            'request-state' // Initial state sync is critical
+        ];
+        
+        // Low priority: Status updates and non-critical events
+        const lowPriorityTypes = [
+            'status-update',
+            'typing-indicator',
+            'presence-ping'
+        ];
+        
+        if (criticalTypes.includes(type)) {
+            return 'critical';
+        } else if (lowPriorityTypes.includes(type)) {
+            return 'low';
+        } else {
+            return 'normal';
+        }
+    }
+    
+    /**
+     * Processes message queue with exponential backoff retries
+     * Prioritizes critical messages (WebRTC signaling)
+     */
+    async processMessageQueue() {
+        if (this.isProcessingQueue) {
+            return; // Already processing
+        }
+        
+        this.isProcessingQueue = true;
+        
+        try {
+            // Process in priority order: critical → normal → low
+            for (const priority of ['critical', 'normal', 'low']) {
+                const queue = this.messageQueue[priority];
+                
+                while (queue.length > 0) {
+                    const queuedMessage = queue.shift();
+                    const { messageId, type, data, targetPeerId, retryCount } = queuedMessage;
+                    
+                    // Check if we've exceeded max retries
+                    if (retryCount >= this.maxRetries) {
+                        console.error(`❌ Message ${messageId} (${type}) exceeded max retries, dropping`);
+                        this.messageRetryAttempts.delete(messageId);
+                        
+                        // For critical messages, surface error to user
+                        if (priority === 'critical') {
+                            console.error(`🚨 CRITICAL: WebRTC signaling message ${type} failed permanently`);
+                            // TODO: Trigger UI notification for connection failure
+                        }
+                        continue;
+                    }
+                    
+                    // Calculate exponential backoff delay
+                    const delay = this.retryBaseDelay * Math.pow(2, retryCount);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    
+                    // Attempt to send
+                    try {
+                        await this.sendMessageDirect(type, data, targetPeerId);
+                        console.log(`✅ Queued message ${messageId} (${type}) sent successfully after ${retryCount + 1} attempt(s)`);
+                        this.messageRetryAttempts.delete(messageId);
+                    } catch (error) {
+                        console.warn(`⚠️ Retry ${retryCount + 1}/${this.maxRetries} failed for ${messageId} (${type}):`, error);
+                        
+                        // Re-queue with incremented retry count
+                        queue.push({
+                            ...queuedMessage,
+                            retryCount: retryCount + 1
+                        });
+                        this.messageRetryAttempts.set(messageId, retryCount + 1);
+                    }
+                }
+            }
+        } finally {
+            this.isProcessingQueue = false;
+        }
     }
 
     /**
@@ -143,13 +246,18 @@ export class SignalingManager {
     }
 
     /**
-     * Publishes a WebRTC signaling message to the Reverb channel
+     * Publishes a WebRTC signaling message to the Reverb channel via server broadcast
      * 
-     * CRITICAL: Uses server-side broadcast for reliable delivery
-     * Laravel Reverb docs explicitly state whisper is for "ephemeral, unreliable" messages.
-     * One dropped signaling message = broken WebRTC connection.
+     * ARCHITECTURE DECISION:
+     * - HTTP POST → Laravel Broadcast → Reverb WebSocket (reliable, server-authenticated)
+     * - NO whisper fallback (unreliable, bypasses server, no delivery guarantee)
+     * - Failed messages are queued with exponential backoff retry
      * 
-     * PERFORMANCE FIX: Includes client-side rate limiting with token bucket algorithm
+     * This ensures:
+     * 1. All messages are authenticated and logged server-side
+     * 2. Delivery confirmation via HTTP response
+     * 3. Failed messages are retried intelligently
+     * 4. Critical WebRTC signaling (offers/answers/ICE) never silently fails
      * 
      * @param {string} type - Message type (e.g., 'user-joined', 'webrtc-offer')
      * @param {object} data - Message payload
@@ -158,65 +266,109 @@ export class SignalingManager {
     async publishMessage(type, data, targetPeerId = null) {
         if (!this.channel) {
             console.warn('❌ Reverb channel not ready');
+            throw new Error('Reverb channel not initialized');
+        }
+
+        const priority = this.getMessagePriority(type);
+        
+        // CRITICAL messages bypass rate limiting
+        if (priority !== 'critical' && !this.checkRateLimit()) {
+            console.warn(`⚠️ Rate limit exceeded for ${priority} message: ${type}, queuing`);
+            
+            const messageId = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            this.messageQueue[priority].push({
+                messageId,
+                type,
+                data,
+                targetPeerId,
+                retryCount: 0
+            });
+            
+            // Trigger queue processing if not already running
+            if (!this.isProcessingQueue) {
+                this.processMessageQueue().catch(err => {
+                    console.error('❌ Queue processing error:', err);
+                });
+            }
+            
             return;
         }
 
-        // PERFORMANCE FIX: Apply rate limiting
-        if (!this.checkRateLimit()) {
-            console.warn('⚠️ Rate limit exceeded for signaling messages, queuing message');
-            // Queue message for later delivery
-            return new Promise((resolve) => {
-                setTimeout(async () => {
-                    await this.publishMessage(type, data, targetPeerId);
-                    resolve();
-                }, 200); // Wait 200ms before retry
+        try {
+            await this.sendMessageDirect(type, data, targetPeerId);
+            
+            if (priority === 'critical') {
+                console.log(`✅ CRITICAL message sent: ${type}`, targetPeerId ? `(to ${targetPeerId})` : '(broadcast)');
+            } else {
+                console.log(`✅ Signaling message sent: ${type}`, targetPeerId ? `(to ${targetPeerId})` : '(broadcast)');
+            }
+        } catch (error) {
+            console.error(`❌ Failed to send ${priority} message ${type}:`, error);
+            
+            // Queue for retry instead of failing silently
+            const messageId = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            this.messageQueue[priority].push({
+                messageId,
+                type,
+                data,
+                targetPeerId,
+                retryCount: 0
             });
+            
+            if (priority === 'critical') {
+                console.warn(`🚨 CRITICAL message ${type} queued for retry`);
+            }
+            
+            // Trigger queue processing
+            if (!this.isProcessingQueue) {
+                this.processMessageQueue().catch(err => {
+                    console.error('❌ Queue processing error:', err);
+                });
+            }
+            
+            // For critical messages, also throw to caller
+            if (priority === 'critical') {
+                throw error;
+            }
         }
-
+    }
+    
+    /**
+     * Sends message directly via HTTP POST → Laravel Broadcast → Reverb
+     * No retries, no fallbacks - throws on failure for caller to handle
+     */
+    async sendMessageDirect(type, data, targetPeerId = null) {
         const message = {
             type: type,
             data: data,
             senderId: this.currentPeerId || 'anonymous',
-            targetPeerId: targetPeerId
+            targetPeerId: targetPeerId,
+            sequence: ++this.messageSequence // Add sequence number for drop detection
         };
 
-        try {
-            // Use server-side endpoint for reliable delivery
-            const response = await fetch(`/api/rooms/${this.roomWebRTC.roomData.id}/webrtc-signal`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': getCSRFToken(), // MEDIUM FIX: Use robust CSRF utility
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(message)
-            });
+        const response = await fetch(`/api/rooms/${this.roomWebRTC.roomData.id}/webrtc-signal`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCSRFToken(),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(message)
+        });
 
-            if (!response.ok) {
-                throw new Error(`Server signaling failed: ${response.status} ${response.statusText}`);
-            }
-
-            console.log(`✅ Signaling message sent via server: ${type}`, targetPeerId ? `(to ${targetPeerId})` : '(broadcast)');
-        } catch (error) {
-            console.error('❌ Server-side signaling failed:', error);
-            
-            // FALLBACK: Use whisper as last resort
-            // This is not ideal, but better than complete failure
-            console.warn('⚠️ Falling back to unreliable whisper method');
-            try {
-                this.channel.whisper('webrtc-signal', {
-                    ...message,
-                    userId: this.roomWebRTC.currentUserId,
-                    roomId: this.roomWebRTC.roomData.id,
-                    timestamp: Date.now(),
-                    fallback: true
-                });
-                console.log(`⚠️ Signaling message sent via whisper fallback: ${type}`);
-            } catch (whisperError) {
-                console.error('❌ Whisper fallback also failed:', whisperError);
-                console.error('❌ CRITICAL: Unable to send signaling message. Connection may fail.');
-            }
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
+        
+        const result = await response.json().catch(() => null);
+        
+        // Update last acked sequence if server confirms
+        if (result && result.sequence) {
+            this.lastAckedSequence = result.sequence;
+        }
+        
+        return result;
     }
 
     /**

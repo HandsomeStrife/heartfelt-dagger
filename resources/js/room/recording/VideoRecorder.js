@@ -3,9 +3,35 @@
  * 
  * Handles MediaRecorder setup, recording lifecycle, and coordination
  * between different storage providers (local device, cloud storage).
+ * 
+ * CRITICAL FIX: Implements atomic state machine to prevent race conditions
  */
 
 import { LoggerRegistry } from '../utils/Logger';
+
+// Recording State Machine States
+const RecordingState = {
+    IDLE: 'idle',               // No recording, ready to start
+    STARTING: 'starting',       // Initialization in progress
+    RECORDING: 'recording',     // Actively recording
+    PAUSING: 'pausing',         // Pause requested, not yet paused
+    PAUSED: 'paused',           // Paused, can resume
+    STOPPING: 'stopping',       // Stop requested, finalizing
+    STOPPED: 'stopped',         // Stopped, ready for cleanup
+    ERROR: 'error'              // Error state, needs reset
+};
+
+// Valid state transitions (enforced atomically)
+const VALID_TRANSITIONS = {
+    [RecordingState.IDLE]: [RecordingState.STARTING],
+    [RecordingState.STARTING]: [RecordingState.RECORDING, RecordingState.ERROR],
+    [RecordingState.RECORDING]: [RecordingState.PAUSING, RecordingState.STOPPING],
+    [RecordingState.PAUSING]: [RecordingState.PAUSED, RecordingState.ERROR],
+    [RecordingState.PAUSED]: [RecordingState.RECORDING, RecordingState.STOPPING],
+    [RecordingState.STOPPING]: [RecordingState.STOPPED, RecordingState.ERROR],
+    [RecordingState.STOPPED]: [RecordingState.IDLE],
+    [RecordingState.ERROR]: [RecordingState.IDLE] // Can always reset from error
+};
 
 export class VideoRecorder {
     constructor(roomWebRTC) {
@@ -15,9 +41,15 @@ export class VideoRecorder {
         this.recordedChunks = [];
         this.recordingStartTime = null;
         this.originalRecordingStartTime = null; // Never reset, used for total duration
-        this.isRecording = false;
         this.recordingTimer = null;
         this.recMime = null;
+        
+        // CRITICAL FIX: Atomic state machine for recording lifecycle
+        this.state = RecordingState.IDLE;
+        this.stateTransitionInProgress = false;
+        
+        // Backward compatibility (deprecated - use getState() instead)
+        this.isRecording = false;
         
         // MEMORY LEAK FIX: Store event handler references for proper cleanup
         this.eventHandlers = {
@@ -69,10 +101,88 @@ export class VideoRecorder {
         console.log('🎥 Video recording initialized with', this.recMime);
     }
 
+    // ===========================================
+    // STATE MACHINE METHODS (CRITICAL FIX)
+    // ===========================================
+
     /**
-     * Starts video recording
+     * Atomically transitions to a new state if valid
+     * @throws {Error} if transition is invalid or already in progress
+     */
+    transitionTo(newState) {
+        // Prevent concurrent transitions
+        if (this.stateTransitionInProgress) {
+            throw new Error(`State transition already in progress (current: ${this.state})`);
+        }
+        
+        // Validate transition
+        const validNext = VALID_TRANSITIONS[this.state];
+        if (!validNext || !validNext.includes(newState)) {
+            throw new Error(`Invalid state transition: ${this.state} → ${newState}`);
+        }
+        
+        // Begin atomic transition
+        this.stateTransitionInProgress = true;
+        const previousState = this.state;
+        
+        try {
+            this.state = newState;
+            
+            // Update backward compatibility flag
+            this.isRecording = (newState === RecordingState.RECORDING);
+            
+            console.log(`🎥 State: ${previousState} → ${newState}`);
+        } finally {
+            // Always release lock
+            this.stateTransitionInProgress = false;
+        }
+    }
+    
+    /**
+     * Gets current recording state
+     */
+    getState() {
+        return this.state;
+    }
+    
+    /**
+     * Checks if in a specific state
+     */
+    isInState(state) {
+        return this.state === state;
+    }
+    
+    /**
+     * Checks if transition to a state is valid
+     */
+    canTransitionTo(newState) {
+        const validNext = VALID_TRANSITIONS[this.state];
+        return validNext && validNext.includes(newState);
+    }
+    
+    /**
+     * Resets state machine to IDLE (use with caution!)
+     */
+    resetState() {
+        if (this.stateTransitionInProgress) {
+            console.warn('🎥 ⚠️ Force resetting state machine during transition');
+        }
+        this.state = RecordingState.IDLE;
+        this.isRecording = false;
+        this.stateTransitionInProgress = false;
+        console.log('🎥 State machine reset to IDLE');
+    }
+
+    /**
+     * Starts video recording with atomic state transitions
      */
     async startRecording() {
+        // CRITICAL FIX: Validate state before starting
+        if (!this.canTransitionTo(RecordingState.STARTING)) {
+            console.warn(`🎥 Cannot start recording from state: ${this.state}`);
+            return;
+        }
+        
         const localStream = this.roomWebRTC.mediaManager.getLocalStream();
         if (!localStream) {
             console.warn('🎥 No local stream available for recording');
@@ -86,6 +196,9 @@ export class VideoRecorder {
         }
 
         try {
+            // CRITICAL FIX: Atomic state transition to STARTING
+            this.transitionTo(RecordingState.STARTING);
+            
             // Determine storage provider once for the entire function
             const storageProvider = this.roomWebRTC.roomData.recording_settings?.storage_provider || 'local_device';
             
@@ -95,7 +208,6 @@ export class VideoRecorder {
             // generateRecordingFilename() relies on originalRecordingStartTime
             this.recordingStartTime = Date.now();
             this.originalRecordingStartTime = Date.now(); // Never reset, used for total duration
-            this.isRecording = true;
             this.recordedChunks = [];
             
             // Reset cumulative statistics for new recording
@@ -180,9 +292,9 @@ export class VideoRecorder {
                     // Handle local saving (either primary local storage or dual recording)
                     if (shouldSaveLocally) {
                         try {
-                            // Use StreamingDownloader for local save, not CloudUploader
-                            this.roomWebRTC.streamingDownloader.addChunk(blob, recordingData);
-                            console.log('🎥 Local device chunk processed successfully');
+                            // Use StreamingDownloader for local save (true streaming to disk)
+                            await this.roomWebRTC.streamingDownloader.addChunk(blob, recordingData);
+                            console.log('🎥 Local device chunk streamed successfully');
                         } catch (error) {
                             console.error('🎥 Error saving locally:', error);
                             // For dual recording, continue with cloud upload even if local fails
@@ -241,10 +353,12 @@ export class VideoRecorder {
             // (storageProvider already declared above)
             
             if (storageProvider === 'local_device') {
-                // Use small timeslices (5 seconds) for streaming download to prevent data loss
+                // Initialize streaming download FIRST (prompts user for save location)
+                await this.roomWebRTC.streamingDownloader.initializeDownload(this.recMime);
+                
+                // Start recording with small timeslices (5 seconds) for streaming
                 this.mediaRecorder.start(5000); // 5 seconds - frequent enough to prevent loss
                 console.log('🎥 Video recording started (streaming for local device)');
-                this.roomWebRTC.streamingDownloader.initializeDownload(this.recMime);
             } else if (storageProvider === 'wasabi') {
                 // Start recording with 30-second timeslices for Wasabi S3 upload (S3 requires 5MB minimum part size)
                 this.mediaRecorder.start(30000); // 30 seconds - ensures chunks meet S3 5MB minimum requirement
@@ -259,6 +373,9 @@ export class VideoRecorder {
                 console.log('🎥 Video recording started with timeslices for cloud upload');
             }
             
+            // CRITICAL FIX: Transition to RECORDING state after successful start
+            this.transitionTo(RecordingState.RECORDING);
+            
             // Show status bar for ALL recording types
             console.log('🎥 About to call showRecordingStatusBar()...');
             this.roomWebRTC.statusBarManager.showRecordingStatus();
@@ -267,18 +384,33 @@ export class VideoRecorder {
 
         } catch (error) {
             console.error('🎥 Error starting MediaRecorder:', error);
-            this.isRecording = false;
+            
+            // CRITICAL FIX: Transition to ERROR state on failure
+            try {
+                this.transitionTo(RecordingState.ERROR);
+            } catch (transitionError) {
+                console.error('🎥 Failed to transition to ERROR state:', transitionError);
+                this.resetState(); // Force reset as last resort
+            }
         }
     }
 
     /**
-     * Stops video recording
+     * Stops video recording with atomic state transitions
      * Now async to properly wait for upload finalization
      * MEMORY LEAK FIX: Properly cleanup event listeners and MediaRecorder reference
      */
     async stopRecording() {
-        if (this.mediaRecorder && this.isRecording) {
-            this.isRecording = false;
+        // CRITICAL FIX: Validate state before stopping
+        if (!this.canTransitionTo(RecordingState.STOPPING)) {
+            console.warn(`🎥 Cannot stop recording from state: ${this.state}`);
+            return;
+        }
+        
+        if (this.mediaRecorder && this.isInState(RecordingState.RECORDING)) {
+            // CRITICAL FIX: Transition to STOPPING state
+            this.transitionTo(RecordingState.STOPPING);
+            
             try {
                 this.mediaRecorder.stop(); // This will trigger onstop event which handles download for local device
             } catch (error) {
@@ -288,20 +420,28 @@ export class VideoRecorder {
                 const stopStorageProvider = this.roomWebRTC.roomData.recording_settings?.storage_provider || 'local_device';
                 if (stopStorageProvider === 'local_device') {
                     console.log('🎥 MediaRecorder stop failed, but finalizing streaming download anyway');
-                    this.roomWebRTC.streamingDownloader.finalizeDownload();
+                    await this.roomWebRTC.streamingDownloader.finalizeDownload();
                 }
+                
+                // Transition to ERROR state
+                this.transitionTo(RecordingState.ERROR);
+                return;
             }
             
-            // MEMORY LEAK FIX: Remove event listeners before nullifying mediaRecorder
+            // MEMORY LEAK FIX: Properly clear event handlers
+            // Since handlers were assigned directly (not via addEventListener), we must null them directly
             if (this.mediaRecorder) {
-                if (this.eventHandlers.onstop) {
-                    this.mediaRecorder.removeEventListener('stop', this.eventHandlers.onstop);
-                    this.eventHandlers.onstop = null;
-                }
-                if (this.eventHandlers.ondataavailable) {
-                    this.mediaRecorder.removeEventListener('dataavailable', this.eventHandlers.ondataavailable);
-                    this.eventHandlers.ondataavailable = null;
-                }
+                // Direct assignment cleanup (not removeEventListener!)
+                this.mediaRecorder.onstop = null;
+                this.mediaRecorder.ondataavailable = null;
+                this.mediaRecorder.onerror = null;
+                this.mediaRecorder.onstart = null;
+                this.mediaRecorder.onpause = null;
+                this.mediaRecorder.onresume = null;
+                
+                // Clear our stored references
+                this.eventHandlers.onstop = null;
+                this.eventHandlers.ondataavailable = null;
             }
             
             // Finalize cloud upload if using cloud storage
@@ -323,6 +463,10 @@ export class VideoRecorder {
             
             // MEMORY LEAK FIX: Release MediaRecorder reference
             this.mediaRecorder = null;
+            
+            // CRITICAL FIX: Transition to STOPPED, then IDLE
+            this.transitionTo(RecordingState.STOPPED);
+            this.transitionTo(RecordingState.IDLE);
             
             // Unjoin from video sharing after stopping recording (but stay in room)
             console.log('🎥 Unjoining from video sharing after stopping recording...');

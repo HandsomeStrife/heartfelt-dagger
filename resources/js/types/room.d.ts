@@ -288,7 +288,7 @@ export interface DiagnosticsSnapshot {
  * Logger log entry
  */
 export interface LogEntry {
-  level: 'info' | 'warn' | 'error' | 'state';
+  level: 'info' | 'warn' | 'error' | 'debug' | 'state';
   module: string;
   message: string;
   data?: Record<string, any>;

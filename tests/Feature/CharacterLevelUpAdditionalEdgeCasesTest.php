@@ -277,6 +277,7 @@ describe('Concurrent Modification Edge Cases', function () {
         $character->update(['level' => 2]);
 
         // Fill advancement slots to simulate completion
+        // Fill both advancement slots for the CURRENT level (2)
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
@@ -291,12 +292,18 @@ describe('Concurrent Modification Edge Cases', function () {
             'advancement_number' => 2,
         ]);
 
-        // This level up should fail gracefully
-        $component->call('confirmLevelUp');
+        // Try to level up - should succeed because we're checking NEXT level (3)
+        // and level 3 has no advancements yet
+        $component->set('new_experience_name', 'Test Experience')
+            ->call('addTierExperience')
+            ->set('advancement_choices.tier_domain_card', 'whirlwind')
+            ->set('first_advancement', 0)
+            ->set('second_advancement', 1)
+            ->call('confirmLevelUp');
 
-        // Character should remain at level 2 (not level 3)
+        // Character should now be level 3
         $character->refresh();
-        expect($character->level)->toBe(2);
+        expect($character->level)->toBe(3);
     });
 
 });

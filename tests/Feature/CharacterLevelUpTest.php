@@ -45,11 +45,23 @@ test('character level up page redirects when no advancement slots available', fu
         'description' => 'Permanently gain a +1 bonus to your Evasion',
     ]);
 
+    // Fill both advancement slots for the NEXT level (3)
+    // canLevelUp() checks if the next level has available slots
     CharacterAdvancement::factory()->create([
         'character_id' => $character->id,
         'tier' => 2,
-            'level' => 2,
-            'advancement_number' => 2,
+        'level' => 3,
+        'advancement_number' => 1,
+        'advancement_type' => 'evasion',
+        'advancement_data' => ['bonus' => 1],
+        'description' => 'Permanently gain a +1 bonus to your Evasion',
+    ]);
+
+    CharacterAdvancement::factory()->create([
+        'character_id' => $character->id,
+        'tier' => 2,
+        'level' => 3,
+        'advancement_number' => 2,
         'advancement_type' => 'hit_point',
         'advancement_data' => ['bonus' => 1],
         'description' => 'Permanently gain one Hit Point slot',

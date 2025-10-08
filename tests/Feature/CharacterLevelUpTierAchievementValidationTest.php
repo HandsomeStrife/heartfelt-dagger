@@ -163,11 +163,12 @@ describe('Tier Achievement Validation', function () {
                 'is_public' => true,
             ]);
 
-            // Should pass validation without any tier achievements
+            // Should pass validation with just domain card (no experience needed for non-tier levels)
             livewire(CharacterLevelUp::class, [
                 'characterKey' => $character->character_key,
                 'canEdit' => true,
             ])
+                ->set('advancement_choices.tier_domain_card', 'whirlwind')
                 ->call('validateTierAchievements')
                 ->assertReturned(true);
         }
@@ -181,24 +182,29 @@ describe('Tier Achievement Validation', function () {
         ]);
 
         // Try to create experience with empty name
-        livewire(CharacterLevelUp::class, [
+        // Try with empty name - should not create experience
+        $component = livewire(CharacterLevelUp::class, [
             'characterKey' => $character->character_key,
             'canEdit' => true,
         ])
             ->set('new_experience_name', '') // Empty name
             ->set('new_experience_description', 'Valid description')
-            ->call('addTierExperience')
-            ->assertHasNoErrors(); // Should handle gracefully
+            ->call('addTierExperience');
+        
+        // Experience should not have been added
+        expect($component->get('advancement_choices.tier_experience'))->toBeNull();
 
-        // Try with extremely long name
-        livewire(CharacterLevelUp::class, [
+        // Try with extremely long name - should not create experience
+        $component2 = livewire(CharacterLevelUp::class, [
             'characterKey' => $character->character_key,
             'canEdit' => true,
         ])
             ->set('new_experience_name', str_repeat('a', 150)) // Too long
             ->set('new_experience_description', 'Valid description')
-            ->call('addTierExperience')
-            ->assertHasNoErrors(); // Should handle gracefully
+            ->call('addTierExperience');
+        
+        // Experience should not have been added
+        expect($component2->get('advancement_choices.tier_experience'))->toBeNull();
     });
 
     test('tier domain card selection respects character class domains', function () {

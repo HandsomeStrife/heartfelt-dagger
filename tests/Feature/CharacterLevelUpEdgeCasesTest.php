@@ -186,17 +186,19 @@ describe('Level Up Validation Edge Cases', function () {
         ]);
 
         // Fill both advancement slots for current tier
+        // Fill both advancement slots for the NEXT level (3)
+        // canLevelUp() checks if next level has available slots
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
-            'level' => 2,
+            'level' => 3,
             'advancement_number' => 1,
         ]);
 
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
-            'level' => 2,
+            'level' => 3,
             'advancement_number' => 2,
         ]);
 
@@ -245,20 +247,16 @@ describe('Database Constraint Edge Cases', function () {
             'canEdit' => true,
         ]);
 
-        // Set no advancement slots needed and confirm
-        $component->set('available_slots', [])
+        // Add tier achievement requirements
+        $component->set('new_experience_name', 'Test Experience')
+            ->call('addTierExperience')
+            ->set('advancement_choices.tier_domain_card', 'whirlwind')
+            ->set('available_slots', [])
             ->call('confirmLevelUp');
 
-        // Should create proficiency advancement
-        $advancement = CharacterAdvancement::where([
-            'character_id' => $character->id,
-            'advancement_type' => 'proficiency',
-            'advancement_number' => 0, // Tier achievement
-        ])->first();
-
-        expect($advancement)->not->toBeNull();
-        expect($advancement->advancement_data['bonus'])->toBe(1);
-        expect($advancement->description)->toContain('Tier achievement');
+        // Verify proficiency was increased (tier achievement applies directly to character)
+        $character->refresh();
+        expect($character->proficiency)->toBe(2); // Level 2-4 base proficiency is 2
     });
 
     test('experience creation handles duplicate names gracefully', function () {

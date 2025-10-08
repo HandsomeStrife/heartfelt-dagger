@@ -496,6 +496,11 @@ export default class RoomWebRTC {
                 // Stop speech recognition
                 this.stopSpeechRecognition();
                 
+                // CRITICAL FIX: Clear all connection fallback timeouts
+                if (this.messageHandler) {
+                    this.messageHandler.clearAllConnectionFallbackTimeouts();
+                }
+                
                 // Leave current slot if joined
                 if (this.isJoined) {
                     if (window.updateLeavingModalStatus) {

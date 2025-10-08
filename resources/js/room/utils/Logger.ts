@@ -100,6 +100,27 @@ export class Logger {
     }
     
     /**
+     * Debug logging (verbose, disabled in production)
+     */
+    debug(message: string, data: Record<string, any> = {}): void {
+        const logEntry: LogEntry = {
+            level: 'debug',
+            module: this.moduleName,
+            message,
+            data,
+            context: this.getContext(),
+            timestamp: Date.now()
+        };
+        
+        this.addToHistory(logEntry);
+        
+        // Only log debug messages in development
+        if (process.env.NODE_ENV !== 'production') {
+            console.debug(`🐛 [${this.moduleName}] ${message}`, { data, context: logEntry.context });
+        }
+    }
+    
+    /**
      * Errors with full context
      */
     error(message: string, error: Error | null = null, data: Record<string, any> = {}): void {

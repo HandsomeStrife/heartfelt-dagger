@@ -82,38 +82,9 @@ export class StatusBarManager {
      * Sets up status bar control event listeners
      */
     setupStatusBarControls() {
-        // Stop recording buttons (both layouts)
-        const stopBtn = document.getElementById('stop-recording-btn');
-        const stopBtnNormal = document.getElementById('stop-recording-btn-normal');
+        // Note: "Stop and Save Recording" buttons removed - recording now automatically 
+        // finalizes when user clicks "Leave Room" button
         
-        // CRITICAL FIX: Properly await async stopRecording
-        if (stopBtn) {
-            stopBtn.onclick = async () => {
-                stopBtn.disabled = true;
-                stopBtn.textContent = 'Stopping...';
-                try {
-                    await this.roomWebRTC.videoRecorder.stopRecording();
-                } catch (error) {
-                    console.error('Error stopping recording:', error);
-                } finally {
-                    stopBtn.disabled = false;
-                }
-            };
-        }
-        if (stopBtnNormal) {
-            stopBtnNormal.onclick = async () => {
-                stopBtnNormal.disabled = true;
-                stopBtnNormal.textContent = 'Stopping...';
-                try {
-                    await this.roomWebRTC.videoRecorder.stopRecording();
-                } catch (error) {
-                    console.error('Error stopping recording:', error);
-                } finally {
-                    stopBtnNormal.disabled = false;
-                }
-            };
-        }
-
         // View transcript buttons (both layouts)
         const transcriptBtn = document.getElementById('view-transcript-btn');
         const transcriptBtnNormal = document.getElementById('view-transcript-btn-normal');
