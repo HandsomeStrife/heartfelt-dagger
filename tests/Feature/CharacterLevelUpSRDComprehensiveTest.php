@@ -215,7 +215,8 @@ describe('Character Level Up - Complete SRD Compliance Tests', function () {
             CharacterAdvancement::create([
                 'character_id' => $this->character->id,
                 'tier' => 2,
-                'advancement_number' => 0,
+            'level' => 2,
+            'advancement_number' => 0,
                 'advancement_type' => 'proficiency',
                 'advancement_data' => ['bonus' => 1],
                 'description' => 'Tier achievement: +1 Proficiency bonus',
@@ -224,7 +225,8 @@ describe('Character Level Up - Complete SRD Compliance Tests', function () {
             CharacterAdvancement::create([
                 'character_id' => $this->character->id,
                 'tier' => 2,
-                'advancement_number' => 1,
+            'level' => 2,
+            'advancement_number' => 1,
                 'advancement_type' => 'proficiency',
                 'advancement_data' => ['bonus' => 1],
                 'description' => 'Advancement: +1 Proficiency bonus',
@@ -343,7 +345,8 @@ describe('Character Level Up - Complete SRD Compliance Tests', function () {
             CharacterAdvancement::create([
                 'character_id' => $this->character->id,
                 'tier' => 2,
-                'advancement_number' => 1,
+            'level' => 2,
+            'advancement_number' => 1,
                 'advancement_type' => 'experience_bonus',
                 'advancement_data' => ['experiences' => ['Combat Training', 'Survival Skills']],
                 'description' => 'Gain a +1 bonus to two Experiences',
@@ -369,7 +372,8 @@ describe('Character Level Up - Complete SRD Compliance Tests', function () {
             CharacterAdvancement::create([
                 'character_id' => $this->character->id,
                 'tier' => 2,
-                'advancement_number' => 1,
+            'level' => 2,
+            'advancement_number' => 1,
                 'advancement_type' => 'trait_bonus',
                 'advancement_data' => ['traits' => ['agility', 'strength'], 'bonus' => 1],
                 'description' => 'Gain a +1 bonus to two unmarked character traits and mark them',
@@ -379,7 +383,8 @@ describe('Character Level Up - Complete SRD Compliance Tests', function () {
             CharacterAdvancement::create([
                 'character_id' => $this->character->id,
                 'tier' => 2,
-                'advancement_number' => 2,
+            'level' => 2,
+            'advancement_number' => 2,
                 'advancement_type' => 'hit_point',
                 'advancement_data' => ['bonus' => 1],
                 'description' => 'Permanently gain one Hit Point slot',
@@ -389,7 +394,8 @@ describe('Character Level Up - Complete SRD Compliance Tests', function () {
             CharacterAdvancement::create([
                 'character_id' => $this->character->id,
                 'tier' => 2,
-                'advancement_number' => 0,
+            'level' => 2,
+            'advancement_number' => 0,
                 'advancement_type' => 'proficiency',
                 'advancement_data' => ['bonus' => 1],
                 'description' => 'Tier achievement: +1 Proficiency bonus',

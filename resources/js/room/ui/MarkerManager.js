@@ -260,10 +260,10 @@ export class MarkerManager {
      * Send Ably message to notify all participants about the new marker
      */
     sendMarkerAblyMessage(markerData) {
-        console.log('🏷️ Sending Ably message for marker:', markerData);
+        console.log('🏷️ Sending signaling message for marker:', markerData);
         
-        if (this.roomWebRTC.ablyManager) {
-            this.roomWebRTC.ablyManager.publishToAbly('session-marker-created', {
+        if (this.roomWebRTC.signalingManager) {
+            this.roomWebRTC.signalingManager.publishToAbly('session-marker-created', {
                 uuid: markerData.uuid,
                 identifier: markerData.identifier,
                 creator_id: this.roomWebRTC.currentUserId,
@@ -272,9 +272,9 @@ export class MarkerManager {
                 created_at: new Date().toISOString()
             });
             
-            console.log('🏷️ ✅ Ably message sent');
+            console.log('🏷️ ✅ Signaling message sent');
         } else {
-            console.warn('🏷️ ⚠️ No Ably manager available');
+            console.warn('🏷️ ⚠️ No signaling manager available');
         }
     }
 

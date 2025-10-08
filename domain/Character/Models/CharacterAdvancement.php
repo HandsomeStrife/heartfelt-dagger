@@ -23,6 +23,7 @@ class CharacterAdvancement extends Model
     protected $fillable = [
         'character_id',
         'tier',
+        'level',
         'advancement_number',
         'advancement_type',
         'advancement_data',

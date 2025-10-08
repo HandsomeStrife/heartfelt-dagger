@@ -5,12 +5,12 @@
  * between different storage providers (local device, cloud storage).
  */
 
-import { Logger } from '../utils/Logger.js';
+import { LoggerRegistry } from '../utils/Logger';
 
 export class VideoRecorder {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
-        this.logger = Logger.create('VideoRecorder');
+        this.logger = LoggerRegistry.getLogger('VideoRecorder', roomWebRTC);
         this.mediaRecorder = null;
         this.recordedChunks = [];
         this.recordingStartTime = null;
@@ -18,6 +18,12 @@ export class VideoRecorder {
         this.isRecording = false;
         this.recordingTimer = null;
         this.recMime = null;
+        
+        // MEMORY LEAK FIX: Store event handler references for proper cleanup
+        this.eventHandlers = {
+            onstop: null,
+            ondataavailable: null
+        };
         
         // Cumulative recording statistics for cloud storage
         this.cumulativeStats = {
@@ -107,8 +113,8 @@ export class VideoRecorder {
                 partNumber: 0
             };
 
-            // Handle recording stop event
-            this.mediaRecorder.onstop = () => {
+            // MEMORY LEAK FIX: Store event handlers for proper cleanup
+            this.eventHandlers.onstop = () => {
                 console.log('🎥 MediaRecorder stopped event triggered');
                 
                 // CRITICAL FIX: Read fresh storage provider state instead of using closure variable
@@ -130,9 +136,10 @@ export class VideoRecorder {
                     // Cloud storage finalization is handled by the uploader
                 }
             };
+            this.mediaRecorder.onstop = this.eventHandlers.onstop;
 
-            // Handle data available with each timeslice (every 30s for cloud, 5s for local)
-            this.mediaRecorder.ondataavailable = async (event) => {
+            // MEMORY LEAK FIX: Store event handler for cleanup
+            this.eventHandlers.ondataavailable = async (event) => {
                 if (!event.data || !event.data.size) return;
                 
                 const endTime = Date.now();
@@ -228,6 +235,7 @@ export class VideoRecorder {
                     this.recordingStartTime = Date.now();
                 }
             };
+            this.mediaRecorder.ondataavailable = this.eventHandlers.ondataavailable;
 
             // For local device recording, use small timeslices for streaming download
             // (storageProvider already declared above)
@@ -266,6 +274,7 @@ export class VideoRecorder {
     /**
      * Stops video recording
      * Now async to properly wait for upload finalization
+     * MEMORY LEAK FIX: Properly cleanup event listeners and MediaRecorder reference
      */
     async stopRecording() {
         if (this.mediaRecorder && this.isRecording) {
@@ -280,6 +289,18 @@ export class VideoRecorder {
                 if (stopStorageProvider === 'local_device') {
                     console.log('🎥 MediaRecorder stop failed, but finalizing streaming download anyway');
                     this.roomWebRTC.streamingDownloader.finalizeDownload();
+                }
+            }
+            
+            // MEMORY LEAK FIX: Remove event listeners before nullifying mediaRecorder
+            if (this.mediaRecorder) {
+                if (this.eventHandlers.onstop) {
+                    this.mediaRecorder.removeEventListener('stop', this.eventHandlers.onstop);
+                    this.eventHandlers.onstop = null;
+                }
+                if (this.eventHandlers.ondataavailable) {
+                    this.mediaRecorder.removeEventListener('dataavailable', this.eventHandlers.ondataavailable);
+                    this.eventHandlers.ondataavailable = null;
                 }
             }
             
@@ -299,6 +320,9 @@ export class VideoRecorder {
             this.updateRecordingUI(false);
             this.roomWebRTC.statusBarManager.hideRecordingStatus();
             console.log('🎥 Video recording stopped');
+            
+            // MEMORY LEAK FIX: Release MediaRecorder reference
+            this.mediaRecorder = null;
             
             // Unjoin from video sharing after stopping recording (but stay in room)
             console.log('🎥 Unjoining from video sharing after stopping recording...');

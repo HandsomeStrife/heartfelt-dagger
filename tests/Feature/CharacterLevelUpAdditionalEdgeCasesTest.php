@@ -280,12 +280,14 @@ describe('Concurrent Modification Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
         ]);
 
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 2,
         ]);
 

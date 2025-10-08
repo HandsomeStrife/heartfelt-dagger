@@ -664,106 +664,8 @@
             }
         });
         
-        // Microphone and Video Toggle Functions
-        function toggleMicrophone() {
-            if (window.roomWebRTC) {
-                const isMuted = window.roomWebRTC.toggleMicrophone();
-                updateMicrophoneUI(isMuted);
-            }
-        }
-        
-        function toggleVideo() {
-            if (window.roomWebRTC) {
-                const isVideoHidden = window.roomWebRTC.toggleVideo();
-                updateVideoUI(isVideoHidden);
-            }
-        }
-        
-        function updateMicrophoneUI(isMuted) {
-            // Update campaign layout buttons
-            const micOnIcon = document.getElementById('mic-on-icon');
-            const micOffIcon = document.getElementById('mic-off-icon');
-            const micStatusText = document.getElementById('mic-status-text');
-            const micToggleBtn = document.getElementById('mic-toggle-btn');
-            
-            // Update normal layout buttons
-            const micOnIconNormal = document.getElementById('mic-on-icon-normal');
-            const micOffIconNormal = document.getElementById('mic-off-icon-normal');
-            const micStatusTextNormal = document.getElementById('mic-status-text-normal');
-            const micToggleBtnNormal = document.getElementById('mic-toggle-btn-normal');
-            
-            if (isMuted) {
-                // Show muted state
-                if (micOnIcon) micOnIcon.classList.add('hidden');
-                if (micOffIcon) micOffIcon.classList.remove('hidden');
-                if (micStatusText) micStatusText.textContent = 'Unmute';
-                if (micToggleBtn) micToggleBtn.classList.add('bg-red-600', 'hover:bg-red-500');
-                if (micToggleBtn) micToggleBtn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
-                
-                if (micOnIconNormal) micOnIconNormal.classList.add('hidden');
-                if (micOffIconNormal) micOffIconNormal.classList.remove('hidden');
-                if (micStatusTextNormal) micStatusTextNormal.textContent = 'Unmute';
-                if (micToggleBtnNormal) micToggleBtnNormal.classList.add('bg-red-600', 'hover:bg-red-500');
-                if (micToggleBtnNormal) micToggleBtnNormal.classList.remove('bg-slate-700', 'hover:bg-slate-600');
-            } else {
-                // Show unmuted state
-                if (micOnIcon) micOnIcon.classList.remove('hidden');
-                if (micOffIcon) micOffIcon.classList.add('hidden');
-                if (micStatusText) micStatusText.textContent = 'Mute';
-                if (micToggleBtn) micToggleBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
-                if (micToggleBtn) micToggleBtn.classList.add('bg-slate-700', 'hover:bg-slate-600');
-                
-                if (micOnIconNormal) micOnIconNormal.classList.remove('hidden');
-                if (micOffIconNormal) micOffIconNormal.classList.add('hidden');
-                if (micStatusTextNormal) micStatusTextNormal.textContent = 'Mute';
-                if (micToggleBtnNormal) micToggleBtnNormal.classList.remove('bg-red-600', 'hover:bg-red-500');
-                if (micToggleBtnNormal) micToggleBtnNormal.classList.add('bg-slate-700', 'hover:bg-slate-600');
-            }
-        }
-        
-        function updateVideoUI(isVideoHidden) {
-            // Update campaign layout buttons
-            const videoOnIcon = document.getElementById('video-on-icon');
-            const videoOffIcon = document.getElementById('video-off-icon');
-            const videoStatusText = document.getElementById('video-status-text');
-            const videoToggleBtn = document.getElementById('video-toggle-btn');
-            
-            // Update normal layout buttons
-            const videoOnIconNormal = document.getElementById('video-on-icon-normal');
-            const videoOffIconNormal = document.getElementById('video-off-icon-normal');
-            const videoStatusTextNormal = document.getElementById('video-status-text-normal');
-            const videoToggleBtnNormal = document.getElementById('video-toggle-btn-normal');
-            
-            if (isVideoHidden) {
-                // Show video hidden state
-                if (videoOnIcon) videoOnIcon.classList.add('hidden');
-                if (videoOffIcon) videoOffIcon.classList.remove('hidden');
-                if (videoStatusText) videoStatusText.textContent = 'Show Video';
-                if (videoToggleBtn) videoToggleBtn.classList.add('bg-red-600', 'hover:bg-red-500');
-                if (videoToggleBtn) videoToggleBtn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
-                
-                if (videoOnIconNormal) videoOnIconNormal.classList.add('hidden');
-                if (videoOffIconNormal) videoOffIconNormal.classList.remove('hidden');
-                if (videoStatusTextNormal) videoStatusTextNormal.textContent = 'Show Video';
-                if (videoToggleBtnNormal) videoToggleBtnNormal.classList.add('bg-red-600', 'hover:bg-red-500');
-                if (videoToggleBtnNormal) videoToggleBtnNormal.classList.remove('bg-slate-700', 'hover:bg-slate-600');
-            } else {
-                // Show video visible state
-                if (videoOnIcon) videoOnIcon.classList.remove('hidden');
-                if (videoOffIcon) videoOffIcon.classList.add('hidden');
-                if (videoStatusText) videoStatusText.textContent = 'Hide Video';
-                if (videoToggleBtn) videoToggleBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
-                if (videoToggleBtn) videoToggleBtn.classList.add('bg-slate-700', 'hover:bg-slate-600');
-                
-                if (videoOnIconNormal) videoOnIconNormal.classList.remove('hidden');
-                if (videoOffIconNormal) videoOffIconNormal.classList.add('hidden');
-                if (videoStatusTextNormal) videoStatusTextNormal.textContent = 'Hide Video';
-                if (videoToggleBtnNormal) videoToggleBtnNormal.classList.remove('bg-red-600', 'hover:bg-red-500');
-                if (videoToggleBtnNormal) videoToggleBtnNormal.classList.add('bg-slate-700', 'hover:bg-slate-600');
-            }
-        }
-        
-        // Add event listeners for the toggle buttons
+        // MEDIUM FIX: Removed duplicate toggle functions - now handled by MediaManager
+        // Microphone and Video Toggle Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
             // Campaign layout buttons
             const micToggleBtn = document.getElementById('mic-toggle-btn');
@@ -773,17 +675,18 @@
             const micToggleBtnNormal = document.getElementById('mic-toggle-btn-normal');
             const videoToggleBtnNormal = document.getElementById('video-toggle-btn-normal');
             
+            // MEDIUM FIX: Call RoomWebRTC methods directly
             if (micToggleBtn) {
-                micToggleBtn.addEventListener('click', toggleMicrophone);
+                micToggleBtn.addEventListener('click', () => window.roomWebRTC?.toggleMicrophone());
             }
             if (videoToggleBtn) {
-                videoToggleBtn.addEventListener('click', toggleVideo);
+                videoToggleBtn.addEventListener('click', () => window.roomWebRTC?.toggleVideo());
             }
             if (micToggleBtnNormal) {
-                micToggleBtnNormal.addEventListener('click', toggleMicrophone);
+                micToggleBtnNormal.addEventListener('click', () => window.roomWebRTC?.toggleMicrophone());
             }
             if (videoToggleBtnNormal) {
-                videoToggleBtnNormal.addEventListener('click', toggleVideo);
+                videoToggleBtnNormal.addEventListener('click', () => window.roomWebRTC?.toggleVideo());
             }
         });
         

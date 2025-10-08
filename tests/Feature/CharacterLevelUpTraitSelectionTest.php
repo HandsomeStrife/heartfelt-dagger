@@ -124,6 +124,7 @@ describe('Character Level Up Trait Selection', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'trait_bonus',
             'advancement_data' => [
@@ -182,6 +183,7 @@ describe('Character Level Up Trait Selection', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'trait_bonus',
             'advancement_data' => [
@@ -194,6 +196,7 @@ describe('Character Level Up Trait Selection', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 3,
+            'level' => 5,
             'advancement_number' => 1,
             'advancement_type' => 'trait_bonus',
             'advancement_data' => [
@@ -223,6 +226,7 @@ describe('Character Level Up Trait Selection', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'trait_bonus',
             'advancement_data' => [
@@ -236,6 +240,7 @@ describe('Character Level Up Trait Selection', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 3,
+            'level' => 5,
             'advancement_number' => 1,
             'advancement_type' => 'trait_bonus',
             'advancement_data' => [

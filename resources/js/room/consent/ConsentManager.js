@@ -3,7 +3,11 @@
  * 
  * Handles checking consent status, managing consent flow,
  * and coordinating consent dialogs for STT and recording features.
+ * 
+ * MEDIUM FIX: Uses robust CSRF token utility
  */
+
+import { getCSRFToken } from '../utils/csrf';
 
 export class ConsentManager {
     constructor(roomWebRTC) {
@@ -19,6 +23,47 @@ export class ConsentManager {
             recording: { status: null, enabled: recordingEnabled },
             localSave: { status: null, enabled: isRemoteStorage }
         };
+        
+        // MEDIUM FIX: Consent status cache with 5-minute TTL
+        this.consentCache = {
+            stt: { status: null, timestamp: null, ttl: 300000 }, // 5 minutes
+            recording: { status: null, timestamp: null, ttl: 300000 }
+            // localSave doesn't need caching as it's session-only
+        };
+    }
+    
+    /**
+     * MEDIUM FIX: Checks if cached consent is still valid
+     */
+    isCacheValid(type) {
+        const cache = this.consentCache[type];
+        if (!cache || !cache.timestamp) return false;
+        
+        const now = Date.now();
+        const age = now - cache.timestamp;
+        return age < cache.ttl;
+    }
+    
+    /**
+     * MEDIUM FIX: Gets cached consent status if valid
+     */
+    getCachedConsent(type) {
+        if (this.isCacheValid(type)) {
+            console.log(`🔒 Using cached ${type} consent (${Math.floor((Date.now() - this.consentCache[type].timestamp) / 1000)}s old)`);
+            return this.consentCache[type].status;
+        }
+        return null;
+    }
+    
+    /**
+     * MEDIUM FIX: Caches consent status
+     */
+    cacheConsentStatus(type, status) {
+        if (this.consentCache[type]) {
+            this.consentCache[type].status = status;
+            this.consentCache[type].timestamp = Date.now();
+            console.log(`🔒 Cached ${type} consent status`);
+        }
     }
 
     /**
@@ -100,7 +145,12 @@ export class ConsentManager {
                 consentChecks.push(this.checkConsentStatus('localSave'));
             }
 
-            await Promise.all(consentChecks);
+            // CRITICAL FIX: Add 5-second timeout to prevent UI deadlock
+            await this.withTimeout(
+                Promise.all(consentChecks),
+                5000,
+                'Consent checks timed out after 5 seconds'
+            );
 
             // Process consent results
             await this.processConsentResults();
@@ -150,17 +200,27 @@ export class ConsentManager {
             return;
         }
         
+        // MEDIUM FIX: Check cache first
+        const cachedStatus = this.getCachedConsent(type);
+        if (cachedStatus) {
+            this.consentData[type].status = cachedStatus;
+            return;
+        }
+        
         try {
             const response = await fetch(`/api/rooms/${this.roomWebRTC.roomData.id}/${endpoint}`, {
                 method: 'GET',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    'X-CSRF-TOKEN': getCSRFToken() // MEDIUM FIX: Use robust CSRF utility
                 }
             });
 
             if (response.ok) {
-                this.consentData[type].status = await response.json();
-                console.log(`🔒 ${type.toUpperCase()} consent status:`, this.consentData[type].status);
+                const status = await response.json();
+                this.consentData[type].status = status;
+                // MEDIUM FIX: Cache the result
+                this.cacheConsentStatus(type, status);
+                console.log(`🔒 ${type.toUpperCase()} consent status:`, status);
             } else {
                 console.warn(`🔒 Failed to check ${type} consent status:`, response.status);
             }
@@ -312,7 +372,7 @@ export class ConsentManager {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    'X-CSRF-TOKEN': getCSRFToken() // MEDIUM FIX: Use robust CSRF utility
                 },
                 body: JSON.stringify({
                     consent_given: consentGiven
@@ -325,6 +385,9 @@ export class ConsentManager {
 
                 // Update local consent status
                 this.consentData[type].status = result;
+                
+                // MEDIUM FIX: Update cache with new status
+                this.cacheConsentStatus(type, result);
 
                 if (consentGiven) {
                     // Don't start features immediately - they will start when user joins a slot
@@ -444,5 +507,20 @@ export class ConsentManager {
      */
     isConsentGiven(type) {
         return this.consentData[type]?.status?.consent_given || false;
+    }
+    
+    /**
+     * Wraps a promise with a timeout to prevent deadlocks
+     * @param {Promise} promise - The promise to wrap
+     * @param {number} timeoutMs - Timeout in milliseconds
+     * @param {string} errorMessage - Error message if timeout occurs
+     */
+    withTimeout(promise, timeoutMs, errorMessage) {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+            )
+        ]);
     }
 }

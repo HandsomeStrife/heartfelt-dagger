@@ -17,9 +17,9 @@
 import { DiagnosticsRunner } from './room/utils/DiagnosticsRunner.js';
 import { PageProtection } from './room/utils/PageProtection.js';
 import { ICEConfigManager } from './room/webrtc/ICEConfigManager.js';
-import { SimplePeerManager } from './room/webrtc/SimplePeerManager.js';
+import { SimplePeerManager } from './room/webrtc/SimplePeerManager';
 import { MediaManager } from './room/webrtc/MediaManager.js';
-import { SignalingManager as AblyManager } from './room/messaging/SignalingManager.js';
+import { SignalingManager } from './room/messaging/SignalingManager.js';
 import { MessageHandler } from './room/messaging/MessageHandler.js';
 import { VideoRecorder } from './room/recording/VideoRecorder.js';
 import { StreamingDownloader } from './room/recording/StreamingDownloader.js';
@@ -56,11 +56,21 @@ export default class RoomWebRTC {
         this.maxRefreshAttempts = 5;
         this.refreshBackoffBase = 1000; // 1 second base
         
+        // MEDIUM FIX: Adaptive health monitoring with exponential backoff
+        this.healthMonitoring = {
+            interval: null,
+            currentDelay: 30000, // Start at 30 seconds
+            minDelay: 30000, // Minimum 30 seconds
+            maxDelay: 120000, // Maximum 2 minutes
+            consecutiveHealthy: 0, // Count of consecutive healthy checks
+            healthyThreshold: 3 // After 3 healthy checks, increase interval
+        };
+        
         // Initialize core managers
         this.iceManager = new ICEConfigManager();
         this.simplePeerManager = new SimplePeerManager(this);
         this.mediaManager = new MediaManager(this);
-        this.ablyManager = new AblyManager(this);
+        this.signalingManager = new SignalingManager(this);
         this.messageHandler = new MessageHandler(this);
         
         // Initialize recording managers
@@ -99,7 +109,7 @@ export default class RoomWebRTC {
         // STEP 2: CRITICAL - Immediately sync peer ID to SignalingManager
         // This MUST happen BEFORE connecting to channel
         const peerId = this.simplePeerManager.getPeerId();
-        this.ablyManager.setCurrentPeerId(peerId);
+        this.signalingManager.setCurrentPeerId(peerId);
         console.log(`🆔 Peer ID synchronized: ${peerId}`);
         
         // STEP 3: Load ICE configuration (non-blocking)
@@ -118,7 +128,7 @@ export default class RoomWebRTC {
 
         // STEP 7: Connect to room-specific Reverb channel
         // By this point, peer ID is already set in SignalingManager
-        this.ablyManager.connectToChannel();
+        this.signalingManager.connectToChannel();
         
         // STEP 8: Mark initialization as complete
         this.isInitialized = true;
@@ -156,9 +166,9 @@ export default class RoomWebRTC {
             this.slotManager.showLoadingState(slotContainer);
 
             // Generate peer ID if we don't have one
-            if (!this.ablyManager.getCurrentPeerId()) {
-                const peerId = this.ablyManager.generatePeerId();
-                this.ablyManager.setCurrentPeerId(peerId);
+            if (!this.signalingManager.getCurrentPeerId()) {
+                const peerId = this.signalingManager.generatePeerId();
+                this.signalingManager.setCurrentPeerId(peerId);
                 console.log(`🆔 Generated peer ID: ${peerId}`);
             }
 
@@ -192,7 +202,7 @@ export default class RoomWebRTC {
 
             // Mark this slot as occupied by us
             this.slotOccupants.set(slotId, {
-                peerId: this.ablyManager.getCurrentPeerId(),
+                peerId: this.signalingManager.getCurrentPeerId(),
                 stream: localStream,
                 participantData: participantData,
                 isLocal: true
@@ -204,14 +214,14 @@ export default class RoomWebRTC {
             this.startConsentedFeatures();
 
             // Announce our presence to the room
-            this.ablyManager.publishToAbly('user-joined', {
+            this.signalingManager.publishToAbly('user-joined', {
                 slotId: slotId,
                 participantData: participantData
             });
 
             // CRITICAL FIX: Use lexicographic ordering to prevent connection storms
             // When multiple users join simultaneously, only the one with "greater" peer ID initiates
-            const currentPeerId = this.ablyManager.getCurrentPeerId();
+            const currentPeerId = this.signalingManager.getCurrentPeerId();
             for (const [existingSlotId, occupant] of this.slotOccupants) {
                 if (existingSlotId !== slotId && !occupant.isLocal && occupant.peerId) {
                     // Only initiate connection if our peer ID is lexicographically greater
@@ -276,7 +286,7 @@ export default class RoomWebRTC {
         }
 
         // Announce we're leaving
-        this.ablyManager.publishToAbly('user-left', {
+        this.signalingManager.publishToAbly('user-left', {
             slotId: this.currentSlotId
         });
 
@@ -317,65 +327,133 @@ export default class RoomWebRTC {
      * Callback for SimplePeerManager when remote stream is received
      * @param {MediaStream} remoteStream - The remote peer's media stream
      * @param {string} peerId - The peer ID of the remote participant
+     * CRITICAL FIX: Uses helper method for consistency
      */
     handleRemoteStream(remoteStream, peerId) {
         console.log(`📡 Handling remote stream from peer: ${peerId}`);
         
-        // Find the slot occupied by this peer
-        let targetSlotId = null;
-        for (const [slotId, occupant] of this.slotOccupants) {
-            if (occupant.peerId === peerId && !occupant.isLocal) {
-                targetSlotId = slotId;
-                break;
-            }
-        }
-
-        if (!targetSlotId) {
-            console.warn(`⚠️ No slot found for peer ${peerId}`);
+        // CRITICAL FIX: Use helper method for consistency
+        const slotInfo = this.findSlotByPeerId(peerId);
+        if (!slotInfo || slotInfo.occupant.isLocal) {
+            console.error(`❌ No slot found for peer: ${peerId}`);
             return;
         }
-
-        // Update the occupant with the stream
-        const occupant = this.slotOccupants.get(targetSlotId);
-        if (occupant) {
-            occupant.stream = remoteStream;
-            this.slotOccupants.set(targetSlotId, occupant);
-        }
+        
+        const { slotId, occupant } = slotInfo;
+        
+        // Update the stream in our occupants map
+        occupant.stream = remoteStream;
 
         // Display the remote video in the slot
-        const slotContainer = document.querySelector(`[data-slot-id="${targetSlotId}"]`);
+        const slotContainer = document.querySelector(`[data-slot-id="${slotId}"]`);
         if (slotContainer) {
             this.mediaManager.setupRemoteVideo(slotContainer, remoteStream, occupant.participantData);
         }
     }
 
     /**
+     * CRITICAL FIX: Helper method to find slot by peerId
+     * Consolidates lookups to reduce inconsistencies
+     */
+    findSlotByPeerId(peerId) {
+        for (const [slotId, occupant] of this.slotOccupants) {
+            if (occupant.peerId === peerId) {
+                return { slotId, occupant };
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * CRITICAL FIX: Validates consistency between SimplePeerManager.calls and slotOccupants
+     * Returns {isValid, issues: []}
+     */
+    validatePeerState() {
+        const issues = [];
+        
+        // Check 1: All connected peers should have slots
+        const connectedPeers = this.simplePeerManager.getActivePeerIds();
+        for (const peerId of connectedPeers) {
+            const slotInfo = this.findSlotByPeerId(peerId);
+            if (!slotInfo) {
+                issues.push(`Connected peer ${peerId} has no slot assignment`);
+            }
+        }
+        
+        // Check 2: All non-local slot occupants should have connections (or be connecting)
+        for (const [slotId, occupant] of this.slotOccupants) {
+            if (!occupant.isLocal && occupant.peerId) {
+                const isConnected = this.simplePeerManager.isConnectedTo(occupant.peerId);
+                const connectionState = this.simplePeerManager.getPeerConnectionState(occupant.peerId);
+                
+                if (!isConnected && connectionState !== 'connecting' && connectionState !== 'reconnecting') {
+                    issues.push(`Slot ${slotId} has peer ${occupant.peerId} but no active connection (state: ${connectionState})`);
+                }
+            }
+        }
+        
+        return {
+            isValid: issues.length === 0,
+            issues
+        };
+    }
+    
+    /**
+     * CRITICAL FIX: Attempts to repair inconsistent peer state
+     */
+    repairPeerState() {
+        const validation = this.validatePeerState();
+        if (validation.isValid) {
+            console.log('✅ Peer state is consistent');
+            return;
+        }
+        
+        console.warn('⚠️ Peer state inconsistencies detected:', validation.issues);
+        
+        // Repair: Remove slot occupants with failed/disconnected connections
+        for (const [slotId, occupant] of this.slotOccupants) {
+            if (!occupant.isLocal && occupant.peerId) {
+                const connectionState = this.simplePeerManager.getPeerConnectionState(occupant.peerId);
+                if (connectionState === 'failed' || connectionState === 'disconnected') {
+                    console.log(`🔧 Removing failed peer ${occupant.peerId} from slot ${slotId}`);
+                    this.handlePeerDisconnected(occupant.peerId);
+                }
+            }
+        }
+        
+        console.log('🔧 Peer state repair attempted');
+    }
+    
+    /**
      * Callback for SimplePeerManager when peer disconnects
      * @param {string} peerId - The peer ID that disconnected
+     * CRITICAL FIX: Consolidated cleanup logic
      */
     handlePeerDisconnected(peerId) {
         console.log(`📴 Handling peer disconnection: ${peerId}`);
         
-        // Find and clean up the slot
-        for (const [slotId, occupant] of this.slotOccupants) {
-            if (occupant.peerId === peerId && !occupant.isLocal) {
-                console.log(`🧹 Cleaning up slot ${slotId} for disconnected peer ${peerId}`);
-                
-                // Get slot container before deleting from map
-                const slotContainer = document.querySelector(`[data-slot-id="${slotId}"]`);
-                
-                // CRITICAL FIX: Clean up remote video streams properly
-                if (slotContainer) {
-                    this.mediaManager.cleanupRemoteVideo(slotContainer);
-                    this.slotManager.resetSlotUI(slotContainer);
-                }
-                
-                // Remove from occupants map
-                this.slotOccupants.delete(slotId);
-                
-                break;
-            }
+        // CRITICAL FIX: Use helper method for consistency
+        const slotInfo = this.findSlotByPeerId(peerId);
+        if (!slotInfo || slotInfo.occupant.isLocal) {
+            console.log(`⚠️ No slot found for disconnected peer ${peerId} or it's local`);
+            return;
         }
+        
+        const { slotId, occupant } = slotInfo;
+        console.log(`🧹 Cleaning up slot ${slotId} for disconnected peer ${peerId}`);
+        
+        // Get slot container before deleting from map
+        const slotContainer = document.querySelector(`[data-slot-id="${slotId}"]`);
+        
+        // CRITICAL FIX: Clean up remote video streams properly
+        if (slotContainer) {
+            this.mediaManager.cleanupRemoteVideo(slotContainer);
+            this.slotManager.resetSlotUI(slotContainer);
+        }
+        
+        // Remove from occupants map
+        this.slotOccupants.delete(slotId);
+        console.log(`✅ Peer ${peerId} removed from slot ${slotId}`);
     }
 
     /**
@@ -463,9 +541,11 @@ export default class RoomWebRTC {
 
     /**
      * Starts features that have consent after user joins a slot and has media access
+     * VDO.NINJA FIX: Progressive enhancement - core video works even if advanced features fail
      */
     startConsentedFeatures() {
         console.log('🎤 === Starting Consented Features ===');
+        console.log('⚠️ Advanced features will fail gracefully without affecting core video');
         
         const sttStatus = this.consentManager.getConsentStatus('stt');
         const recordingStatus = this.consentManager.getConsentStatus('recording');
@@ -482,12 +562,17 @@ export default class RoomWebRTC {
         console.log(`  - Audio tracks: ${localStream?.getAudioTracks()?.length || 0}`);
         console.log(`  - Video tracks: ${localStream?.getVideoTracks()?.length || 0}`);
 
-        // Start STT if consent was given and we have audio
+        // VDO.NINJA FIX: Start STT with try-catch - don't let it break core video
         if (sttStatus?.consent_given && localStream && localStream.getAudioTracks().length > 0) {
             console.log('🎤 ✅ All conditions met for STT - attempting to start...');
             setTimeout(() => {
-                console.log('🎤 Delayed STT start (1s delay for media stability)...');
-                this.startSpeechRecognition();
+                try {
+                    console.log('🎤 Delayed STT start (1s delay for media stability)...');
+                    this.startSpeechRecognition();
+                } catch (error) {
+                    console.error('🎤 ❌ STT failed to start (video will continue):', error);
+                    // Continue without STT - core video unaffected
+                }
             }, 1000);
         } else {
             console.log('🎤 ❌ STT cannot start:');
@@ -496,10 +581,15 @@ export default class RoomWebRTC {
             console.log(`  - Audio tracks available: ${localStream?.getAudioTracks()?.length || 0}`);
         }
 
-        // Start video recording if consent was given and we have video
+        // VDO.NINJA FIX: Start recording with try-catch - don't let it break core video
         if (recordingStatus?.consent_given && localStream) {
             console.log('🎥 Starting video recording - consent granted and stream available');
-            this.videoRecorder.startRecording();
+            try {
+                this.videoRecorder.startRecording();
+            } catch (error) {
+                console.error('🎥 ❌ Recording failed to start (video will continue):', error);
+                // Continue without recording - core video unaffected
+            }
         }
     }
 
@@ -509,26 +599,34 @@ export default class RoomWebRTC {
 
     /**
      * Initializes speech recognition with provider-specific setup
+     * VDO.NINJA FIX: Wrapped in try-catch for progressive enhancement
      */
     async initializeSpeechRecognition() {
-        console.log('🎤 === Speech Recognition Initialization Starting ===');
-        
-        // Check if STT is enabled for this room
-        if (!this.roomData.stt_enabled) {
-            console.log('🎤 Speech-to-text disabled for this room');
-            return;
-        }
+        try {
+            console.log('🎤 === Speech Recognition Initialization Starting ===');
+            
+            // Check if STT is enabled for this room
+            if (!this.roomData.stt_enabled) {
+                console.log('🎤 Speech-to-text disabled for this room');
+                return;
+            }
 
-        console.log('🎤 ✅ STT enabled for this room');
-        console.log(`🎤 STT Provider: ${this.roomData.stt_provider || 'browser'}`);
+            console.log('🎤 ✅ STT enabled for this room');
+            console.log(`🎤 STT Provider: ${this.roomData.stt_provider || 'browser'}`);
 
-        // Initialize based on provider
-        const provider = this.roomData.stt_provider || 'browser';
-        
-        if (provider === 'assemblyai') {
-            await this.initializeAssemblyAISpeechRecognition();
-        } else {
-            await this.initializeBrowserSpeechRecognition();
+            // Initialize based on provider
+            const provider = this.roomData.stt_provider || 'browser';
+            
+            if (provider === 'assemblyai') {
+                await this.initializeAssemblyAISpeechRecognition();
+            } else {
+                await this.initializeBrowserSpeechRecognition();
+            }
+        } catch (error) {
+            console.error('🎤 ❌ STT initialization failed (video will continue):', error);
+            // Continue without STT - core video unaffected
+            this.currentSpeechModule = null;
+            this.isSpeechEnabled = false;
         }
     }
 
@@ -616,43 +714,63 @@ export default class RoomWebRTC {
         }
     }
 
+    /**
+     * VDO.NINJA FIX: Enhanced with try-catch for progressive enhancement
+     */
     startSpeechRecognition() {
-        console.log('🎤 === Starting Speech Recognition ===');
-        
-        if (!this.currentSpeechModule) {
-            console.error('🎤 ❌ Cannot start - no speech recognition module');
-            return;
-        }
-        
-        if (this.isSpeechEnabled) {
-            console.warn('🎤 ⚠️ Speech recognition already enabled, skipping start');
-            return;
-        }
+        try {
+            console.log('🎤 === Starting Speech Recognition ===');
+            
+            if (!this.currentSpeechModule) {
+                console.error('🎤 ❌ Cannot start - no speech recognition module');
+                return;
+            }
+            
+            if (this.isSpeechEnabled) {
+                console.warn('🎤 ⚠️ Speech recognition already enabled, skipping start');
+                return;
+            }
 
-        const localStream = this.mediaManager.getLocalStream();
-        if (!localStream) {
-            console.error('🎤 ❌ No local stream available for speech recognition');
-            return;
-        }
+            const localStream = this.mediaManager.getLocalStream();
+            if (!localStream) {
+                console.error('🎤 ❌ No local stream available for speech recognition');
+                return;
+            }
 
-        this.isSpeechEnabled = true;
-        this.currentSpeechModule.start(localStream).catch(error => {
-            console.error('🎤 ❌ Failed to start speech recognition:', error);
+            this.isSpeechEnabled = true;
+            this.currentSpeechModule.start(localStream).catch(error => {
+                console.error('🎤 ❌ Failed to start speech recognition (video continues):', error);
+                this.isSpeechEnabled = false;
+                // Continue without STT - core video unaffected
+            });
+        } catch (error) {
+            console.error('🎤 ❌ Exception starting speech recognition (video continues):', error);
             this.isSpeechEnabled = false;
-        });
+            // Continue without STT - core video unaffected
+        }
     }
 
+    /**
+     * VDO.NINJA FIX: Enhanced with try-catch for progressive enhancement
+     */
     stopSpeechRecognition() {
-        if (!this.currentSpeechModule || !this.isSpeechEnabled) {
-            return;
+        try {
+            if (!this.currentSpeechModule || !this.isSpeechEnabled) {
+                return;
+            }
+
+            this.isSpeechEnabled = false;
+            this.currentSpeechModule.stop().catch(error => {
+                console.warn('🎤 Error stopping speech recognition (non-critical):', error);
+                // Continue - core video unaffected
+            });
+
+            console.log('🎤 Speech recognition stopped');
+        } catch (error) {
+            console.error('🎤 ❌ Exception stopping speech recognition (non-critical):', error);
+            this.isSpeechEnabled = false;
+            // Continue - core video unaffected
         }
-
-        this.isSpeechEnabled = false;
-        this.currentSpeechModule.stop().catch(error => {
-            console.warn('🎤 Error stopping speech recognition:', error);
-        });
-
-        console.log('🎤 Speech recognition stopped');
     }
 
     displayTranscript(text) {
@@ -991,8 +1109,8 @@ export default class RoomWebRTC {
         
         // Step 1: Request current room state from other users
         console.log('🔄 Step 1: Requesting current room state');
-        this.ablyManager.publishToAbly('request-state', {
-            requesterId: this.ablyManager.getCurrentPeerId()
+        this.signalingManager.publishToAbly('request-state', {
+            requesterId: this.signalingManager.getCurrentPeerId()
         });
         
         // Step 2: Re-announce our presence if we're in a slot
@@ -1001,7 +1119,7 @@ export default class RoomWebRTC {
             const participantData = this.roomData.participants.find(p => p.user_id === this.currentUserId);
             
             setTimeout(() => {
-                this.ablyManager.publishToAbly('user-joined', {
+                this.signalingManager.publishToAbly('user-joined', {
                     slotId: this.currentSlotId,
                     participantData: participantData
                 });
@@ -1049,25 +1167,48 @@ export default class RoomWebRTC {
 
     /**
      * Starts connection health monitoring
+     * MEDIUM FIX: Uses adaptive interval with exponential backoff
      */
     startConnectionHealthMonitoring() {
-        // Check connection health every 30 seconds
-        this.connectionHealthInterval = setInterval(() => {
-            this.checkConnectionHealth();
-        }, 30000);
+        this.scheduleNextHealthCheck();
+        console.log(`🏥 Connection health monitoring started (interval: ${this.healthMonitoring.currentDelay}ms)`);
+    }
+    
+    /**
+     * MEDIUM FIX: Schedules next health check with current delay
+     */
+    scheduleNextHealthCheck() {
+        // Clear any existing timeout
+        if (this.healthMonitoring.interval) {
+            clearTimeout(this.healthMonitoring.interval);
+        }
         
-        console.log('🏥 Connection health monitoring started');
+        // Schedule next check
+        this.healthMonitoring.interval = setTimeout(() => {
+            this.checkConnectionHealth();
+            this.scheduleNextHealthCheck(); // Schedule next check after this one
+        }, this.healthMonitoring.currentDelay);
     }
 
     /**
      * Checks the health of all connections (PeerJS version)
      * PeerJS handles most connection health automatically, so this is simplified
+     * MEDIUM FIX: Implements exponential backoff based on connection health
+     * CRITICAL FIX: Validates peer state consistency
      */
     checkConnectionHealth() {
+        // CRITICAL FIX: Validate and repair peer state
+        const validation = this.validatePeerState();
+        if (!validation.isValid) {
+            console.warn('🔧 Peer state inconsistent during health check:', validation.issues);
+            this.repairPeerState();
+        }
+        
         // Check Reverb/Echo connection
         const reverbState = window.Echo?.connector?.pusher?.connection?.state;
         if (reverbState !== 'connected') {
             console.warn('🏥 Health check: Reverb not connected:', reverbState);
+            this.handleUnhealthyConnection();
             return; // Don't check peer connections if signaling is down
         }
         
@@ -1079,6 +1220,9 @@ export default class RoomWebRTC {
         if (activePeers < expectedPeers) {
             console.warn(`🏥 Health check: Connected to ${activePeers}/${expectedPeers} expected peers`);
             
+            // MEDIUM FIX: Connection unhealthy - reset to frequent checks
+            this.handleUnhealthyConnection();
+            
             // Try to reconnect to missing peers
             for (const [slotId, occupant] of this.slotOccupants) {
                 if (!occupant.isLocal && occupant.peerId && !this.simplePeerManager.isConnectedTo(occupant.peerId)) {
@@ -1088,18 +1232,62 @@ export default class RoomWebRTC {
             }
         } else {
             console.log(`🏥 Health check: All ${activePeers} peer connections healthy`);
+            
+            // MEDIUM FIX: Connection healthy - increment counter and potentially increase interval
+            this.handleHealthyConnection();
+        }
+    }
+    
+    /**
+     * MEDIUM FIX: Handles unhealthy connection - resets to frequent checks
+     */
+    handleUnhealthyConnection() {
+        this.healthMonitoring.consecutiveHealthy = 0;
+        
+        // Reset to minimum delay if not already there
+        if (this.healthMonitoring.currentDelay > this.healthMonitoring.minDelay) {
+            this.healthMonitoring.currentDelay = this.healthMonitoring.minDelay;
+            console.log(`🏥 Health monitoring: Reset to frequent checks (${this.healthMonitoring.currentDelay}ms)`);
+        }
+    }
+    
+    /**
+     * MEDIUM FIX: Handles healthy connection - increases interval with exponential backoff
+     */
+    handleHealthyConnection() {
+        this.healthMonitoring.consecutiveHealthy++;
+        
+        // After threshold healthy checks, increase the interval
+        if (this.healthMonitoring.consecutiveHealthy >= this.healthMonitoring.healthyThreshold) {
+            const newDelay = Math.min(
+                this.healthMonitoring.currentDelay * 1.5, // Increase by 50%
+                this.healthMonitoring.maxDelay
+            );
+            
+            if (newDelay > this.healthMonitoring.currentDelay) {
+                this.healthMonitoring.currentDelay = newDelay;
+                console.log(`🏥 Health monitoring: Increased interval to ${Math.round(newDelay / 1000)}s (connections stable)`);
+            }
+            
+            // Reset counter after applying backoff
+            this.healthMonitoring.consecutiveHealthy = 0;
         }
     }
 
     /**
      * Stops connection health monitoring
+     * MEDIUM FIX: Clears timeout-based monitoring
      */
     stopConnectionHealthMonitoring() {
-        if (this.connectionHealthInterval) {
-            clearInterval(this.connectionHealthInterval);
-            this.connectionHealthInterval = null;
+        if (this.healthMonitoring.interval) {
+            clearTimeout(this.healthMonitoring.interval);
+            this.healthMonitoring.interval = null;
             console.log('🏥 Connection health monitoring stopped');
         }
+        
+        // Reset state
+        this.healthMonitoring.currentDelay = this.healthMonitoring.minDelay;
+        this.healthMonitoring.consecutiveHealthy = 0;
     }
 
     /**
@@ -1108,5 +1296,157 @@ export default class RoomWebRTC {
     cleanup() {
         this.stopConnectionHealthMonitoring();
         // ... other cleanup
+    }
+    
+    /**
+     * MEDIUM FIX: Collects comprehensive diagnostics for debugging
+     * Returns a snapshot of all connection states and system health
+     */
+    collectDiagnostics() {
+        const diagnostics = {
+            timestamp: new Date().toISOString(),
+            roomId: this.roomData?.id,
+            currentUserId: this.currentUserId,
+            
+            // Core state
+            state: {
+                isJoined: this.isJoined,
+                currentSlotId: this.currentSlotId,
+                slotOccupantCount: this.slotOccupants.size,
+                isSpeechEnabled: this.isSpeechEnabled,
+                sttPausedForMute: this.sttPausedForMute,
+                sttTransitioning: this.sttTransitioning
+            },
+            
+            // PeerJS connection state
+            peerJs: this.simplePeerManager.getStats(),
+            peerServerState: this.simplePeerManager.peerServerState,
+            
+            // Per-peer connection states
+            peerConnections: Array.from(this.simplePeerManager.connectionStates.entries()).map(([peerId, state]) => ({
+                peerId,
+                state,
+                retryAttempts: this.simplePeerManager.retryAttempts.get(peerId) || 0
+            })),
+            
+            // Signaling (Reverb) state
+            reverb: {
+                state: window.Echo?.connector?.pusher?.connection?.state || 'unknown',
+                channelName: this.signalingManager.channel?.name || null,
+                socketId: window.Echo?.socketId() || null
+            },
+            
+            // Media state
+            media: {
+                hasLocalStream: this.mediaManager.localStream !== null,
+                isMicrophoneMuted: this.mediaManager.isMicrophoneMuted,
+                isVideoHidden: this.mediaManager.isVideoHidden,
+                localStreamTracks: this.mediaManager.localStream ? {
+                    audio: this.mediaManager.localStream.getAudioTracks().length,
+                    video: this.mediaManager.localStream.getVideoTracks().length
+                } : null
+            },
+            
+            // Recording state
+            recording: {
+                isRecording: this.videoRecorder.isRecording,
+                isPaused: this.videoRecorder.isPaused,
+                recordedChunks: this.videoRecorder.recordedChunks?.length || 0,
+                recordingDuration: this.videoRecorder.recordingStartTime 
+                    ? Date.now() - this.videoRecorder.recordingStartTime 
+                    : 0,
+                storageProvider: this.roomData?.recording_settings?.storage_provider
+            },
+            
+            // Slot occupants
+            slots: Array.from(this.slotOccupants.entries()).map(([slotId, occupant]) => ({
+                slotId,
+                peerId: occupant.peerId,
+                userId: occupant.participantData?.user_id,
+                characterName: occupant.participantData?.character_name,
+                isLocal: occupant.isLocal,
+                hasStream: !!occupant.stream,
+                streamTracks: occupant.stream ? {
+                    audio: occupant.stream.getAudioTracks().length,
+                    video: occupant.stream.getVideoTracks().length
+                } : null
+            })),
+            
+            // Consent status
+            consent: {
+                stt: this.consentManager.consentData.stt.status,
+                recording: this.consentManager.consentData.recording.status,
+                localSave: this.consentManager.consentData.localSave.status
+            },
+            
+            // Browser info
+            browser: {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                online: navigator.onLine,
+                cookieEnabled: navigator.cookieEnabled
+            },
+            
+            // Performance metrics
+            performance: {
+                memoryUsage: performance.memory ? {
+                    usedJSHeapSize: Math.round(performance.memory.usedJSHeapSize / 1048576) + ' MB',
+                    totalJSHeapSize: Math.round(performance.memory.totalJSHeapSize / 1048576) + ' MB',
+                    jsHeapSizeLimit: Math.round(performance.memory.jsHeapSizeLimit / 1048576) + ' MB'
+                } : 'not available',
+                uptime: performance.now() + ' ms'
+            },
+            
+            // Feature flags
+            features: {
+                recordingEnabled: this.roomData?.recording_enabled,
+                sttEnabled: this.roomData?.stt_enabled,
+                autoDownloadEnabled: this.roomData?.recording_settings?.auto_download_enabled,
+                saveCopyToDevice: this.roomData?.recording_settings?.save_copy_to_device
+            }
+        };
+        
+        return diagnostics;
+    }
+    
+    /**
+     * MEDIUM FIX: Logs diagnostics to console in readable format
+     */
+    logDiagnostics() {
+        const diagnostics = this.collectDiagnostics();
+        console.group('🔍 WebRTC Diagnostics Report');
+        console.log('📊 Full diagnostics:', diagnostics);
+        console.log('⏰ Timestamp:', diagnostics.timestamp);
+        console.log('🎯 Room:', diagnostics.roomId);
+        console.log('👤 User:', diagnostics.currentUserId);
+        console.log('🔌 PeerJS State:', diagnostics.peerServerState);
+        console.log('📡 Reverb State:', diagnostics.reverb.state);
+        console.log('🎥 Media State:', diagnostics.media);
+        console.log('🔴 Recording:', diagnostics.recording);
+        console.log('👥 Connected Peers:', diagnostics.peerConnections);
+        console.log('📍 Slots:', diagnostics.slots);
+        console.groupEnd();
+        
+        return diagnostics;
+    }
+    
+    /**
+     * MEDIUM FIX: Exports diagnostics as downloadable JSON
+     */
+    exportDiagnostics() {
+        const diagnostics = this.collectDiagnostics();
+        const blob = new Blob([JSON.stringify(diagnostics, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `webrtc-diagnostics-${diagnostics.roomId}-${Date.now()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('📥 Diagnostics exported to file');
+        return diagnostics;
     }
 }

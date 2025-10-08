@@ -132,15 +132,8 @@ describe('Four-Step Level Up Workflow Tests', function () {
         expect($experiences)->toHaveCount(1);
         expect($experiences->first()->experience_name)->toBe('Combat Training');
 
-        // Verify proficiency advancement was created
-        $proficiencyAdvancement = CharacterAdvancement::where([
-            'character_id' => $character->id,
-            'advancement_type' => 'proficiency',
-            'advancement_number' => 0, // Tier achievement
-        ])->first();
-
-        expect($proficiencyAdvancement)->not->toBeNull();
-        expect($proficiencyAdvancement->advancement_data['bonus'])->toBe(1);
+        // Verify proficiency was increased (tier achievement applied directly)
+        expect($character->proficiency)->toBe(2);
 
         // Verify regular advancements were created
         $regularAdvancements = CharacterAdvancement::where([
@@ -244,18 +237,21 @@ describe('Integration with Character Viewer Tests', function () {
 
         expect($repository->canLevelUp($character1))->toBeTrue();
 
-        // Test character with filled advancement slots
+        // Test character with filled advancement slots for next level
         $character2 = Character::factory()->create(['level' => 2, 'is_public' => true]);
 
-        // Fill both advancement slots
+        // Fill both advancement slots for the NEXT level (3)
+        // This simulates a character who has already prepared their next level-up
         CharacterAdvancement::factory()->create([
             'character_id' => $character2->id,
             'tier' => 2,
+            'level' => 3,
             'advancement_number' => 1,
         ]);
         CharacterAdvancement::factory()->create([
             'character_id' => $character2->id,
             'tier' => 2,
+            'level' => 3,
             'advancement_number' => 2,
         ]);
 
@@ -266,15 +262,16 @@ describe('Integration with Character Viewer Tests', function () {
         $character = Character::factory()->create(['level' => 2, 'is_public' => true]);
         $repository = new \Domain\Character\Repositories\CharacterAdvancementRepository;
 
-        // Add one advancement
+        // Add one advancement for the next level (3)
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 3,
             'advancement_number' => 1,
         ]);
 
-        // Test available slots directly
-        $availableSlots = $repository->getAvailableSlots($character->id, 2);
+        // Test available slots directly for next level (3)
+        $availableSlots = $repository->getAvailableSlots($character->id, 3);
         expect($availableSlots)->toEqual([2]); // Only slot 2 should be available
 
         $canLevelUp = $repository->canLevelUp($character);
@@ -293,6 +290,7 @@ describe('Integration with Character Viewer Tests', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 1,
+            'level' => 1,
             'advancement_number' => 1,
             'advancement_type' => 'hit_point',
             'advancement_data' => ['bonus' => 2],
@@ -301,6 +299,7 @@ describe('Integration with Character Viewer Tests', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 1,
+            'level' => 1,
             'advancement_number' => 2,
             'advancement_type' => 'evasion',
             'advancement_data' => ['bonus' => 1],

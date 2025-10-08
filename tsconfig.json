@@ -1,0 +1,69 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "preserve",
+    
+    /* Modules */
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    
+    /* Emit */
+    "noEmit": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "importHelpers": false,
+    
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    
+    /* Type Checking - STRICT MODE */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    
+    /* Completeness */
+    "skipLibCheck": true,
+    
+    /* Types */
+    "types": ["vite/client"],
+    
+    /* Path Mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["resources/js/*"],
+      "@room/*": ["resources/js/room/*"]
+    }
+  },
+  "include": [
+    "resources/js/**/*.ts",
+    "resources/js/**/*.tsx",
+    "resources/js/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "vendor",
+    "public",
+    "storage",
+    "bootstrap/cache"
+  ]
+}
+

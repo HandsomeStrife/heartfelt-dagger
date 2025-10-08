@@ -40,9 +40,19 @@ class CharacterAdvancementFactory extends Factory
 
         $advancement_type = $this->faker->randomElement($advancement_types);
 
+        // Calculate default level from tier (first level of each tier)
+        $level = match ($tier) {
+            1 => 1,
+            2 => 2,
+            3 => 5,
+            4 => 8,
+            default => 1,
+        };
+
         return [
             'character_id' => Character::factory(),
             'tier' => $tier,
+            'level' => $level,
             'advancement_number' => $advancement_number,
             'advancement_type' => $advancement_type,
             'advancement_data' => $this->getAdvancementData($advancement_type),
@@ -136,8 +146,12 @@ class CharacterAdvancementFactory extends Factory
 
     public function multiclass(string $class = 'warrior'): static
     {
+        $tier = $this->faker->numberBetween(3, 4);
+        $level = $tier === 3 ? 5 : 8; // First level of tier 3 or 4
+        
         return $this->state([
-            'tier' => $this->faker->numberBetween(3, 4), // Multiclass only available at tier 3+
+            'tier' => $tier,
+            'level' => $level,
             'advancement_type' => 'multiclass',
             'advancement_data' => ['class' => $class],
             'description' => "Multiclass: Choose {$class} as an additional class for your character.",

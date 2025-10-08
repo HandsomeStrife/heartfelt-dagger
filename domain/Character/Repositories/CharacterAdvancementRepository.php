@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Character\Repositories;
 
+use Domain\Character\Data\CharacterAdvancementData;
 use Domain\Character\Models\Character;
 use Domain\Character\Models\CharacterAdvancement;
 use Illuminate\Support\Collection;
@@ -35,9 +36,9 @@ class CharacterAdvancementRepository
     /**
      * Get available advancement slots for a tier
      */
-    public function getAvailableSlots(int $character_id, int $tier): array
+    public function getAvailableSlots(int $character_id, int $level): array
     {
-        $existing = $this->getAdvancementsForTier($character_id, $tier);
+        $existing = $this->getAdvancementsForLevel($character_id, $level);
         $used_slots = $existing->pluck('advancement_number')->toArray();
 
         $available_slots = [];
@@ -49,16 +50,33 @@ class CharacterAdvancementRepository
 
         return $available_slots;
     }
+    
+    /**
+     * Get advancements for a specific character level
+     */
+    public function getAdvancementsForLevel(int $character_id, int $level): Collection
+    {
+        return CharacterAdvancement::where('character_id', $character_id)
+            ->where('level', $level)
+            ->get()
+            ->map(fn ($advancement) => CharacterAdvancementData::from($advancement));
+    }
 
     /**
      * Check if character can advance to next level
      */
     public function canLevelUp(Character $character): bool
     {
-        $current_tier = $character->getTier();
-        $available_slots = $this->getAvailableSlots($character->id, $current_tier);
+        $target_level = $character->level + 1;
+        
+        // Character cannot level up beyond level 10
+        if ($target_level > 10) {
+            return false;
+        }
+        
+        $available_slots = $this->getAvailableSlots($character->id, $target_level);
 
-        // Character can level up if they have advancement slots available for their current tier
+        // Character can level up if they have advancement slots available for their next level
         return count($available_slots) > 0;
     }
 

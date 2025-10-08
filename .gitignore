@@ -34,3 +34,8 @@ public/docs-index*
 public/docs-index.json
 vdo
 vdo/*
+playwright-report
+playwright-report/*
+test-results
+test-results/*
+.playwright-mcp

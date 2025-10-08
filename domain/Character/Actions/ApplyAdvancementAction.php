@@ -11,9 +11,11 @@ use Illuminate\Support\Facades\DB;
 
 class ApplyAdvancementAction
 {
-    public function execute(Character $character, CharacterAdvancementData $advancement_data): CharacterAdvancement
+    public function execute(Character $character, CharacterAdvancementData $advancement_data, int $level = null): CharacterAdvancement
     {
-        return DB::transaction(function () use ($character, $advancement_data) {
+        return DB::transaction(function () use ($character, $advancement_data, $level) {
+            // Use provided level or calculate from tier
+            $character_level = $level ?? $character->level;
             // Validate tier range
             if ($advancement_data->tier < 1 || $advancement_data->tier > 4) {
                 throw new \InvalidArgumentException('Tier must be between 1 and 4');
@@ -24,15 +26,15 @@ class ApplyAdvancementAction
                 throw new \InvalidArgumentException('Advancement number must be 1 or 2');
             }
 
-            // Validate that this advancement slot is available
+            // Validate that this advancement slot is available for this level
             $existing_advancement = CharacterAdvancement::where([
                 'character_id' => $character->id,
-                'tier' => $advancement_data->tier,
+                'level' => $character_level,
                 'advancement_number' => $advancement_data->advancement_number,
             ])->first();
 
             if ($existing_advancement) {
-                throw new \InvalidArgumentException('Advancement slot already taken');
+                throw new \InvalidArgumentException('Advancement slot already taken for this level');
             }
 
             // Validate tier progression (character must be at appropriate level)
@@ -67,6 +69,7 @@ class ApplyAdvancementAction
             $advancement = CharacterAdvancement::create([
                 'character_id' => $character->id,
                 'tier' => $advancement_data->tier,
+                'level' => $character_level,
                 'advancement_number' => $advancement_data->advancement_number,
                 'advancement_type' => $advancement_data->advancement_type,
                 'advancement_data' => $advancement_data->advancement_data,

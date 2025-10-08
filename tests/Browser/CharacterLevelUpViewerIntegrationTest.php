@@ -23,12 +23,12 @@ describe('Character Level Up Viewer Integration Tests', function () {
 
         // Add initial domain cards (typical level 1 character has 2)
         CharacterDomainCard::factory()->for($character)->create([
-            'ability_key' => 'blade-strike',
+            'ability_key' => 'not good enough',
             'domain' => 'blade',
             'ability_level' => 1,
         ]);
         CharacterDomainCard::factory()->for($character)->create([
-            'ability_key' => 'bone-chill',
+            'ability_key' => 'deft maneuvers',
             'domain' => 'bone',
             'ability_level' => 1,
         ]);
@@ -63,7 +63,7 @@ describe('Character Level Up Viewer Integration Tests', function () {
         // Select a tier domain card and complete level up
         // Note: This would need the actual domain card selection interface to be testable
         // For now, we'll use Livewire to set it directly
-        $result = \Livewire\Livewire::test(\App\Livewire\CharacterLevelUp::class, [
+        $component = \Livewire\Livewire::test(\App\Livewire\CharacterLevelUp::class, [
             'characterKey' => $character->character_key,
             'canEdit' => true,
         ])
@@ -72,14 +72,12 @@ describe('Character Level Up Viewer Integration Tests', function () {
                 'description' => 'Expert swordplay techniques',
                 'modifier' => 2,
             ])
-            ->set('advancement_choices.tier_domain_card', 'blade-whirlwind')
+            ->set('advancement_choices.tier_domain_card', 'whirlwind')
             ->set('first_advancement', 1) // Select Hit Point advancement
-            ->set('second_advancement', 2) // Select Stress advancement
-            ->call('confirmLevelUp');
+            ->set('second_advancement', 2); // Select Stress advancement
         
-        // Debug: Check session for errors
-        dump('Session errors:', session('error'));
-        dump('Session success:', session('success'));
+        // Complete level up
+        $component->call('confirmLevelUp');
 
         // Verify level up was successful
         $character->refresh();
@@ -95,14 +93,11 @@ describe('Character Level Up Viewer Integration Tests', function () {
 
         // Verify domain cards section shows 3 cards now (original 2 + 1 from level up)
         $finalCardCount = CharacterDomainCard::where('character_id', $character->id)->count();
-        // Debug: Check what cards exist
-        $cards = CharacterDomainCard::where('character_id', $character->id)->get();
-        dump('Domain cards after level up:', $cards->pluck('ability_key')->toArray());
-        expect($finalCardCount)->toBeGreaterThanOrEqual(2); // At minimum we should still have original 2
+        expect($finalCardCount)->toBe(3);
 
         // Verify the new domain card exists in database
         $newCard = CharacterDomainCard::where('character_id', $character->id)
-            ->where('ability_key', 'blade-whirlwind')
+            ->where('ability_key', 'whirlwind')
             ->first();
         expect($newCard)->not->toBeNull();
 
@@ -153,7 +148,7 @@ describe('Character Level Up Viewer Integration Tests', function () {
                 'description' => 'Deep knowledge of magical theory',
                 'modifier' => 2,
             ])
-            ->set('advancement_choices.tier_domain_card', 'codex-recall')
+            ->set('advancement_choices.tier_domain_card', 'book of ava')
             ->set('first_advancement', 5) // Evasion bonus (+1)
             ->set('second_advancement', 1) // Hit Point
             ->call('confirmLevelUp');
@@ -198,12 +193,12 @@ describe('Character Level Up Viewer Integration Tests', function () {
 
         // Add starting domain cards
         CharacterDomainCard::factory()->for($character)->create([
-            'ability_key' => 'arcana-blast',
+            'ability_key' => 'unleash chaos',
             'domain' => 'arcana',
             'ability_level' => 1,
         ]);
         CharacterDomainCard::factory()->for($character)->create([
-            'ability_key' => 'midnight-cloak',
+            'ability_key' => 'pick and pull',
             'domain' => 'midnight',
             'ability_level' => 1,
         ]);
@@ -218,12 +213,17 @@ describe('Character Level Up Viewer Integration Tests', function () {
 
         actingAs($user);
 
-        // Level up to level 2 (adds 1 domain card)
+        // Level up to level 2 (adds 1 domain card - tier achievement level)
         \Livewire\Livewire::test(\App\Livewire\CharacterLevelUp::class, [
             'characterKey' => $character->character_key,
             'canEdit' => true,
         ])
-            ->set('advancement_choices.tier_domain_card', 'arcana-shield')
+            ->set('advancement_choices.tier_experience', [
+                'name' => 'Arcane Mastery',
+                'description' => 'Deep understanding of arcane forces',
+                'modifier' => 2,
+            ])
+            ->set('advancement_choices.tier_domain_card', 'rune ward')
             ->set('first_advancement', 1) // Hit Point
             ->set('second_advancement', 2) // Stress
             ->call('confirmLevelUp');
@@ -232,12 +232,12 @@ describe('Character Level Up Viewer Integration Tests', function () {
         expect($character->level)->toBe(2);
         expect(CharacterDomainCard::where('character_id', $character->id)->count())->toBe(3);
 
-        // Level up to level 3 (adds another domain card)
+        // Level up to level 3 (adds another domain card - NOT a tier achievement level)
         \Livewire\Livewire::test(\App\Livewire\CharacterLevelUp::class, [
             'characterKey' => $character->character_key,
             'canEdit' => true,
         ])
-            ->set('advancement_choices.tier_domain_card', 'midnight-strike')
+            ->set('advancement_choices.tier_domain_card', 'uncanny disguise')
             ->set('first_advancement', 1) // Hit Point
             ->set('second_advancement', 2) // Stress
             ->call('confirmLevelUp');
@@ -257,7 +257,7 @@ describe('Character Level Up Viewer Integration Tests', function () {
         // Verify all 4 domain cards exist in database
         $cards = CharacterDomainCard::where('character_id', $character->id)->get();
         expect($cards)->toHaveCount(4);
-        expect($cards->pluck('ability_key')->toArray())->toContain('arcana-blast', 'midnight-cloak', 'arcana-shield', 'midnight-strike');
+        expect($cards->pluck('ability_key')->toArray())->toContain('unleash chaos', 'pick and pull', 'rune ward', 'uncanny disguise');
 
         // Verify domain card names are visible in the UI
         $viewerPage->assertSee('Arcana')

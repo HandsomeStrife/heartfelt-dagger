@@ -185,8 +185,8 @@ export class FearCountdownManager {
         // Set up Livewire event listeners
         this.setupLivewireHandlers();
 
-        if (!this.roomWebRTC.ablyManager) {
-            console.warn('🎭 No Ably manager available for real-time updates');
+        if (!this.roomWebRTC.signalingManager) {
+            console.warn('🎭 No signaling manager available for real-time updates');
             return;
         }
 
@@ -586,15 +586,15 @@ export class FearCountdownManager {
             
             const { type, data } = messageData;
             
-            if (!this.roomWebRTC.ablyManager) {
-                console.warn('🎭 No Ably manager available for message:', type);
+            if (!this.roomWebRTC.signalingManager) {
+                console.warn('🎭 No signaling manager available for message:', type);
                 return;
             }
 
-            // console.log(`🎭 Publishing Ably message: ${type}`, data);
+            // console.log(`🎭 Publishing signaling message: ${type}`, data);
             
             // Send the message to all room participants
-            this.roomWebRTC.ablyManager.publishToAbly(type, data);
+            this.roomWebRTC.signalingManager.publishToAbly(type, data);
             
         } catch (error) {
             console.error('🎭 ❌ Failed to send Ably message:', error);

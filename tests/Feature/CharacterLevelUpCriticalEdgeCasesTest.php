@@ -26,6 +26,7 @@ describe('Critical Missing Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'experience',
             'advancement_data' => ['experience_bonuses' => ['Combat'], 'bonus' => 1],
@@ -58,6 +59,7 @@ describe('Critical Missing Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'trait_bonus',
             'advancement_data' => [
@@ -193,6 +195,7 @@ describe('Critical Missing Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 0, // Tier achievement
             'advancement_type' => 'proficiency',
             'advancement_data' => ['bonus' => 1],
@@ -209,6 +212,7 @@ describe('Critical Missing Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 999, // Invalid number
             'advancement_type' => 'hit_point',
             'advancement_data' => ['bonus' => 1],
@@ -373,6 +377,7 @@ describe('Data Integrity Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'hit_point',
             'advancement_data' => ['bonus' => 1],
@@ -382,6 +387,7 @@ describe('Data Integrity Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 2,
             'advancement_type' => 'stress',
             'advancement_data' => ['bonus' => 1],
@@ -439,6 +445,7 @@ describe('Data Integrity Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'hit_point',
             'advancement_data' => ['bonus' => 1],
@@ -450,7 +457,8 @@ describe('Data Integrity Edge Cases', function () {
             CharacterAdvancement::factory()->create([
                 'character_id' => $character->id,
                 'tier' => 2,
-                'advancement_number' => 1, // Duplicate
+            'level' => 2,
+            'advancement_number' => 1, // Duplicate
                 'advancement_type' => 'stress',
                 'advancement_data' => ['bonus' => 1],
                 'description' => 'Duplicate advancement',
@@ -515,6 +523,7 @@ describe('Performance and Resource Edge Cases', function () {
         CharacterAdvancement::factory()->create([
             'character_id' => $character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'complex',
             'advancement_data' => $largeData,

@@ -12,12 +12,19 @@
         "test:feature": "node ./vendor/bin/pest --testsuite=Feature",
         "test:e2e": "node ./vendor/bin/pest --browser --stop-on-failure",
         "pretest": "npm run pw:install",
+        "test:load": "playwright test tests/LoadTesting/",
+        "test:load:headed": "playwright test tests/LoadTesting/ --headed",
+        "test:load:debug": "playwright test tests/LoadTesting/ --debug",
+        "test:load:report": "playwright show-report",
         "index-docs": "node scripts/index-docs.mjs",
         "index-docs:production": "DOCS_START_URL=https://heartfeltdagger.com/reference/ node scripts/index-docs-production.mjs",
         "build:production": "npm run build && npm run index-docs:production"
     },
     "devDependencies": {
+        "@playwright/test": "^1.56.0",
         "@tailwindcss/vite": "^4.1.12",
+        "@types/node": "^24.7.0",
+        "@types/peerjs": "^0.0.30",
         "axios": "^1.12.1",
         "concurrently": "^9.0.1",
         "laravel-echo": "^2.2.0",
@@ -25,6 +32,7 @@
         "peer": "^1.0.2",
         "pusher-js": "^8.4.0",
         "tailwindcss": "^4.1.12",
+        "typescript": "^5.9.3",
         "vite": "^7.0.4"
     },
     "dependencies": {

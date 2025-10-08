@@ -380,6 +380,7 @@ export class MediaManager {
 
     /**
      * Updates visual indicators for microphone state
+     * MEDIUM FIX: Also updates status bar buttons
      */
     updateMicrophoneIndicators() {
         if (!this.roomWebRTC.currentSlotId) return;
@@ -403,10 +404,67 @@ export class MediaManager {
         } else {
             micIndicator.style.display = 'none';
         }
+        
+        // MEDIUM FIX: Update status bar buttons
+        this.updateStatusBarMicrophoneUI(this.isMicrophoneMuted);
+    }
+    
+    /**
+     * MEDIUM FIX: Updates status bar UI for microphone state
+     */
+    updateStatusBarMicrophoneUI(isMuted) {
+        // Update campaign layout buttons
+        const micOnIcon = document.getElementById('mic-on-icon');
+        const micOffIcon = document.getElementById('mic-off-icon');
+        const micStatusText = document.getElementById('mic-status-text');
+        const micToggleBtn = document.getElementById('mic-toggle-btn');
+        
+        // Update normal layout buttons
+        const micOnIconNormal = document.getElementById('mic-on-icon-normal');
+        const micOffIconNormal = document.getElementById('mic-off-icon-normal');
+        const micStatusTextNormal = document.getElementById('mic-status-text-normal');
+        const micToggleBtnNormal = document.getElementById('mic-toggle-btn-normal');
+        
+        if (isMuted) {
+            // Show muted state
+            if (micOnIcon) micOnIcon.classList.add('hidden');
+            if (micOffIcon) micOffIcon.classList.remove('hidden');
+            if (micStatusText) micStatusText.textContent = 'Unmute';
+            if (micToggleBtn) {
+                micToggleBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+                micToggleBtn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+            }
+            
+            if (micOnIconNormal) micOnIconNormal.classList.add('hidden');
+            if (micOffIconNormal) micOffIconNormal.classList.remove('hidden');
+            if (micStatusTextNormal) micStatusTextNormal.textContent = 'Unmute';
+            if (micToggleBtnNormal) {
+                micToggleBtnNormal.classList.add('bg-red-600', 'hover:bg-red-500');
+                micToggleBtnNormal.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+            }
+        } else {
+            // Show unmuted state
+            if (micOnIcon) micOnIcon.classList.remove('hidden');
+            if (micOffIcon) micOffIcon.classList.add('hidden');
+            if (micStatusText) micStatusText.textContent = 'Mute';
+            if (micToggleBtn) {
+                micToggleBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
+                micToggleBtn.classList.add('bg-slate-700', 'hover:bg-slate-600');
+            }
+            
+            if (micOnIconNormal) micOnIconNormal.classList.remove('hidden');
+            if (micOffIconNormal) micOffIconNormal.classList.add('hidden');
+            if (micStatusTextNormal) micStatusTextNormal.textContent = 'Mute';
+            if (micToggleBtnNormal) {
+                micToggleBtnNormal.classList.remove('bg-red-600', 'hover:bg-red-500');
+                micToggleBtnNormal.classList.add('bg-slate-700', 'hover:bg-slate-600');
+            }
+        }
     }
 
     /**
      * Updates visual indicators for video state
+     * MEDIUM FIX: Also updates status bar buttons
      */
     updateVideoIndicators() {
         if (!this.roomWebRTC.currentSlotId) return;
@@ -458,6 +516,62 @@ export class MediaManager {
             const videoOffIndicator = slotContainer.querySelector('.video-off-indicator');
             if (videoOffIndicator) {
                 videoOffIndicator.style.display = 'none';
+            }
+        }
+        
+        // MEDIUM FIX: Update status bar buttons
+        this.updateStatusBarVideoUI(this.isVideoHidden);
+    }
+    
+    /**
+     * MEDIUM FIX: Updates status bar UI for video state
+     */
+    updateStatusBarVideoUI(isVideoHidden) {
+        // Update campaign layout buttons
+        const videoOnIcon = document.getElementById('video-on-icon');
+        const videoOffIcon = document.getElementById('video-off-icon');
+        const videoStatusText = document.getElementById('video-status-text');
+        const videoToggleBtn = document.getElementById('video-toggle-btn');
+        
+        // Update normal layout buttons
+        const videoOnIconNormal = document.getElementById('video-on-icon-normal');
+        const videoOffIconNormal = document.getElementById('video-off-icon-normal');
+        const videoStatusTextNormal = document.getElementById('video-status-text-normal');
+        const videoToggleBtnNormal = document.getElementById('video-toggle-btn-normal');
+        
+        if (isVideoHidden) {
+            // Show video hidden state
+            if (videoOnIcon) videoOnIcon.classList.add('hidden');
+            if (videoOffIcon) videoOffIcon.classList.remove('hidden');
+            if (videoStatusText) videoStatusText.textContent = 'Show Video';
+            if (videoToggleBtn) {
+                videoToggleBtn.classList.add('bg-red-600', 'hover:bg-red-500');
+                videoToggleBtn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+            }
+            
+            if (videoOnIconNormal) videoOnIconNormal.classList.add('hidden');
+            if (videoOffIconNormal) videoOffIconNormal.classList.remove('hidden');
+            if (videoStatusTextNormal) videoStatusTextNormal.textContent = 'Show Video';
+            if (videoToggleBtnNormal) {
+                videoToggleBtnNormal.classList.add('bg-red-600', 'hover:bg-red-500');
+                videoToggleBtnNormal.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+            }
+        } else {
+            // Show video visible state
+            if (videoOnIcon) videoOnIcon.classList.remove('hidden');
+            if (videoOffIcon) videoOffIcon.classList.add('hidden');
+            if (videoStatusText) videoStatusText.textContent = 'Hide Video';
+            if (videoToggleBtn) {
+                videoToggleBtn.classList.remove('bg-red-600', 'hover:bg-red-500');
+                videoToggleBtn.classList.add('bg-slate-700', 'hover:bg-slate-600');
+            }
+            
+            if (videoOnIconNormal) videoOnIconNormal.classList.remove('hidden');
+            if (videoOffIconNormal) videoOffIconNormal.classList.add('hidden');
+            if (videoStatusTextNormal) videoStatusTextNormal.textContent = 'Hide Video';
+            if (videoToggleBtnNormal) {
+                videoToggleBtnNormal.classList.remove('bg-red-600', 'hover:bg-red-500');
+                videoToggleBtnNormal.classList.add('bg-slate-700', 'hover:bg-slate-600');
             }
         }
     }
@@ -524,10 +638,23 @@ export class MediaManager {
 
         console.log('📺 Cleaning up remote video for slot:', slotContainer.dataset.slotId);
 
-        // Stop all tracks in the stream
+        // MEMORY LEAK FIX: Remove video element event listeners
+        if (videoElement.onloadeddata) {
+            videoElement.onloadeddata = null;
+        }
+        if (videoElement.onerror) {
+            videoElement.onerror = null;
+        }
+
+        // Stop all tracks in the stream and remove track listeners
         if (videoElement.srcObject) {
             const stream = videoElement.srcObject;
             stream.getTracks().forEach(track => {
+                // MEMORY LEAK FIX: Remove all event listeners from track
+                track.onended = null;
+                track.onmute = null;
+                track.onunmute = null;
+                
                 track.stop();
                 console.log('📺 Stopped track:', track.kind, 'for slot:', slotContainer.dataset.slotId);
             });

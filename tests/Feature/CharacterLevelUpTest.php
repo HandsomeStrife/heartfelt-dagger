@@ -38,7 +38,8 @@ test('character level up page redirects when no advancement slots available', fu
     CharacterAdvancement::factory()->create([
         'character_id' => $character->id,
         'tier' => 2,
-        'advancement_number' => 1,
+            'level' => 2,
+            'advancement_number' => 1,
         'advancement_type' => 'evasion',
         'advancement_data' => ['bonus' => 1],
         'description' => 'Permanently gain a +1 bonus to your Evasion',
@@ -47,7 +48,8 @@ test('character level up page redirects when no advancement slots available', fu
     CharacterAdvancement::factory()->create([
         'character_id' => $character->id,
         'tier' => 2,
-        'advancement_number' => 2,
+            'level' => 2,
+            'advancement_number' => 2,
         'advancement_type' => 'hit_point',
         'advancement_data' => ['bonus' => 1],
         'description' => 'Permanently gain one Hit Point slot',

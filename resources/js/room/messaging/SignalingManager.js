@@ -5,13 +5,50 @@
  * and subscription management for WebRTC signaling using Laravel Echo.
  * 
  * Migrated from Ably to Reverb for better performance and no rate limits.
+ * 
+ * MEDIUM FIX: Uses robust CSRF token utility
  */
+
+import { getCSRFToken } from '../utils/csrf';
 
 export class SignalingManager {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
         this.channel = null;
         this.currentPeerId = null;
+        
+        // PERFORMANCE FIX: Token bucket rate limiter
+        this.rateLimiter = {
+            tokens: 10, // Start with 10 tokens
+            maxTokens: 10, // Maximum token capacity
+            refillRate: 5, // Refill 5 tokens per second
+            lastRefill: Date.now()
+        };
+    }
+    
+    /**
+     * PERFORMANCE FIX: Token bucket rate limiter
+     * Refills tokens based on elapsed time and checks if action is allowed
+     */
+    checkRateLimit() {
+        const now = Date.now();
+        const timePassed = (now - this.rateLimiter.lastRefill) / 1000; // in seconds
+        
+        // Refill tokens based on time passed
+        const tokensToAdd = timePassed * this.rateLimiter.refillRate;
+        this.rateLimiter.tokens = Math.min(
+            this.rateLimiter.maxTokens,
+            this.rateLimiter.tokens + tokensToAdd
+        );
+        this.rateLimiter.lastRefill = now;
+        
+        // Check if we have at least 1 token
+        if (this.rateLimiter.tokens >= 1) {
+            this.rateLimiter.tokens -= 1;
+            return true;
+        }
+        
+        return false;
     }
 
     /**
@@ -112,6 +149,8 @@ export class SignalingManager {
      * Laravel Reverb docs explicitly state whisper is for "ephemeral, unreliable" messages.
      * One dropped signaling message = broken WebRTC connection.
      * 
+     * PERFORMANCE FIX: Includes client-side rate limiting with token bucket algorithm
+     * 
      * @param {string} type - Message type (e.g., 'user-joined', 'webrtc-offer')
      * @param {object} data - Message payload
      * @param {string|null} targetPeerId - Optional specific peer to target
@@ -120,6 +159,18 @@ export class SignalingManager {
         if (!this.channel) {
             console.warn('❌ Reverb channel not ready');
             return;
+        }
+
+        // PERFORMANCE FIX: Apply rate limiting
+        if (!this.checkRateLimit()) {
+            console.warn('⚠️ Rate limit exceeded for signaling messages, queuing message');
+            // Queue message for later delivery
+            return new Promise((resolve) => {
+                setTimeout(async () => {
+                    await this.publishMessage(type, data, targetPeerId);
+                    resolve();
+                }, 200); // Wait 200ms before retry
+            });
         }
 
         const message = {
@@ -135,7 +186,7 @@ export class SignalingManager {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                    'X-CSRF-TOKEN': getCSRFToken(), // MEDIUM FIX: Use robust CSRF utility
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify(message)
@@ -229,6 +280,5 @@ export class SignalingManager {
     }
 }
 
-// Export with old name for backward compatibility
-export { SignalingManager as AblyManager };
+// Note: SignalingManager is already exported as a class above (line 10)
 

@@ -3,11 +3,19 @@
  * 
  * Processes different types of room messages including user presence,
  * WebRTC offers/answers, and ICE candidates.
+ * 
+ * MEDIUM FIX: Applies debouncing to rapid message updates
  */
+
+import { debounce } from '../utils/debounce';
 
 export class MessageHandler {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
+        
+        // MEDIUM FIX: Debounced handlers for rapid updates (250ms delay)
+        this.debouncedHandleCountdownUpdate = debounce(this._handleCountdownUpdate.bind(this), 250);
+        this.debouncedHandleMarkerCreated = debounce(this._handleSessionMarkerCreated.bind(this), 250);
     }
 
     /**
@@ -17,7 +25,7 @@ export class MessageHandler {
         const { type, data, senderId, targetPeerId } = message.data;
 
         // Defensive: double-check targeting
-        if (targetPeerId && targetPeerId !== this.roomWebRTC.ablyManager.getCurrentPeerId()) return;
+        if (targetPeerId && targetPeerId !== this.roomWebRTC.signalingManager.getCurrentPeerId()) return;
 
         console.log('🎭 Handling room message:', type, 'from:', senderId);
 
@@ -37,7 +45,8 @@ export class MessageHandler {
                 this.handleFearUpdate(data, senderId);
                 break;
             case 'countdown-updated':
-                this.handleCountdownUpdate(data, senderId);
+                // MEDIUM FIX: Use debounced handler
+                this.debouncedHandleCountdownUpdate(data, senderId);
                 break;
             case 'countdown-deleted':
                 this.handleCountdownDeleted(data, senderId);
@@ -46,7 +55,8 @@ export class MessageHandler {
                 this.handleGmPresenceChanged(data, senderId);
                 break;
             case 'session-marker-created':
-                this.handleSessionMarkerCreated(data, senderId);
+                // MEDIUM FIX: Use debounced handler
+                this.debouncedHandleMarkerCreated(data, senderId);
                 break;
             default:
                 console.log('🤷 Unknown room message type:', type);
@@ -61,7 +71,7 @@ export class MessageHandler {
         if (this.roomWebRTC.isJoined && this.roomWebRTC.currentSlotId) {
             const participantData = this.roomWebRTC.roomData.participants.find(p => p.user_id === this.roomWebRTC.currentUserId);
             // Scope reply to specific requester to reduce chatter
-            this.roomWebRTC.ablyManager.publishToAbly('user-joined', {
+            this.roomWebRTC.signalingManager.publishToAbly('user-joined', {
                 slotId: this.roomWebRTC.currentSlotId,
                 participantData: participantData
             }, data.requesterId || senderId); // Use requesterId if available
@@ -81,7 +91,7 @@ export class MessageHandler {
             isLocal: false
         });
 
-        const currentPeerId = this.roomWebRTC.ablyManager.getCurrentPeerId();
+        const currentPeerId = this.roomWebRTC.signalingManager.getCurrentPeerId();
 
         // If we're also in a slot, initiate WebRTC connection using SimplePeerManager
         if (this.roomWebRTC.isJoined && this.roomWebRTC.currentSlotId && this.roomWebRTC.currentSlotId !== data.slotId) {
@@ -139,10 +149,10 @@ export class MessageHandler {
     }
 
     /**
-     * Handles countdown tracker update messages
+     * MEDIUM FIX: Internal handler for countdown updates (called via debounce)
      */
-    handleCountdownUpdate(data, senderId) {
-        console.log('🎭 Countdown tracker updated via Ably:', data, 'from:', senderId);
+    _handleCountdownUpdate(data, senderId) {
+        console.log('🎭 Countdown tracker updated via Ably (debounced):', data, 'from:', senderId);
         
         if (this.roomWebRTC.fearCountdownManager) {
             this.roomWebRTC.fearCountdownManager.handleCountdownUpdate(data);
@@ -172,10 +182,10 @@ export class MessageHandler {
     }
 
     /**
-     * Handles session marker creation messages
+     * MEDIUM FIX: Internal handler for marker creation (called via debounce)
      */
-    handleSessionMarkerCreated(data, senderId) {
-        console.log('🏷️ Session marker created via Ably:', data, 'from:', senderId);
+    _handleSessionMarkerCreated(data, senderId) {
+        console.log('🏷️ Session marker created via Ably (debounced):', data, 'from:', senderId);
         
         // Don't show notification for markers we created ourselves
         if (data.creator_id === this.roomWebRTC.currentUserId) {

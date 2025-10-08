@@ -9,8 +9,61 @@ export class SlotManager {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
         
+        // PERFORMANCE FIX: DOM reference cache to reduce querySelectorAll calls
+        this.domCache = new Map();
+        this.slotCache = new Map();
+        
         // Initialize video controls for any existing server-side participants
         this.initializeExistingVideoControls();
+    }
+    
+    /**
+     * PERFORMANCE FIX: Get or cache slot container by ID
+     */
+    getSlotContainer(slotId) {
+        if (!this.slotCache.has(slotId)) {
+            const slot = document.querySelector(`[data-slot-id="${slotId}"]`);
+            if (slot) {
+                this.slotCache.set(slotId, slot);
+            }
+        }
+        return this.slotCache.get(slotId);
+    }
+    
+    /**
+     * PERFORMANCE FIX: Get or cache slot element by selector
+     */
+    getSlotElement(slotContainer, selector) {
+        const cacheKey = `${slotContainer.dataset.slotId}-${selector}`;
+        if (!this.domCache.has(cacheKey)) {
+            const element = slotContainer.querySelector(selector);
+            if (element) {
+                this.domCache.set(cacheKey, element);
+            }
+        }
+        return this.domCache.get(cacheKey);
+    }
+    
+    /**
+     * PERFORMANCE FIX: Clear cache for a specific slot (call when slot changes)
+     */
+    clearSlotCache(slotId) {
+        const keysToDelete = [];
+        for (const key of this.domCache.keys()) {
+            if (key.startsWith(`${slotId}-`)) {
+                keysToDelete.push(key);
+            }
+        }
+        keysToDelete.forEach(key => this.domCache.delete(key));
+        this.slotCache.delete(slotId);
+    }
+    
+    /**
+     * PERFORMANCE FIX: Clear entire cache (call on major DOM changes)
+     */
+    clearAllCaches() {
+        this.domCache.clear();
+        this.slotCache.clear();
     }
 
     /**
@@ -48,10 +101,11 @@ export class SlotManager {
      * Shows character overlay with participant data
      */
     showCharacterOverlay(slotContainer, participantData) {
-        const overlay = slotContainer.querySelector('.character-overlay');
+        // PERFORMANCE FIX: Use cached references
+        const overlay = this.getSlotElement(slotContainer, '.character-overlay');
         if (overlay && participantData) {
             // Update character name
-            const nameElement = overlay.querySelector('.character-name');
+            const nameElement = this.getSlotElement(overlay, '.character-name') || overlay.querySelector('.character-name');
             if (nameElement) {
                 if (participantData.is_host) {
                     nameElement.textContent = 'GAME MASTER';
@@ -61,7 +115,7 @@ export class SlotManager {
             }
 
             // Update character class
-            const classElement = overlay.querySelector('.character-class');
+            const classElement = this.getSlotElement(overlay, '.character-class') || overlay.querySelector('.character-class');
             if (classElement) {
                 if (participantData.is_host) {
                     classElement.textContent = 'NARRATOR OF TALES';
@@ -81,8 +135,9 @@ export class SlotManager {
      * Shows loading state for a slot
      */
     showLoadingState(slotContainer) {
-        const loadingSpinner = slotContainer.querySelector('.loading-spinner');
-        const joinBtn = slotContainer.querySelector('.join-btn');
+        // PERFORMANCE FIX: Use cached references
+        const loadingSpinner = this.getSlotElement(slotContainer, '.loading-spinner');
+        const joinBtn = this.getSlotElement(slotContainer, '.join-btn');
         
         if (loadingSpinner) {
             loadingSpinner.classList.remove('hidden');
@@ -97,7 +152,8 @@ export class SlotManager {
      * Hides loading state for a slot
      */
     hideLoadingState(slotContainer) {
-        const loadingSpinner = slotContainer.querySelector('.loading-spinner');
+        // PERFORMANCE FIX: Use cached reference
+        const loadingSpinner = this.getSlotElement(slotContainer, '.loading-spinner');
         if (loadingSpinner) {
             loadingSpinner.classList.add('hidden');
             loadingSpinner.style.display = 'none';
@@ -108,7 +164,8 @@ export class SlotManager {
      * Shows video controls for a slot
      */
     showVideoControls(slotContainer) {
-        const leaveBtn = slotContainer.querySelector('.leave-btn');
+        // PERFORMANCE FIX: Use cached reference
+        const leaveBtn = this.getSlotElement(slotContainer, '.leave-btn');
         if (leaveBtn) {
             leaveBtn.style.display = 'block';
             leaveBtn.classList.remove('hidden');

@@ -80,7 +80,8 @@ class CharacterLevelUp extends Component
             $target_level >= 2 => 2,
             default => 1,
         };
-        $this->available_slots = $this->advancement_repository->getAvailableSlots($this->character->id, $this->current_tier);
+        $target_level = $this->character->level + 1;
+        $this->available_slots = $this->advancement_repository->getAvailableSlots($this->character->id, $target_level);
 
         // Load tier options from class data
         $this->loadTierOptions();
@@ -471,19 +472,20 @@ class CharacterLevelUp extends Component
                 $this->apply_advancement_action = new ApplyAdvancementAction;
             }
 
-            // Apply tier achievements first (e.g., experience creation)
+            // Apply tier achievements first (e.g., experience creation, level increment)
             $this->applyTierAchievements();
 
             // Apply each selected advancement
             $selected_advancements = array_filter([$this->first_advancement, $this->second_advancement], fn ($x) => $x !== null);
             
+            $target_level = $this->character->level;  // Character level was already incremented in applyTierAchievements
             foreach ($selected_advancements as $index => $option_index) {
                 $advancement_number = $index + 1;
                 $option = $this->tier_options['options'][$option_index];
                 $choices = $this->advancement_choices[$option_index] ?? [];
 
                 $advancement_data = $this->parseAdvancement($option, $advancement_number, $choices);
-                $this->apply_advancement_action->execute($this->character, $advancement_data);
+                $this->apply_advancement_action->execute($this->character, $advancement_data, $target_level);
             }
 
             session()->flash('success', 'Character leveled up successfully!');

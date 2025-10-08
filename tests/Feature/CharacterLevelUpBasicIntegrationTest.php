@@ -60,26 +60,28 @@ describe('Character Level Up - Basic Integration Tests', function () {
     });
 
     test('character proficiency calculation works correctly', function () {
-        // Test base proficiency calculation
-        expect($this->character->getProficiencyBonus())->toBe(0); // Level 1 = 0 base
+        // Test base proficiency calculation (character starts at level 1 with proficiency 1)
+        $this->character->update(['proficiency' => 1]);
+        expect($this->character->getProficiencyBonus())->toBe(1); // Level 1 = 1 base
 
-        // Update to level 2
-        $this->character->update(['level' => 2]);
-        expect($this->character->getProficiencyBonus())->toBe(1); // Level 2-4 = 1 base
+        // Update to level 2 (tier achievement sets proficiency to 2)
+        $this->character->update(['level' => 2, 'proficiency' => 2]);
+        expect($this->character->getProficiencyBonus())->toBe(2); // Level 2-4 = 2 base
 
         // Add proficiency advancement
         CharacterAdvancement::create([
             'character_id' => $this->character->id,
             'tier' => 2,
-            'advancement_number' => 0,
+            'level' => 2,
+            'advancement_number' => 1,
             'advancement_type' => 'proficiency',
             'advancement_data' => ['bonus' => 1],
-            'description' => 'Tier achievement: +1 Proficiency bonus',
+            'description' => 'Player selected: +1 Proficiency bonus',
         ]);
 
         // Should now be base + advancement
         $this->character->refresh();
-        expect($this->character->getProficiencyBonus())->toBe(2); // 1 base + 1 advancement
+        expect($this->character->getProficiencyBonus())->toBe(3); // 2 base + 1 advancement
     });
 
     test('character viewer displays correct proficiency bonus', function () {
@@ -89,6 +91,7 @@ describe('Character Level Up - Basic Integration Tests', function () {
         CharacterAdvancement::create([
             'character_id' => $this->character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 0,
             'advancement_type' => 'proficiency',
             'advancement_data' => ['bonus' => 1],
@@ -118,6 +121,7 @@ describe('Character Level Up - Basic Integration Tests', function () {
         CharacterAdvancement::create([
             'character_id' => $this->character->id,
             'tier' => 2,
+            'level' => 2,
             'advancement_number' => 1,
             'advancement_type' => 'trait_bonus',
             'advancement_data' => ['traits' => ['agility', 'strength'], 'bonus' => 1],
