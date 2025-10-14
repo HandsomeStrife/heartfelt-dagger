@@ -23,19 +23,66 @@ class CharacterBuilderData extends Data implements Wireable
         public ?string $selected_subclass = null,
         public ?string $selected_ancestry = null,
         public ?string $selected_community = null,
+        
+        /** @var array<string, int> Assigned trait values. Key is trait name (agility, strength, finesse, instinct, presence, knowledge), value is trait modifier (-1, 0, 0, 1, 1, 2) */
         public array $assigned_traits = [],
+        
+        /** @var array<string, array{key: string, name: string, type: string, slot?: string}> Selected equipment. Key is slot type (primary_weapon, secondary_weapon, armor, starting_inventory), value is equipment data */
         public array $selected_equipment = [],
+        
+        /** @var array<int, array{name: string, description: string, modifier: int}> Starting experiences (min 2 required). Each provides +2 to relevant rolls */
         public array $experiences = [],
+        
+        /** @var array<int, string> Selected domain card keys from character's accessible domains */
         public array $selected_domain_cards = [],
+        
+        /** @var array<int, string> Answers to class-specific background questions (3 questions) */
         public array $background_answers = [],
+        
+        /** @var array<int, string> Answers to class-specific connection questions (3 questions) */
         public array $connection_answers = [],
         public ?string $profile_image_path = null,
         public ?string $physical_description = null,
         public ?string $personality_traits = null,
         public ?string $personal_history = null,
         public ?string $motivations = null,
+        
+        /** @var array<int, string> Array of manually completed step values */
         public array $manual_step_completions = [],
+        
         public ?string $clank_bonus_experience = null,
+        
+        // Higher-level character creation properties
+        
+        /** @var int Starting level for character creation (1-10) */
+        public int $starting_level = 1,
+        
+        /**
+         * @var array<int, array<int, array{
+         *     type: string,
+         *     traits?: array<int, string>,
+         *     domain_card?: string,
+         *     selected_domain?: string,
+         *     experience?: array{name: string, description: string}
+         * }>> Advancements selected per level. Key is level number (2-10), 
+         *     value is array of 2 advancement selections with their specific data
+         */
+        public array $creation_advancements = [],
+        
+        /**
+         * @var array<int, array{
+         *     name: string,
+         *     description: string
+         * }> Tier achievement experiences created per level. Key is level number (2, 5, or 8),
+         *    value is the experience created for that tier achievement
+         */
+        public array $creation_tier_experiences = [],
+        
+        /**
+         * @var array<int, string> Domain cards selected per level. Key is level number (1-10),
+         *    value is the domain card key (ability key from abilities.json)
+         */
+        public array $creation_domain_cards = [],
     ) {}
 
     public function isStepComplete(CharacterBuilderStep|int $step): bool
@@ -63,6 +110,7 @@ class CharacterBuilderData extends Data implements Wireable
             CharacterBuilderStep::BACKGROUND => $this->isBackgroundComplete(),
             CharacterBuilderStep::EXPERIENCES => count($this->experiences) >= 2,
             CharacterBuilderStep::DOMAIN_CARDS => count($this->selected_domain_cards) >= 2,
+            CharacterBuilderStep::ADVANCEMENTS => $this->isAdvancementsComplete(),
             CharacterBuilderStep::CONNECTIONS => count(array_filter($this->connection_answers, fn ($answer) => ! empty(trim($answer ?? '')))) >= 1,
         };
     }
@@ -264,6 +312,10 @@ class CharacterBuilderData extends Data implements Wireable
             'motivations' => $this->motivations,
             'manual_step_completions' => $this->manual_step_completions,
             'clank_bonus_experience' => $this->clank_bonus_experience,
+            'starting_level' => $this->starting_level,
+            'creation_advancements' => $this->creation_advancements,
+            'creation_tier_experiences' => $this->creation_tier_experiences,
+            'creation_domain_cards' => $this->creation_domain_cards,
         ];
     }
 
@@ -291,79 +343,18 @@ class CharacterBuilderData extends Data implements Wireable
             motivations: $data['motivations'] ?? null,
             manual_step_completions: $data['manual_step_completions'] ?? [],
             clank_bonus_experience: $data['clank_bonus_experience'] ?? null,
+            starting_level: $data['starting_level'] ?? 1,
+            creation_advancements: $data['creation_advancements'] ?? [],
+            creation_tier_experiences: $data['creation_tier_experiences'] ?? [],
+            creation_domain_cards: $data['creation_domain_cards'] ?? [],
         );
     }
 
     private function isEquipmentComplete(): bool
     {
-        // Check for primary weapon and armor
-        $has_primary_weapon = collect($this->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'weapon' && ($eq['data']['type'] ?? 'Primary') === 'Primary'
-        );
-        $has_armor = collect($this->selected_equipment)->contains(fn ($eq) => $eq['type'] === 'armor');
+        $validator = app(\Domain\Character\Services\EquipmentValidator::class);
 
-        if (! $has_primary_weapon || ! $has_armor) {
-            return false;
-        }
-
-        // Check if starting inventory requirements are met (both chooseOne and chooseExtra required)
-        if ($this->selected_class) {
-            // Load game data to check starting inventory requirements
-            $classesPath = base_path('resources/json/classes.json');
-            if (file_exists($classesPath)) {
-                $classesData = json_decode(file_get_contents($classesPath), true);
-                $classData = $classesData[$this->selected_class] ?? null;
-
-                if ($classData && isset($classData['startingInventory'])) {
-                    $startingInventory = $classData['startingInventory'];
-
-                    // Handle known naming mismatches
-                    $itemMappings = [
-                        'minor healing potion' => 'minor health potion',
-                        'minor stamina potion' => 'minor stamina potion',
-                        'healing potion' => 'health potion',
-                        'major healing potion' => 'major health potion',
-                    ];
-
-                    // Check chooseOne items
-                    if (isset($startingInventory['chooseOne']) && is_array($startingInventory['chooseOne']) && ! empty($startingInventory['chooseOne'])) {
-                        $has_choose_one_item = false;
-                        foreach ($startingInventory['chooseOne'] as $item) {
-                            $item_key = strtolower($item);
-                            $mapped_key = $itemMappings[$item_key] ?? $item_key;
-
-                            if (collect($this->selected_equipment)->contains(fn ($eq) => $eq['key'] === $mapped_key)) {
-                                $has_choose_one_item = true;
-                                break;
-                            }
-                        }
-
-                        if (! $has_choose_one_item) {
-                            return false;
-                        }
-                    }
-
-                    // Check chooseExtra items
-                    if (isset($startingInventory['chooseExtra']) && is_array($startingInventory['chooseExtra']) && ! empty($startingInventory['chooseExtra'])) {
-                        $has_choose_extra_item = false;
-                        foreach ($startingInventory['chooseExtra'] as $item) {
-                            $item_key = strtolower($item);
-                            $mapped_key = $itemMappings[$item_key] ?? $item_key;
-
-                            if (collect($this->selected_equipment)->contains(fn ($eq) => $eq['key'] === $mapped_key)) {
-                                $has_choose_extra_item = true;
-                                break;
-                            }
-                        }
-
-                        if (! $has_choose_extra_item) {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
+        return $validator->isEquipmentComplete($this->selected_equipment, $this->selected_class);
     }
 
     private function isBackgroundComplete(): bool
@@ -379,94 +370,326 @@ class CharacterBuilderData extends Data implements Wireable
         return $answered_questions >= 1;
     }
 
-    /**
-     * Get ancestry bonus for evasion from effects
-     */
-    public function getAncestryEvasionBonus(): int
+    private function isAdvancementsComplete(): bool
     {
-        $effects = $this->getAncestryEffects('evasion_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $bonus += $effect['value'] ?? 0;
+        // If starting at level 1, no advancements needed
+        if ($this->starting_level === 1) {
+            return true;
         }
 
-        return $bonus;
+        // Use the validateAdvancementSelections method to check completeness
+        $errors = $this->validateAdvancementSelections();
+
+        return empty($errors);
+    }
+
+
+    /**
+     * Check if character creation requires advancement selection
+     * (character starting at level 2+)
+     */
+    public function requiresAdvancementSelection(): bool
+    {
+        return $this->starting_level > 1;
     }
 
     /**
-     * Get ancestry bonus for hit points from effects
+     * Validate all advancement selections are complete for levels 2 through starting_level
+     *
+     * @return array Array of validation errors keyed by level
      */
-    public function getAncestryHitPointBonus(): int
+    public function validateAdvancementSelections(): array
     {
-        $effects = $this->getAncestryEffects('hit_point_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $bonus += $effect['value'] ?? 0;
+        $errors = [];
+
+        if ($this->starting_level === 1) {
+            return $errors; // No advancements needed for level 1
         }
 
-        return $bonus;
+        for ($level = 2; $level <= $this->starting_level; $level++) {
+            $levelErrors = [];
+
+            // Check tier achievements for levels 2, 5, 8
+            if (in_array($level, [2, 5, 8])) {
+                if (! isset($this->creation_tier_experiences[$level])) {
+                    $levelErrors[] = 'Missing tier achievement experience';
+                } elseif (empty($this->creation_tier_experiences[$level]['name'])) {
+                    $levelErrors[] = 'Tier achievement experience must have a name';
+                }
+            }
+
+            // Check domain card (required for EVERY level per SRD)
+            if (! isset($this->creation_domain_cards[$level]) || empty($this->creation_domain_cards[$level])) {
+                $levelErrors[] = 'Missing domain card selection';
+            }
+
+            // Check advancements (exactly 2 required per level)
+            if (! isset($this->creation_advancements[$level])) {
+                $levelErrors[] = 'Missing advancement selections';
+            } elseif (count($this->creation_advancements[$level]) !== 2) {
+                $levelErrors[] = sprintf(
+                    'Must select exactly 2 advancements (selected %d)',
+                    count($this->creation_advancements[$level])
+                );
+            }
+
+            if (! empty($levelErrors)) {
+                $errors[$level] = $levelErrors;
+            }
+        }
+
+        return $errors;
     }
 
     /**
-     * Get ancestry bonus for stress from effects
+     * Validate a single level's completion
+     *
+     * @param int $level The level to validate
+     * @return array Array of validation errors for this level
      */
-    public function getAncestryStressBonus(): int
+    public function validateLevelCompletion(int $level): array
     {
-        $effects = $this->getAncestryEffects('stress_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $bonus += $effect['value'] ?? 0;
+        $errors = [];
+
+        if ($level === 1 || $level > $this->starting_level) {
+            return $errors; // No validation needed
         }
 
-        return $bonus;
-    }
-
-    /**
-     * Get ancestry bonus for damage thresholds from effects
-     */
-    public function getAncestryDamageThresholdBonus(): int
-    {
-        $effects = $this->getAncestryEffects('damage_threshold_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $value = $effect['value'] ?? 0;
-            if ($value === 'proficiency') {
-                $bonus += 2; // Base proficiency at level 1 for character creation
+        // Check tier achievements for levels 2, 5, 8
+        if (in_array($level, [2, 5, 8])) {
+            if (! isset($this->creation_tier_experiences[$level])) {
+                $errors[] = 'Missing tier achievement experience';
             } else {
-                $bonus += (int) $value;
+                $experience = $this->creation_tier_experiences[$level];
+                
+                // Validate experience name
+                if (empty($experience['name'])) {
+                    $errors[] = 'Tier achievement experience must have a name';
+                } elseif (strlen($experience['name']) < 1 || strlen($experience['name']) > 255) {
+                    $errors[] = 'Tier achievement experience name must be between 1 and 255 characters';
+                }
+                
+                // Validate experience description if provided
+                if (isset($experience['description']) && strlen($experience['description']) > 500) {
+                    $errors[] = 'Tier achievement experience description cannot exceed 500 characters';
+                }
+                
+                // Check for invalid characters
+                if (isset($experience['name']) && preg_match('/[<>]/', $experience['name'])) {
+                    $errors[] = 'Tier achievement experience name contains invalid characters';
+                }
             }
         }
 
-        return $bonus;
+        // Check domain card (required for ALL levels)
+        if (! isset($this->creation_domain_cards[$level]) || empty($this->creation_domain_cards[$level])) {
+            $errors[] = 'Missing required domain card selection';
+        }
+
+        // Check advancements (exactly 2 required)
+        $levelAdvancements = $this->creation_advancements[$level] ?? [];
+        if (count($levelAdvancements) !== 2) {
+            $errors[] = sprintf('Exactly 2 advancements required, %d selected', count($levelAdvancements));
+        } else {
+            // Validate each advancement
+            $validTypes = ['trait_bonus', 'hit_point', 'stress_slot', 'stress', 'experience_bonus', 
+                           'domain_card', 'evasion', 'subclass_upgrade', 'proficiency', 'multiclass'];
+            $selectedTypes = [];
+            
+            foreach ($levelAdvancements as $index => $advancement) {
+                $type = $advancement['type'] ?? null;
+                
+                // Validate type exists and is valid
+                if (! $type) {
+                    $errors[] = sprintf('Advancement #%d is missing type', $index + 1);
+                    continue;
+                }
+                
+                if (! in_array($type, $validTypes)) {
+                    $errors[] = sprintf('Advancement #%d has invalid type: %s', $index + 1, $type);
+                    continue;
+                }
+                
+                // Check for duplicate selections of same type (where not allowed)
+                if ($type !== 'trait_bonus' && $type !== 'hit_point') {
+                    if (in_array($type, $selectedTypes)) {
+                        $errors[] = sprintf('Advancement type "%s" can only be selected once per level', $type);
+                    }
+                    $selectedTypes[] = $type;
+                }
+                
+                // Validate type-specific requirements
+                if ($type === 'trait_bonus') {
+                    if (empty($advancement['traits']) || count($advancement['traits']) !== 2) {
+                        $errors[] = sprintf('Trait bonus advancement must select exactly 2 traits');
+                    }
+                }
+            }
+        }
+
+        return $errors;
     }
 
     /**
-     * Get all applied ancestry bonuses
+     * Check if a specific level is complete
+     *
+     * @param int $level The level to check
+     * @return bool
      */
-    public function getAncestryBonuses(): array
+    public function isLevelComplete(int $level): bool
     {
-        $bonuses = [];
+        return empty($this->validateLevelCompletion($level));
+    }
 
-        if ($this->selected_ancestry) {
-            $evasion_bonus = $this->getAncestryEvasionBonus();
-            $hit_point_bonus = $this->getAncestryHitPointBonus();
-            $stress_bonus = $this->getAncestryStressBonus();
-            $damage_threshold_bonus = $this->getAncestryDamageThresholdBonus();
+    /**
+     * Validate selections across all levels for consistency
+     *
+     * @return array Array of validation errors for cross-level issues
+     */
+    public function validateCrossLevelSelections(): array
+    {
+        $errors = [];
 
-            if ($evasion_bonus > 0) {
-                $bonuses['evasion'] = $evasion_bonus;
+        // Check domain card duplicates
+        $allDomainCards = [];
+        for ($level = 1; $level <= $this->starting_level; $level++) {
+            $cardKey = $this->creation_domain_cards[$level] ?? null;
+            if ($cardKey) {
+                if (isset($allDomainCards[$cardKey])) {
+                    $errors[] = sprintf(
+                        'Domain card "%s" selected multiple times (levels %d and %d)',
+                        $cardKey,
+                        $allDomainCards[$cardKey],
+                        $level
+                    );
+                }
+                $allDomainCards[$cardKey] = $level;
+            }
+        }
+
+        // Check total domain cards don't exceed max
+        $maxCards = $this->getMaxDomainCards();
+        $totalCards = count($allDomainCards);
+        if ($totalCards > $maxCards) {
+            $errors[] = sprintf(
+                'Too many domain cards selected (%d selected, max %d allowed)',
+                $totalCards,
+                $maxCards
+            );
+        }
+
+        // Check trait marks across tiers (marked traits can't be selected again in same tier)
+        $traitMarksByTier = [1 => [], 2 => [], 3 => [], 4 => []];
+        
+        for ($level = 2; $level <= $this->starting_level; $level++) {
+            $tier = (int) ceil($level / 3);
+            $levelAdvancements = $this->creation_advancements[$level] ?? [];
+
+            foreach ($levelAdvancements as $advancement) {
+                if (($advancement['type'] ?? '') === 'trait_bonus') {
+                    $traits = $advancement['traits'] ?? [];
+                    foreach ($traits as $trait) {
+                        // Check if trait was already marked in this tier
+                        if (in_array($trait, $traitMarksByTier[$tier])) {
+                            $errors[] = sprintf(
+                                'Trait "%s" marked multiple times in Tier %d (level %d)',
+                                $trait,
+                                $tier,
+                                $level
+                            );
+                        }
+                        $traitMarksByTier[$tier][] = $trait;
+                    }
+                }
             }
 
-            if ($hit_point_bonus > 0) {
-                $bonuses['hit_points'] = $hit_point_bonus;
+            // Clear marks at tier boundaries (levels 2, 5, 8)
+            if (in_array($level, [2, 5, 8])) {
+                $nextTier = $tier + 1;
+                if ($nextTier <= 4) {
+                    $traitMarksByTier[$nextTier] = [];
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Get advancement progress summary
+     *
+     * @return array Progress data with completed/total counts
+     */
+    public function getAdvancementProgress(): array
+    {
+        if ($this->starting_level === 1) {
+            return [
+                'levels_requiring_advancements' => 0,
+                'levels_completed' => 0,
+                'percentage' => 100,
+                'is_complete' => true,
+            ];
+        }
+
+        $levelsRequiring = $this->starting_level - 1; // levels 2 through starting_level
+        $levelsCompleted = 0;
+
+        for ($level = 2; $level <= $this->starting_level; $level++) {
+            $hasExperience = true;
+            if (in_array($level, [2, 5, 8])) {
+                $hasExperience = isset($this->creation_tier_experiences[$level]) &&
+                    ! empty($this->creation_tier_experiences[$level]['name']);
             }
 
-            if ($stress_bonus > 0) {
-                $bonuses['stress'] = $stress_bonus;
-            }
+            $hasDomainCard = isset($this->creation_domain_cards[$level]) &&
+                ! empty($this->creation_domain_cards[$level]);
 
-            if ($damage_threshold_bonus > 0) {
-                $bonuses['damage_thresholds'] = $damage_threshold_bonus;
+            $hasAdvancements = isset($this->creation_advancements[$level]) &&
+                count($this->creation_advancements[$level]) === 2;
+
+            if ($hasExperience && $hasDomainCard && $hasAdvancements) {
+                $levelsCompleted++;
+            }
+        }
+
+        return [
+            'levels_requiring_advancements' => $levelsRequiring,
+            'levels_completed' => $levelsCompleted,
+            'percentage' => $levelsRequiring > 0 ? round(($levelsCompleted / $levelsRequiring) * 100, 1) : 100,
+            'is_complete' => $levelsCompleted === $levelsRequiring,
+        ];
+    }
+
+    /**
+     * Calculate bonuses from all creation advancements
+     *
+     * @return array Bonuses keyed by stat type
+     */
+    public function calculateAdvancementBonuses(): array
+    {
+        $bonuses = [
+            'evasion' => 0,
+            'hit_points' => 0,
+            'stress' => 0,
+            'trait_bonuses' => [], // trait_name => bonus_count
+            'experiences' => 0,
+            'proficiency' => 0,
+        ];
+
+        // Count advancements by type
+        foreach ($this->creation_advancements as $level => $advancements) {
+            foreach ($advancements as $advancement) {
+                $type = $advancement['type'] ?? '';
+
+                match ($type) {
+                    'hit_point' => $bonuses['hit_points']++,
+                    'stress' => $bonuses['stress']++,
+                    'evasion' => $bonuses['evasion']++,
+                    'experience_bonus' => $bonuses['experiences']++,
+                    'proficiency' => $bonuses['proficiency']++,
+                    'trait_bonus' => $this->addTraitBonuses($bonuses, $advancement),
+                    default => null,
+                };
             }
         }
 
@@ -474,7 +697,50 @@ class CharacterBuilderData extends Data implements Wireable
     }
 
     /**
-     * Get computed character stats including ancestry bonuses
+     * Helper to add trait bonuses from an advancement
+     */
+    private function addTraitBonuses(array &$bonuses, array $advancement): void
+    {
+        $traits = $advancement['traits'] ?? [];
+        foreach ($traits as $trait) {
+            if (! isset($bonuses['trait_bonuses'][$trait])) {
+                $bonuses['trait_bonuses'][$trait] = 0;
+            }
+            $bonuses['trait_bonuses'][$trait]++;
+        }
+    }
+
+    /**
+     * Calculate the final character level after advancement selections
+     *
+     * @return int The final level (same as starting_level)
+     */
+    public function calculateFinalLevel(): int
+    {
+        return $this->starting_level;
+    }
+
+    /**
+     * Get effective trait values including advancement bonuses
+     *
+     * @return array Trait values with bonuses applied
+     */
+    public function getEffectiveTraitValues(): array
+    {
+        $base_traits = $this->assigned_traits;
+        $advancement_bonuses = $this->calculateAdvancementBonuses();
+
+        $effective_traits = [];
+        foreach ($base_traits as $trait => $value) {
+            $bonus = $advancement_bonuses['trait_bonuses'][$trait] ?? 0;
+            $effective_traits[$trait] = $value + $bonus;
+        }
+
+        return $effective_traits;
+    }
+
+    /**
+     * Get computed character stats using CharacterStatsCalculator service
      */
     public function getComputedStats(array $class_data = []): array
     {
@@ -482,215 +748,17 @@ class CharacterBuilderData extends Data implements Wireable
             return [];
         }
 
-        $base_evasion = $class_data['startingEvasion'] ?? 10;
-        $base_hit_points = $class_data['startingHitPoints'] ?? 5;
-        $agility_modifier = $this->assigned_traits['agility'] ?? 0;
+        $calculator = app(\Domain\Character\Services\CharacterStatsCalculator::class);
 
-        // Calculate armor score from selected equipment (support multiple key names)
-        $armor_score = 0;
-        foreach ($this->selected_equipment as $equipment) {
-            if (($equipment['type'] ?? null) === 'armor') {
-                $data = $equipment['data'] ?? [];
-                $armor_score += $data['baseScore']
-                    ?? $data['armor_score']
-                    ?? $data['score']
-                    ?? 0;
-            }
-        }
-
-        // Get ancestry bonuses
-        $ancestry_evasion_bonus = $this->getAncestryEvasionBonus();
-        $ancestry_hit_point_bonus = $this->getAncestryHitPointBonus();
-        $ancestry_stress_bonus = $this->getAncestryStressBonus();
-        $ancestry_damage_threshold_bonus = $this->getAncestryDamageThresholdBonus();
-
-        // Get subclass bonuses
-        $subclass_evasion_bonus = $this->getSubclassEvasionBonus();
-        $subclass_hit_point_bonus = $this->getSubclassHitPointBonus();
-        $subclass_stress_bonus = $this->getSubclassStressBonus();
-        $subclass_damage_threshold_bonus = $this->getSubclassDamageThresholdBonus();
-        $subclass_severe_threshold_bonus = $this->getSubclassSevereThresholdBonus();
-
-        // Calculate final stats
-        $final_evasion = $base_evasion + $agility_modifier + $ancestry_evasion_bonus + $subclass_evasion_bonus;
-        $final_hit_points = $base_hit_points + $ancestry_hit_point_bonus + $subclass_hit_point_bonus; // Base hit points + ancestry + subclass bonuses
-        $final_stress = 6 + $ancestry_stress_bonus + $subclass_stress_bonus; // Every PC starts with 6 stress slots + ancestry + subclass bonuses
-        $major_threshold = max(1, $armor_score + 4 + $ancestry_damage_threshold_bonus + $subclass_damage_threshold_bonus); // Level 1 + 3 + ancestry + subclass
-        $severe_threshold = max(1, $armor_score + 9 + $ancestry_damage_threshold_bonus + $subclass_damage_threshold_bonus + $subclass_severe_threshold_bonus); // Level 1 + 8 + ancestry + subclass bonuses
-
-        return [
-            // Simple values for tests and general use
-            'evasion' => $final_evasion,
-            'hit_points' => $final_hit_points,
-            'final_hit_points' => $final_hit_points, // Alias for viewer compatibility
-            'stress' => $final_stress,
-            'hope' => 2,
-            'major_threshold' => $major_threshold,
-            'severe_threshold' => $severe_threshold,
-            'armor_score' => $armor_score,
-
-            // Detailed breakdown for UI
-            'detailed' => [
-                'evasion' => [
-                    'base' => $base_evasion,
-                    'agility_modifier' => $agility_modifier,
-                    'ancestry_bonus' => $ancestry_evasion_bonus,
-                    'subclass_bonus' => $subclass_evasion_bonus,
-                    'total' => $final_evasion,
-                ],
-                'hit_points' => [
-                    'base' => $base_hit_points,
-                    'ancestry_bonus' => $ancestry_hit_point_bonus,
-                    'subclass_bonus' => $subclass_hit_point_bonus,
-                    'total' => $final_hit_points,
-                ],
-                'stress' => [
-                    'base' => 6,
-                    'ancestry_bonus' => $ancestry_stress_bonus,
-                    'subclass_bonus' => $subclass_stress_bonus,
-                    'total' => $final_stress,
-                ],
-                'damage_thresholds' => [
-                    'major' => $major_threshold,
-                    'severe' => $severe_threshold,
-                    'ancestry_bonus' => $ancestry_damage_threshold_bonus,
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Get subclass effects by type
-     */
-    public function getSubclassEffects(string $effectType): array
-    {
-        if (! $this->selected_subclass) {
-            return [];
-        }
-
-        $subclassData = $this->getSubclassData();
-        if (! $subclassData) {
-            return [];
-        }
-
-        $effects = [];
-        $allFeatures = array_merge(
-            $subclassData['foundationFeatures'] ?? [],
-            $subclassData['specializationFeatures'] ?? [],
-            $subclassData['masteryFeatures'] ?? []
+        return $calculator->calculateStats(
+            classData: $class_data,
+            assignedTraits: $this->assigned_traits,
+            selectedEquipment: $this->selected_equipment,
+            ancestryKey: $this->selected_ancestry,
+            subclassKey: $this->selected_subclass,
+            startingLevel: $this->starting_level,
+            advancementBonuses: $this->calculateAdvancementBonuses()
         );
-
-        foreach ($allFeatures as $feature) {
-            $featureEffects = $feature['effects'] ?? [];
-            foreach ($featureEffects as $effect) {
-                if (($effect['type'] ?? '') === $effectType) {
-                    $effects[] = $effect;
-                }
-            }
-        }
-
-        return $effects;
-    }
-
-    /**
-     * Get subclass data from JSON file
-     */
-    private function getSubclassData(): ?array
-    {
-        $path = resource_path('json/subclasses.json');
-        if (! file_exists($path)) {
-            return null;
-        }
-
-        $subclasses = json_decode(file_get_contents($path), true);
-
-        return $subclasses[$this->selected_subclass] ?? null;
-    }
-
-    /**
-     * Get subclass bonus for evasion from effects
-     */
-    public function getSubclassEvasionBonus(): int
-    {
-        $effects = $this->getSubclassEffects('evasion_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $bonus += $effect['value'] ?? 0;
-        }
-
-        return $bonus;
-    }
-
-    /**
-     * Get subclass bonus for hit points from effects
-     */
-    public function getSubclassHitPointBonus(): int
-    {
-        $effects = $this->getSubclassEffects('hit_point_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $bonus += $effect['value'] ?? 0;
-        }
-
-        return $bonus;
-    }
-
-    /**
-     * Get subclass bonus for stress from effects
-     */
-    public function getSubclassStressBonus(): int
-    {
-        $effects = $this->getSubclassEffects('stress_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $bonus += $effect['value'] ?? 0;
-        }
-
-        return $bonus;
-    }
-
-    /**
-     * Get subclass bonus for damage thresholds from effects
-     */
-    public function getSubclassDamageThresholdBonus(): int
-    {
-        $effects = $this->getSubclassEffects('damage_threshold_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $value = $effect['value'] ?? 0;
-            $bonus += (int) $value;
-        }
-
-        return $bonus;
-    }
-
-    /**
-     * Get subclass bonus for severe damage threshold from effects
-     */
-    public function getSubclassSevereThresholdBonus(): int
-    {
-        $effects = $this->getSubclassEffects('severe_threshold_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $value = $effect['value'] ?? 0;
-            $bonus += (int) $value;
-        }
-
-        return $bonus;
-    }
-
-    /**
-     * Get subclass bonus for domain cards from effects
-     */
-    public function getSubclassDomainCardBonus(): int
-    {
-        $effects = $this->getSubclassEffects('domain_card_bonus');
-        $bonus = 0;
-        foreach ($effects as $effect) {
-            $bonus += $effect['value'] ?? 0;
-        }
-
-        return $bonus;
     }
 
     /**
@@ -698,57 +766,10 @@ class CharacterBuilderData extends Data implements Wireable
      */
     public function getMaxDomainCards(): int
     {
-        // Base starting domain cards for all characters
-        $base_cards = 2;
+        $subclass_service = app(\Domain\Character\Services\SubclassBonusService::class);
 
-        // Add subclass bonuses
-        $subclass_bonus = $this->getSubclassDomainCardBonus();
-
-        return $base_cards + $subclass_bonus;
-    }
-
-    /**
-     * Get ancestry effects by type
-     */
-    public function getAncestryEffects(string $effectType): array
-    {
-        if (! $this->selected_ancestry) {
-            return [];
-        }
-
-        $ancestriesData = $this->getAncestryData();
-        if (! $ancestriesData) {
-            return [];
-        }
-
-        $effects = [];
-        $features = $ancestriesData['features'] ?? [];
-
-        foreach ($features as $feature) {
-            $featureEffects = $feature['effects'] ?? [];
-            foreach ($featureEffects as $effect) {
-                if (($effect['type'] ?? '') === $effectType) {
-                    $effects[] = $effect;
-                }
-            }
-        }
-
-        return $effects;
-    }
-
-    /**
-     * Get ancestry data from JSON file
-     */
-    private function getAncestryData(): ?array
-    {
-        $path = resource_path('json/ancestries.json');
-        if (! file_exists($path)) {
-            return null;
-        }
-
-        $ancestries = json_decode(file_get_contents($path), true);
-
-        return $ancestries[$this->selected_ancestry] ?? null;
+        // Base cards = character level (1 per level), plus any subclass bonuses
+        return $subclass_service->getMaxDomainCards($this->selected_subclass, $this->starting_level);
     }
 
     /**
@@ -756,7 +777,9 @@ class CharacterBuilderData extends Data implements Wireable
      */
     public function hasExperienceBonusSelection(): bool
     {
-        return ! empty($this->getAncestryEffects('experience_bonus_selection'));
+        $ancestry_service = app(\Domain\Character\Services\AncestryBonusService::class);
+
+        return $ancestry_service->hasExperienceBonusSelection($this->selected_ancestry ?? '');
     }
 
     /**
@@ -776,35 +799,30 @@ class CharacterBuilderData extends Data implements Wireable
      */
     public function getExperienceModifier(string $experienceName): int
     {
-        $baseModifier = 2; // All experiences start with +2
+        $ancestry_service = app(\Domain\Character\Services\AncestryBonusService::class);
 
-        // Check if this experience gets experience bonus selection effect
-        if ($this->hasExperienceBonusSelection() &&
-            $this->getClankBonusExperience() === $experienceName) {
-
-            $effects = $this->getAncestryEffects('experience_bonus_selection');
-            $bonus = 0;
-            foreach ($effects as $effect) {
-                $bonus += $effect['value'] ?? 0;
-            }
-
-            return $baseModifier + $bonus;
-        }
-
-        return $baseModifier;
+        return $ancestry_service->getExperienceModifier(
+            $experienceName,
+            $this->selected_ancestry,
+            $this->clank_bonus_experience
+        );
     }
 
     /**
      * Get the profile image URL using signed URL for security
+     * 
+     * @return string Profile image URL (signed S3 URL or default avatar)
      */
     public function getProfileImage(): string
     {
         if ($this->profile_image_path) {
             $s3Disk = Storage::disk('s3');
             if ($s3Disk->exists($this->profile_image_path)) {
+                // @phpstan-ignore-next-line temporaryUrl exists on S3 driver
+                /** @var mixed $s3Disk */
                 return $s3Disk->temporaryUrl(
                     $this->profile_image_path,
-                    now()->addHours(24) // URLs valid for 24 hours
+                    now()->addHours(24)
                 );
             }
         }

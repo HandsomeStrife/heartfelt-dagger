@@ -178,6 +178,30 @@ class CharacterViewer extends Component
         $stress_bonuses = $character_model->getTotalStressBonuses();
         $total_stress = $base_stress + array_sum($stress_bonuses);
 
+        // Build detailed breakdown for stats-breakdown component
+        $breakdown = [
+            'evasion' => [
+                'base' => $base_evasion,
+                'bonuses' => $evasion_bonuses,
+                'total' => $total_evasion,
+            ],
+            'hit_points' => [
+                'base' => $base_hit_points,
+                'bonuses' => $hit_point_bonuses,
+                'total' => $total_hit_points,
+            ],
+            'stress' => [
+                'base' => $base_stress,
+                'bonuses' => $stress_bonuses,
+                'total' => $total_stress,
+            ],
+            'armor_score' => [
+                'base' => $this->character->getTotalArmorScore(),
+                'bonuses' => [],
+                'total' => $this->character->getTotalArmorScore(),
+            ],
+        ];
+
         return [
             'evasion' => $total_evasion,
             'hit_points' => $total_hit_points,
@@ -187,6 +211,8 @@ class CharacterViewer extends Component
             'major_threshold' => $this->character->getMajorThreshold(),
             'severe_threshold' => $this->character->getSevereThreshold(),
             'armor_score' => $this->character->getTotalArmorScore(),
+            'damage_threshold' => $character_model->level ?? 1,
+            'breakdown' => $breakdown,
         ];
     }
 
@@ -590,6 +616,137 @@ class CharacterViewer extends Component
             'available_slots' => $available_slots,
             'advancements' => $advancements->toArray(),
         ];
+    }
+
+    /**
+     * Get formatted advancements grouped by level
+     * 
+     * @return array<int, array> Array of levels with their advancements
+     */
+    public function getFormattedAdvancements(): array
+    {
+        $character_model = Character::where('character_key', $this->character_key)->first();
+        if (!$character_model) {
+            return [];
+        }
+
+        $advancements = $character_model->advancements;
+        $formatted = [];
+
+        foreach ($advancements as $advancement) {
+            $level = $advancement->level;
+            if (!isset($formatted[$level])) {
+                $formatted[$level] = [];
+            }
+
+            $formatted[$level][] = [
+                'type' => $advancement->advancement_type,
+                'description' => $this->getAdvancementDescription($advancement),
+                'data' => $advancement->advancement_data,
+            ];
+        }
+
+        ksort($formatted);
+        return $formatted;
+    }
+
+    /**
+     * Get formatted tier achievement experiences
+     * 
+     * @return array<int, array> Array of tier levels with their experience data
+     */
+    public function getFormattedTierExperiences(): array
+    {
+        $character_model = Character::where('character_key', $this->character_key)->first();
+        if (!$character_model) {
+            return [];
+        }
+
+        // Tier achievements happen at levels 2, 5, 8
+        $tier_levels = [2, 5, 8];
+        $formatted = [];
+
+        $experiences = $character_model->experiences;
+        
+        // In the current schema, we don't have a way to identify which experiences are tier achievements
+        // For now, we'll return the first 3 experiences (after the starting 2) as tier achievements
+        // This is a limitation that should be addressed in the future with a migration
+        $tier_experiences = $experiences->skip(2)->take(3);
+        
+        foreach ($tier_experiences as $index => $experience) {
+            $level = $tier_levels[$index] ?? null;
+            if ($level && $level <= $character_model->level) {
+                $formatted[$level] = [
+                    'name' => $experience->experience_name,
+                    'description' => $experience->experience_description ?? '',
+                ];
+            }
+        }
+
+        ksort($formatted);
+        return $formatted;
+    }
+
+    /**
+     * Get formatted domain cards grouped by level
+     * 
+     * @return array<int, string> Array of levels with their domain card keys (for advancement-summary component)
+     */
+    public function getFormattedDomainCards(): array
+    {
+        $character_model = Character::where('character_key', $this->character_key)->first();
+        if (!$character_model) {
+            return [];
+        }
+
+        $domain_cards = $character_model->domainCards;
+        $formatted = [];
+
+        // We need to infer level from card count since we don't store level with domain cards
+        // Assumption: cards are ordered by creation (level 1, level 2, etc.)
+        foreach ($domain_cards as $index => $card) {
+            $level = $index + 1; // Level = index + 1
+            // advancement-summary component expects just the card key as a string
+            $formatted[$level] = $card->ability_key;
+        }
+
+        ksort($formatted);
+        return $formatted;
+    }
+
+    /**
+     * Get human-readable description for an advancement
+     */
+    private function getAdvancementDescription($advancement): string
+    {
+        $type = $advancement->advancement_type;
+        $data = $advancement->advancement_data;
+
+        return match ($type) {
+            'hit_point' => 'Gained +1 Hit Point',
+            'stress' => 'Gained +1 Stress Slot',
+            'evasion' => 'Gained +1 Evasion',
+            'proficiency' => 'Gained +1 Proficiency',
+            'trait_bonus' => $this->getTraitBonusDescription($data),
+            'experience_bonus' => 'Gained Experience Bonus',
+            'subclass' => 'Subclass Upgrade',
+            'multiclass' => 'Multiclass: ' . ($data['class'] ?? 'Unknown'),
+            default => ucfirst(str_replace('_', ' ', $type)),
+        };
+    }
+
+    /**
+     * Get description for trait bonus advancement
+     */
+    private function getTraitBonusDescription(array $data): string
+    {
+        $traits = $data['traits'] ?? [];
+        if (empty($traits)) {
+            return 'Trait Bonus';
+        }
+
+        $trait_names = array_map('ucfirst', $traits);
+        return 'Trait Bonus: +1 ' . implode(', +1 ', $trait_names);
     }
 
     public function render()

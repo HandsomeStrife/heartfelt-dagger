@@ -6,8 +6,13 @@ namespace App\Livewire;
 
 use Domain\Character\Actions\ApplyAdvancementAction;
 use Domain\Character\Data\CharacterAdvancementData;
+use Domain\Character\Enums\AdvancementType;
 use Domain\Character\Models\Character;
 use Domain\Character\Repositories\CharacterAdvancementRepository;
+use Domain\Character\Services\AdvancementOptionsService;
+use Domain\Character\Services\AdvancementValidationService;
+use Domain\Character\Services\DomainCardService;
+use Domain\Character\Services\TierAchievementService;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
 
@@ -48,6 +53,15 @@ class CharacterLevelUp extends Component
 
     private ApplyAdvancementAction $apply_advancement_action;
 
+    // Services (shared with CharacterBuilder)
+    private AdvancementOptionsService $advancement_options_service;
+
+    private TierAchievementService $tier_achievement_service;
+
+    private DomainCardService $domain_card_service;
+
+    private AdvancementValidationService $advancement_validation_service;
+
     public function mount(string $characterKey, bool $canEdit): void
     {
         $this->character_key = $characterKey;
@@ -55,6 +69,12 @@ class CharacterLevelUp extends Component
 
         $this->advancement_repository = new CharacterAdvancementRepository;
         $this->apply_advancement_action = new ApplyAdvancementAction;
+        
+        // Inject shared services
+        $this->advancement_options_service = app(AdvancementOptionsService::class);
+        $this->tier_achievement_service = app(TierAchievementService::class);
+        $this->domain_card_service = app(DomainCardService::class);
+        $this->advancement_validation_service = app(AdvancementValidationService::class);
 
         $this->loadCharacter();
         $this->loadGameData();
@@ -133,7 +153,7 @@ class CharacterLevelUp extends Component
         }
 
         $target_level = $this->character->level + 1;
-        $is_tier_achievement_level = in_array($target_level, [2, 5, 8]);
+        $is_tier_achievement_level = $this->tier_achievement_service->isTierAchievementLevel($target_level);
 
         // Check for domain card selection (REQUIRED FOR ALL LEVELS per SRD Step Four)
         $hasDomainCard = isset($this->advancement_choices['tier_domain_card']) &&
@@ -345,38 +365,18 @@ class CharacterLevelUp extends Component
     {
         $target_level = $this->character->level + 1;
 
-        // Apply tier achievements based on target level
-        if (in_array($target_level, [2, 5, 8])) {
-            // Create tier experience if provided
-            if (isset($this->advancement_choices['tier_experience'])) {
-                $experience_data = $this->advancement_choices['tier_experience'];
+        // Apply tier achievements using shared service
+        if ($this->tier_achievement_service->isTierAchievementLevel($target_level)) {
+            $experience_data = $this->advancement_choices['tier_experience'] ?? [
+                'name' => '',
+                'description' => '',
+            ];
 
-                \Domain\Character\Models\CharacterExperience::create([
-                    'character_id' => $this->character->id,
-                    'experience_name' => $experience_data['name'],
-                    'experience_description' => $experience_data['description'],
-                    'modifier' => $experience_data['modifier'],
-                ]);
-            }
-
-            // Calculate new base proficiency based on level (per DaggerHeart SRD)
-            $new_proficiency = match (true) {
-                $target_level <= 1 => 1,
-                $target_level <= 4 => 2,
-                $target_level <= 7 => 3,
-                default => 4,
-            };
-
-            // Clear marked traits for levels 5 and 8 (tier 3 and 4 entry)
-            if (in_array($target_level, [5, 8])) {
-                $this->character->traits()->update(['is_marked' => false]);
-            }
-
-            // Update character level and base proficiency
-            $this->character->update([
-                'level' => $target_level,
-                'proficiency' => $new_proficiency,
-            ]);
+            $this->tier_achievement_service->applyTierAchievements(
+                $this->character,
+                $target_level,
+                $experience_data
+            );
         } else {
             // For non-tier-achievement levels, just increment level
             $this->character->update([
@@ -422,42 +422,40 @@ class CharacterLevelUp extends Component
 
     private function advancementRequiresChoices(string $description): bool
     {
-        return str_contains(strtolower($description), 'trait') ||
-               str_contains(strtolower($description), 'multiclass:') ||
-               str_contains(strtolower($description), 'domain card') ||
-               str_contains(strtolower($description), 'experience') ||
-               str_contains(strtolower($description), 'upgraded subclass');
+        // Use shared service to determine advancement type
+        $advancement_type = $this->advancement_options_service->parseAdvancementType($description);
+        
+        // Use enum's method to check if choices are required
+        return $advancement_type->requiresChoices();
     }
 
     private function hasRequiredChoices(int $option_index, string $description): bool
     {
         $choices = $this->advancement_choices[$option_index] ?? [];
+        
+        // Use shared service to determine advancement type
+        $advancement_type = $this->advancement_options_service->parseAdvancementType($description);
 
-        if (str_contains(strtolower($description), 'trait')) {
-            return isset($choices['traits']) &&
-                   is_array($choices['traits']) &&
-                   count($choices['traits']) === 2;
-        }
+        return match ($advancement_type) {
+            AdvancementType::TRAIT_BONUS => 
+                isset($choices['traits']) &&
+                is_array($choices['traits']) &&
+                count($choices['traits']) === 2,
 
-        if (str_contains(strtolower($description), 'domain card')) {
-            return isset($choices['domain_card']) && ! empty($choices['domain_card']);
-        }
+            AdvancementType::DOMAIN_CARD => 
+                isset($choices['domain_card']) && ! empty($choices['domain_card']),
 
-        if (str_contains(strtolower($description), 'experience')) {
-            return isset($choices['experience_bonuses']) && count($choices['experience_bonuses']) === 2;
-        }
+            AdvancementType::EXPERIENCE_BONUS => 
+                isset($choices['experience_bonuses']) && count($choices['experience_bonuses']) === 2,
 
-        // Check for multiclass FIRST since it's more specific
-        if (str_contains(strtolower($description), 'multiclass:')) {
-            return isset($choices['class']) && ! empty($choices['class']);
-        }
+            AdvancementType::MULTICLASS => 
+                isset($choices['class']) && ! empty($choices['class']),
 
-        // Check for subclass (but not when it's part of multiclass description)
-        if (str_contains(strtolower($description), 'upgraded subclass') && !str_contains(strtolower($description), 'multiclass:')) {
-            return isset($choices['subclass']) && ! empty($choices['subclass']);
-        }
+            AdvancementType::SUBCLASS_UPGRADE => 
+                isset($choices['subclass']) && ! empty($choices['subclass']),
 
-        return true;
+            default => true,
+        };
     }
 
     public function confirmLevelUp(): void
@@ -504,34 +502,31 @@ class CharacterLevelUp extends Component
     private function parseAdvancement(array $option, int $advancement_number, array $choices): CharacterAdvancementData
     {
         $description = $option['description'];
+        
+        // Use shared service to parse advancement type
+        $advancement_type = $this->advancement_options_service->parseAdvancementType($description);
 
-        // Match advancement types based on description patterns
-        if (str_contains(strtolower($description), 'trait')) {
-            $traits = $choices['traits'] ?? ['agility', 'strength']; // fallback
+        // Build advancement data based on type
+        switch ($advancement_type) {
+            case 'trait_bonus':
+                $traits = $choices['traits'] ?? ['agility', 'strength']; // fallback
+                return CharacterAdvancementData::traitBonus(
+                    $this->current_tier,
+                    $advancement_number,
+                    $traits
+                );
 
-            return CharacterAdvancementData::traitBonus(
-                $this->current_tier,
-                $advancement_number,
-                $traits
-            );
-        }
+            case 'hit_point':
+                return CharacterAdvancementData::hitPoint($this->current_tier, $advancement_number);
 
-        if (str_contains($description, 'Hit Point')) {
-            return CharacterAdvancementData::hitPoint($this->current_tier, $advancement_number);
-        }
+            case 'stress':
+                return CharacterAdvancementData::stress($this->current_tier, $advancement_number);
 
-        if (str_contains($description, 'Stress')) {
-            return CharacterAdvancementData::stress($this->current_tier, $advancement_number);
-        }
-
-        if (str_contains($description, 'Experience')) {
-            // Check if this is the "bonus to experiences" advancement
-            if (str_contains($description, 'bonus to') && str_contains($description, 'Experiences')) {
+            case 'experience_bonus':
                 $selectedExperiences = $choices['experience_bonuses'] ?? [];
                 if (count($selectedExperiences) !== 2) {
                     throw new \InvalidArgumentException('Experience bonus advancement requires exactly 2 experiences to be selected');
                 }
-
                 return new CharacterAdvancementData(
                     tier: $this->current_tier,
                     advancement_number: $advancement_number,
@@ -539,77 +534,64 @@ class CharacterLevelUp extends Component
                     advancement_data: ['experience_bonuses' => $selectedExperiences],
                     description: $description
                 );
-            }
 
-            // Otherwise, this is the regular experience bonus advancement
-            return CharacterAdvancementData::experienceBonus($this->current_tier, $advancement_number);
+            case 'evasion':
+                return CharacterAdvancementData::evasion($this->current_tier, $advancement_number);
+
+            case 'domain_card':
+                $selectedCard = $choices['domain_card'] ?? null;
+                if (! $selectedCard) {
+                    throw new \InvalidArgumentException('Domain card selection is required for this advancement');
+                }
+                $abilities = $this->game_data['abilities'] ?? [];
+                $cardLevel = $abilities[$selectedCard]['level'] ?? 1;
+                return new CharacterAdvancementData(
+                    tier: $this->current_tier,
+                    advancement_number: $advancement_number,
+                    advancement_type: 'domain_card',
+                    advancement_data: [
+                        'ability_key' => $selectedCard,
+                        'level' => $cardLevel
+                    ],
+                    description: $description
+                );
+
+            case 'multiclass':
+                $class_key = $choices['class'] ?? 'warrior'; // fallback
+                return CharacterAdvancementData::multiclass($this->current_tier, $advancement_number, $class_key);
+
+            case 'proficiency_advancement':
+                return new CharacterAdvancementData(
+                    tier: $this->current_tier,
+                    advancement_number: $advancement_number,
+                    advancement_type: 'proficiency_advancement',
+                    advancement_data: ['bonus' => 1],
+                    description: $description
+                );
+
+            case 'subclass_upgrade':
+                $selectedSubclass = $choices['subclass'] ?? null;
+                if (! $selectedSubclass) {
+                    throw new \InvalidArgumentException('Subclass selection is required for this advancement');
+                }
+                return new CharacterAdvancementData(
+                    tier: $this->current_tier,
+                    advancement_number: $advancement_number,
+                    advancement_type: 'subclass_upgrade',
+                    advancement_data: ['subclass' => $selectedSubclass],
+                    description: $description
+                );
+
+            default:
+                // Generic fallback
+                return new CharacterAdvancementData(
+                    tier: $this->current_tier,
+                    advancement_number: $advancement_number,
+                    advancement_type: 'generic',
+                    advancement_data: ['description' => $description],
+                    description: $description
+                );
         }
-
-        if (str_contains($description, 'Evasion')) {
-            return CharacterAdvancementData::evasion($this->current_tier, $advancement_number);
-        }
-
-        if (str_contains($description, 'domain card')) {
-            $selectedCard = $choices['domain_card'] ?? null;
-            if (! $selectedCard) {
-                throw new \InvalidArgumentException('Domain card selection is required for this advancement');
-            }
-
-            // Get the level of the selected card for validation
-            $abilities = $this->game_data['abilities'] ?? [];
-            $cardLevel = $abilities[$selectedCard]['level'] ?? 1;
-
-            return new CharacterAdvancementData(
-                tier: $this->current_tier,
-                advancement_number: $advancement_number,
-                advancement_type: 'domain_card',
-                advancement_data: [
-                    'ability_key' => $selectedCard,
-                    'level' => $cardLevel
-                ],
-                description: $description
-            );
-        }
-
-        if (str_contains($description, 'Multiclass')) {
-            $class_key = $choices['class'] ?? 'warrior'; // fallback
-
-            return CharacterAdvancementData::multiclass($this->current_tier, $advancement_number, $class_key);
-        }
-
-        if (str_contains($description, 'Proficiency')) {
-            return new CharacterAdvancementData(
-                tier: $this->current_tier,
-                advancement_number: $advancement_number,
-                advancement_type: 'proficiency_advancement',
-                advancement_data: ['bonus' => 1],
-                description: $description
-            );
-        }
-
-        if (str_contains($description, 'subclass')) {
-            $selectedSubclass = $choices['subclass'] ?? null;
-            if (! $selectedSubclass) {
-                throw new \InvalidArgumentException('Subclass selection is required for this advancement');
-            }
-
-            return new CharacterAdvancementData(
-                tier: $this->current_tier,
-                advancement_number: $advancement_number,
-                advancement_type: 'subclass_upgrade',
-                advancement_data: ['subclass' => $selectedSubclass],
-                description: $description
-            );
-        }
-
-        // Default fallback
-        return new CharacterAdvancementData(
-            tier: $this->current_tier,
-            advancement_number: $advancement_number,
-            advancement_type: 'generic',
-            advancement_data: ['description' => $description],
-            description: $description
-        );
     }
 
     public function getAllCharacterExperiences()
@@ -678,32 +660,8 @@ class CharacterLevelUp extends Component
             return [];
         }
 
-        // Get character's available domains based on class
-        $classData = $this->game_data['classes'][$this->character->class] ?? null;
-        if (! $classData) {
-            return [];
-        }
-
-        $availableDomains = $classData['domains'] ?? [];
-        $abilities = $this->game_data['abilities'] ?? [];
-
-        $domainCards = [];
-        foreach ($abilities as $abilityKey => $abilityData) {
-            if (in_array($abilityData['domain'] ?? '', $availableDomains) &&
-                ($abilityData['level'] ?? 1) <= $maxLevel) {
-                $domainCards[] = [
-                    'key' => $abilityKey,
-                    'name' => $abilityData['name'] ?? ucwords(str_replace('-', ' ', $abilityKey)),
-                    'domain' => $abilityData['domain'] ?? '',
-                    'level' => $abilityData['level'] ?? 1,
-                    'type' => $abilityData['type'] ?? 'Ability',
-                    'recall_cost' => $abilityData['recallCost'] ?? 0,
-                    'descriptions' => $abilityData['descriptions'] ?? [],
-                ];
-            }
-        }
-
-        return $domainCards;
+        // Use shared domain card service
+        return $this->domain_card_service->getAvailableCards($this->character, $maxLevel);
     }
 
     public function selectDomainCard(int $advancementIndex, string $abilityKey): void

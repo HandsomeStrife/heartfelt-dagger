@@ -136,4 +136,51 @@ class CharacterAdvancementData extends Data
             description: "Multiclass: Choose {$class_key} as an additional class for your character, then cross out an unused 'Take an upgraded subclass card' and the other multiclass option on this sheet.",
         );
     }
+
+    /**
+     * Create advancement data from character creation selection
+     *
+     * @param int $level The character level this advancement is for
+     * @param int $advancement_number The advancement slot (1 or 2)
+     * @param array $selection The advancement selection from CharacterBuilderData
+     * @return self
+     */
+    public static function fromCreationSelection(int $level, int $advancement_number, array $selection): self
+    {
+        // Calculate tier from level
+        $tier = match (true) {
+            $level === 1 => 1,
+            $level >= 2 && $level <= 4 => 2,
+            $level >= 5 && $level <= 7 => 3,
+            $level >= 8 && $level <= 10 => 4,
+            default => 1,
+        };
+
+        $type = $selection['type'] ?? 'generic';
+        $description = $selection['description'] ?? '';
+
+        // Route to appropriate factory method based on type
+        return match ($type) {
+            'trait_bonus' => self::traitBonus(
+                $tier,
+                $advancement_number,
+                $selection['traits'] ?? []
+            ),
+            'hit_point' => self::hitPoint($tier, $advancement_number),
+            'stress_slot', 'stress' => self::stress($tier, $advancement_number), // Accept both variants
+            'experience_bonus' => self::experienceBonus($tier, $advancement_number),
+            'domain_card' => self::domainCard($tier, $advancement_number, $level),
+            'evasion' => self::evasion($tier, $advancement_number),
+            'subclass_upgrade' => self::subclass($tier, $advancement_number, $selection['type'] ?? 'upgrade'),
+            'proficiency' => self::proficiency($tier, $advancement_number),
+            'multiclass' => self::multiclass($tier, $advancement_number, $selection['class'] ?? ''),
+            default => new self(
+                tier: $tier,
+                advancement_number: $advancement_number,
+                advancement_type: $type,
+                advancement_data: $selection['data'] ?? [],
+                description: $description,
+            ),
+        };
+    }
 }

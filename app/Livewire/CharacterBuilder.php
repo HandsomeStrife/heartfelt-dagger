@@ -9,6 +9,10 @@ use Domain\Character\Actions\SaveCharacterAction;
 use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Enums\ClassEnum;
 use Domain\Character\Models\Character;
+use Domain\Character\Services\AdvancementOptionsService;
+use Domain\Character\Services\AdvancementValidationService;
+use Domain\Character\Services\DomainCardService;
+use Domain\Character\Services\TierAchievementService;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -16,9 +20,53 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Usernotnull\Toast\Concerns\WireToast;
 
+/**
+ * CharacterBuilder Component
+ * 
+ * Manages the interactive character creation flow for DaggerHeart TTRPG characters,
+ * including support for creating characters at higher levels (1-10).
+ * 
+ * Architecture:
+ * - Uses CharacterBuilderData DTO for all character state management
+ * - Injects domain services for advancement logic, validation, tier achievements
+ * - Client-side state handled by character-builder.js for instant UI updates
+ * - Server-side persistence via SaveCharacterAction with database transactions
+ * 
+ * Client-Side Migration:
+ * Many methods previously on this component have been moved to character-builder.js
+ * for better performance and instant UI feedback:
+ * - Character selection (class, subclass, ancestry, community)
+ * - Trait assignment and suggested trait application
+ * - Equipment selection and management
+ * - Domain card selection
+ * - Experience and inventory management
+ * - Background and connection answer tracking
+ * 
+ * Server-side sync occurs via:
+ * - Entangled properties for automatic state sync
+ * - Explicit saveToDatabase() calls for persistence
+ * - Real-time validation via injected services
+ * 
+ * Higher-Level Character Creation:
+ * - Users can select starting level (1-10)
+ * - Level-by-level advancement selections (tier achievements, advancements, domain cards)
+ * - All SRD-compliant validation enforced
+ * - Complete transaction safety with rollback on errors
+ */
 class CharacterBuilder extends Component
 {
     use WireToast, WithFileUploads;
+
+    // Domain Services
+    protected AdvancementOptionsService $advancement_options_service;
+
+    protected TierAchievementService $tier_achievement_service;
+
+    protected DomainCardService $domain_card_service;
+
+    protected AdvancementValidationService $advancement_validation_service;
+
+    protected \Domain\Character\Services\AncestryBonusService $ancestry_bonus_service;
 
     // State Properties
     public CharacterBuilderData $character;
@@ -39,14 +87,13 @@ class CharacterBuilder extends Component
     // Game Data
     public array $game_data = [];
 
-    // NOTE: Equipment category expansion state removed - UI state now handled client-side
-
-    // NOTE: Experience form fields removed - experience editing now handled client-side
-
     // Character model for accessing methods like getProfileImage()
     protected ?Character $character_model = null;
 
-    // NOTE: Computed property wrappers removed - use getComputedStats() and $character->getAncestryBonuses() directly
+    // Higher-level character creation properties
+    public int $current_advancement_level = 1;
+
+    public string $advancement_step = 'tier_achievements'; // tier_achievements, advancements, domain_card
 
     public function getImageUrl(): ?string
     {
@@ -91,12 +138,28 @@ class CharacterBuilder extends Component
         }
     }
 
+    /**
+     * Re-inject services after Livewire hydration (deserialization)
+     * This is necessary because service instances can't be serialized
+     */
+    public function hydrate(): void
+    {
+        $this->advancement_options_service = app(AdvancementOptionsService::class);
+        $this->tier_achievement_service = app(TierAchievementService::class);
+        $this->domain_card_service = app(DomainCardService::class);
+        $this->advancement_validation_service = app(AdvancementValidationService::class);
+        $this->ancestry_bonus_service = app(\Domain\Character\Services\AncestryBonusService::class);
+    }
+
     public function mount(?string $characterKey = null): void
     {
         // Character key is now required - should always be provided by controller
         if (! $characterKey) {
             abort(400, 'Character key is required');
         }
+
+        // Inject services (also done in hydrate for Livewire updates)
+        $this->hydrate();
 
         // Load character from database
         $action = new LoadCharacterAction;
@@ -114,11 +177,12 @@ class CharacterBuilder extends Component
         $this->pronouns = $this->character_model->pronouns ?? null;
         $this->last_saved_timestamp = $this->character_model?->updated_at?->timestamp;
 
+        // Initialize advancement level tracking
+        $this->current_advancement_level = $this->character->starting_level > 1 ? 2 : 1;
+
         $this->updateCompletedSteps();
         $this->loadGameData();
     }
-
-    // NOTE: initializeCharacter() removed - characters are now always loaded from database
 
     public function loadGameData(): void
     {
@@ -184,17 +248,6 @@ class CharacterBuilder extends Component
         }
     }
 
-    // NOTE: Character selection methods (selectClass, selectSubclass, selectAncestry, selectCommunity)
-    // are now handled client-side in character-builder.js for instant UI updates.
-    // Server-side sync happens via entangled properties and explicit save calls.
-
-    // NOTE: Trait assignment methods (assignTrait, resetTraits) are now handled client-side
-    // in character-builder.js via applySuggestedTraits() for instant UI updates.
-    // Server-side sync happens via entangled properties.
-
-    // NOTE: updateCharacterName() and updatePronouns() removed
-    // Character name and pronouns now save only when user clicks Save button
-
     /**
      * Auto-save when character object properties change via live model binding
      * This catches any updates to the $character object properties like character.name
@@ -213,8 +266,7 @@ class CharacterBuilder extends Component
             'selected_domain_cards',
         ];
 
-        // Auto-save for specific properties that should save immediately
-        // NOTE: Most auto-save properties removed - only keep essential ones
+        // Auto-save for essential properties that should save immediately
         $autoSaveProperties = [
             // 'name' removed - now manual save only
             // 'background_answers' removed - now manual save only
@@ -239,10 +291,6 @@ class CharacterBuilder extends Component
         }
     }
 
-    // NOTE: updatedPronouns() removed - pronouns now save only when user clicks Save button
-
-    // NOTE: updatedProfileImage() removed - image uploads now handled via SimpleImageUploader and CharacterImageUploadController
-
     public function clearProfileImage(): void
     {
         // Delete existing file if it exists
@@ -260,18 +308,6 @@ class CharacterBuilder extends Component
 
         $this->dispatch('character-updated', $this->character);
     }
-
-    // NOTE: Equipment selection methods (selectEquipment, selectInventoryItem) are now handled
-    // client-side in character-builder.js for instant UI updates and better UX.
-    // Server-side sync happens via syncEquipment() method called from JavaScript.
-
-    // NOTE: removeEquipment(), clearAllEquipment(), and toggleEquipmentCategory() methods removed
-    // Equipment management and UI state now handled client-side for better performance and UX
-
-    // NOTE: updateBackgroundAnswer() removed - background answers are now handled via
-    // direct wire:model binding to character.background_answers array for real-time updates.
-
-    // NOTE: markBackgroundComplete() removed - step completion now automatically calculated based on content
 
     public function addExperience(string $name, string $description = ''): void
     {
@@ -307,21 +343,15 @@ class CharacterBuilder extends Component
         $this->updateStateOnly();
     }
 
-    // NOTE: Experience editing methods removed - experience editing now handled client-side for better UX
 
-    // NOTE: selectDomainCard() method removed - domain card selection now handled client-side
     // JavaScript method: toggleDomainCard() provides instant feedback and better UX
 
-    // NOTE: removeDomainCard() and clearAllDomainCards() methods removed - domain card management now handled client-side
     // JavaScript methods provide instant feedback and better UX
 
-    // NOTE: updateConnectionAnswer() removed - connection answers are now handled via
     // direct wire:model binding to character.connection_answers array for real-time updates.
 
-    // NOTE: applySuggestedTraits() method removed - trait application now handled client-side
     // JavaScript method: applySuggestedTraits() provides instant feedback and better UX
 
-    // NOTE: applySuggestedEquipment() method removed - equipment application now handled client-side
     // JavaScript method: applySuggestedEquipment() provides instant feedback and better UX
 
     public function updateCompletedSteps(): void
@@ -338,7 +368,6 @@ class CharacterBuilder extends Component
         $this->dispatch('character-updated', $this->character);
     }
 
-    // NOTE: saveAndUpdateState() removed - redundant with saveToDatabase() which already
     // handles state updates and character-updated dispatching.
 
     public function saveToDatabase(): void
@@ -388,20 +417,15 @@ class CharacterBuilder extends Component
         }
     }
 
-    // NOTE: saveCharacter() method could be consolidated with saveToDatabase() for consistency
     // Currently only used once in connection-creation.blade.php - consider using saveToDatabase() directly
 
-    // NOTE: resetCharacter() removed - character reset is now handled client-side
     // for better performance and instant UI updates.
 
-    // NOTE: getSuggestedEquipment() method removed - equipment suggestions now computed client-side
     // JavaScript computed properties: suggestedPrimaryWeapon, suggestedSecondaryWeapon, suggestedArmor
 
-    // NOTE: getFilteredData() method removed - all filtering now handled client-side in character-builder.js
     // Data filtering for subclasses, domain cards, background questions, and connection questions
     // is now computed in real-time by JavaScript for better performance and instant UI updates
 
-    // NOTE: getTabsData() could be moved to client-side or enum helper for better performance
     public function getTabsData(): array
     {
         $tabs = [];
@@ -412,28 +436,69 @@ class CharacterBuilder extends Component
         return $tabs;
     }
 
-    // NOTE: getEquipmentProgress() removed - equipment progress now tracked client-side via AlpineJS computed properties
 
-    // NOTE: Equipment suggestion methods removed - now handled client-side in character-builder.js
     // The following methods were moved to JavaScript for better performance:
     // - getSuggestedWeaponData() -> suggestedPrimaryWeapon, suggestedSecondaryWeapon computed properties
     // - getSuggestedArmorData() -> suggestedArmor computed property
     // - isWeaponSuggested() -> client-side filtering in tier1PrimaryWeapons, tier1SecondaryWeapons
     // - isArmorSuggested() -> client-side filtering in tier1Armor
 
-    // NOTE: isInventoryItemSelected() method removed - inventory selection state now tracked client-side
     // JavaScript component has isInventoryItemSelected() method for real-time UI updates
 
-    // NOTE: syncEquipment() removed - equipment now synced via entangled properties automatically
 
-    // NOTE: getInventoryItemData() method removed - inventory data lookup now handled client-side
     // JavaScript component has direct access to gameData for item/consumable lookups
 
-    // NOTE: getProcessedInventoryItems() method removed - inventory processing now handled client-side
     // Complex inventory selection (Choose One/Choose Extra) is handled in character-builder.js
 
-    // NOTE: getConnectionProgress() method removed - connection progress now tracked client-side
     // JavaScript computed properties: totalConnections, answeredConnections, isConnectionComplete
+
+    /**
+     * Get marked traits for the current tier
+     * 
+     * Traits that have been increased via trait_bonus advancements in the current tier
+     * cannot be selected again until the next tier. Marked traits are cleared at
+     * tier transitions (levels 5 and 8 per SRD rules).
+     * 
+     * @param int $current_level The level being configured
+     * @return array<string> Array of trait keys that are marked and cannot be selected
+     */
+    public function getMarkedTraitsForLevel(int $current_level): array
+    {
+        $marked_traits = [];
+        
+        // Determine which tier we're in
+        $current_tier = match(true) {
+            $current_level >= 1 && $current_level <= 3 => 1,
+            $current_level >= 4 && $current_level <= 6 => 2,
+            $current_level >= 7 && $current_level <= 9 => 3,
+            $current_level >= 10 => 4,
+            default => 1,
+        };
+        
+        // Find the start of the current tier
+        $tier_start_level = match($current_tier) {
+            1 => 1,
+            2 => 4,
+            3 => 7,
+            4 => 10,
+            default => 1,
+        };
+        
+        // Collect all trait_bonus advancements from the start of this tier up to (but not including) current level
+        for ($level = $tier_start_level; $level < $current_level; $level++) {
+            $level_advancements = $this->character->creation_advancements[$level] ?? [];
+            
+            foreach ($level_advancements as $advancement) {
+                if (isset($advancement['type']) && $advancement['type'] === 'trait_bonus') {
+                    $traits = $advancement['traits'] ?? [];
+                    $marked_traits = array_merge($marked_traits, $traits);
+                }
+            }
+        }
+        
+        // Return unique trait keys
+        return array_values(array_unique($marked_traits));
+    }
 
     public function render()
     {
@@ -444,11 +509,13 @@ class CharacterBuilder extends Component
             'completed_steps' => $this->completed_steps,
             'tabs' => $this->getTabsData(),
             'computed_stats' => $this->getComputedStats(),
-            'ancestry_bonuses' => $this->character->getAncestryBonuses(),
+            'ancestry_bonuses' => $this->ancestry_bonus_service->getAncestryBonuses(
+                $this->character->selected_ancestry,
+                $this->character->starting_level
+            ),
             'character_level' => $this->character_model?->level ?? 1,
             'last_saved_timestamp' => $this->last_saved_timestamp,
             'classes' => ClassEnum::cases(),
-            // NOTE: Removed redundant data now handled client-side:
             // - filtered_data (subclasses, domain cards, questions computed in JS)
             // - connection_progress (connection tracking handled in JS)
         ]);
@@ -466,5 +533,189 @@ class CharacterBuilder extends Component
         $class_data = $this->game_data['classes'][$this->character->selected_class];
 
         return $this->character->getComputedStats($class_data);
+    }
+
+    // ========================================
+    // Higher-Level Character Creation Methods
+    // ========================================
+
+    /**
+     * Select the starting level for character creation
+     */
+    public function selectStartingLevel(int $level): void
+    {
+        if ($level < 1 || $level > 10) {
+            $this->toast()->danger('Invalid level. Must be between 1 and 10.')->send();
+
+            return;
+        }
+
+        $this->character->starting_level = $level;
+
+        // Reset advancement tracking if changing level
+        $this->character->creation_advancements = [];
+        $this->character->creation_tier_experiences = [];
+        $this->character->creation_domain_cards = [];
+
+        // Reset current level tracking
+        $this->current_advancement_level = $level > 1 ? 2 : 1;
+        $this->advancement_step = 'tier_achievements';
+
+        $this->updateStateOnly();
+        $this->dispatch('starting-level-changed', $level);
+    }
+
+    /**
+     * Get array of levels that require advancement selections (2 through starting_level)
+     */
+    public function getLevelsRequiringAdvancements(): array
+    {
+        $levels = [];
+        for ($level = 2; $level <= $this->character->starting_level; $level++) {
+            $levels[] = $level;
+        }
+
+        return $levels;
+    }
+
+    /**
+     * Mark the background step as complete
+     */
+    public function markBackgroundComplete(): void
+    {
+        $step_number = \Domain\Character\Enums\CharacterBuilderStep::BACKGROUND->getStepNumber();
+        
+        if (! in_array($step_number, $this->completed_steps)) {
+            $this->completed_steps[] = $step_number;
+            toast()
+                ->success('Background step marked as complete!')
+                ->push();
+        }
+    }
+
+    /**
+     * Complete advancement selections and validate before moving to next level
+     */
+    public function completeAdvancementSelections(): void
+    {
+        // Validate current level is complete
+        $errors = $this->character->validateAdvancementSelections();
+
+        if (! empty($errors)) {
+            $this->toast()->danger('Please complete all required selections before continuing.')->send();
+            $this->dispatch('advancement-validation-errors', $errors);
+
+            return;
+        }
+
+        // Move to next level or finish
+        if ($this->current_advancement_level < $this->character->starting_level) {
+            $this->current_advancement_level++;
+            $this->advancement_step = 'tier_achievements';
+            $this->dispatch('advancement-level-changed', $this->current_advancement_level);
+        } else {
+            // All levels complete
+            $this->dispatch('advancements-complete');
+            $this->toast()->success('All advancements complete!')->send();
+        }
+    }
+
+    /**
+     * Get available advancement options for current level
+     */
+    public function getAvailableAdvancementOptions(): array
+    {
+        if (! $this->character->selected_class) {
+            return [];
+        }
+
+        // Use existing character model, or create temporary instance for unsaved characters
+        $characterForService = $this->character_model ?? $this->createTemporaryCharacterInstance();
+
+        return $this->advancement_options_service->getAvailableOptions(
+            $characterForService,
+            $this->current_advancement_level
+        );
+    }
+
+    /**
+     * Get available domain cards for current level
+     */
+    public function getAvailableDomainCards(): array
+    {
+        if (! $this->character->selected_class) {
+            return [];
+        }
+
+        // Use existing character model, or create temporary instance for unsaved characters
+        $characterForService = $this->character_model ?? $this->createTemporaryCharacterInstance();
+
+        return $this->domain_card_service->getAvailableCards(
+            $characterForService,
+            $this->current_advancement_level
+        );
+    }
+
+    /**
+     * Create a temporary Character instance for service methods during creation
+     * 
+     * Required because some services (like DomainCardService) need a Character model
+     * to load class data and determine available options, but during initial creation
+     * the character hasn't been saved to the database yet.
+     *
+     * @return Character Temporary character instance with current builder data
+     */
+    private function createTemporaryCharacterInstance(): Character
+    {
+        $character = new Character();
+        $character->class = $this->character->selected_class;
+        $character->level = $this->current_advancement_level ?? 1;
+        $character->subclass = $this->character->selected_subclass;
+        
+        // Set a temporary ID to prevent null ID issues in service methods
+        // This character is NOT saved to database, just used for service logic
+        $character->id = -1;
+        
+        return $character;
+    }
+
+    /**
+     * Validate current advancement level's selections
+     *
+     * @return array Array of validation errors
+     */
+    public function validateCurrentLevel(): array
+    {
+        return $this->character->validateLevelCompletion($this->current_advancement_level);
+    }
+
+    /**
+     * Check if current advancement level is complete
+     *
+     * @return bool
+     */
+    public function isCurrentLevelComplete(): bool
+    {
+        return $this->character->isLevelComplete($this->current_advancement_level);
+    }
+
+    /**
+     * Validate all advancement selections
+     *
+     * @return array Array of validation errors grouped by level
+     */
+    public function validateAllAdvancements(): array
+    {
+        return $this->character->validateAdvancementSelections();
+    }
+
+    /**
+     * Get overall advancement progress
+     *
+     * @return array Progress data with percentage complete
+     */
+    public function getAdvancementProgress(): array
+    {
+        return $this->character->getAdvancementProgress();
     }
 }

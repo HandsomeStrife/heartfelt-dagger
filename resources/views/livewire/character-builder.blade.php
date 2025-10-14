@@ -177,6 +177,16 @@
             </div>
         </div>
 
+        <!-- Level Selector (Always Visible) -->
+        <div class="mb-6">
+            <div class="bg-slate-900/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 sm:p-6">
+                <x-character-builder.level-selector 
+                    :startingLevel="$character->starting_level" 
+                    :disabled="false" 
+                />
+            </div>
+        </div>
+
         <!-- Main Layout with Sidebar -->
         <div class="flex flex-col lg:flex-row gap-4 lg:gap-8">
             <!-- Left Sidebar Navigation -->
@@ -312,24 +322,25 @@
                                 :class="{
                                     'w-full flex items-center gap-4 px-4 py-4 rounded-xl text-left group': true,
                                     'bg-slate-700/50 text-white border border-amber-500/50 shadow-md': currentStep === {{ $step }},
-                                    'bg-emerald-500/10 text-white border border-emerald-500/30 hover:bg-emerald-500/20': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
-                                    'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent hover:border-slate-600/50': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
+                                    'bg-emerald-500/10 text-white border border-emerald-500/30 hover:bg-emerald-500/20': isStepComplete({{ $step }}) && currentStep !== {{ $step }},
+                                    'text-slate-400 hover:text-white hover:bg-slate-800/50 border border-transparent hover:border-slate-600/50': currentStep !== {{ $step }} && !isStepComplete({{ $step }})
                                 }"
                             >
                                 <!-- Step Icon/Number -->
                                 <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
                                      :class="{
                                          'bg-amber-500/20 text-amber-400': currentStep === {{ $step }},
-                                         'bg-emerald-500 text-white': {{ in_array($step, $completed_steps) ? 'true' : 'false' }} && currentStep !== {{ $step }},
-                                         'bg-slate-700 text-slate-400 group-hover:bg-slate-600 group-hover:text-slate-300': currentStep !== {{ $step }} && !{{ in_array($step, $completed_steps) ? 'true' : 'false' }}
+                                         'bg-emerald-500 text-white': isStepComplete({{ $step }}) && currentStep !== {{ $step }},
+                                         'bg-slate-700 text-slate-400 group-hover:bg-slate-600 group-hover:text-slate-300': currentStep !== {{ $step }} && !isStepComplete({{ $step }})
                                      }">
-                                    @if(in_array($step, $completed_steps))
+                                    <template x-if="isStepComplete({{ $step }})">
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                         </svg>
-                                    @else
-                                        {{ $step }}
-                                    @endif
+                                    </template>
+                                    <template x-if="!isStepComplete({{ $step }})">
+                                        <span>{{ $step }}</span>
+                                    </template>
                                 </div>
 
                                 <!-- Step Content -->
@@ -451,8 +462,36 @@
                             @include('livewire.character-builder.domain-card-selection')
                         </div>
                         
-                        <!-- Step 10: Connection Creation -->
+                        <!-- Step 10: Advancement Selection (only if starting_level > 1) -->
                         <div x-show="currentStep === 10" x-cloak>
+                            @if($character->starting_level > 1)
+                                <x-character-builder.advancement-workflow
+                                    :character_key="$character->character_key"
+                                    :starting_level="$character->starting_level"
+                                    :current_level="$current_advancement_level"
+                                    :creation_advancements="$character->creation_advancements"
+                                    :creation_tier_experiences="$character->creation_tier_experiences"
+                                    :creation_domain_cards="$character->creation_domain_cards"
+                                />
+                            @else
+                                <div class="text-center py-12">
+                                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800/50 border border-slate-700 mb-4">
+                                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-xl font-outfit font-bold text-white mb-2">
+                                        No Advancements Required
+                                    </h3>
+                                    <p class="text-slate-400 max-w-md mx-auto">
+                                        Your character is starting at level 1, so no advancement selections are needed.
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+                        
+                        <!-- Step 11: Connection Creation -->
+                        <div x-show="currentStep === 11" x-cloak>
                             @include('livewire.character-builder.connection-creation')
                         </div>
                     </div>

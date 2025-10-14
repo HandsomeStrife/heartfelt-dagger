@@ -19,13 +19,24 @@
     @endif
     <div class="absolute top-4 right-6 translate-y-full sm:translate-y-0 sm:top-3">
         <div class="rounded-3xl ring-1 ring-indigo-400/40 bg-indigo-500/10 px-4 py-3 min-w-[8.5rem]">
-            <div class="text-[10px] uppercase tracking-wider text-indigo-200/90">Level</div>
-            <div class="text-3xl font-extrabold text-indigo-200 leading-none">{{ $character->level ?? 1 }}</div>
+            <div class="flex items-baseline gap-2">
+                <div>
+                    <div class="text-[10px] uppercase tracking-wider text-indigo-200/90">Level</div>
+                    <div class="text-3xl font-extrabold text-indigo-200 leading-none">{{ $character->level ?? 1 }}</div>
+                </div>
+                <div class="ml-2">
+                    <div class="text-[10px] uppercase tracking-wider text-indigo-200/60">Tier</div>
+                    <div class="text-2xl font-bold text-indigo-300/80 leading-none">{{ $getTier() }}</div>
+                </div>
+            </div>
             
             @if($canLevelUp && $canEdit && $characterKey)
-            <div class="mt-1">
+            <div class="mt-2 pt-2 border-t border-indigo-400/20">
                 <a href="{{ route('character.level-up', ['public_key' => $character->public_key, 'character_key' => $characterKey]) }}"
-                   class="text-xs text-amber-400 hover:text-amber-300 underline transition-colors">
+                   class="text-xs text-amber-400 hover:text-amber-300 underline transition-colors flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
                     Level Up
                 </a>
             </div>

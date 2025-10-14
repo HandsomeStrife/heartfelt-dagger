@@ -15,6 +15,7 @@ enum CharacterBuilderStep: string
     case BACKGROUND = 'background';
     case EXPERIENCES = 'experiences';
     case DOMAIN_CARDS = 'domain_cards';
+    case ADVANCEMENTS = 'advancements';
     case CONNECTIONS = 'connections';
 
     public function getDisplayName(): string
@@ -29,6 +30,7 @@ enum CharacterBuilderStep: string
             self::BACKGROUND => 'Background',
             self::EXPERIENCES => 'Experiences',
             self::DOMAIN_CARDS => 'Domain Cards',
+            self::ADVANCEMENTS => 'Advancements',
             self::CONNECTIONS => 'Connections',
         };
     }
@@ -62,6 +64,7 @@ enum CharacterBuilderStep: string
             self::BACKGROUND,
             self::EXPERIENCES,
             self::DOMAIN_CARDS,
+            self::ADVANCEMENTS,
             self::CONNECTIONS,
         ];
     }

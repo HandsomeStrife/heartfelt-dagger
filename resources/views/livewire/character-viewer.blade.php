@@ -86,6 +86,16 @@
                 <!-- Domain Effects as Cards -->
                 <x-character-viewer.domain-cards :domain-card-details="$domain_card_details" />
                 
+                <!-- Advancement Summary (for characters level 2+) -->
+                @if($character->level > 1)
+                    <x-character.advancement-summary 
+                        :advancements="$this->getFormattedAdvancements()"
+                        :tierExperiences="$this->getFormattedTierExperiences()"
+                        :domainCards="$this->getFormattedDomainCards()"
+                        :startingLevel="$character->level"
+                    />
+                @endif
+                
                 <!-- Ancestry and Community Features (side-by-side on xl screens) -->
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <!-- Ancestry Features -->

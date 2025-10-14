@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class ApplyAdvancementAction
 {
-    public function execute(Character $character, CharacterAdvancementData $advancement_data, int $level = null): CharacterAdvancement
+    public function execute(Character $character, CharacterAdvancementData $advancement_data, ?int $level = null): CharacterAdvancement
     {
         return DB::transaction(function () use ($character, $advancement_data, $level) {
             // Use provided level or calculate from tier
@@ -46,8 +46,9 @@ class ApplyAdvancementAction
                 default => throw new \InvalidArgumentException('Tier must be between 1 and 4'),
             };
 
-            if ($character->level < $required_level) {
-                throw new \InvalidArgumentException("Character level insufficient for tier {$advancement_data->tier}");
+            // Use $character_level (which may be passed in) instead of $character->level
+            if ($character_level < $required_level) {
+                throw new \InvalidArgumentException("Character level {$character_level} insufficient for tier {$advancement_data->tier} (requires level {$required_level})");
             }
 
             // Validate advancement-specific requirements

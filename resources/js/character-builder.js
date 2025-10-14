@@ -79,13 +79,20 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.captureCurrentState();
             
             // Set up beforeunload warning for unsaved changes
-            window.addEventListener('beforeunload', (e) => {
-                if (this.hasUnsavedChanges) {
-                    e.preventDefault();
-                    e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
-                    return 'You have unsaved changes. Are you sure you want to leave?';
-                }
-            });
+            // Skip in development/local environments to allow easier testing
+            const isDevelopment = window.location.hostname === 'localhost' || 
+                                 window.location.hostname === '127.0.0.1' ||
+                                 window.location.hostname.includes('.local');
+            
+            if (!isDevelopment) {
+                window.addEventListener('beforeunload', (e) => {
+                    if (this.hasUnsavedChanges) {
+                        e.preventDefault();
+                        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                        return 'You have unsaved changes. Are you sure you want to leave?';
+                    }
+                });
+            }
             
             // Listen for character save events to reset unsaved state
             this.$wire.$on('character-saved', () => {
@@ -713,6 +720,59 @@ export function characterBuilderComponent($wire, gameData = {}) {
         goToStep(step) {
             this.currentStep = step;
         },
+        
+        /**
+         * Check if a step is complete based on current character state
+         * This mirrors the PHP logic in CharacterBuilderData::isStepComplete()
+         */
+        isStepComplete(step) {
+            switch (step) {
+                case 1: // Class
+                    return !!this.selected_class;
+                case 2: // Subclass
+                    return !!this.selected_subclass;
+                case 3: // Ancestry
+                    return !!this.selected_ancestry;
+                case 4: // Community
+                    return !!this.selected_community;
+                case 5: // Traits
+                    return Object.values(this.assigned_traits).filter(v => v !== null).length === 6;
+                case 6: // Equipment
+                    return this.isEquipmentComplete();
+                case 7: // Background
+                    return this.background_answers && this.background_answers.length >= 3;
+                case 8: // Experiences
+                    return this.experiences && this.experiences.length >= 2;
+                case 9: // Domain Cards
+                    return this.selected_domain_cards && this.selected_domain_cards.length >= 2;
+                case 11: // Connections
+                    return this.connection_answers && this.connection_answers.length >= 2;
+                default:
+                    return false;
+            }
+        },
+        
+        /**
+         * Check if equipment step is complete
+         * Requires: primary weapon + armor
+         * Mirrors PHP EquipmentValidator::isEquipmentComplete()
+         */
+        isEquipmentComplete() {
+            if (!this.selected_equipment || !Array.isArray(this.selected_equipment)) {
+                return false;
+            }
+            
+            // Check for primary weapon (type==='weapon' && data.type==='Primary')
+            const hasPrimary = this.selected_equipment.some(item => 
+                item.type === 'weapon' && (item.data?.type || 'Primary') === 'Primary'
+            );
+            
+            // Check for armor
+            const hasArmor = this.selected_equipment.some(item => item.type === 'armor');
+            
+            // For now, just check primary + armor (starting inventory validation would require class data)
+            return hasPrimary && hasArmor;
+        },
 
         /**
          * Trait assignment methods
@@ -831,6 +891,7 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.markAsUnsaved();
 
             // NOTE: Equipment now syncs automatically via entangled properties
+            // Sidebar completion status is now calculated in real-time by isStepComplete() JavaScript method
         },
 
         selectInventoryItem(itemName) {
@@ -921,11 +982,8 @@ export function characterBuilderComponent($wire, gameData = {}) {
                 });
             }
             
-            // Force immediate sync and sidebar update when applying multiple items at once
-            this.$nextTick(() => {
-                // Trigger Livewire refresh to ensure sidebar updates immediately
-                this.$wire.$refresh();
-            });
+            // Force immediate sync when applying multiple items at once
+            // Sidebar completion status is now calculated in real-time by isStepComplete() JavaScript method
             
             // NOTE: markAsUnsaved() will be called from the template, entangled properties handle sync
         },

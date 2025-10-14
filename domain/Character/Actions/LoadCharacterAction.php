@@ -71,6 +71,9 @@ class LoadCharacterAction
         $manual_step_completions = $character_data['manualStepCompletions'] ?? [];
         $clank_bonus_experience = $character_data['clank_bonus_experience'] ?? null;
 
+        // Load advancement data for higher-level characters
+        [$creation_advancements, $creation_tier_experiences, $creation_domain_cards] = $this->loadAdvancementData($character, $character_data);
+
         return new CharacterBuilderData(
             character_key: $character->character_key,
             public_key: $character->public_key,
@@ -92,7 +95,73 @@ class LoadCharacterAction
             motivations: $character_data['background']['motivations'] ?? null,
             manual_step_completions: $manual_step_completions,
             clank_bonus_experience: $clank_bonus_experience,
+            starting_level: $character->level,
+            creation_advancements: $creation_advancements,
+            creation_tier_experiences: $creation_tier_experiences,
+            creation_domain_cards: $creation_domain_cards,
         );
+    }
+
+    /**
+     * Load advancement data for higher-level characters
+     * 
+     * @param array<string, mixed> $character_data
+     * @return array{0: array<int, array>, 1: array<int, array>, 2: array<int, array>}
+     */
+    private function loadAdvancementData(Character $character, array $character_data): array
+    {
+        // If level 1, no advancements to load
+        if ($character->level === 1) {
+            return [[], [], []];
+        }
+
+        // Load all advancements ordered by level and advancement number
+        $advancements = $character->advancements()
+            ->orderBy('level')
+            ->orderBy('advancement_number')
+            ->get();
+
+        $creation_advancements = [];
+        $creation_tier_experiences = [];
+        
+        // Group advancements by level
+        foreach ($advancements as $advancement) {
+            $level = $advancement->level;
+            
+            if (! isset($creation_advancements[$level])) {
+                $creation_advancements[$level] = [];
+            }
+
+            $creation_advancements[$level][] = [
+                'type' => $advancement->advancement_type,
+                'data' => $advancement->advancement_data,
+            ];
+        }
+
+        // Extract tier achievement experiences from character_data
+        // These are stored in the character_data JSON field
+        $tier_achievement_data = $character_data['tier_achievements'] ?? [];
+        if (! empty($tier_achievement_data)) {
+            foreach ($tier_achievement_data as $level => $achievements) {
+                if (in_array($level, [2, 5, 8])) {
+                    $creation_tier_experiences[$level] = $achievements['experiences'] ?? [];
+                }
+            }
+        }
+
+        // Organize domain cards by level
+        // Domain cards are already in the database with their level
+        $creation_domain_cards = [];
+        $domain_card_records = $character->domainCards()->orderBy('id')->get();
+        
+        // Distribute domain cards across levels (1 per level)
+        // The first card belongs to level 1, second to level 2, etc.
+        foreach ($domain_card_records as $index => $card) {
+            $card_level = $index + 1; // Levels are 1-indexed
+            $creation_domain_cards[$card_level] = $card->ability_key;
+        }
+
+        return [$creation_advancements, $creation_tier_experiences, $creation_domain_cards];
     }
 
     public function loadForUser(int $user_id): array
