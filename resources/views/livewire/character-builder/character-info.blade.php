@@ -243,7 +243,7 @@
                 Your current character statistics based on class, traits, ancestry, and equipment.
             </p>
 
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <!-- Evasion -->
                 @if(isset($computed_stats['evasion']))
                     <div class="bg-slate-900/50 border border-slate-600/50 rounded-lg p-4">
@@ -253,6 +253,11 @@
                             @if($computed_stats['evasion']['ancestry_bonus'] > 0)
                                 <div class="text-xs text-emerald-400 mt-1">
                                     +{{ $computed_stats['evasion']['ancestry_bonus'] }} Ancestry
+                                </div>
+                            @endif
+                            @if($computed_stats['evasion']['advancement_bonus'] > 0)
+                                <div class="text-xs text-purple-400 mt-1">
+                                    +{{ $computed_stats['evasion']['advancement_bonus'] }} Advancements
                                 </div>
                             @endif
                         </div>
@@ -270,6 +275,11 @@
                                     +{{ $computed_stats['hit_points']['ancestry_bonus'] }} Ancestry
                                 </div>
                             @endif
+                            @if($computed_stats['hit_points']['advancement_bonus'] > 0)
+                                <div class="text-xs text-purple-400 mt-1">
+                                    +{{ $computed_stats['hit_points']['advancement_bonus'] }} Advancements
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -285,6 +295,11 @@
                                     +{{ $computed_stats['stress']['ancestry_bonus'] }} Ancestry
                                 </div>
                             @endif
+                            @if($computed_stats['stress']['advancement_bonus'] > 0)
+                                <div class="text-xs text-purple-400 mt-1">
+                                    +{{ $computed_stats['stress']['advancement_bonus'] }} Advancements
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -295,6 +310,26 @@
                         <div class="text-center">
                             <div class="text-2xl font-bold text-purple-400 font-outfit">{{ $computed_stats['hope'] }}</div>
                             <div class="text-xs text-slate-400 uppercase tracking-wide">Hope</div>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Proficiency -->
+                @if(isset($computed_stats['proficiency']))
+                    <div class="bg-slate-900/50 border border-slate-600/50 rounded-lg p-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-cyan-400 font-outfit">+{{ $computed_stats['proficiency']['total'] }}</div>
+                            <div class="text-xs text-slate-400 uppercase tracking-wide">Proficiency</div>
+                            @if($computed_stats['proficiency']['level_proficiency'] > 0)
+                                <div class="text-xs text-slate-300 mt-1">
+                                    +{{ $computed_stats['proficiency']['level_proficiency'] }} Level
+                                </div>
+                            @endif
+                            @if($computed_stats['proficiency']['advancement_bonus'] > 0)
+                                <div class="text-xs text-purple-400 mt-1">
+                                    +{{ $computed_stats['proficiency']['advancement_bonus'] }} Advancements
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endif

@@ -83,6 +83,17 @@ class CharacterBuilderData extends Data implements Wireable
          *    value is the domain card key (ability key from abilities.json)
          */
         public array $creation_domain_cards = [],
+        
+        /**
+         * @var array<string, array{
+         *     domain: string,
+         *     ability_key: string,
+         *     ability_level: int,
+         *     name: string
+         * }> Domain cards granted by "additional domain card" advancements. 
+         *     Key is "adv_{level}_{advIndex}" (e.g., "adv_3_0"), value is domain card data
+         */
+        public array $creation_advancement_cards = [],
     ) {}
 
     public function isStepComplete(CharacterBuilderStep|int $step): bool
@@ -108,10 +119,10 @@ class CharacterBuilderData extends Data implements Wireable
             CharacterBuilderStep::TRAITS => count($this->assigned_traits) === 6 && $this->validateTraitValues(),
             CharacterBuilderStep::EQUIPMENT => $this->isEquipmentComplete(),
             CharacterBuilderStep::BACKGROUND => $this->isBackgroundComplete(),
-            CharacterBuilderStep::EXPERIENCES => count($this->experiences) >= 2,
-            CharacterBuilderStep::DOMAIN_CARDS => count($this->selected_domain_cards) >= 2,
-            CharacterBuilderStep::ADVANCEMENTS => $this->isAdvancementsComplete(),
+            CharacterBuilderStep::EXPERIENCES => $this->isExperiencesComplete(),
+            CharacterBuilderStep::DOMAIN_CARDS => $this->isDomainCardsComplete(),
             CharacterBuilderStep::CONNECTIONS => count(array_filter($this->connection_answers, fn ($answer) => ! empty(trim($answer ?? '')))) >= 1,
+            default => false, // Handle any unknown steps gracefully
         };
     }
 
@@ -316,6 +327,7 @@ class CharacterBuilderData extends Data implements Wireable
             'creation_advancements' => $this->creation_advancements,
             'creation_tier_experiences' => $this->creation_tier_experiences,
             'creation_domain_cards' => $this->creation_domain_cards,
+            'creation_advancement_cards' => $this->creation_advancement_cards,
         ];
     }
 
@@ -347,6 +359,7 @@ class CharacterBuilderData extends Data implements Wireable
             creation_advancements: $data['creation_advancements'] ?? [],
             creation_tier_experiences: $data['creation_tier_experiences'] ?? [],
             creation_domain_cards: $data['creation_domain_cards'] ?? [],
+            creation_advancement_cards: $data['creation_advancement_cards'] ?? [],
         );
     }
 
@@ -368,6 +381,50 @@ class CharacterBuilderData extends Data implements Wireable
         $answered_questions = count(array_filter($this->background_answers, fn ($answer) => ! empty(trim($answer))));
 
         return $answered_questions >= 1;
+    }
+
+    private function isExperiencesComplete(): bool
+    {
+        // Base experiences (2 required at level 1)
+        $baseExperiencesComplete = count($this->experiences) >= 2;
+        
+        // If level 1, only base experiences needed
+        if ($this->starting_level === 1) {
+            return $baseExperiencesComplete;
+        }
+        
+        // Check tier achievement experiences for levels 2, 5, 8
+        $tierLevels = array_filter([2, 5, 8], fn($level) => $level <= $this->starting_level);
+        foreach ($tierLevels as $level) {
+            if (!isset($this->creation_tier_experiences[$level]) || 
+                empty($this->creation_tier_experiences[$level]['name'])) {
+                return false;
+            }
+        }
+        
+        return $baseExperiencesComplete;
+    }
+
+    private function isDomainCardsComplete(): bool
+    {
+        // Count total domain cards from all sources:
+        // 1. selected_domain_cards (level 1 cards)
+        // 2. creation_domain_cards (level 2+ regular selections)
+        // 3. creation_advancement_cards (advancement-granted bonus cards)
+        
+        $level1Cards = count($this->selected_domain_cards);
+        $creationCards = count($this->creation_domain_cards);
+        $advancementCards = count($this->creation_advancement_cards);
+        
+        $totalCards = $level1Cards + $creationCards + $advancementCards;
+        
+        // Required cards = starting_level + 1
+        // Level 1: 2 cards (1 + 1 = 2)
+        // Level 2: 3 cards (2 + 1 = 3)
+        // Level 3: 4 cards (3 + 1 = 4), etc.
+        $requiredCards = $this->starting_level + 1;
+        
+        return $totalCards >= $requiredCards;
     }
 
     private function isAdvancementsComplete(): bool
@@ -524,6 +581,21 @@ class CharacterBuilderData extends Data implements Wireable
                         $errors[] = sprintf('Trait bonus advancement must select exactly 2 traits');
                     }
                 }
+                
+                // Validate experience_bonus type (as per code review)
+                if ($type === 'experience_bonus') {
+                    if (empty($advancement['experiences']) || count($advancement['experiences']) !== 2) {
+                        $errors[] = sprintf('Experience bonus advancement must select exactly 2 experiences');
+                    }
+                }
+                
+                // Validate domain_card type (advancement-granted cards)
+                if ($type === 'domain_card') {
+                    $advKey = "adv_{$level}_{$index}";
+                    if (!isset($this->creation_advancement_cards[$advKey]) || empty($this->creation_advancement_cards[$advKey])) {
+                        $errors[] = sprintf('Missing domain card for "Additional Domain Card" advancement #%d', $index + 1);
+                    }
+                }
             }
         }
 
@@ -550,11 +622,26 @@ class CharacterBuilderData extends Data implements Wireable
     {
         $errors = [];
 
-        // Check domain card duplicates
+        // Check domain card duplicates across all selection types
         $allDomainCards = [];
-        for ($level = 1; $level <= $this->starting_level; $level++) {
-            $cardKey = $this->creation_domain_cards[$level] ?? null;
-            if ($cardKey) {
+        
+        // Check level 1 cards (selected_domain_cards)
+        foreach ($this->selected_domain_cards as $cardKey) {
+            if (isset($allDomainCards[$cardKey])) {
+                $errors[] = sprintf(
+                    'Domain card "%s" selected multiple times (level 1 and level %d)',
+                    $cardKey,
+                    $allDomainCards[$cardKey]
+                );
+            }
+            $allDomainCards[$cardKey] = 1;
+        }
+        
+        // Check level 2+ regular selections (creation_domain_cards)
+        for ($level = 2; $level <= $this->starting_level; $level++) {
+            $cardData = $this->creation_domain_cards[$level] ?? null;
+            if ($cardData && isset($cardData['ability_key'])) {
+                $cardKey = $cardData['ability_key'];
                 if (isset($allDomainCards[$cardKey])) {
                     $errors[] = sprintf(
                         'Domain card "%s" selected multiple times (levels %d and %d)',
@@ -564,6 +651,21 @@ class CharacterBuilderData extends Data implements Wireable
                     );
                 }
                 $allDomainCards[$cardKey] = $level;
+            }
+        }
+        
+        // Check advancement-granted domain cards (creation_advancement_cards)
+        foreach ($this->creation_advancement_cards as $advKey => $cardData) {
+            if (isset($cardData['ability_key'])) {
+                $cardKey = $cardData['ability_key'];
+                if (isset($allDomainCards[$cardKey])) {
+                    $errors[] = sprintf(
+                        'Domain card "%s" selected multiple times (level %d and advancement)',
+                        $cardKey,
+                        $allDomainCards[$cardKey]
+                    );
+                }
+                $allDomainCards[$cardKey] = 'advancement_' . $advKey;
             }
         }
 
@@ -579,10 +681,18 @@ class CharacterBuilderData extends Data implements Wireable
         }
 
         // Check trait marks across tiers (marked traits can't be selected again in same tier)
+        // Tier mapping: Tier 1 = Level 1, Tier 2 = Levels 2-4, Tier 3 = Levels 5-7, Tier 4 = Levels 8-10
+        $getTier = function(int $level): int {
+            if ($level === 1) return 1;
+            if ($level <= 4) return 2;
+            if ($level <= 7) return 3;
+            return 4;
+        };
+        
         $traitMarksByTier = [1 => [], 2 => [], 3 => [], 4 => []];
         
         for ($level = 2; $level <= $this->starting_level; $level++) {
-            $tier = (int) ceil($level / 3);
+            $tier = $getTier($level);
             $levelAdvancements = $this->creation_advancements[$level] ?? [];
 
             foreach ($levelAdvancements as $advancement) {
@@ -603,13 +713,8 @@ class CharacterBuilderData extends Data implements Wireable
                 }
             }
 
-            // Clear marks at tier boundaries (levels 2, 5, 8)
-            if (in_array($level, [2, 5, 8])) {
-                $nextTier = $tier + 1;
-                if ($nextTier <= 4) {
-                    $traitMarksByTier[$nextTier] = [];
-                }
-            }
+            // Clear marks at tier boundaries (levels 2, 5, 8 are the START of new tiers)
+            // Note: Marks clear automatically at tier start due to the tier calculation
         }
 
         return $errors;

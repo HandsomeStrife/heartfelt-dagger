@@ -278,6 +278,237 @@
         </div>
     </template>
 
+    <!-- Tier Achievement Experiences (For Level 2+) -->
+    <template x-if="starting_level >= 2">
+        <div class="mt-8 pt-8 border-t border-slate-700">
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-white mb-2 font-outfit">Tier Achievement Experiences</h3>
+                <p class="text-slate-300 text-sm">
+                    At levels 2, 5, and 8, you gain an additional experience as part of your tier achievement. 
+                    These experiences also provide a +2 modifier.
+                </p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Level 2 Tier Achievement -->
+                <template x-if="starting_level >= 2">
+                    <div class="bg-emerald-900/20 border border-emerald-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <h4 class="text-emerald-300 font-bold font-outfit">Level 2 - Tier 2 Achievement</h4>
+                        </div>
+                        
+                        <div x-data="{ 
+                            hasExperience: !!creation_tier_experiences[2]?.name,
+                            init() {
+                                if (!creation_tier_experiences[2]) {
+                                    creation_tier_experiences[2] = { name: '', description: '' };
+                                }
+                            }
+                        }">
+                            <template x-if="!hasExperience">
+                                <div class="space-y-3">
+                                    <input 
+                                        type="text"
+                                        x-model="creation_tier_experiences[2].name"
+                                        @input="markAsUnsaved()"
+                                        placeholder="Experience name..."
+                                        maxlength="50"
+                                        class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    >
+                                    <textarea 
+                                        x-model="creation_tier_experiences[2].description"
+                                        @input="markAsUnsaved()"
+                                        placeholder="Description (optional)..."
+                                        maxlength="100"
+                                        rows="2"
+                                        class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    ></textarea>
+                                </div>
+                            </template>
+                            
+                            <template x-if="hasExperience">
+                                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3">
+                                    <h5 class="text-white font-bold text-lg" x-text="creation_tier_experiences[2]?.name"></h5>
+                                    <p class="text-slate-300 text-sm mt-1" x-text="creation_tier_experiences[2]?.description || 'No description'"></p>
+                                    <div class="mt-2 text-emerald-300 font-bold text-sm">+2 modifier</div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Level 5 Tier Achievement -->
+                <template x-if="starting_level >= 5">
+                    <div class="bg-purple-900/20 border border-purple-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <h4 class="text-purple-300 font-bold font-outfit">Level 5 - Tier 3 Achievement</h4>
+                        </div>
+                        
+                        <div x-data="{ 
+                            hasExperience: !!creation_tier_experiences[5]?.name,
+                            init() {
+                                if (!creation_tier_experiences[5]) {
+                                    creation_tier_experiences[5] = { name: '', description: '' };
+                                }
+                            }
+                        }">
+                            <template x-if="!hasExperience">
+                                <div class="space-y-3">
+                                    <input 
+                                        type="text"
+                                        x-model="creation_tier_experiences[5].name"
+                                        @input="markAsUnsaved()"
+                                        placeholder="Experience name..."
+                                        maxlength="50"
+                                        class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    >
+                                    <textarea 
+                                        x-model="creation_tier_experiences[5].description"
+                                        @input="markAsUnsaved()"
+                                        placeholder="Description (optional)..."
+                                        maxlength="100"
+                                        rows="2"
+                                        class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    ></textarea>
+                                </div>
+                            </template>
+                            
+                            <template x-if="hasExperience">
+                                <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
+                                    <h5 class="text-white font-bold text-lg" x-text="creation_tier_experiences[5]?.name"></h5>
+                                    <p class="text-slate-300 text-sm mt-1" x-text="creation_tier_experiences[5]?.description || 'No description'"></p>
+                                    <div class="mt-2 text-purple-300 font-bold text-sm">+2 modifier</div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Level 8 Tier Achievement -->
+                <template x-if="starting_level >= 8">
+                    <div class="bg-amber-900/20 border border-amber-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <h4 class="text-amber-300 font-bold font-outfit">Level 8 - Tier 4 Achievement</h4>
+                        </div>
+                        
+                        <div x-data="{ 
+                            hasExperience: !!creation_tier_experiences[8]?.name,
+                            init() {
+                                if (!creation_tier_experiences[8]) {
+                                    creation_tier_experiences[8] = { name: '', description: '' };
+                                }
+                            }
+                        }">
+                            <template x-if="!hasExperience">
+                                <div class="space-y-3">
+                                    <input 
+                                        type="text"
+                                        x-model="creation_tier_experiences[8].name"
+                                        @input="markAsUnsaved()"
+                                        placeholder="Experience name..."
+                                        maxlength="50"
+                                        class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                    >
+                                    <textarea 
+                                        x-model="creation_tier_experiences[8].description"
+                                        @input="markAsUnsaved()"
+                                        placeholder="Description (optional)..."
+                                        maxlength="100"
+                                        rows="2"
+                                        class="w-full px-4 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                    ></textarea>
+                                </div>
+                            </template>
+                            
+                            <template x-if="hasExperience">
+                                <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+                                    <h5 class="text-white font-bold text-lg" x-text="creation_tier_experiences[8]?.name"></h5>
+                                    <p class="text-slate-300 text-sm mt-1" x-text="creation_tier_experiences[8]?.description || 'No description'"></p>
+                                    <div class="mt-2 text-amber-300 font-bold text-sm">+2 modifier</div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+
+    <!-- Experience Bonus Advancements (For Characters with experience_bonus advancements) -->
+    <template x-if="hasExperienceBonusAdvancements()">
+        <div class="mt-8 pt-8 border-t border-slate-700">
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-white mb-2 font-outfit">Experience Bonuses from Advancements</h3>
+                <p class="text-slate-300 text-sm">
+                    You've selected "Experience Bonus" advancements that allow you to gain +1 bonus to two experiences per advancement.
+                    Select which experiences receive these bonuses below.
+                </p>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Iterate through each level's advancements -->
+                <template x-for="level in getLevelsWithExperienceBonuses()" :key="'exp-bonus-' + level">
+                    <div>
+                        <!-- For each experience_bonus advancement at this level -->
+                        <template x-for="(advIndex, idx) in getExperienceBonusAdvancementIndices(level)" :key="'adv-' + level + '-' + advIndex">
+                            <div class="bg-slate-800/50 border border-slate-600/50 rounded-xl p-4 mb-4">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <h4 class="text-purple-300 font-bold font-outfit" x-text="'Level ' + level + ' - Experience Bonus (Select 2)'"></h4>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <!-- Show all existing experiences as checkboxes -->
+                                    <template x-for="(experience, expIndex) in getAllAvailableExperiences()" :key="'exp-' + level + '-' + advIndex + '-' + expIndex">
+                                        <label class="flex items-center gap-3 p-3 bg-slate-900/50 border border-slate-600/50 rounded-lg hover:border-purple-500/50 hover:bg-purple-500/5 cursor-pointer transition-all">
+                                            <input 
+                                                type="checkbox"
+                                                :checked="isExperienceSelectedForBonus(level, advIndex, experience.name)"
+                                                @change="toggleExperienceBonus(level, advIndex, experience.name)"
+                                                :disabled="!canSelectExperienceBonus(level, advIndex, experience.name)"
+                                                class="w-5 h-5 rounded border-slate-500 text-purple-500 focus:ring-purple-500 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                            <div class="flex-1">
+                                                <div class="text-white font-semibold text-sm" x-text="experience.name"></div>
+                                                <div class="text-slate-400 text-xs" x-text="'Current: +' + getExperienceModifier(experience.name)"></div>
+                                            </div>
+                                            <template x-if="isExperienceSelectedForBonus(level, advIndex, experience.name)">
+                                                <div class="text-purple-400 font-bold text-sm">+1</div>
+                                            </template>
+                                        </label>
+                                    </template>
+                                </div>
+
+                                <!-- Selection count indicator -->
+                                <div class="mt-3 text-center">
+                                    <span 
+                                        class="text-sm font-medium"
+                                        :class="{
+                                            'text-emerald-400': getExperienceBonusCount(level, advIndex) === 2,
+                                            'text-slate-400': getExperienceBonusCount(level, advIndex) < 2
+                                        }"
+                                        x-text="getExperienceBonusCount(level, advIndex) + ' / 2 selected'"
+                                    ></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+
     <!-- Experience Guide -->
     <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6 mt-6" x-data="{ showGuide: false }">
         <div class="flex items-center justify-between">

@@ -6,6 +6,8 @@ namespace App\Livewire;
 
 use Domain\Character\Actions\LoadCharacterAction;
 use Domain\Character\Actions\SaveCharacterAction;
+use Domain\Character\Actions\SaveCharacterAdvancementAction;
+use Domain\Character\Actions\DeleteCharacterAdvancementAction;
 use Domain\Character\Data\CharacterBuilderData;
 use Domain\Character\Enums\ClassEnum;
 use Domain\Character\Models\Character;
@@ -415,6 +417,206 @@ class CharacterBuilder extends Component
                 ->danger('Failed to save character: '.$e->getMessage())
                 ->push();
         }
+    }
+
+    /**
+     * Save all character advancements from JavaScript to database
+     * Called when user clicks "Save Character" with their advancement selections
+     *
+     * @param array $advancementsData Structure from JavaScript:
+     *   [
+     *     'creation_advancements' => [level => [advancement1, advancement2]],
+     *     'creation_tier_experiences' => [level => {name, description}],
+     *     'creation_domain_cards' => [level => {domain, ability_key, ...}],
+     *     'creation_advancement_cards' => [advKey => {domain, ability_key, ...}]
+     *   ]
+     */
+    public function saveCharacterAdvancements(array $advancementsData): void
+    {
+        try {
+            // Get the character from database
+            $character = Character::where('character_key', $this->storage_key)->firstOrFail();
+            
+            $saveAction = new SaveCharacterAdvancementAction();
+            $deleteAction = new DeleteCharacterAdvancementAction();
+            
+            // First, delete all existing advancements for this character (clean slate)
+            $deleteAction->executeAboveLevel($character->id, 1);
+            
+            // Save regular advancements (levels 2-10, 2 per level)
+            if (isset($advancementsData['creation_advancements'])) {
+                foreach ($advancementsData['creation_advancements'] as $level => $levelAdvancements) {
+                    foreach ($levelAdvancements as $advIndex => $advancement) {
+                        $advancementNumber = $advIndex + 1; // Convert 0-based to 1-based
+                        
+                        $saveAction->execute(
+                            characterId: $character->id,
+                            level: (int) $level,
+                            advancementNumber: $advancementNumber,
+                            advancementType: $advancement['type'] ?? 'unknown',
+                            advancementData: $advancement,
+                            description: $this->getAdvancementDescription($advancement)
+                        );
+                    }
+                }
+            }
+            
+            // Save tier achievement experiences (special advancement type)
+            if (isset($advancementsData['creation_tier_experiences'])) {
+                foreach ($advancementsData['creation_tier_experiences'] as $level => $experience) {
+                    // Tier experiences are saved as a special advancement at advancement_number 0
+                    $saveAction->execute(
+                        characterId: $character->id,
+                        level: (int) $level,
+                        advancementNumber: 0, // Special slot for tier experiences
+                        advancementType: 'tier_experience',
+                        advancementData: $experience,
+                        description: $experience['name'] ?? 'Tier Achievement Experience'
+                    );
+                }
+            }
+            
+            // Save domain cards from level-based selections (levels 2+)
+            if (isset($advancementsData['creation_domain_cards'])) {
+                foreach ($advancementsData['creation_domain_cards'] as $level => $domainCard) {
+                    // Domain cards are saved as special advancements at advancement_number -1
+                    $saveAction->execute(
+                        characterId: $character->id,
+                        level: (int) $level,
+                        advancementNumber: -1, // Special slot for domain cards
+                        advancementType: 'domain_card',
+                        advancementData: $domainCard,
+                        description: "Domain Card: {$domainCard['name']}"
+                    );
+                }
+            }
+            
+            // Save advancement-granted domain cards (bonus cards from "Additional Domain Card" advancement)
+            if (isset($advancementsData['creation_advancement_cards'])) {
+                foreach ($advancementsData['creation_advancement_cards'] as $advKey => $domainCard) {
+                    // Parse advKey like "adv_3_0" to get level
+                    preg_match('/adv_(\d+)_(\d+)/', $advKey, $matches);
+                    if (count($matches) === 3) {
+                        $level = (int) $matches[1];
+                        $advNumber = (int) $matches[2];
+                        
+                        // Save as special advancement type at advancement_number -2, -3, etc.
+                        $saveAction->execute(
+                            characterId: $character->id,
+                            level: $level,
+                            advancementNumber: -2 - $advNumber, // -2, -3, etc for multiple bonus cards
+                            advancementType: 'bonus_domain_card',
+                            advancementData: $domainCard,
+                            description: "Bonus Domain Card: {$domainCard['name']}"
+                        );
+                    }
+                }
+            }
+            
+            toast()
+                ->success('Character advancements saved successfully!')
+                ->push();
+                
+        } catch (\Exception $e) {
+            logger()->error('Failed to save character advancements', [
+                'character_key' => $this->storage_key,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            toast()
+                ->danger('Failed to save advancements: ' . $e->getMessage())
+                ->push();
+        }
+    }
+    
+    /**
+     * Load character advancements from database
+     * Returns them in the JavaScript format for the character builder
+     */
+    public function loadCharacterAdvancements(): array
+    {
+        try {
+            $character = Character::where('character_key', $this->storage_key)->firstOrFail();
+            $repository = app(\Domain\Character\Repositories\CharacterAdvancementRepository::class);
+            
+            $advancements = $repository->getForCharacter($character->id);
+            
+            // Transform database records into JavaScript format
+            $creation_advancements = [];
+            $creation_tier_experiences = [];
+            $creation_domain_cards = [];
+            $creation_advancement_cards = [];
+            
+            foreach ($advancements as $advancement) {
+                $level = $advancement->level;
+                $advNumber = $advancement->advancement_number;
+                $data = $advancement->advancement_data;
+                
+                // Handle different advancement types based on advancement_number
+                if ($advNumber === 0) {
+                    // Tier achievement experience
+                    $creation_tier_experiences[$level] = $data;
+                } elseif ($advNumber === -1) {
+                    // Domain card (level-based)
+                    $creation_domain_cards[$level] = $data;
+                } elseif ($advNumber < -1) {
+                    // Bonus domain card (advancement-granted)
+                    // Reconstruct the advKey from the advancement
+                    $bonusIndex = abs($advNumber) - 2; // -2 becomes 0, -3 becomes 1, etc.
+                    $advKey = "adv_{$level}_{$bonusIndex}";
+                    $creation_advancement_cards[$advKey] = $data;
+                } else {
+                    // Regular advancement (advancement_number 1 or 2)
+                    if (!isset($creation_advancements[$level])) {
+                        $creation_advancements[$level] = [];
+                    }
+                    $creation_advancements[$level][] = $data;
+                }
+            }
+            
+            return [
+                'creation_advancements' => $creation_advancements,
+                'creation_tier_experiences' => $creation_tier_experiences,
+                'creation_domain_cards' => $creation_domain_cards,
+                'creation_advancement_cards' => $creation_advancement_cards,
+            ];
+            
+        } catch (\Exception $e) {
+            logger()->error('Failed to load character advancements', [
+                'character_key' => $this->storage_key,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return [
+                'creation_advancements' => [],
+                'creation_tier_experiences' => [],
+                'creation_domain_cards' => [],
+                'creation_advancement_cards' => [],
+            ];
+        }
+    }
+    
+    /**
+     * Generate a human-readable description for an advancement
+     */
+    private function getAdvancementDescription(array $advancement): string
+    {
+        $type = $advancement['type'] ?? 'unknown';
+        
+        return match($type) {
+            'trait_bonus' => 'Trait Bonus: ' . implode(', ', $advancement['traits'] ?? []),
+            'hit_point' => 'Hit Point Increase',
+            'evasion' => 'Evasion Increase',
+            'stress' => 'Stress Slot Increase',
+            'stress_slot' => 'Stress Slot Increase',
+            'experience_bonus' => 'Experience Bonus: ' . implode(', ', $advancement['experiences'] ?? []),
+            'domain_card' => 'Additional Domain Card',
+            'proficiency' => 'Proficiency Increase',
+            'subclass_upgrade' => 'Subclass Tier Upgrade',
+            'multiclass' => 'Multiclass: ' . ($advancement['class'] ?? 'Unknown'),
+            default => ucfirst(str_replace('_', ' ', $type))
+        };
     }
 
     // Currently only used once in connection-creation.blade.php - consider using saveToDatabase() directly

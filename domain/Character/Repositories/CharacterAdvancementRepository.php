@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Domain\Character\Repositories;
 
-use Domain\Character\Data\CharacterAdvancementData;
 use Domain\Character\Models\Character;
 use Domain\Character\Models\CharacterAdvancement;
 use Illuminate\Support\Collection;
@@ -13,133 +12,132 @@ class CharacterAdvancementRepository
 {
     /**
      * Get all advancements for a character
+     *
+     * @return Collection<CharacterAdvancement>
      */
-    public function getCharacterAdvancements(int $character_id): Collection
+    public function getForCharacter(int $characterId): Collection
     {
-        return CharacterAdvancement::where('character_id', $character_id)
-            ->orderBy('tier')
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->orderBy('level')
+            ->orderBy('advancement_number')
+            ->get();
+    }
+
+    /**
+     * Get advancements for a specific level
+     *
+     * @return Collection<CharacterAdvancement>
+     */
+    public function getForLevel(int $characterId, int $level): Collection
+    {
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', $level)
             ->orderBy('advancement_number')
             ->get();
     }
 
     /**
      * Get advancements for a specific tier
+     *
+     * @return Collection<CharacterAdvancement>
      */
-    public function getAdvancementsForTier(int $character_id, int $tier): Collection
+    public function getForTier(int $characterId, int $tier): Collection
     {
-        return CharacterAdvancement::where('character_id', $character_id)
+        return CharacterAdvancement::where('character_id', $characterId)
             ->where('tier', $tier)
+            ->orderBy('level')
             ->orderBy('advancement_number')
             ->get();
     }
 
     /**
-     * Get available advancement slots for a tier
+     * Get advancements up to a specific level (inclusive)
+     *
+     * @return Collection<CharacterAdvancement>
      */
-    public function getAvailableSlots(int $character_id, int $level): array
+    public function getUpToLevel(int $characterId, int $maxLevel): Collection
     {
-        $existing = $this->getAdvancementsForLevel($character_id, $level);
-        $used_slots = $existing->pluck('advancement_number')->toArray();
-
-        $available_slots = [];
-        for ($i = 1; $i <= 2; $i++) {
-            if (! in_array($i, $used_slots)) {
-                $available_slots[] = $i;
-            }
-        }
-
-        return $available_slots;
-    }
-    
-    /**
-     * Get advancements for a specific character level
-     */
-    public function getAdvancementsForLevel(int $character_id, int $level): Collection
-    {
-        return CharacterAdvancement::where('character_id', $character_id)
-            ->where('level', $level)
-            ->get()
-            ->map(fn ($advancement) => CharacterAdvancementData::from($advancement));
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', '<=', $maxLevel)
+            ->orderBy('level')
+            ->orderBy('advancement_number')
+            ->get();
     }
 
     /**
-     * Check if character can advance to next level
+     * Get advancements of a specific type for a character
+     *
+     * @return Collection<CharacterAdvancement>
      */
-    public function canLevelUp(Character $character): bool
+    public function getByType(int $characterId, string $advancementType): Collection
     {
-        $target_level = $character->level + 1;
-        
-        // Character cannot level up beyond level 10
-        if ($target_level > 10) {
-            return false;
-        }
-        
-        $available_slots = $this->getAvailableSlots($character->id, $target_level);
-
-        // Character can level up if they have advancement slots available for their next level
-        return count($available_slots) > 0;
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('advancement_type', $advancementType)
+            ->orderBy('level')
+            ->get();
     }
 
     /**
-     * Get advancement selection counts by type across all tiers
+     * Get advancements of a specific type for a tier
+     *
+     * @return Collection<CharacterAdvancement>
      */
-    public function getAdvancementCounts(int $character_id): array
+    public function getByTypeForTier(int $characterId, string $advancementType, int $tier): Collection
     {
-        $advancements = $this->getCharacterAdvancements($character_id);
-        $counts = [];
-
-        foreach ($advancements as $advancement) {
-            $type = $advancement->advancement_type;
-            if (! isset($counts[$type])) {
-                $counts[$type] = 0;
-            }
-            $counts[$type]++;
-        }
-
-        return $counts;
-    }
-
-    /**
-     * Get advancement selections for a specific type and tier
-     */
-    public function getAdvancementCountsForTier(int $character_id, int $tier, string $type): int
-    {
-        return CharacterAdvancement::where('character_id', $character_id)
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('advancement_type', $advancementType)
             ->where('tier', $tier)
-            ->where('advancement_type', $type)
+            ->orderBy('level')
+            ->get();
+    }
+
+    /**
+     * Find a specific advancement
+     */
+    public function find(int $characterId, int $level, int $advancementNumber): ?CharacterAdvancement
+    {
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', $level)
+            ->where('advancement_number', $advancementNumber)
+            ->first();
+    }
+
+    /**
+     * Check if an advancement exists at a level/slot
+     */
+    public function exists(int $characterId, int $level, int $advancementNumber): bool
+    {
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', $level)
+            ->where('advancement_number', $advancementNumber)
+            ->exists();
+    }
+
+    /**
+     * Count advancements at a specific level
+     */
+    public function countForLevel(int $characterId, int $level): int
+    {
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', $level)
             ->count();
     }
 
     /**
-     * Check if a specific advancement type has been selected in a tier
+     * Get all trait bonuses for a character (aggregated)
+     * Returns array like ['agility' => 2, 'strength' => 1]
      */
-    public function hasAdvancementInTier(int $character_id, int $tier, string $type): bool
+    public function getTraitBonuses(int $characterId): array
     {
-        return $this->getAdvancementCountsForTier($character_id, $tier, $type) > 0;
-    }
+        $advancements = $this->getByType($characterId, 'trait_bonus');
 
-    /**
-     * Get trait bonuses from all advancements
-     */
-    public function getTraitBonuses(int $character_id): array
-    {
-        $advancements = CharacterAdvancement::where('character_id', $character_id)
-            ->where('advancement_type', 'trait_bonus')
-            ->get();
-
-        $bonuses = [
-            'agility' => 0,
-            'strength' => 0,
-            'finesse' => 0,
-            'instinct' => 0,
-            'presence' => 0,
-            'knowledge' => 0,
-        ];
-
+        $bonuses = [];
         foreach ($advancements as $advancement) {
-            $advancement_bonuses = $advancement->getTraitBonuses();
-            foreach ($advancement_bonuses as $trait => $bonus) {
-                $bonuses[$trait] += $bonus;
+            $traits = $advancement->advancement_data['traits'] ?? [];
+            $bonus = $advancement->advancement_data['bonus'] ?? 1;
+
+            foreach ($traits as $trait) {
+                $bonuses[$trait] = ($bonuses[$trait] ?? 0) + $bonus;
             }
         }
 
@@ -149,75 +147,121 @@ class CharacterAdvancementRepository
     /**
      * Get total evasion bonus from advancements
      */
-    public function getEvasionBonus(int $character_id): int
+    public function getEvasionBonus(int $characterId): int
     {
-        return (int) (CharacterAdvancement::where('character_id', $character_id)
+        return CharacterAdvancement::where('character_id', $characterId)
             ->where('advancement_type', 'evasion')
-            ->sum('advancement_data->bonus') ?? 0);
+            ->sum('advancement_data->bonus') ?? 0;
     }
 
     /**
      * Get total hit point bonus from advancements
      */
-    public function getHitPointBonus(int $character_id): int
+    public function getHitPointBonus(int $characterId): int
     {
-        return (int) (CharacterAdvancement::where('character_id', $character_id)
+        return CharacterAdvancement::where('character_id', $characterId)
             ->where('advancement_type', 'hit_point')
-            ->sum('advancement_data->bonus') ?? 0);
+            ->sum('advancement_data->bonus') ?? 0;
     }
 
     /**
      * Get total stress bonus from advancements
      */
-    public function getStressBonus(int $character_id): int
+    public function getStressBonus(int $characterId): int
     {
-        return (int) (CharacterAdvancement::where('character_id', $character_id)
+        return CharacterAdvancement::where('character_id', $characterId)
             ->where('advancement_type', 'stress')
-            ->sum('advancement_data->bonus') ?? 0);
+            ->sum('advancement_data->bonus') ?? 0;
     }
 
     /**
      * Get total proficiency bonus from advancements
      */
-    public function getProficiencyBonus(int $character_id): int
+    public function getProficiencyBonus(int $characterId): int
     {
-        return (int) (CharacterAdvancement::where('character_id', $character_id)
+        return CharacterAdvancement::where('character_id', $characterId)
             ->where('advancement_type', 'proficiency')
-            ->sum('advancement_data->bonus') ?? 0);
+            ->sum('advancement_data->bonus') ?? 0;
     }
 
     /**
-     * Get marked traits (traits that have been advanced and can't be advanced again until tier achievement clears them)
+     * Get all experience bonuses for a character
+     * Returns array like ['Tactics' => 1, 'Survival' => 2]
      */
-    public function getMarkedTraits(Character $character): array
+    public function getExperienceBonuses(int $characterId): array
     {
-        $trait_advancements = CharacterAdvancement::where('character_id', $character->id)
-            ->where('advancement_type', 'trait_bonus')
-            ->get();
+        $advancements = $this->getByType($characterId, 'experience_bonus');
 
-        $marked_traits = [];
-        $current_tier = $character->getTier();
+        $bonuses = [];
+        foreach ($advancements as $advancement) {
+            $experiences = $advancement->advancement_data['experiences'] ?? [];
+            $bonus = $advancement->advancement_data['bonus'] ?? 1;
 
-        foreach ($trait_advancements as $advancement) {
-            $advancement_tier = $advancement->tier;
-            $traits = $advancement->advancement_data['traits'] ?? [];
-
-            // Traits are marked if they were advanced in current tier or later
-            // Tier achievements at levels 5 and 8 clear marks
-            $trait_cleared = false;
-            if ($character->level >= 8 && $advancement_tier <= 3) {
-                $trait_cleared = true; // Level 8 achievement clears tier 1-3 marks
-            } elseif ($character->level >= 5 && $advancement_tier <= 2) {
-                $trait_cleared = true; // Level 5 achievement clears tier 1-2 marks
-            }
-
-            if (! $trait_cleared) {
-                foreach ($traits as $trait) {
-                    $marked_traits[] = $trait;
-                }
+            foreach ($experiences as $experience) {
+                $bonuses[$experience] = ($bonuses[$experience] ?? 0) + $bonus;
             }
         }
 
-        return array_unique($marked_traits);
+        return $bonuses;
+    }
+
+    /**
+     * Get tier achievement experiences
+     * Returns array like [2 => ['name' => 'Tactics', 'description' => '...'], ...]
+     */
+    public function getTierExperiences(int $characterId): array
+    {
+        $advancements = $this->getByType($characterId, 'tier_experience');
+
+        $experiences = [];
+        foreach ($advancements as $advancement) {
+            $experiences[$advancement->level] = [
+                'name' => $advancement->advancement_data['name'] ?? '',
+                'description' => $advancement->advancement_data['description'] ?? '',
+            ];
+        }
+
+        return $experiences;
+    }
+
+    /**
+     * Get additional domain cards granted by advancements
+     *
+     * @return Collection<CharacterAdvancement>
+     */
+    public function getDomainCardAdvancements(int $characterId): Collection
+    {
+        return $this->getByType($characterId, 'domain_card');
+    }
+
+    /**
+     * Delete all advancements for a character at a specific level
+     */
+    public function deleteForLevel(int $characterId, int $level): int
+    {
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', $level)
+            ->delete();
+    }
+
+    /**
+     * Delete all advancements for a character above a specific level
+     */
+    public function deleteAboveLevel(int $characterId, int $level): int
+    {
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', '>', $level)
+            ->delete();
+    }
+
+    /**
+     * Delete a specific advancement
+     */
+    public function delete(int $characterId, int $level, int $advancementNumber): bool
+    {
+        return CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', $level)
+            ->where('advancement_number', $advancementNumber)
+            ->delete() > 0;
     }
 }

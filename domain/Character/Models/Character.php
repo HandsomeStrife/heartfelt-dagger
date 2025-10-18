@@ -49,6 +49,7 @@ class Character extends Model
         'is_public' => 'boolean',
         'level' => 'integer',
         'proficiency' => 'integer',
+        'starting_level' => 'integer',
     ];
 
     /**
@@ -661,12 +662,10 @@ class Character extends Model
             $bonuses['subclass'] = $subclass_bonus;
         }
 
-        // Advancement bonuses
+        // Advancement bonuses - each evasion advancement grants +1
         $advancement_bonus = $this->advancements
             ->where('advancement_type', 'evasion')
-            ->sum(function ($advancement) {
-                return $advancement->advancement_data['bonus'] ?? 0;
-            });
+            ->count(); // Each evasion advancement = +1
 
         if ($advancement_bonus > 0) {
             $bonuses['advancements'] = $advancement_bonus;
@@ -694,12 +693,10 @@ class Character extends Model
             $bonuses['subclass'] = $subclass_bonus;
         }
 
-        // Advancement bonuses
+        // Advancement bonuses - each hit_point advancement grants +1 HP
         $advancement_bonus = $this->advancements
             ->where('advancement_type', 'hit_point')
-            ->sum(function ($advancement) {
-                return $advancement->advancement_data['bonus'] ?? 0;
-            });
+            ->count(); // Each hit_point advancement = +1 HP
 
         if ($advancement_bonus > 0) {
             $bonuses['advancements'] = $advancement_bonus;
@@ -727,12 +724,11 @@ class Character extends Model
             $bonuses['subclass'] = $subclass_bonus;
         }
 
-        // Advancement bonuses
+        // Advancement bonuses - each stress advancement grants +1 stress slot
+        // Note: 'stress_slot' and 'stress' are treated as the same advancement type
         $advancement_bonus = $this->advancements
-            ->where('advancement_type', 'stress')
-            ->sum(function ($advancement) {
-                return $advancement->advancement_data['bonus'] ?? 0;
-            });
+            ->whereIn('advancement_type', ['stress', 'stress_slot'])
+            ->count(); // Each stress advancement = +1 stress slot
 
         if ($advancement_bonus > 0) {
             $bonuses['advancements'] = $advancement_bonus;

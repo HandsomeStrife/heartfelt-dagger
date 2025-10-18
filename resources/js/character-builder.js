@@ -18,6 +18,15 @@ export function characterBuilderComponent($wire, gameData = {}) {
         experiences: $wire.entangle('character.experiences'),
         clank_bonus_experience: $wire.entangle('character.clank_bonus_experience'),
         
+        // Higher-level character creation properties
+        starting_level: $wire.entangle('character.starting_level'),
+        creation_advancements: $wire.entangle('character.creation_advancements'),
+        creation_tier_experiences: $wire.entangle('character.creation_tier_experiences'),
+        creation_domain_cards: $wire.entangle('character.creation_domain_cards'),
+        // Initialize creation_advancement_cards as empty object
+        // Entangling happens after initialization
+        creation_advancement_cards: {},
+        
         // Client-side experience editing properties
         new_experience_name: '',
         new_experience_description: '',
@@ -61,9 +70,21 @@ export function characterBuilderComponent($wire, gameData = {}) {
         /**
          * Initialize the component
          */
-        init() {
+        async init() {
             this.hasSelectedAncestry = !!this.selected_ancestry;
             this.hasSelectedCommunity = !!this.selected_community;
+            
+            // Entangle creation_advancement_cards after component is initialized
+            this.$nextTick(() => {
+                if (this.$wire && this.$wire.entangle) {
+                    try {
+                        this.creation_advancement_cards = this.$wire.entangle('character.creation_advancement_cards');
+                    } catch (e) {
+                        console.warn('Could not entangle creation_advancement_cards:', e);
+                        this.creation_advancement_cards = {};
+                    }
+                }
+            });
             
             // Initialize image uploader
             if (window.SimpleImageUploader) {
@@ -73,6 +94,11 @@ export function characterBuilderComponent($wire, gameData = {}) {
                 });
             } else {
                 console.error('SimpleImageUploader not available on window');
+            }
+            
+            // Load advancements from database for existing characters
+            if (this.starting_level > 1) {
+                await this.loadAdvancementsFromDatabase();
             }
             
             // Capture initial state for unsaved changes tracking
@@ -428,6 +454,22 @@ export function characterBuilderComponent($wire, gameData = {}) {
             // Check if this is a Clank bonus experience (gets +1 additional)
             if (this.selected_ancestry === 'clank' && this.clank_bonus_experience === experienceName) {
                 modifier += 1;
+            }
+            
+            // Check for advancement bonuses (+1 for each experience_bonus advancement selection)
+            if (this.creation_advancements) {
+                for (const level in this.creation_advancements) {
+                    const advancements = this.creation_advancements[level];
+                    if (Array.isArray(advancements)) {
+                        advancements.forEach(adv => {
+                            if (adv && adv.type === 'experience_bonus' && adv.experiences) {
+                                if (adv.experiences.includes(experienceName)) {
+                                    modifier += 1;
+                                }
+                            }
+                        });
+                    }
+                }
             }
             
             return modifier;
@@ -1019,10 +1061,362 @@ export function characterBuilderComponent($wire, gameData = {}) {
             // NOTE: No manual sync needed - entangled properties handle server sync automatically
         },
 
+        /**
+         * Select a domain card for a specific level (accordion-based selection)
+         * Level 1 uses selected_domain_cards (max 2)
+         * Levels 2+ use creation_domain_cards[level] (1 per level)
+         */
+        selectDomainCardForLevel(level, domain, abilityKey, abilityData) {
+            if (level === 1) {
+                // Level 1: Use existing selected_domain_cards array (max 2 cards)
+                const existingIndex = this.selected_domain_cards.findIndex(card => 
+                    card.domain === domain && card.ability_key === abilityKey
+                );
+
+                if (existingIndex !== -1) {
+                    // Remove if already selected
+                    this.selected_domain_cards.splice(existingIndex, 1);
+                } else if (this.selected_domain_cards.length < 2) {
+                    // Add if we have space (max 2 for level 1)
+                    this.selected_domain_cards.push({
+                        domain: domain,
+                        ability_key: abilityKey,
+                        ability_level: abilityData.level || 1,
+                        name: abilityData.name || abilityKey,
+                        ability_data: abilityData
+                    });
+                }
+            } else {
+                // Levels 2+: Use creation_domain_cards object
+                if (!this.creation_domain_cards) {
+                    this.creation_domain_cards = {};
+                }
+
+                // Check if this card is already selected for this level
+                if (this.creation_domain_cards[level] && 
+                    this.creation_domain_cards[level].ability_key === abilityKey) {
+                    // Remove if clicking the same card
+                    delete this.creation_domain_cards[level];
+                } else {
+                    // Set/replace card for this level (only 1 card per level)
+                    this.creation_domain_cards[level] = {
+                        domain: domain,
+                        ability_key: abilityKey,
+                        ability_level: abilityData.level || 1,
+                        name: abilityData.name || abilityKey,
+                        ability_data: abilityData
+                    };
+                }
+            }
+
+            this.markAsUnsaved();
+            
+            // Trigger reactivity for creation_domain_cards object
+            this.creation_domain_cards = { ...this.creation_domain_cards };
+        },
+
+        /**
+         * Select a domain card for an advancement-granted slot
+         * Uses creation_advancement_cards[advKey] for storage
+         */
+        selectAdvancementDomainCard(advKey, domain, abilityKey, abilityData) {
+            if (!this.creation_advancement_cards) {
+                this.creation_advancement_cards = {};
+            }
+
+            // Check if this card is already selected for this advancement
+            if (this.creation_advancement_cards[advKey] && 
+                this.creation_advancement_cards[advKey].ability_key === abilityKey) {
+                // Remove if clicking the same card
+                delete this.creation_advancement_cards[advKey];
+            } else {
+                // Set/replace card for this advancement (only 1 card per advancement)
+                this.creation_advancement_cards[advKey] = {
+                    domain: domain,
+                    ability_key: abilityKey,
+                    ability_level: abilityData.level || 1,
+                    name: abilityData.name || abilityKey,
+                    ability_data: abilityData
+                };
+            }
+
+            this.markAsUnsaved();
+            
+            // Trigger reactivity for creation_advancement_cards object
+            this.creation_advancement_cards = { ...this.creation_advancement_cards };
+        },
+
+        /**
+         * Get the traits selected via trait_bonus advancements for a specific tier
+         * Returns a flat array of trait names that have been boosted in this tier
+         * 
+         * @param {number} tier - Tier number (2, 3, or 4)
+         * @returns {Array<string>} Array of trait names (e.g., ['agility', 'strength'])
+         */
+        getTierTraitSelections(tier) {
+            if (!this.creation_advancements || !this.starting_level) {
+                return [];
+            }
+
+            // Determine level range for this tier
+            const tierRanges = {
+                2: [2, 3, 4],
+                3: [5, 6, 7],
+                4: [8, 9, 10]
+            };
+
+            const levelRange = tierRanges[tier] || [];
+            const traitNames = [];
+
+            // Iterate through levels in this tier
+            for (const level of levelRange) {
+                if (level > this.starting_level) break;
+
+                const levelAdvancements = this.creation_advancements[level] || [];
+                
+                // Collect traits from trait_bonus advancements
+                levelAdvancements.forEach(advancement => {
+                    if (advancement && advancement.type === 'trait_bonus' && advancement.traits) {
+                        // Add all selected traits from this advancement
+                        advancement.traits.forEach(trait => {
+                            if (trait && !traitNames.includes(trait)) {
+                                traitNames.push(trait);
+                            }
+                        });
+                    }
+                });
+            }
+
+            return traitNames;
+        },
+
+        /**
+         * Get trait bonus advancements for a specific tier
+         * Returns an array of { level, advIndex, advancement } objects
+         * 
+         * @param {number} tier - Tier number (2, 3, or 4)
+         * @returns {Array<{level: number, advIndex: number, advancement: object}>}
+         */
+        getTraitBonusAdvancementsForTier(tier) {
+            if (!this.creation_advancements || !this.starting_level) {
+                return [];
+            }
+
+            const tierRanges = {
+                2: [2, 3, 4],
+                3: [5, 6, 7],
+                4: [8, 9, 10]
+            };
+
+            const levelRange = tierRanges[tier] || [];
+            const bonusAdvancements = [];
+
+            for (const level of levelRange) {
+                if (level > this.starting_level) break;
+
+                const levelAdvancements = this.creation_advancements[level] || [];
+                
+                levelAdvancements.forEach((advancement, advIndex) => {
+                    if (advancement && advancement.type === 'trait_bonus') {
+                        bonusAdvancements.push({
+                            level: level,
+                            advIndex: advIndex,
+                            advancement: advancement
+                        });
+                    }
+                });
+            }
+
+            return bonusAdvancements;
+        },
+
+        /**
+         * Get the selected trait for a specific advancement slot
+         * 
+         * @param {number} level - Level of the advancement
+         * @param {number} advIndex - Index of the advancement
+         * @param {number} slotIndex - Slot index (0 or 1)
+         * @returns {string|null} Selected trait name or null
+         */
+        getTraitBonusSelection(level, advIndex, slotIndex) {
+            const advancement = this.creation_advancements[level]?.[advIndex];
+            if (!advancement || advancement.type !== 'trait_bonus') {
+                return null;
+            }
+            return advancement.traits?.[slotIndex] || null;
+        },
+
+        /**
+         * Check if a trait is selected for a specific advancement
+         * 
+         * @param {number} level - Level of the advancement
+         * @param {number} advIndex - Index of the advancement
+         * @param {string} traitName - Name of the trait
+         * @returns {boolean}
+         */
+        isTraitSelectedForBonus(level, advIndex, traitName) {
+            const advancement = this.creation_advancements[level]?.[advIndex];
+            if (!advancement || advancement.type !== 'trait_bonus' || !advancement.traits) {
+                return false;
+            }
+            return advancement.traits.includes(traitName);
+        },
+
+        /**
+         * Toggle a trait selection for a trait bonus advancement
+         * Automatically finds the right slot or deselects if already selected
+         * 
+         * @param {number} level - Level of the advancement
+         * @param {number} advIndex - Index of the advancement
+         * @param {string} traitName - Name of the trait to toggle
+         */
+        toggleTraitBonus(level, advIndex, traitName) {
+            const advancement = this.creation_advancements[level]?.[advIndex];
+            if (!advancement || advancement.type !== 'trait_bonus') {
+                return;
+            }
+
+            // Initialize traits array if needed
+            if (!advancement.traits) {
+                advancement.traits = [null, null];
+            }
+
+            // Check if trait is already selected - if so, deselect it
+            const currentIndex = advancement.traits.indexOf(traitName);
+            if (currentIndex !== -1) {
+                this.selectTraitBonus(level, advIndex, currentIndex, traitName);
+                return;
+            }
+
+            // Find first available slot
+            const firstEmptySlot = advancement.traits.indexOf(null);
+            if (firstEmptySlot !== -1) {
+                // Check if we can select this trait
+                if (this.canSelectTraitForBonus(traitName, level, advIndex, firstEmptySlot)) {
+                    this.selectTraitBonus(level, advIndex, firstEmptySlot, traitName);
+                }
+            }
+        },
+
+        /**
+         * Get marked traits for a specific tier
+         * Returns array of trait names that have been marked in this tier
+         * 
+         * @param {number} tier - Tier number (2, 3, or 4)
+         * @returns {Array<string>} Array of trait names that are marked in this tier
+         */
+        getMarkedTraitsForTier(tier) {
+            const markedTraits = [];
+            const tierRanges = {
+                2: [2, 3, 4],
+                3: [5, 6, 7],
+                4: [8, 9, 10]
+            };
+
+            const levelRange = tierRanges[tier] || [];
+
+            for (const level of levelRange) {
+                if (level > this.starting_level) break;
+
+                const levelAdvancements = this.creation_advancements[level] || [];
+                
+                levelAdvancements.forEach(advancement => {
+                    if (advancement && advancement.type === 'trait_bonus' && advancement.traits) {
+                        markedTraits.push(...advancement.traits.filter(t => t));
+                    }
+                });
+            }
+
+            return [...new Set(markedTraits)]; // Remove duplicates
+        },
+
+        /**
+         * Check if a trait can be selected for a specific tier bonus
+         * A trait cannot be selected if it's already been used in this tier
+         * 
+         * @param {string} traitName - Name of the trait (e.g., 'agility', 'strength')
+         * @param {number} level - Level where this bonus is being applied
+         * @param {number} advIndex - Index of the advancement
+         * @param {number} slotIndex - Which slot (0 or 1) in this advancement
+         * @returns {boolean} Whether the trait can be selected
+         */
+        canSelectTraitForBonus(traitName, level, advIndex, slotIndex) {
+            // Get tier for this level
+            const tier = level <= 4 ? 2 : (level <= 7 ? 3 : 4);
+            const markedTraits = this.getMarkedTraitsForTier(tier);
+            
+            // Get current selection for this specific slot
+            const currentAdvancement = this.creation_advancements[level]?.[advIndex];
+            const currentTrait = currentAdvancement?.traits?.[slotIndex];
+            
+            // If this trait is currently selected in this slot, it's selectable (for deselection)
+            if (currentTrait === traitName) {
+                return true;
+            }
+            
+            // Otherwise, check if it's already marked elsewhere in the tier
+            return !markedTraits.includes(traitName);
+        },
+
+        /**
+         * Select a trait for a specific trait bonus advancement
+         * 
+         * @param {number} level - Level of the advancement
+         * @param {number} advIndex - Index of the advancement at that level
+         * @param {number} slotIndex - Which slot (0 or 1) to set
+         * @param {string} traitName - Name of the trait to assign
+         */
+        selectTraitBonus(level, advIndex, slotIndex, traitName) {
+            if (!this.creation_advancements[level]) {
+                return;
+            }
+
+            const advancement = this.creation_advancements[level][advIndex];
+            if (!advancement || advancement.type !== 'trait_bonus') {
+                return;
+            }
+
+            // Check if we can select this trait
+            if (!this.canSelectTraitForBonus(traitName, level, advIndex, slotIndex)) {
+                return;
+            }
+
+            // Initialize traits array if needed
+            if (!advancement.traits) {
+                advancement.traits = [null, null];
+            }
+
+            // Toggle selection - if clicking the same trait, deselect it
+            if (advancement.traits[slotIndex] === traitName) {
+                advancement.traits[slotIndex] = null;
+            } else {
+                advancement.traits[slotIndex] = traitName;
+            }
+
+            // Trigger reactivity
+            this.creation_advancements = { ...this.creation_advancements };
+            this.markAsUnsaved();
+        },
+
         isDomainCardSelected(domain, abilityKey) {
             return this.selected_domain_cards.some(card => 
                 card.domain === domain && card.ability_key === abilityKey
             );
+        },
+
+        isCardSelectedAtAnyLevel(abilityKey) {
+            // Check if card is selected at level 1
+            const inLevel1 = this.selected_domain_cards.some(card => 
+                card.ability_key === abilityKey
+            );
+            
+            // Check if card is selected at any other level
+            const inOtherLevels = this.creation_domain_cards && 
+                Object.values(this.creation_domain_cards).some(card => 
+                    card && card.ability_key === abilityKey
+                );
+            
+            return inLevel1 || inOtherLevels;
         },
 
         canSelectMoreDomainCards() {
@@ -1150,7 +1544,150 @@ export function characterBuilderComponent($wire, gameData = {}) {
             this.edit_experience_description = '';
         },
 
+        // Experience Bonus Advancement methods
+        hasExperienceBonusAdvancements() {
+            if (!this.creation_advancements || typeof this.creation_advancements !== 'object') {
+                return false;
+            }
+            
+            // Check if any level has experience_bonus type advancements
+            for (const level in this.creation_advancements) {
+                const advancements = this.creation_advancements[level];
+                if (Array.isArray(advancements)) {
+                    const hasBonus = advancements.some(adv => adv && adv.type === 'experience_bonus');
+                    if (hasBonus) return true;
+                }
+            }
+            return false;
+        },
 
+        getLevelsWithExperienceBonuses() {
+            const levels = [];
+            if (!this.creation_advancements) return levels;
+            
+            for (const level in this.creation_advancements) {
+                const advancements = this.creation_advancements[level];
+                if (Array.isArray(advancements)) {
+                    const hasBonus = advancements.some(adv => adv && adv.type === 'experience_bonus');
+                    if (hasBonus) {
+                        levels.push(parseInt(level));
+                    }
+                }
+            }
+            return levels.sort((a, b) => a - b);
+        },
+
+        getExperienceBonusAdvancementIndices(level) {
+            const indices = [];
+            const advancements = this.creation_advancements[level];
+            if (!Array.isArray(advancements)) return indices;
+            
+            advancements.forEach((adv, index) => {
+                if (adv && adv.type === 'experience_bonus') {
+                    indices.push(index);
+                }
+            });
+            return indices;
+        },
+
+        getAllAvailableExperiences() {
+            const allExperiences = [];
+            
+            // Add base experiences
+            if (Array.isArray(this.experiences)) {
+                allExperiences.push(...this.experiences);
+            }
+            
+            // Add tier achievement experiences
+            if (this.creation_tier_experiences) {
+                [2, 5, 8].forEach(level => {
+                    const tierExp = this.creation_tier_experiences[level];
+                    if (tierExp && tierExp.name) {
+                        allExperiences.push(tierExp);
+                    }
+                });
+            }
+            
+            return allExperiences;
+        },
+
+        isExperienceSelectedForBonus(level, advIndex, experienceName) {
+            if (!this.creation_advancements[level]) return false;
+            const advancement = this.creation_advancements[level][advIndex];
+            if (!advancement || advancement.type !== 'experience_bonus') return false;
+            
+            const selectedExperiences = advancement.experiences || [];
+            return selectedExperiences.includes(experienceName);
+        },
+
+        toggleExperienceBonus(level, advIndex, experienceName) {
+            // Ensure structure exists
+            if (!this.creation_advancements[level]) {
+                this.creation_advancements[level] = [];
+            }
+            if (!this.creation_advancements[level][advIndex]) {
+                return;
+            }
+            
+            const advancement = this.creation_advancements[level][advIndex];
+            if (!advancement.experiences) {
+                advancement.experiences = [];
+            }
+            
+            const index = advancement.experiences.indexOf(experienceName);
+            if (index > -1) {
+                // Remove if already selected
+                advancement.experiences.splice(index, 1);
+            } else {
+                // Add if not selected and limit not reached
+                if (advancement.experiences.length < 2) {
+                    advancement.experiences.push(experienceName);
+                }
+            }
+            
+            // Trigger reactivity
+            this.creation_advancements = { ...this.creation_advancements };
+            this.markAsUnsaved();
+        },
+
+        canSelectExperienceBonus(level, advIndex, experienceName) {
+            // Can select if:
+            // 1. Already selected (to allow deselection)
+            // 2. Less than 2 experiences selected for this advancement
+            if (this.isExperienceSelectedForBonus(level, advIndex, experienceName)) {
+                return true;
+            }
+            
+            const count = this.getExperienceBonusCount(level, advIndex);
+            return count < 2;
+        },
+
+        getExperienceBonusCount(level, advIndex) {
+            if (!this.creation_advancements[level]) return 0;
+            const advancement = this.creation_advancements[level][advIndex];
+            if (!advancement || advancement.type !== 'experience_bonus') return 0;
+            
+            return (advancement.experiences || []).length;
+        },
+
+        // Trait advancement methods
+        getTierTraitSelections(tier) {
+            // Get all trait selections for a specific tier
+            const traits = [];
+            const tierStartLevel = tier === 2 ? 2 : tier === 3 ? 5 : 8;
+            const tierEndLevel = tier === 2 ? 4 : tier === 3 ? 7 : 10;
+            
+            for (let level = tierStartLevel; level <= Math.min(tierEndLevel, this.starting_level); level++) {
+                const levelAdvancements = this.creation_advancements[level] || [];
+                levelAdvancements.forEach(advancement => {
+                    if (advancement.type === 'trait_bonus' && advancement.traits) {
+                        traits.push(...advancement.traits);
+                    }
+                });
+            }
+            
+            return traits;
+        },
 
         // Background management
         markBackgroundComplete() {
@@ -1158,20 +1695,63 @@ export function characterBuilderComponent($wire, gameData = {}) {
         },
 
         // Character saving
-        saveCharacter() {
+        async saveCharacter() {
             this.isSaving = true;
             
-            // Sync data to Livewire before saving
-            this.$wire.character.selected_equipment = this.selected_equipment;
-            this.$wire.character.name = this.name;
-            this.$wire.pronouns = this.pronouns;
-            
-            this.$wire.saveToDatabase().then(() => {
+            try {
+                // Sync data to Livewire before saving
+                this.$wire.character.selected_equipment = this.selected_equipment;
+                this.$wire.character.name = this.name;
+                this.$wire.pronouns = this.pronouns;
+                
+                // Save character data first
+                await this.$wire.saveToDatabase();
+                
+                // Then save advancements if character is above level 1
+                if (this.starting_level > 1) {
+                    const advancementsData = {
+                        creation_advancements: this.creation_advancements,
+                        creation_tier_experiences: this.creation_tier_experiences,
+                        creation_domain_cards: this.creation_domain_cards,
+                        creation_advancement_cards: this.creation_advancement_cards
+                    };
+                    
+                    console.log('Saving advancements:', advancementsData);
+                    await this.$wire.saveCharacterAdvancements(advancementsData);
+                }
+                
                 // Success is handled by the character-saved event listener
-            }).catch((error) => {
+            } catch (error) {
                 console.error('Save failed:', error);
                 this.isSaving = false;
-            });
+            }
+        },
+
+        /**
+         * Load advancement selections from database when editing existing character
+         */
+        async loadAdvancementsFromDatabase() {
+            try {
+                console.log('Loading advancements from database...');
+                const data = await this.$wire.loadCharacterAdvancements();
+                
+                if (data) {
+                    // Populate client-side state with loaded data
+                    this.creation_advancements = data.creation_advancements || {};
+                    this.creation_tier_experiences = data.creation_tier_experiences || {};
+                    this.creation_domain_cards = data.creation_domain_cards || {};
+                    this.creation_advancement_cards = data.creation_advancement_cards || {};
+                    
+                    console.log('Advancements loaded:', {
+                        advancements: Object.keys(this.creation_advancements).length,
+                        tierExperiences: Object.keys(this.creation_tier_experiences).length,
+                        domainCards: Object.keys(this.creation_domain_cards).length,
+                        advancementCards: Object.keys(this.creation_advancement_cards).length
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load advancements from database:', error);
+            }
         },
 
         // Profile image management

@@ -1,59 +1,74 @@
 <!-- Domain Card Selection Step -->
-<div class="space-y-6 sm:space-y-8">
+<div class="space-y-6 sm:space-y-8" 
+     x-data="{
+         expandedLevel: {{ $character->starting_level > 1 ? 1 : 'null' }},
+         toggleLevel(level) {
+             this.expandedLevel = this.expandedLevel === level ? null : level;
+         }
+     }">
     <!-- Step Header -->
     <div class="mb-6 sm:mb-8">
         <div class="flex flex-col gap-3 sm:gap-4 mb-4">
             <div>
                 <h2 class="text-xl sm:text-2xl font-bold text-white mb-2 font-outfit">Select Domain Cards</h2>
-                <p class="text-slate-300 font-roboto text-sm sm:text-base">Choose {{ $character->getMaxDomainCards() }} starting domain card{{ $character->getMaxDomainCards() !== 1 ? 's' : '' }} from your class domains to represent your character's initial magical abilities.
-                @if($character->getMaxDomainCards() > 2)
-                    <span class="text-purple-300"> (includes {{ $character->getMaxDomainCards() - 2 }} bonus card{{ $character->getMaxDomainCards() - 2 !== 1 ? 's' : '' }} from {{ ucfirst($character->selected_subclass) }})</span>
+                @if($character->starting_level === 1)
+                    <p class="text-slate-300 font-roboto text-sm sm:text-base">Choose 2 starting domain cards from your class domains to represent your character's initial magical abilities.</p>
+                @else
+                    <p class="text-slate-300 font-roboto text-sm sm:text-base">Select domain cards for each level up to level {{ $character->starting_level }}. You'll choose 2 cards at level 1, then 1 card per level thereafter.</p>
                 @endif
-                </p>
             </div>
             
-            <!-- Level Filter Toggle -->
-            <div class="flex flex-col">
-                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                    <span class="text-sm text-slate-400">Showing level 1 cards only</span>
-                    <div class="text-xs text-slate-500">Higher level cards will be available as you advance</div>
+            @if($character->starting_level > 1)
+                <!-- Level-based Selection Info -->
+                <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                    <h4 class="text-blue-300 font-semibold mb-2 text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
+                        Card Selection Rules
+                    </h4>
+                    <ul class="space-y-1.5 text-xs text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 mt-0.5">•</span>
+                            <span><span class="font-semibold text-white">Level 1:</span> Select 2 domain cards from your class domains</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 mt-0.5">•</span>
+                            <span><span class="font-semibold text-white">Levels 2+:</span> Select 1 card at or below your current level from your class domains</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 mt-0.5">•</span>
+                            <span><span class="font-semibold text-white">Advancement Bonus:</span> If you select "Additional Domain Card" advancements, those cards appear in separate groups below</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-amber-400 mt-0.5">⚠</span>
+                            <span><span class="text-amber-300 font-semibold">Each card can only be selected once</span> - Once you choose a card at any level, it's locked and cannot be selected again</span>
+                        </li>
+                    </ul>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">Only level 1 cards available for character creation</p>
-            </div>
+            @endif
         </div>
     </div>
 
-    <!-- Step Completion Indicator (JS-first) -->
-    <template x-if="selected_domain_cards.length >= maxDomainCards">
-        <div class="my-6 p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
-            <div class="flex items-center">
-                <div class="bg-emerald-500 rounded-full p-2 mr-3">
-                    <svg class="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
-                </div>
+    <!-- Overall Progress Indicator -->
+    @if($character->starting_level > 1)
+        <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
+            <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-emerald-400 font-semibold">Domain Card Selection Complete!</p>
-                    <p class="text-slate-300 text-sm">You have selected <span x-text="selected_domain_cards.length"></span> of <span x-text="maxDomainCards"></span> domain card<span x-text="maxDomainCards !== 1 ? 's' : ''"></span> for your character.</p>
+                    <h4 class="text-white font-semibold text-sm mb-1">Card Selection Progress</h4>
+                    <p class="text-slate-400 text-xs">Select cards for each level to complete this step</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-white">
+                        <span x-text="(selected_domain_cards.length + Object.keys(creation_domain_cards || {}).length)"></span>
+                        <span class="text-slate-500">/</span>
+                        <span x-text="starting_level + 1"></span>
+                    </div>
+                    <p class="text-xs text-slate-400">cards selected</p>
                 </div>
             </div>
         </div>
-    </template>
-    <template x-if="selected_domain_cards.length >= 2 && selected_domain_cards.length < maxDomainCards">
-        <div class="my-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl">
-            <div class="flex items-center">
-                <div class="bg-purple-500 rounded-full p-2 mr-3">
-                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-purple-400 font-semibold">Minimum Cards Selected</p>
-                    <p class="text-slate-300 text-sm">You have selected <span x-text="selected_domain_cards.length"></span> of <span x-text="maxDomainCards"></span> domain cards. You can select <span x-text="maxDomainCards - selected_domain_cards.length"></span> more bonus card<span x-text="(maxDomainCards - selected_domain_cards.length) !== 1 ? 's' : ''"></span>.</p>
-                </div>
-            </div>
-        </div>
-    </template>
+    @endif
     <!-- Domain Card Guide & Selection Strategy -->
     <div class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 sm:p-6">
         <h4 class="text-purple-300 font-semibold font-outfit mb-3 text-sm sm:text-base">Understanding Domain Cards & Selection Strategy</h4>
@@ -111,15 +126,488 @@
         </template>
     </div>
 
-    <!-- Persistent Selected Count Badge (JS-first, always rendered) -->
-    <div class="mt-2 flex justify-end">
-        <span class="text-white font-bold bg-slate-700 px-2 py-1 rounded-md">
-            <span pest="domain-card-selected-count" x-text="selected_domain_cards.length"></span>/<span x-text="maxDomainCards"></span> selected
-        </span>
-    </div>
-
-    <!-- Domain Cards (Pre-rendered, visibility controlled by AlpineJS) -->
+    <!-- Level-Organized Domain Card Selection -->
     @if(!empty($game_data['domains']) && !empty($game_data['abilities']))
+        @if($character->starting_level === 1)
+            <!-- Level 1 Only (Original Flat View) -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-white font-outfit">Level 1 Domain Cards</h3>
+                    <span class="text-white font-bold bg-slate-700 px-3 py-1 rounded-md">
+                        <span pest="domain-card-selected-count" x-text="selected_domain_cards.length"></span>/2 selected
+                    </span>
+                </div>
+            </div>
+        @else
+            <!-- Multi-Level Accordion View -->
+            <div class="space-y-3">
+                @for($level = 1; $level <= $character->starting_level; $level++)
+                    @php
+                        $cardsNeeded = $level === 1 ? 2 : 1;
+                        // Get tier for color coding
+                        $tier = $level <= 1 ? 1 : ($level <= 4 ? 2 : ($level <= 7 ? 3 : 4));
+                        $tierColors = [
+                            1 => ['bg' => 'bg-blue-500/10', 'border' => 'border-blue-500/30', 'text' => 'text-blue-300'],
+                            2 => ['bg' => 'bg-emerald-500/10', 'border' => 'border-emerald-500/30', 'text' => 'text-emerald-300'],
+                            3 => ['bg' => 'bg-purple-500/10', 'border' => 'border-purple-500/30', 'text' => 'text-purple-300'],
+                            4 => ['bg' => 'bg-amber-500/10', 'border' => 'border-amber-500/30', 'text' => 'text-amber-300'],
+                        ];
+                        $tierColor = $tierColors[$tier];
+                    @endphp
+                    
+                    <div class="border {{ $tierColor['border'] }} {{ $tierColor['bg'] }} rounded-lg overflow-hidden">
+                        <!-- Level Header (Clickable) -->
+                        <button 
+                            @click="toggleLevel({{ $level }})"
+                            class="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="{{ $tierColor['text'] }} font-bold text-lg">Level {{ $level }}</span>
+                                    @if($tier > 1)
+                                        <span class="text-xs px-2 py-0.5 rounded {{ $tierColor['bg'] }} {{ $tierColor['border'] }} border {{ $tierColor['text'] }} font-semibold">
+                                            Tier {{ $tier }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <span class="text-sm text-slate-400">
+                                    (Select {{ $cardsNeeded }} card{{ $cardsNeeded > 1 ? 's' : '' }})
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <!-- Selection Status -->
+                                <div class="text-sm">
+                                    @if($level === 1)
+                                        <span x-show="selected_domain_cards.length >= 2" class="text-emerald-400 font-semibold">✓ Complete</span>
+                                        <span x-show="selected_domain_cards.length < 2" class="text-slate-400">
+                                            <span x-text="selected_domain_cards.length"></span>/2 selected
+                                        </span>
+                                    @else
+                                        <span x-show="creation_domain_cards && creation_domain_cards[{{ $level }}]" class="text-emerald-400 font-semibold">✓ Complete</span>
+                                        <span x-show="!creation_domain_cards || !creation_domain_cards[{{ $level }}]" class="text-slate-400">
+                                            0/1 selected
+                                        </span>
+                                    @endif
+                                </div>
+                                <!-- Chevron Icon -->
+                                <svg 
+                                    class="w-5 h-5 text-slate-400 transition-transform"
+                                    :class="{'rotate-180': expandedLevel === {{ $level }}}"
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
+                        </button>
+                        
+                        <!-- Level Content (Collapsible) -->
+                        <div 
+                            x-show="expandedLevel === {{ $level }}"
+                            x-collapse
+                            class="border-t {{ $tierColor['border'] }}">
+                            <div class="p-4 space-y-4">
+                                @php
+                                    // Get maximum level for card availability
+                                    $maxCardLevel = $level;
+                                    
+                                    // Get already selected cards across all levels
+                                    $alreadySelectedKeys = collect($character->selected_domain_cards)
+                                        ->pluck('ability_key')
+                                        ->merge(
+                                            collect($character->creation_domain_cards ?? [])
+                                                ->values() // Get all values (card objects) from the level-indexed array
+                                                ->pluck('ability_key')
+                                        )
+                                        ->unique()
+                                        ->filter() // Remove any null/empty values
+                                        ->toArray();
+                                    
+                                    // Get class domains
+                                    $classDomains = !empty($character->selected_class) && isset($game_data['classes'][$character->selected_class]['domains'])
+                                        ? $game_data['classes'][$character->selected_class]['domains']
+                                        : [];
+                                    
+                                    // Filter available cards for this level
+                                    $availableCards = collect($game_data['abilities'] ?? [])
+                                        ->filter(function($ability, $key) use ($classDomains, $maxCardLevel, $alreadySelectedKeys) {
+                                            $abilityLevel = $ability['level'] ?? 1;
+                                            return in_array($ability['domain'] ?? '', $classDomains) &&
+                                                   $abilityLevel <= $maxCardLevel &&
+                                                   !in_array($key, $alreadySelectedKeys);
+                                        })
+                                        ->groupBy('domain');
+                                    
+                                    // Check if this level has a selection
+                                    $levelSelection = $level === 1 
+                                        ? collect($character->selected_domain_cards)
+                                        : collect($character->creation_domain_cards ?? [])->get($level);
+                                    
+                                    $cardsNeededForLevel = $level === 1 ? 2 : 1;
+                                    $currentSelectionCount = $level === 1 
+                                        ? count($character->selected_domain_cards)
+                                        : ($levelSelection ? 1 : 0);
+                                @endphp
+                                
+                                @if($availableCards->isEmpty() && $currentSelectionCount < $cardsNeededForLevel)
+                                    <div class="text-center py-8 text-slate-400">
+                                        <p class="text-sm">No cards available at this level.</p>
+                                        <p class="text-xs mt-1">All cards may have been selected at previous levels.</p>
+                                    </div>
+                                @else
+                                    <!-- Show selected card(s) for this level -->
+                                    @if($currentSelectionCount > 0)
+                                        <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-3 mb-4">
+                                            <h5 class="text-white font-semibold text-sm mb-2">
+                                                Selected for Level {{ $level }}:
+                                            </h5>
+                                            <div class="flex flex-wrap gap-2">
+                                                @if($level === 1)
+                                                    @foreach($character->selected_domain_cards as $card)
+                                                        <span class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300 text-sm">
+                                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                            </svg>
+                                                            {{ $card['name'] ?? ucwords(str_replace('-', ' ', $card['ability_key'])) }}
+                                                        </span>
+                                                    @endforeach
+                                                @elseif($levelSelection)
+                                                    <span class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300 text-sm">
+                                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        {{ $levelSelection['name'] ?? ucwords(str_replace('-', ' ', $levelSelection['ability_key'])) }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                    <!-- Domain card selection grid -->
+                                    @foreach($availableCards as $domainKey => $domainCards)
+                                        <div class="space-y-3">
+                                            <h5 class="text-white font-semibold text-sm">
+                                                {{ ucfirst($domainKey) }} Domain Cards
+                                                <span class="text-slate-400 font-normal text-xs ml-2">
+                                                    ({{ $domainCards->count() }} available)
+                                                </span>
+                                            </h5>
+                                            
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                @foreach($domainCards as $abilityKey => $abilityData)
+                                                    @php
+                                                        // Map domain colors
+                                                        $domainColors = [
+                                                            'valor' => '#e2680e',
+                                                            'splendor' => '#b8a342', 
+                                                            'sage' => '#244e30',
+                                                            'midnight' => '#1e201f',
+                                                            'grace' => '#8d3965',
+                                                            'codex' => '#24395d',
+                                                            'bone' => '#a4a9a8',
+                                                            'blade' => '#af231c',
+                                                            'arcana' => '#4e345b',
+                                                            'dread' => '#1e201f',
+                                                        ];
+                                                        $domainColor = $domainColors[$domainKey] ?? '#24395d';
+                                                    @endphp
+                                                    
+                                                    <!-- Domain Card -->
+                                                    <div 
+                                                        x-data="{ ability: @js($abilityData), level: {{ $level }} }"
+                                                        @click="selectDomainCardForLevel({{ $level }}, '{{ $domainKey }}', '{{ $abilityKey }}', ability)"
+                                                        :class="{
+                                                            'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg flex flex-col touch-manipulation min-h-[380px]': true,
+                                                            'border-emerald-500 ring-4 ring-emerald-500/50 shadow-xl shadow-emerald-500/25': isCardSelectedAtAnyLevel('{{ $abilityKey }}'),
+                                                            'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20': !isCardSelectedAtAnyLevel('{{ $abilityKey }}')
+                                                        }"
+                                                        wire:key="level-{{ $level }}-{{ $domainKey }}-{{ $abilityKey }}">
+                                                        
+                                                        <!-- Card content structure (simplified from existing) -->
+                                                        <div class="relative min-h-[100px] flex flex-col items-center justify-end bg-slate-900 w-full overflow-hidden rounded-t-xl p-4">
+                                                            <div class="w-full">
+                                                                <h5 class="text-white font-black font-outfit text-lg leading-tight uppercase">
+                                                                    {{ $abilityData['name'] ?? ucwords(str_replace('-', ' ', $abilityKey)) }}
+                                                                </h5>
+                                                                <div class="text-xs font-bold uppercase tracking-wide mt-1" style="color: {{ $domainColor }}">
+                                                                    {{ $abilityData['type'] ?? 'ability' }}
+                                                                    <span class="ml-2 px-1.5 py-0.5 text-[10px] rounded bg-slate-600/60 text-slate-200">Lvl {{ $abilityData['level'] ?? 1 }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Card Content -->
+                                                        <div class="flex flex-col relative px-4 py-4 text-sm text-white flex-1">
+                                                            <div class="flex-1 text-white text-sm leading-relaxed">
+                                                                @if(isset($abilityData['descriptions']) && is_array($abilityData['descriptions']))
+                                                                    @foreach($abilityData['descriptions'] as $description)
+                                                                        <p class="mb-2">{{ $description }}</p>
+                                                                    @endforeach
+                                                                @elseif(isset($abilityData['description']))
+                                                                    <p>{{ $abilityData['description'] }}</p>
+                                                                @endif
+                                                            </div>
+                                                            
+                                                                    <!-- Domain Label -->
+                                                                    <div class="mt-auto pt-3 text-center">
+                                                                        <span class="inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md" style="background-color: {{ $domainColor }}; color: white;">
+                                                                            {{ ucfirst($domainKey) }} Domain
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                                
+                                                                <!-- Selection indicator -->
+                                                                <template x-if="isCardSelectedAtAnyLevel('{{ $abilityKey }}')">
+                                                                    <div class="absolute top-4 right-4 z-50">
+                                                                        <div class="bg-emerald-500 rounded-full p-1.5 shadow-lg ring-2 ring-white">
+                                                                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                                            </svg>
+                                                                        </div>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endfor
+                        
+                        <!-- Advancement-Granted Domain Cards -->
+                        @if($character->starting_level > 1)
+                            @for($level = 2; $level <= $character->starting_level; $level++)
+                                @php
+                                    // Check if this level has any "domain_card" advancements
+                                    $levelAdvancements = $character->creation_advancements[$level] ?? [];
+                                    $domainCardAdvancements = collect($levelAdvancements)->filter(fn($adv) => 
+                                        isset($adv['type']) && $adv['type'] === 'domain_card'
+                                    );
+                                    
+                                    if ($domainCardAdvancements->isEmpty()) {
+                                        continue;
+                                    }
+                                    
+                                    // Get tier for color coding
+                                    $tier = $level <= 1 ? 1 : ($level <= 4 ? 2 : ($level <= 7 ? 3 : 4));
+                                    $tierColors = [
+                                        1 => ['bg' => 'bg-blue-500/10', 'border' => 'border-blue-500/30', 'text' => 'text-blue-300'],
+                                        2 => ['bg' => 'bg-emerald-500/10', 'border' => 'border-emerald-500/30', 'text' => 'text-emerald-300'],
+                                        3 => ['bg' => 'bg-purple-500/10', 'border' => 'border-purple-500/30', 'text' => 'text-purple-300'],
+                                        4 => ['bg' => 'bg-amber-500/10', 'border' => 'border-amber-500/30', 'text' => 'text-amber-300'],
+                                    ];
+                                    $tierColor = $tierColors[$tier];
+                                @endphp
+                                
+                                @foreach($domainCardAdvancements as $advIndex => $advancement)
+                                    @php
+                                        // Create unique key for this advancement card
+                                        $advKey = "adv_{$level}_{$advIndex}";
+                                        
+                                        // Get already selected cards across all levels + advancements
+                                        $alreadySelectedKeys = collect($character->selected_domain_cards)
+                                            ->pluck('ability_key')
+                                            ->merge(
+                                                collect($character->creation_domain_cards ?? [])
+                                                    ->values()
+                                                    ->pluck('ability_key')
+                                            )
+                                            ->merge(
+                                                collect($character->creation_advancement_cards ?? [])
+                                                    ->values()
+                                                    ->pluck('ability_key')
+                                            )
+                                            ->unique()
+                                            ->filter()
+                                            ->toArray();
+                                        
+                                        // Get class domains
+                                        $classDomains = !empty($character->selected_class) && isset($game_data['classes'][$character->selected_class]['domains'])
+                                            ? $game_data['classes'][$character->selected_class]['domains']
+                                            : [];
+                                        
+                                        // Filter available cards (max level = current level)
+                                        $availableCards = collect($game_data['abilities'] ?? [])
+                                            ->filter(function($ability, $key) use ($classDomains, $level, $alreadySelectedKeys) {
+                                                $abilityLevel = $ability['level'] ?? 1;
+                                                return in_array($ability['domain'] ?? '', $classDomains) &&
+                                                       $abilityLevel <= $level &&
+                                                       !in_array($key, $alreadySelectedKeys);
+                                            })
+                                            ->groupBy('domain');
+                                        
+                                        // Check if this advancement has a selection
+                                        $advSelection = collect($character->creation_advancement_cards ?? [])->get($advKey);
+                                    @endphp
+                                    
+                                    <div class="border {{ $tierColor['border'] }} {{ $tierColor['bg'] }} rounded-lg overflow-hidden mt-3">
+                                        <!-- Advancement Header -->
+                                        <button 
+                                            @click="toggleLevel('{{ $advKey }}')"
+                                            class="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex items-center gap-2">
+                                                    <svg class="w-5 h-5 {{ $tierColor['text'] }}" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                    </svg>
+                                                    <span class="{{ $tierColor['text'] }} font-bold text-sm">Tier {{ $tier }} Advancement</span>
+                                                    <span class="text-xs px-2 py-0.5 rounded {{ $tierColor['bg'] }} {{ $tierColor['border'] }} border {{ $tierColor['text'] }} font-semibold">
+                                                        Level {{ $level }}
+                                                    </span>
+                                                </div>
+                                                <span class="text-sm text-slate-400">
+                                                    (Select 1 card)
+                                                </span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <!-- Selection Status -->
+                                                <div class="text-sm">
+                                                    <span x-show="creation_advancement_cards && creation_advancement_cards['{{ $advKey }}']" class="text-emerald-400 font-semibold">✓ Complete</span>
+                                                    <span x-show="!creation_advancement_cards || !creation_advancement_cards['{{ $advKey }}']" class="text-slate-400">
+                                                        0/1 selected
+                                                    </span>
+                                                </div>
+                                                <!-- Chevron Icon -->
+                                                <svg 
+                                                    class="w-5 h-5 text-slate-400 transition-transform"
+                                                    :class="{'rotate-180': expandedLevel === '{{ $advKey }}'}"
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                </svg>
+                                            </div>
+                                        </button>
+                                        
+                                        <!-- Advancement Content (Collapsible) -->
+                                        <div 
+                                            x-show="expandedLevel === '{{ $advKey }}'"
+                                            x-collapse
+                                            class="border-t {{ $tierColor['border'] }}">
+                                            <div class="p-4 space-y-4">
+                                                @if($advSelection)
+                                                    <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-3 mb-4">
+                                                        <h5 class="text-white font-semibold text-sm mb-2">
+                                                            Selected for Tier {{ $tier }} Advancement:
+                                                        </h5>
+                                                        <div class="flex flex-wrap gap-2">
+                                                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-300 text-sm">
+                                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                                </svg>
+                                                                {{ $advSelection['name'] ?? ucwords(str_replace('-', ' ', $advSelection['ability_key'])) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                                
+                                                @if($availableCards->isEmpty())
+                                                    <div class="text-center py-8 text-slate-400">
+                                                        <p class="text-sm">No cards available for this advancement.</p>
+                                                        <p class="text-xs mt-1">All cards may have been selected at other levels.</p>
+                                                    </div>
+                                                @else
+                                                    <!-- Domain card selection grid -->
+                                                    @foreach($availableCards as $domainKey => $domainCards)
+                                                        <div class="space-y-3">
+                                                            <h5 class="text-white font-semibold text-sm">
+                                                                {{ ucfirst($domainKey) }} Domain Cards
+                                                                <span class="text-slate-400 font-normal text-xs ml-2">
+                                                                    ({{ $domainCards->count() }} available)
+                                                                </span>
+                                                            </h5>
+                                                            
+                                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                @foreach($domainCards as $abilityKey => $abilityData)
+                                                                    @php
+                                                                        $domainColors = [
+                                                                            'valor' => '#e2680e',
+                                                                            'splendor' => '#b8a342', 
+                                                                            'sage' => '#244e30',
+                                                                            'midnight' => '#1e201f',
+                                                                            'grace' => '#8d3965',
+                                                                            'codex' => '#24395d',
+                                                                            'bone' => '#a4a9a8',
+                                                                            'blade' => '#af231c',
+                                                                            'arcana' => '#4e345b',
+                                                                            'dread' => '#1e201f',
+                                                                        ];
+                                                                        $domainColor = $domainColors[$domainKey] ?? '#24395d';
+                                                                    @endphp
+                                                                    
+                                                                    <!-- Simplified Domain Card -->
+                                                                    <div 
+                                                                        x-data="{ ability: @js($abilityData), advKey: '{{ $advKey }}' }"
+                                                                        @click="selectAdvancementDomainCard('{{ $advKey }}', '{{ $domainKey }}', '{{ $abilityKey }}', ability)"
+                                                                        :class="{
+                                                                            'relative group cursor-pointer transition-all duration-200 transform hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] bg-slate-900 border-2 rounded-xl overflow-hidden shadow-lg flex flex-col touch-manipulation min-h-[340px]': true,
+                                                                            'border-emerald-500 ring-4 ring-emerald-500/50 shadow-xl shadow-emerald-500/25': creation_advancement_cards && creation_advancement_cards['{{ $advKey }}'] && creation_advancement_cards['{{ $advKey }}'].ability_key === '{{ $abilityKey }}',
+                                                                            'border-slate-700 hover:border-slate-600 hover:shadow-xl hover:shadow-blue-300/20': !creation_advancement_cards || !creation_advancement_cards['{{ $advKey }}'] || creation_advancement_cards['{{ $advKey }}'].ability_key !== '{{ $abilityKey }}'
+                                                                        }"
+                                                                        wire:key="adv-{{ $advKey }}-{{ $domainKey }}-{{ $abilityKey }}">
+                                                                        
+                                                                        <!-- Card Header -->
+                                                                        <div class="relative min-h-[90px] flex flex-col items-center justify-end bg-slate-900 w-full overflow-hidden rounded-t-xl p-4">
+                                                                            <div class="w-full">
+                                                                                <h5 class="text-white font-black font-outfit text-base leading-tight uppercase">
+                                                                                    {{ $abilityData['name'] ?? ucwords(str_replace('-', ' ', $abilityKey)) }}
+                                                                                </h5>
+                                                                                <div class="text-xs font-bold uppercase tracking-wide mt-1" style="color: {{ $domainColor }}">
+                                                                                    {{ $abilityData['type'] ?? 'ability' }}
+                                                                                    <span class="ml-2 px-1.5 py-0.5 text-[10px] rounded bg-slate-600/60 text-slate-200">Lvl {{ $abilityData['level'] ?? 1 }}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <!-- Card Content -->
+                                                                        <div class="flex flex-col relative px-4 py-3 text-sm text-white flex-1">
+                                                                            <div class="flex-1 text-white text-xs leading-relaxed">
+                                                                                @if(isset($abilityData['descriptions']) && is_array($abilityData['descriptions']))
+                                                                                    @foreach($abilityData['descriptions'] as $description)
+                                                                                        <p class="mb-2">{{ $description }}</p>
+                                                                                    @endforeach
+                                                                                @elseif(isset($abilityData['description']))
+                                                                                    <p>{{ $abilityData['description'] }}</p>
+                                                                                @endif
+                                                                            </div>
+                                                                            
+                                                                            <!-- Domain Label -->
+                                                                            <div class="mt-auto pt-3 text-center">
+                                                                                <span class="inline-flex items-center px-2 py-1 text-[10px] font-bold uppercase tracking-widest rounded-md" style="background-color: {{ $domainColor }}; color: white;">
+                                                                                    {{ ucfirst($domainKey) }} Domain
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                        
+                                                                        <!-- Selection indicator -->
+                                                                        <template x-if="creation_advancement_cards && creation_advancement_cards['{{ $advKey }}'] && creation_advancement_cards['{{ $advKey }}'].ability_key === '{{ $abilityKey }}'">
+                                                                            <div class="absolute top-4 right-4 z-50">
+                                                                                <div class="bg-emerald-500 rounded-full p-1.5 shadow-lg ring-2 ring-white">
+                                                                                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                                                    </svg>
+                                                                                </div>
+                                                                            </div>
+                                                                        </template>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endfor
+                        @endif
+                    </div>
+                @endif
+        
+        <!-- Old flat view for level 1 only -->
+        @if($character->starting_level === 1)
         @foreach($game_data['domains'] as $domainKey => $domainInfo)
             @php
                 // Get level 1 abilities for this domain (character creation only)
@@ -281,6 +769,8 @@
                 </div>
             @endif
         @endforeach
+        @endif
+        <!-- End level 1 flat view -->
     @else
         <div class="text-center py-12 bg-slate-800/30 rounded-xl border border-slate-700/50">
             <div class="text-slate-400">

@@ -187,6 +187,11 @@
             </div>
         </div>
 
+        <!-- Advancement Panel (Visible for Level 2+) -->
+        <x-character-builder.advancement-panel 
+            :starting_level="$character->starting_level"
+        />
+
         <!-- Main Layout with Sidebar -->
         <div class="flex flex-col lg:flex-row gap-4 lg:gap-8">
             <!-- Left Sidebar Navigation -->

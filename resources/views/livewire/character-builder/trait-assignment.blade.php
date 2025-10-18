@@ -217,4 +217,236 @@
             </div>
         </template>
     </div>
+
+    <!-- Tier-Based Trait Advancements (For Level 2+) -->
+    <template x-if="starting_level > 1">
+        <div class="mt-8 pt-8 border-t border-slate-700">
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-white mb-2 font-outfit">Trait Advancements</h3>
+                <p class="text-slate-300 text-sm mb-4">
+                    When you select "Trait Bonus" advancements in the advancement panel, you can increase your character's traits here.
+                </p>
+                
+                <!-- Tier Marking Explanation -->
+                <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                    <h4 class="text-blue-300 font-semibold mb-2 text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
+                        Tier Marking Rules
+                    </h4>
+                    <ul class="space-y-1.5 text-xs text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 mt-0.5">•</span>
+                            <span><span class="font-semibold text-white">Each advancement:</span> Select 2 traits to increase by +1</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-400 mt-0.5">•</span>
+                            <span><span class="font-semibold text-white">Tier boundaries:</span> Tier 2 (Levels 2-4), Tier 3 (Levels 5-7), Tier 4 (Levels 8-10)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-amber-400 mt-0.5">⚠</span>
+                            <span><span class="text-amber-300 font-semibold">Marking restriction:</span> A trait can only be marked once per tier - Once you increase a trait at any level within a tier, you cannot select it again until the next tier</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-emerald-400 mt-0.5">✓</span>
+                            <span><span class="font-semibold text-white">Marks clear:</span> All trait marks clear at the start of each new tier (Levels 2, 5, and 8)</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tier 2 (Levels 2-4) -->
+            <template x-if="starting_level >= 2">
+                <div class="mb-6">
+                    <div class="bg-emerald-900/20 border border-emerald-500/30 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-emerald-300 font-bold font-outfit text-lg">Tier 2 Trait Advancements (Levels 2-4)</h4>
+                            <span class="text-xs text-slate-400">Marks cleared at Level 5</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <template x-if="getTraitBonusAdvancementsForTier(2).length === 0">
+                                <p class="text-slate-400 text-sm italic">No trait bonus advancements selected for Tier 2. Select them in the advancement panel above.</p>
+                            </template>
+                            
+                            <!-- Loop through each trait bonus advancement -->
+                            <template x-for="(bonus, bonusIdx) in getTraitBonusAdvancementsForTier(2)" :key="'tier2-bonus-' + bonus.level + '-' + bonus.advIndex">
+                                <div class="bg-slate-800/50 border border-slate-600/50 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                            <span class="text-emerald-300 font-bold font-outfit" x-text="'Level ' + bonus.level + ' - Trait Bonus'"></span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">
+                                            <span x-text="(bonus.advancement.traits || []).filter(t => t).length"></span> / 2 selected
+                                        </span>
+                                    </div>
+
+                                    <p class="text-slate-300 text-sm mb-3">Select 2 traits to receive +1 bonus:</p>
+
+                                    <!-- Trait Selection Grid -->
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        <template x-for="[traitKey, traitInfo] in Object.entries(traitsData)" :key="'trait-' + bonus.level + '-' + bonus.advIndex + '-' + traitKey">
+                                            <button
+                                                type="button"
+                                                @click="toggleTraitBonus(bonus.level, bonus.advIndex, traitKey)"
+                                                :disabled="!canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1) && !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)"
+                                                :class="{
+                                                    'px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-left flex items-center justify-between': true,
+                                                    'bg-emerald-500/20 border-2 border-emerald-400 text-white': isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey),
+                                                    'bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500 cursor-pointer': !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey) && (canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) || canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1)),
+                                                    'bg-slate-800/50 border border-slate-700 text-slate-500 cursor-not-allowed opacity-50': !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1) && !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)
+                                                }"
+                                            >
+                                                <span class="capitalize" x-text="traitKey"></span>
+                                                <template x-if="isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)">
+                                                    <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </template>
+                                                <template x-if="!isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey) && (!canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1))">
+                                                    <span class="text-xs text-slate-600">Marked</span>
+                                                </template>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Tier 3 (Levels 5-7) -->
+            <template x-if="starting_level >= 5">
+                <div class="mb-6">
+                    <div class="bg-purple-900/20 border border-purple-500/30 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-purple-300 font-bold font-outfit text-lg">Tier 3 Trait Advancements (Levels 5-7)</h4>
+                            <span class="text-xs text-slate-400">Marks cleared at Level 8</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <template x-if="getTraitBonusAdvancementsForTier(3).length === 0">
+                                <p class="text-slate-400 text-sm italic">No trait bonus advancements selected for Tier 3. Select them in the advancement panel above.</p>
+                            </template>
+                            
+                            <!-- Loop through each trait bonus advancement -->
+                            <template x-for="(bonus, bonusIdx) in getTraitBonusAdvancementsForTier(3)" :key="'tier3-bonus-' + bonus.level + '-' + bonus.advIndex">
+                                <div class="bg-slate-800/50 border border-slate-600/50 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                            <span class="text-purple-300 font-bold font-outfit" x-text="'Level ' + bonus.level + ' - Trait Bonus'"></span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">
+                                            <span x-text="(bonus.advancement.traits || []).filter(t => t).length"></span> / 2 selected
+                                        </span>
+                                    </div>
+
+                                    <p class="text-slate-300 text-sm mb-3">Select 2 traits to receive +1 bonus:</p>
+
+                                    <!-- Trait Selection Grid -->
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        <template x-for="[traitKey, traitInfo] in Object.entries(traitsData)" :key="'trait-' + bonus.level + '-' + bonus.advIndex + '-' + traitKey">
+                                            <button
+                                                type="button"
+                                                @click="toggleTraitBonus(bonus.level, bonus.advIndex, traitKey)"
+                                                :disabled="!canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1) && !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)"
+                                                :class="{
+                                                    'px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-left flex items-center justify-between': true,
+                                                    'bg-purple-500/20 border-2 border-purple-400 text-white': isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey),
+                                                    'bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500 cursor-pointer': !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey) && (canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) || canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1)),
+                                                    'bg-slate-800/50 border border-slate-700 text-slate-500 cursor-not-allowed opacity-50': !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1) && !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)
+                                                }"
+                                            >
+                                                <span class="capitalize" x-text="traitKey"></span>
+                                                <template x-if="isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)">
+                                                    <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </template>
+                                                <template x-if="!isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey) && (!canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1))">
+                                                    <span class="text-xs text-slate-600">Marked</span>
+                                                </template>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Tier 4 (Levels 8-10) -->
+            <template x-if="starting_level >= 8">
+                <div class="mb-6">
+                    <div class="bg-amber-900/20 border border-amber-500/30 rounded-xl p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-amber-300 font-bold font-outfit text-lg">Tier 4 Trait Advancements (Levels 8-10)</h4>
+                            <span class="text-xs text-slate-400">Final tier</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <template x-if="getTraitBonusAdvancementsForTier(4).length === 0">
+                                <p class="text-slate-400 text-sm italic">No trait bonus advancements selected for Tier 4. Select them in the advancement panel above.</p>
+                            </template>
+                            
+                            <!-- Loop through each trait bonus advancement -->
+                            <template x-for="(bonus, bonusIdx) in getTraitBonusAdvancementsForTier(4)" :key="'tier4-bonus-' + bonus.level + '-' + bonus.advIndex">
+                                <div class="bg-slate-800/50 border border-slate-600/50 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                            <span class="text-amber-300 font-bold font-outfit" x-text="'Level ' + bonus.level + ' - Trait Bonus'"></span>
+                                        </div>
+                                        <span class="text-xs text-slate-400">
+                                            <span x-text="(bonus.advancement.traits || []).filter(t => t).length"></span> / 2 selected
+                                        </span>
+                                    </div>
+
+                                    <p class="text-slate-300 text-sm mb-3">Select 2 traits to receive +1 bonus:</p>
+
+                                    <!-- Trait Selection Grid -->
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                        <template x-for="[traitKey, traitInfo] in Object.entries(traitsData)" :key="'trait-' + bonus.level + '-' + bonus.advIndex + '-' + traitKey">
+                                            <button
+                                                type="button"
+                                                @click="toggleTraitBonus(bonus.level, bonus.advIndex, traitKey)"
+                                                :disabled="!canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1) && !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)"
+                                                :class="{
+                                                    'px-3 py-2 rounded-lg font-medium text-sm transition-all duration-200 text-left flex items-center justify-between': true,
+                                                    'bg-amber-500/20 border-2 border-amber-400 text-white': isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey),
+                                                    'bg-slate-700/50 border border-slate-600 text-slate-300 hover:bg-slate-600/50 hover:border-slate-500 cursor-pointer': !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey) && (canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) || canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1)),
+                                                    'bg-slate-800/50 border border-slate-700 text-slate-500 cursor-not-allowed opacity-50': !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1) && !isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)
+                                                }"
+                                            >
+                                                <span class="capitalize" x-text="traitKey"></span>
+                                                <template x-if="isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey)">
+                                                    <svg class="w-4 h-4 text-amber-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </template>
+                                                <template x-if="!isTraitSelectedForBonus(bonus.level, bonus.advIndex, traitKey) && (!canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 0) && !canSelectTraitForBonus(traitKey, bonus.level, bonus.advIndex, 1))">
+                                                    <span class="text-xs text-slate-600">Marked</span>
+                                                </template>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </template>
 </div>
