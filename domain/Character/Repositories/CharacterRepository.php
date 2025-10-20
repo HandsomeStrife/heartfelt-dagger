@@ -43,7 +43,7 @@ class CharacterRepository
      */
     public function findByKey(string $key): ?CharacterData
     {
-        $character = Character::where('character_key', $key)->first();
+        $character = Character::with('traits')->where('character_key', $key)->first();
 
         if (! $character) {
             return null;
@@ -57,7 +57,7 @@ class CharacterRepository
      */
     public function findByPublicKey(string $public_key): ?CharacterData
     {
-        $character = Character::where('public_key', $public_key)->first();
+        $character = Character::with('traits')->where('public_key', $public_key)->first();
 
         if (! $character) {
             return null;
@@ -71,7 +71,7 @@ class CharacterRepository
      */
     public function findByKeyWithStatus(string $key): ?array
     {
-        $character = Character::with('status')->where('character_key', $key)->first();
+        $character = Character::with(['status', 'traits'])->where('character_key', $key)->first();
 
         if (! $character) {
             return null;
@@ -91,7 +91,7 @@ class CharacterRepository
      */
     public function findByPublicKeyWithStatus(string $public_key): ?array
     {
-        $character = Character::with('status')->where('public_key', $public_key)->first();
+        $character = Character::with(['status', 'traits'])->where('public_key', $public_key)->first();
 
         if (! $character) {
             return null;

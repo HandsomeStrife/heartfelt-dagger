@@ -150,7 +150,7 @@ class CharacterViewer extends Component
         }
 
         // Get the Character model to access advancement bonus methods
-        $character_model = Character::where('character_key', $this->character_key)->first();
+        $character_model = Character::with('traits')->where('character_key', $this->character_key)->first();
         if (! $character_model) {
             // Fallback to basic stats if no model found
             return [
@@ -234,7 +234,7 @@ class CharacterViewer extends Component
     public function getFormattedTraitValue(string $trait): string
     {
         // Get the Character model to access effective trait values including advancement bonuses
-        $character_model = Character::where('character_key', $this->character_key)->first();
+        $character_model = Character::with('traits')->where('character_key', $this->character_key)->first();
         if (! $character_model) {
             // Fallback to basic traits if no model found
             $traits_array = $this->character->traits->toArray();
@@ -256,7 +256,7 @@ class CharacterViewer extends Component
         $trait_names = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
 
         // Get the Character model to access effective trait values including advancement bonuses
-        $character_model = Character::where('character_key', $this->character_key)->first();
+        $character_model = Character::with('traits')->where('character_key', $this->character_key)->first();
         if (! $character_model) {
             // Fallback to basic traits if no model found
             $traits_array = $this->character->traits->toArray();
@@ -569,7 +569,7 @@ class CharacterViewer extends Component
         }
 
         // Find the character model to access the level-up logic
-        $character_model = Character::where('character_key', $this->character_key)->first();
+        $character_model = Character::with('traits')->where('character_key', $this->character_key)->first();
         if (! $character_model) {
             return false;
         }
@@ -596,7 +596,7 @@ class CharacterViewer extends Component
             $this->advancement_repository = new CharacterAdvancementRepository;
         }
 
-        $character_model = Character::where('character_key', $this->character_key)->first();
+        $character_model = Character::with('traits')->where('character_key', $this->character_key)->first();
         if (! $character_model) {
             return [
                 'can_level_up' => false,
@@ -626,7 +626,7 @@ class CharacterViewer extends Component
      */
     public function getFormattedAdvancements(): array
     {
-        $character_model = Character::where('character_key', $this->character_key)->first();
+        $character_model = Character::with('traits')->where('character_key', $this->character_key)->first();
         if (!$character_model) {
             return [];
         }
@@ -658,7 +658,7 @@ class CharacterViewer extends Component
      */
     public function getFormattedTierExperiences(): array
     {
-        $character_model = Character::where('character_key', $this->character_key)->first();
+        $character_model = Character::with('traits')->where('character_key', $this->character_key)->first();
         if (!$character_model) {
             return [];
         }
@@ -695,7 +695,7 @@ class CharacterViewer extends Component
      */
     public function getFormattedDomainCards(): array
     {
-        $character_model = Character::where('character_key', $this->character_key)->first();
+        $character_model = Character::with('traits')->where('character_key', $this->character_key)->first();
         if (!$character_model) {
             return [];
         }
@@ -754,7 +754,8 @@ class CharacterViewer extends Component
     {
         $class_data = $this->getClassData();
         $computed_stats = $this->getComputedStats();
-        ray()->send($this->character);
+        $trait_info = $this->getTraitInfo();
+        $trait_values = $this->getFormattedTraitValues();
 
         return view('livewire.character-viewer', [
             'character' => $this->character,
@@ -768,8 +769,8 @@ class CharacterViewer extends Component
             'community_data' => $this->getCommunityData(),
             'organized_equipment' => $this->getOrganizedEquipment(),
             'domain_card_details' => $this->getDomainCardDetails(),
-            'trait_info' => $this->getTraitInfo(),
-            'trait_values' => $this->getFormattedTraitValues(),
+            'trait_info' => $trait_info,
+            'trait_values' => $trait_values,
             'advancement_status' => $this->getAdvancementStatus(),
             'can_level_up' => $this->canLevelUp(),
             'proficiency_bonus' => $this->getProficiencyBonus(),

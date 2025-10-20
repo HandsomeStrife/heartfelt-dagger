@@ -44,8 +44,8 @@
             :community-data="$community_data"
             :computed-stats="$computed_stats"
             :can-edit="$can_edit"
-            :trait-info="$trait_info"
-            :trait-values="$trait_values"
+            :traitInfo="$trait_info"
+            :traitValues="$trait_values"
             :can-level-up="$can_level_up"
             :character-key="$character_key"
         />
