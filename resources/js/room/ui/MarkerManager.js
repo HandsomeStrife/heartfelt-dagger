@@ -257,13 +257,13 @@ export class MarkerManager {
     }
 
     /**
-     * Send Ably message to notify all participants about the new marker
+     * Send WebRTC signaling message to notify all participants about the new marker
      */
     sendMarkerAblyMessage(markerData) {
         console.log('🏷️ Sending signaling message for marker:', markerData);
         
         if (this.roomWebRTC.signalingManager) {
-            this.roomWebRTC.signalingManager.publishToAbly('session-marker-created', {
+            this.roomWebRTC.signalingManager.publishMessage('session-marker-created', {
                 uuid: markerData.uuid,
                 identifier: markerData.identifier,
                 creator_id: this.roomWebRTC.currentUserId,

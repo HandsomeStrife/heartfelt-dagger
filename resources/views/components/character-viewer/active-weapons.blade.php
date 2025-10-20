@@ -1,3 +1,12 @@
+@props([
+    'organizedEquipment' => [],
+    'character' => null,
+    'traitValues' => [],
+    'weaponDamageCount' => 1,
+    'primaryWeapon' => null,
+    'primaryWeaponFeature' => 'No feature present for the selected weapon.',
+])
+
 <div pest="active-weapons-section" class="lg:col-span-7 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg mt-6">
     <div class="flex items-center justify-between">
         <h2 class="text-lg font-bold">Active Weapons</h2>

@@ -81,7 +81,7 @@ try {
         // If this is a reconnection, trigger state recovery in RoomWebRTC
         if (hasConnectedBefore && window.roomWebRTC && window.roomWebRTC.isInitialized) {
             console.log('🔄 Reverb reconnected - triggering state recovery');
-            window.roomWebRTC.handleAblyReconnected(); // Keep same method name for compatibility
+            window.roomWebRTC.handleReverbReconnected();
         }
         
         hasConnectedBefore = true;
@@ -92,7 +92,7 @@ try {
         
         // Notify RoomWebRTC of disconnection
         if (window.roomWebRTC && window.roomWebRTC.isInitialized) {
-            window.roomWebRTC.handleAblyConnectionLost({ message: 'Reverb disconnected' });
+            window.roomWebRTC.handleReverbConnectionLost({ message: 'Reverb disconnected' });
         }
     });
 
@@ -101,7 +101,7 @@ try {
         
         // Notify RoomWebRTC of failure
         if (window.roomWebRTC && window.roomWebRTC.isInitialized) {
-            window.roomWebRTC.handleAblyConnectionFailed({ message: 'Reverb connection failed' });
+            window.roomWebRTC.handleReverbConnectionFailed({ message: 'Reverb connection failed' });
         }
     });
 
@@ -110,7 +110,7 @@ try {
         
         // Notify RoomWebRTC that signaling is suspended
         if (window.roomWebRTC && window.roomWebRTC.isInitialized) {
-            window.roomWebRTC.handleAblyConnectionSuspended({ message: 'Reverb unavailable' });
+            window.roomWebRTC.handleReverbConnectionSuspended({ message: 'Reverb unavailable' });
         }
     });
 

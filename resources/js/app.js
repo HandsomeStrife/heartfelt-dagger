@@ -1,5 +1,8 @@
 import './bootstrap';
 
+// Import ModuleLoader first (creates window.moduleLoader)
+import './room/utils/ModuleLoader';
+
 // Import TipTap editor setup
 import './editor';
 
@@ -16,6 +19,14 @@ window.RoomUppy = RoomUppy;
 window.RoomWebRTC = RoomWebRTC;
 window.RoomSessionInitializer = RoomSessionInitializer;
 window.VideoThumbnailGenerator = VideoThumbnailGenerator;
+
+// Register modules with ModuleLoader for reliable loading
+if (window.moduleLoader) {
+    window.moduleLoader.register('RoomWebRTC', RoomWebRTC);
+    window.moduleLoader.register('RoomUppy', RoomUppy);
+    window.moduleLoader.register('RoomSessionInitializer', RoomSessionInitializer);
+    window.moduleLoader.register('VideoThumbnailGenerator', VideoThumbnailGenerator);
+}
 
 // Create global video thumbnail generator instance
 window.videoThumbnailGenerator = new VideoThumbnailGenerator();

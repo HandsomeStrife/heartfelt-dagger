@@ -8,7 +8,32 @@
 export class UIStateManager {
     constructor(roomWebRTC) {
         this.roomWebRTC = roomWebRTC;
+        this.eventListeners = []; // Track event listeners for cleanup
         this.setupSlotEventListeners();
+    }
+    
+    /**
+     * Cleanup all event listeners
+     * Should be called when leaving the room or before page unload
+     */
+    cleanup() {
+        console.log('🧹 Cleaning up UIStateManager event listeners');
+        
+        // Remove all tracked event listeners
+        this.eventListeners.forEach(({ element, event, handler }) => {
+            element.removeEventListener(event, handler);
+        });
+        
+        this.eventListeners = [];
+        console.log('✅ UIStateManager cleanup complete');
+    }
+    
+    /**
+     * Add event listener and track it for cleanup
+     */
+    addTrackedListener(element, event, handler) {
+        element.addEventListener(event, handler);
+        this.eventListeners.push({ element, event, handler });
     }
 
     /**
@@ -168,16 +193,36 @@ export class UIStateManager {
      * Shows error message to user
      */
     showError(message, title = 'Error') {
-        // Simple alert for now - could be enhanced with custom modal
-        alert(`${title}\n\n${message}`);
+        console.error(`❌ ${title}:`, message);
+        
+        // Use Livewire toast instead of alert
+        if (window.Livewire) {
+            window.Livewire.dispatch('show-toast', {
+                type: 'error',
+                message: `${title}: ${message}`,
+                duration: 8000
+            });
+        } else {
+            console.warn('⚠️ Livewire not available for toast notification');
+        }
     }
 
     /**
      * Shows success message to user
      */
     showSuccess(message, title = 'Success') {
-        // Simple alert for now - could be enhanced with custom modal
-        alert(`${title}\n\n${message}`);
+        console.log(`✅ ${title}:`, message);
+        
+        // Use Livewire toast instead of alert
+        if (window.Livewire) {
+            window.Livewire.dispatch('show-toast', {
+                type: 'success',
+                message: `${title}: ${message}`,
+                duration: 5000
+            });
+        } else {
+            console.warn('⚠️ Livewire not available for toast notification');
+        }
     }
 
     /**

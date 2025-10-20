@@ -594,10 +594,10 @@ export class FearCountdownManager {
             // console.log(`🎭 Publishing signaling message: ${type}`, data);
             
             // Send the message to all room participants
-            this.roomWebRTC.signalingManager.publishToAbly(type, data);
+            this.roomWebRTC.signalingManager.publishMessage(type, data);
             
         } catch (error) {
-            console.error('🎭 ❌ Failed to send Ably message:', error);
+            console.error('🎭 ❌ Failed to send signaling message:', error);
         }
     }
 

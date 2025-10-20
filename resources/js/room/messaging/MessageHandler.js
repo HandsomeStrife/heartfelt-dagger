@@ -1,5 +1,5 @@
 /**
- * MessageHandler - Handles incoming Ably messages for WebRTC signaling
+ * MessageHandler - Handles incoming WebRTC signaling messages via Reverb
  * 
  * Processes different types of room messages including user presence,
  * WebRTC offers/answers, and ICE candidates.
@@ -24,11 +24,25 @@ export class MessageHandler {
     /**
      * Main message handler that routes messages to appropriate handlers
      */
-    handleAblyMessage(message) {
+    handleMessage(message) {
+        // Validate message structure
+        if (!message?.data) {
+            console.warn('⚠️ Received message without data:', message);
+            return;
+        }
+        
         const { type, data, senderId, targetPeerId } = message.data;
+        
+        // Validate required fields
+        if (!type || !senderId) {
+            console.warn('⚠️ Message missing required fields:', { type, senderId, hasData: !!data });
+            return;
+        }
 
         // Defensive: double-check targeting
-        if (targetPeerId && targetPeerId !== this.roomWebRTC.signalingManager.getCurrentPeerId()) return;
+        if (targetPeerId && targetPeerId !== this.roomWebRTC.signalingManager.getCurrentPeerId()) {
+            return;
+        }
 
         console.log('🎭 Handling room message:', type, 'from:', senderId);
 
@@ -74,7 +88,7 @@ export class MessageHandler {
         if (this.roomWebRTC.isJoined && this.roomWebRTC.currentSlotId) {
             const participantData = this.roomWebRTC.roomData.participants.find(p => p.user_id === this.roomWebRTC.currentUserId);
             // Scope reply to specific requester to reduce chatter
-            this.roomWebRTC.signalingManager.publishToAbly('user-joined', {
+            this.roomWebRTC.signalingManager.publishMessage('user-joined', {
                 slotId: this.roomWebRTC.currentSlotId,
                 participantData: participantData
             }, data.requesterId || senderId); // Use requesterId if available

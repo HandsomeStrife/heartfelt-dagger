@@ -182,24 +182,38 @@ export class SignalingManager {
         
         // Listen for WebRTC signaling messages
         this.channel.listen('.webrtc-signal', (message) => {
+            console.log('🎧 RAW MESSAGE RECEIVED:', message);
+            
             const payload = message.data || message;
             
-            if (!payload) return;
+            if (!payload) {
+                console.warn('⚠️ Empty payload received');
+                return;
+            }
+
+            console.log('📦 Payload extracted:', {
+                type: payload.type,
+                senderId: payload.senderId,
+                targetPeerId: payload.targetPeerId,
+                currentPeerId: this.currentPeerId
+            });
 
             // Ignore if message is targeted to a different peer
             if (payload.targetPeerId && payload.targetPeerId !== this.currentPeerId) {
+                console.log('🚫 Message targeted to different peer, ignoring');
                 return;
             }
 
             // Filter out our own messages
             if (payload.senderId === this.currentPeerId) {
+                console.log('🚫 Ignoring our own message');
                 return;
             }
             
-            console.log('📨 Room message type:', payload.type, 'from:', payload.senderId);
+            console.log('✅ Processing message type:', payload.type, 'from:', payload.senderId);
             
-            // Adapt to old message format for backward compatibility
-            this.roomWebRTC.messageHandler.handleAblyMessage({
+            // Adapt to message format for MessageHandler
+            this.roomWebRTC.messageHandler.handleMessage({
                 data: payload
             });
         });
@@ -347,6 +361,13 @@ export class SignalingManager {
             sequence: ++this.messageSequence // Add sequence number for drop detection
         };
 
+        console.log('📤 Sending message via HTTP:', {
+            type,
+            senderId: message.senderId,
+            targetPeerId,
+            data
+        });
+
         const response = await fetch(`/api/rooms/${this.roomWebRTC.roomData.id}/webrtc-signal`, {
             method: 'POST',
             headers: {
@@ -357,8 +378,14 @@ export class SignalingManager {
             body: JSON.stringify(message)
         });
 
+        console.log('📤 HTTP Response:', {
+            status: response.status,
+            ok: response.ok
+        });
+
         if (!response.ok) {
             const errorText = await response.text().catch(() => 'Unknown error');
+            console.error('❌ HTTP Error:', response.status, errorText);
             throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
@@ -372,12 +399,6 @@ export class SignalingManager {
         return result;
     }
 
-    /**
-     * Alias for backward compatibility with old Ably code
-     */
-    publishToAbly(type, data, targetPeerId = null) {
-        return this.publishMessage(type, data, targetPeerId);
-    }
 
     /**
      * Generates a collision-resistant peer ID

@@ -5,7 +5,7 @@
  * for DaggerHeart room sessions using a modular architecture.
  * 
  * Features:
- * - WebRTC peer-to-peer video/audio connections via Ably signaling
+ * - WebRTC peer-to-peer video/audio connections via Reverb signaling
  * - Video recording with chunked uploads (30s segments)
  * - Speech-to-text with live transcription
  * - Unified consent management for recording and STT
@@ -221,7 +221,7 @@ export default class RoomWebRTC {
                 participantData: participantData
             });
             
-            this.signalingManager.publishToAbly('user-joined', {
+            this.signalingManager.publishMessage('user-joined', {
                 slotId: slotId,
                 participantData: participantData
             }).then(() => {
@@ -297,7 +297,7 @@ export default class RoomWebRTC {
         }
 
         // Announce we're leaving
-        this.signalingManager.publishToAbly('user-left', {
+        this.signalingManager.publishMessage('user-left', {
             slotId: this.currentSlotId
         });
 
@@ -1073,13 +1073,13 @@ export default class RoomWebRTC {
     }
 
     // ===========================================
-    // ABLY CONNECTION LIFECYCLE MANAGEMENT
+    // REVERB CONNECTION LIFECYCLE MANAGEMENT
     // ===========================================
 
     /**
-     * Handles Ably connection suspension
+     * Handles Reverb connection suspension
      */
-    handleAblyConnectionSuspended(error) {
+    handleReverbConnectionSuspended(error) {
         console.warn('🔌 Signaling connection suspended - waiting for automatic reconnection');
         
         // Show warning to user via status bar
@@ -1089,9 +1089,9 @@ export default class RoomWebRTC {
     }
 
     /**
-     * Handles Ably connection loss
+     * Handles Reverb connection loss
      */
-    handleAblyConnectionLost(error) {
+    handleReverbConnectionLost(error) {
         console.error('🔌 Signaling connection lost - automatic reconnection will be attempted');
         
         // Show error to user
@@ -1101,9 +1101,9 @@ export default class RoomWebRTC {
     }
 
     /**
-     * Handles Ably connection failure
+     * Handles Reverb connection failure
      */
-    handleAblyConnectionFailed(error) {
+    handleReverbConnectionFailed(error) {
         console.error('🔌 Signaling connection failed:', error);
         
         // Show critical error to user
@@ -1113,9 +1113,9 @@ export default class RoomWebRTC {
     }
 
     /**
-     * Handles Ably reconnection after suspension/disconnection
+     * Handles Reverb reconnection after suspension/disconnection
      */
-    handleAblyReconnected() {
+    handleReverbReconnected() {
         console.log('🔌 Signaling connection restored - recovering room state');
         
         // Clear any connection warnings
@@ -1125,7 +1125,7 @@ export default class RoomWebRTC {
         
         // Step 1: Request current room state from other users
         console.log('🔄 Step 1: Requesting current room state');
-        this.signalingManager.publishToAbly('request-state', {
+        this.signalingManager.publishMessage('request-state', {
             requesterId: this.signalingManager.getCurrentPeerId()
         });
         
@@ -1135,7 +1135,7 @@ export default class RoomWebRTC {
             const participantData = this.roomData.participants.find(p => p.user_id === this.currentUserId);
             
             setTimeout(() => {
-                this.signalingManager.publishToAbly('user-joined', {
+                this.signalingManager.publishMessage('user-joined', {
                     slotId: this.currentSlotId,
                     participantData: participantData
                 });
@@ -1148,7 +1148,7 @@ export default class RoomWebRTC {
             this.verifyPeerConnections();
         }, 2000); // Delay to allow state sync
         
-        console.log('✅ Ably reconnection recovery complete');
+        console.log('✅ Reverb reconnection recovery complete');
     }
 
     /**

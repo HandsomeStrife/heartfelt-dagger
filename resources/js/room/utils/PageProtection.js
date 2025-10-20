@@ -35,7 +35,7 @@ export class PageProtection {
                 console.log('🚨 Broadcasting user-left message to other peers...');
                 try {
                     // Broadcast that we're leaving (synchronous)
-                    this.roomWebRTC.signalingManager.publishToAbly('user-left', {
+                    this.roomWebRTC.signalingManager.publishMessage('user-left', {
                         slotId: this.roomWebRTC.currentSlotId
                     });
                 } catch (error) {

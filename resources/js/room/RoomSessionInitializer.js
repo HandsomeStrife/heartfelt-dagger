@@ -22,7 +22,7 @@ export class RoomSessionInitializer {
         this.setupRecordingEventListeners();
         this.startInitialization();
     }
-    
+
     /**
      * Setup global helper functions for modal and UI management
      */
@@ -357,13 +357,67 @@ export class RoomSessionInitializer {
             this.initializeUppy();
         }
         
-        // Initialize WebRTC
+        // Initialize WebRTC with ModuleLoader
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(() => this.initializeWebRTC(), 50);
+                setTimeout(() => this.initializeWebRTCWithModuleLoader(), 50);
             });
         } else {
-            setTimeout(() => this.initializeWebRTC(), 50);
+            setTimeout(() => this.initializeWebRTCWithModuleLoader(), 50);
+        }
+    }
+    
+    /**
+     * Initialize WebRTC using ModuleLoader for reliable loading
+     */
+    async initializeWebRTCWithModuleLoader() {
+        if (!this.roomData) {
+            console.warn('⚠️ No room data found, WebRTC not initialized');
+            this.webrtcInitialized = true;
+            this.hideLoadingScreen();
+            return;
+        }
+        
+        try {
+            // Use ModuleLoader if available, otherwise fallback to polling
+            if (window.moduleLoader) {
+                console.log('📦 Using ModuleLoader to load RoomWebRTC...');
+                const RoomWebRTC = await window.moduleLoader.waitFor('RoomWebRTC', 10000);
+                this.initializeWebRTCInstance(RoomWebRTC);
+            } else {
+                console.warn('⚠️ ModuleLoader not available, using fallback method');
+                this.initializeWebRTC(); // Fallback to old polling method
+            }
+        } catch (error) {
+            console.error('❌ Failed to load RoomWebRTC:', error);
+            this.webrtcInitialized = true;
+            this.hideLoadingScreen();
+        }
+    }
+    
+    /**
+     * Initialize WebRTC instance once loaded
+     */
+    initializeWebRTCInstance(RoomWebRTC) {
+        try {
+            console.log('🎬 Initializing Room WebRTC...');
+            window.roomWebRTC = new RoomWebRTC(this.roomData);
+            
+            // Make FearCountdownManager debug methods globally accessible for testing
+            window.debugFearCountdown = () => window.roomWebRTC.fearCountdownManager.debugGmPresence();
+            window.forceShowGameState = () => window.roomWebRTC.fearCountdownManager.forceShowOverlays();
+            window.forceHideGameState = () => window.roomWebRTC.fearCountdownManager.forceHideOverlays();
+            
+            // Check consent requirements immediately upon entering the room
+            window.roomWebRTC.checkInitialConsentRequirements();
+            
+            this.webrtcInitialized = true;
+            this.hideLoadingScreen();
+            console.log('✅ Room WebRTC initialized successfully');
+        } catch (error) {
+            console.error('❌ Error initializing RoomWebRTC:', error);
+            this.webrtcInitialized = true;
+            this.hideLoadingScreen();
         }
     }
 }

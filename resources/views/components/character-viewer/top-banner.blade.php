@@ -8,6 +8,7 @@
     'computedStats' => [],
     'canEdit' => false,
     'traitInfo' => [],
+    'traitValues' => [],
     'canLevelUp' => false,
     'characterKey' => null,
 ])
