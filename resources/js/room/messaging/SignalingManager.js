@@ -210,11 +210,12 @@ export class SignalingManager {
         });
 
         this.channel.joining((user) => {
-            console.log('👋 User joining room:', user);
+            console.log('📡 Presence: User subscribed to channel:', user);
+            console.log('⚠️ NOTE: This does NOT mean they joined a video slot yet!');
         });
 
         this.channel.leaving((user) => {
-            console.log('👋 User leaving room:', user);
+            console.log('📡 Presence: User unsubscribed from channel:', user);
         });
 
         // Handle channel subscription errors

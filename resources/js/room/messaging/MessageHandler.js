@@ -85,7 +85,12 @@ export class MessageHandler {
      * Handles user joined messages
      */
     handleUserJoined(data, senderId) {
-        console.log('👋 User joined slot:', data.slotId, 'participant:', data.participantData?.character_name);
+        console.log('✅ RECEIVED user-joined message:', {
+            slotId: data.slotId,
+            senderId: senderId,
+            participantName: data.participantData?.character_name,
+            participantData: data.participantData
+        });
         
         // Update slot occupancy
         this.roomWebRTC.slotOccupants.set(data.slotId, {

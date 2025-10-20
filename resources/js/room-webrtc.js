@@ -216,9 +216,18 @@ export default class RoomWebRTC {
             this.startConsentedFeatures();
 
             // Announce our presence to the room
+            console.log('📢 SENDING user-joined message to room:', {
+                slotId: slotId,
+                participantData: participantData
+            });
+            
             this.signalingManager.publishToAbly('user-joined', {
                 slotId: slotId,
                 participantData: participantData
+            }).then(() => {
+                console.log('✅ user-joined message sent successfully');
+            }).catch((error) => {
+                console.error('❌ Failed to send user-joined message:', error);
             });
 
             // CRITICAL FIX: Use lexicographic ordering to prevent connection storms
