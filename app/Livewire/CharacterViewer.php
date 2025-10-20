@@ -607,7 +607,8 @@ class CharacterViewer extends Component
         }
 
         $current_tier = $character_model->getTier();
-        $available_slots = $this->advancement_repository->getAvailableSlots($character_model->id, $current_tier);
+        $next_level = $character_model->level + 1;
+        $available_slots = $this->advancement_repository->getAvailableSlots($character_model->id, $next_level);
         $advancements = $this->advancement_repository->getCharacterAdvancements($character_model->id);
 
         return [

@@ -264,4 +264,47 @@ class CharacterAdvancementRepository
             ->where('advancement_number', $advancementNumber)
             ->delete() > 0;
     }
+
+    /**
+     * Get available advancement slots for a character at a specific level
+     * 
+     * @return array Array of available slot numbers (1 or 2)
+     */
+    public function getAvailableSlots(int $characterId, int $level): array
+    {
+        $existingAdvancements = CharacterAdvancement::where('character_id', $characterId)
+            ->where('level', $level)
+            ->pluck('advancement_number')
+            ->toArray();
+
+        $allSlots = [1, 2];
+        return array_values(array_diff($allSlots, $existingAdvancements));
+    }
+
+    /**
+     * Check if a character can level up
+     * A character can level up if there are available slots at the next level
+     */
+    public function canLevelUp(Character $character): bool
+    {
+        $nextLevel = $character->level + 1;
+        
+        // Characters can level up to level 10
+        if ($nextLevel > 10) {
+            return false;
+        }
+
+        $availableSlots = $this->getAvailableSlots($character->id, $nextLevel);
+        return count($availableSlots) > 0;
+    }
+
+    /**
+     * Get all advancements for a character (alias for getForCharacter)
+     * 
+     * @return Collection<CharacterAdvancement>
+     */
+    public function getCharacterAdvancements(int $characterId): Collection
+    {
+        return $this->getForCharacter($characterId);
+    }
 }
