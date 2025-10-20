@@ -768,6 +768,7 @@ class CharacterViewer extends Component
             'community_data' => $this->getCommunityData(),
             'organized_equipment' => $this->getOrganizedEquipment(),
             'domain_card_details' => $this->getDomainCardDetails(),
+            'trait_info' => $this->getTraitInfo(),
             'trait_values' => $this->getFormattedTraitValues(),
             'advancement_status' => $this->getAdvancementStatus(),
             'can_level_up' => $this->canLevelUp(),
