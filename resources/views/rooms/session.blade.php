@@ -547,13 +547,24 @@
         };
         
         // Initialize room session with the RoomSessionInitializer
-        if (window.RoomSessionInitializer) {
-            window.roomSessionInitializer = new window.RoomSessionInitializer(
-                window.roomData, 
-                window.currentUserId
-            );
+        // Wait for all scripts to load before initializing
+        function initializeRoomSession() {
+            if (window.RoomSessionInitializer) {
+                window.roomSessionInitializer = new window.RoomSessionInitializer(
+                    window.roomData, 
+                    window.currentUserId
+                );
+            } else {
+                console.error('❌ RoomSessionInitializer not loaded. Please refresh the page.');
+            }
+        }
+        
+        // If DOMContentLoaded has already fired (script is deferred), initialize immediately
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeRoomSession);
         } else {
-            console.error('❌ RoomSessionInitializer not loaded. Please refresh the page.');
+            // DOM is already ready, but wait a tick to ensure Vite scripts have executed
+            setTimeout(initializeRoomSession, 0);
         }
     </script>
 
